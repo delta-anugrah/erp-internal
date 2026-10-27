@@ -3,7 +3,7 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 2 and 3 first).
 
 ## Waiting on Abel
-- [ ] After the sites exist: run Tasks 2-6's tests, re-check `docs/impor.md`'s headers against Download Template,
+- [ ] After the sites exist: run Tasks 2-6's and 9-13's tests, re-check `docs/impor.md`'s headers against Download Template,
       take the `docs/panduan/` screenshots, then Task 7 Steps 2-4 (compose boot, `cadangan.sh`, restore drill).
 - [ ] Create the two dev sites in your own terminal: `tools/setup_bench.sh sites wizard` (the permission check stops
       Claude from running `bench new-site`). Then `bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs`.
@@ -24,7 +24,7 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 - [ ] Task 8: go-live wave 1 (local dry run only)
 
 ## Part B: production and forecast
-- [ ] Task 9: Sales History
+- [~] Task 9: Sales History (written, tests not run)
 - [ ] Task 10: forecast math
 - [ ] Task 11: Fill from History
 - [ ] Task 12: production flow

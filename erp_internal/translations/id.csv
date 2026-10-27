@@ -69,3 +69,20 @@ Leave Applications to Approve,Pengajuan Cuti untuk Disetujui
 {} In Process,{} berjalan
 {} Today,{} hari ini
 {} To Approve,{} perlu disetujui
+Sales History,Riwayat Penjualan
+Planning,Perencanaan
+Month,Bulan
+Qty,Qty
+Item Name,Nama Barang
+Stock UOM,Satuan Stok
+"Any day of the month; stored as the 1st.","Tanggal berapa pun; disimpan sebagai tanggal 1."
+"Monthly quantity sold per company and item, imported from past records. One row per company, item and month.","Jumlah terjual per bulan per perusahaan dan barang, diimpor dari catatan lama. Satu baris per perusahaan, barang dan bulan."
+Qty cannot be negative.,Qty tidak boleh minus.
+Item {0} is not a stock item.,Barang {0} bukan barang stok.
+Sales history for {0} in {1} already exists.,Riwayat {0} bulan {1} sudah ada.
+Company,Perusahaan
+System Manager,System Manager
+Sales Manager,Manajer Penjualan
+Sales User,Staf Penjualan
+Manufacturing Manager,Manajer Produksi
+Manufacturing User,Staf Produksi

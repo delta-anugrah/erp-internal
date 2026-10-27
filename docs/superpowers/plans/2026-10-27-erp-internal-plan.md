@@ -864,7 +864,7 @@ Controller rules:
 - Module-level `on_doctype_update()` adds `frappe.db.add_unique("Riwayat Penjualan", ("company", "item_code",
   "bulan"), constraint_name="unik_riwayat")`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `test_bulan_jadi_tanggal_1`: 17 May 2026 is stored as 2026-05-01.
   - `test_duplikat_ditolak` (Review Focus 1): a second row for one company, item and month raises
     `frappe.UniqueValidationError`.
@@ -872,11 +872,29 @@ Controller rules:
   - `test_impor_riwayat`: `riwayat.csv` (2 items × 6 months) gives 12 rows; importing it again adds 0 rows and the
     Data Import is not "Success".
   - `test_tampilan.test_izin_per_bagian` runs again with the new `IZIN` rows.
-- [ ] **Step 2: Run them.** Expected: FAIL (the DocType doesn't exist).
-- [ ] **Step 3: Implement the DocType** (JSON by hand, `modified` bumped), the controller and `on_doctype_update`.
-  Then `bench --site erp-test.localhost migrate`.
-- [ ] **Step 4: Run them again.** Expected: OK.
-- [ ] **Step 5: Commit** `feat(perencanaan): Riwayat Penjualan, one row per company, item and month`.
+- [ ] **Step 2: Run them.** Expected: FAIL (the DocType doesn't exist). Not run: no site yet.
+- [x] **Step 3: Implement the DocType** (JSON by hand, `modified` bumped), the controller and `on_doctype_update`.
+  Then `bench --site erp-test.localhost migrate` (not run: no site yet).
+- [ ] **Step 4: Run them again.** Expected: OK. Not run: no site yet.
+- [x] **Step 5: Commit** `feat(planning): Sales History, one row per company, item and month`.
+
+**Task 9 deviations (2026-10-28, written without a site; Revision 2 names):**
+- DocType `Sales History` in module `Planning` (`erp_internal/planning/doctype/sales_history/`), test
+  `tests/test_sales_history.py`. English labels (Company, Item, Item Name, Month, Qty, Stock UOM); the description
+  and messages are English source with `id.csv` rows, like every string of ours. Title field `item_code`.
+- Permissions: **Sales User also gets full access plus import**, not only read. Penjualan's Role Profile has Sales
+  User and no Sales Manager (Task 3), and §9 says Penjualan creates Sales History. Manufacturing User reads,
+  reports and exports, as planned.
+- `SIDEBAR` adds Sales History to **Selling** too, not only Manufacturing: Penjualan has no Manufacturing module.
+  Module `Planning` has no rail entry and stays blocked in every Module Profile (`modul_aplikasi` includes it),
+  which hides navigation only; the sidebar links are gated by DocPerm.
+- The duplicate message names the month as `MM-YYYY` (`strftime`), the item in bold. New
+  `test_bukan_barang_stok_ditolak`.
+- `riwayat.csv` uses the English template headers `Company,Item,Month,Qty` and dates `15-MM-2026` (unambiguous
+  `dd-mm-yyyy`, day 15 to show the 1st-of-month rule). The importer commits, so the test cleans up its rows
+  (like `test_impor`). `tests/utils.py` gains `riwayat(company, kode, bulan, qty)` (get or create, for Tasks 11-13).
+- `id.csv` also holds the DocType's labels and its roles (`get_messages_for_app` returns both).
+
 
 ### Task 10: The forecast math (pure functions)
 

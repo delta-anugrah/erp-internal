@@ -203,3 +203,22 @@ def impor_csv(doctype: str, path: str, jenis: str = "Insert New Records", ajukan
 	frappe.db.commit()  # nosemgrep: a failed first row must not roll back the Data Import itself
 	impor.start_import()  # runs now under tests (frappe.in_test)
 	return impor.reload()
+
+
+def riwayat(company: str, kode: str, bulan: date, qty: float) -> str:
+	"""Get or create the Sales History row of `kode` in the month of `bulan`, with `qty`."""
+	from frappe.utils import get_first_day
+
+	bulan = get_first_day(bulan)
+	nama = frappe.db.get_value("Sales History", {"company": company, "item_code": kode, "bulan": bulan})
+	if nama:
+		if frappe.db.get_value("Sales History", nama, "qty") != qty:
+			frappe.db.set_value("Sales History", nama, "qty", qty)
+		return nama
+	return (
+		frappe.get_doc(
+			{"doctype": "Sales History", "company": company, "item_code": kode, "bulan": bulan, "qty": qty}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)

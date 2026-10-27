@@ -25,10 +25,10 @@ from erp_internal.tests.utils import buat_barang, buat_pelanggan, buat_pengguna,
 IZIN = {
 	"Gudang": (
 		["Item", "Stock Entry", "Stock Reconciliation", "Delivery Note", "Purchase Receipt"],
-		["Sales Order", "Purchase Order", "Work Order", "Employee"],
+		["Sales Order", "Purchase Order", "Work Order", "Employee", "Sales History"],
 	),
 	"Penjualan": (
-		["Customer", "Sales Order", "Delivery Note", "Sales Invoice", "Payment Entry"],
+		["Customer", "Sales Order", "Delivery Note", "Sales Invoice", "Payment Entry", "Sales History"],
 		["Purchase Order", "Work Order", "Stock Reconciliation"],
 	),
 	"Pembelian": (
@@ -43,6 +43,7 @@ IZIN = {
 			"Master Production Schedule",
 			"Work Order",
 			"Stock Entry",
+			"Sales History",
 		],
 		["Sales Invoice", "Purchase Order"],
 	),

@@ -11,6 +11,7 @@ Harus berurutan, karena yang belakang menunjuk yang depan:
 2. **Pelanggan** (Customer)
 3. **Pemasok** (Supplier)
 4. **Stok awal** (Stock Reconciliation), bertanggal **sehari sebelum go-live**
+5. **Riwayat penjualan** (Sales History), paling tidak 3 bulan sebelum bulan go-live
 
 ## Cara impor
 
@@ -106,6 +107,30 @@ PT Contoh Plastik,31-12-2026,Opening Stock,Temporary Opening - CPL,EMB-10,Gudang
 
 File tes `stok_awal.csv` tidak punya kolom `Posting Date`, supaya tes tidak bergantung tanggal; tanpa kolom itu
 tanggalnya hari impor.
+
+## 5. Riwayat penjualan (`riwayat.csv`)
+
+Jumlah terjual per bulan, per perusahaan dan barang, dari catatan lama. Dipakai tombol **Fill from History** di
+Sales Forecast. Riwayat **tidak** diimpor sebagai Sales Order, karena nanti terbaca sebagai order yang belum dikirim.
+
+| Kolom | Isi |
+|---|---|
+| `Company` | nama perusahaan pabrik |
+| `Item` | kode barang (barang stok) |
+| `Month` | tanggal berapa pun di bulan itu, `dd-mm-yyyy`; disimpan sebagai tanggal 1 |
+| `Qty` | jumlah terjual bulan itu, dalam **satuan stok** (Karton diubah ke Pcs dulu) |
+
+```csv
+Company,Item,Month,Qty
+PT Contoh Plastik,EMB-10,01-08-2026,2400
+```
+
+Satu perusahaan, satu barang, satu bulan = satu baris. File yang sama diimpor dua kali tidak menggandakan angka:
+baris yang sudah ada ditolak (*Sales history for EMB-10 in 08-2026 already exists.*) dan status impornya bukan
+**Success**. Mau membetulkan angka bulan yang sudah ada? Buka barisnya di **Sales History** dan ubah `Qty`, atau
+impor dengan **Import Type** `Update Existing Records`.
+
+Cek setelah impor: total per bulan di **Sales History** (Report view, group by Month) sama dengan file Samuel.
 
 ## Kalau ada yang salah
 

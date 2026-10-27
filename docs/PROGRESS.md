@@ -2,6 +2,12 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (later): Part B, Tasks 9-13, no site yet
+- Task 9: DocType `Sales History` (module `Planning`), unique per company, item and month (validate +
+  `unik_riwayat` constraint); `tests/test_sales_history.py` (5 tests), `tests/data/riwayat.csv`, `docs/impor.md`
+  section 5. Checked: `ruff check`, `ruff format --check`, `py_compile`, JSON valid, offline scan that every label,
+  role and `_()` string has an `id.csv` row. Tests not run: no site yet.
+
 ## 2026-10-28: Tasks 5, 6, 7 written, no site yet
 - Task 5: `setup._alur_jual_beli()` (order-first selling and buying, no negative stock, FIFO, perpetual inventory
   off per factory, PPN accounts and templates, not default); `tests/test_alur_jual_beli.py` (5 tests);

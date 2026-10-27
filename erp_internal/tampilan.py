@@ -36,9 +36,18 @@ LABEL = {"Accounts": "Invoicing"}
 
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden.
+# Sales History and Order Readiness (module Planning, ours) sit in Selling and Manufacturing: Planning has no
+# rail entry of its own and stays blocked in every Module Profile, and Penjualan has no Manufacturing.
 SIDEBAR = {
 	"Stock": ["Item", "Warehouse", "Stock Entry", "Stock Reconciliation", "Stock Balance", "Stock Ledger"],
-	"Selling": ["Customer", "Sales Order", "Delivery Note", "Sales Invoice", "Sales Order Analysis"],
+	"Selling": [
+		"Customer",
+		"Sales Order",
+		"Delivery Note",
+		"Sales Invoice",
+		"Sales Order Analysis",
+		"Sales History",
+	],
 	"Buying": ["Supplier", "Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice"],
 	"Manufacturing": [
 		"Sales Forecast",
@@ -47,6 +56,7 @@ SIDEBAR = {
 		"Work Order",
 		"BOM",
 		"Item Lead Time",
+		"Sales History",
 	],
 	"Accounts": [
 		"Sales Invoice",
