@@ -232,10 +232,10 @@ image on its own server.
 **Interfaces:**
 - Produces: the bench, both sites, the test command, and `../.env` read by `tools/setup_bench.sh`.
 
-- [ ] **Step 1: Check the ports.** `lsof -nP -iTCP:<p> -sTCP:LISTEN` prints nothing for 3308, 8002, 9002, 11002 and
+- [x] **Step 1: Check the ports.** `lsof -nP -iTCP:<p> -sTCP:LISTEN` prints nothing for 3308, 8002, 9002, 11002 and
   13002. If a port is taken, use the next free one and write it in CLAUDE.md.
-- [ ] **Step 2: Write `versi.json`:** `{"frappe": "v16.53.0", "erpnext": "v16.52.1", "hrms": "v16.52.0"}`.
-- [ ] **Step 3: Write `tools/setup_bench.sh`** (bash, `set -euo pipefail`). It reads `../.env` and skips each part
+- [x] **Step 2: Write `versi.json`:** `{"frappe": "v16.53.0", "erpnext": "v16.52.1", "hrms": "v16.52.0"}`.
+- [x] **Step 3: Write `tools/setup_bench.sh`** (bash, `set -euo pipefail`). It reads `../.env` and skips each part
   that already exists:
   1. Start the database: `docker run -d --name erp-mariadb --restart unless-stopped -p 127.0.0.1:3308:3306 -e
      MARIADB_ROOT_PASSWORD -v erp-mariadb:/var/lib/mysql mariadb:11.8.9 --character-set-server=utf8mb4
@@ -257,7 +257,7 @@ image on its own server.
   - Company "PT Contoh Plastik", abbreviation CPL (DATA CONTOH).
   - Write these values in README.md.
   - `erp-test.localhost` is completed by ERPNext's `before_tests` on the first test run.
-- [ ] **Step 6: Write `test_situs.py`:**
+- [x] **Step 6: Write `test_situs.py`:**
 
 ```python
 class TestSitus(IntegrationTestCase):
@@ -272,7 +272,7 @@ class TestSitus(IntegrationTestCase):
 
 - [ ] **Step 7: Run the tests.** `bench --site erp-test.localhost run-tests --module
   erp_internal.tests.test_situs`. Expected: 2 tests OK.
-- [ ] **Step 8: Write the docs.**
+- [x] **Step 8: Write the docs.**
   - CLAUDE.md (at most 80 lines): what the project is and why, paths, commands, the Global Constraints, links to the
     spec and plan.
   - README.md: setup with the script, the wizard values, the test command.
@@ -282,6 +282,21 @@ class TestSitus(IntegrationTestCase):
   - `git mv`/copy the spec and plan into `docs/superpowers/`.
 - [ ] **Step 9: Commit** `chore: scaffold erp_internal on pinned Frappe/ERPNext/HRMS v16`. Push only after Abel
   creates or approves `delta-anugrah/erp-internal` (private).
+
+**Task 1 deviations (2026-10-27, as built):**
+- `.env` holds `DB_ROOT_PASSWORD`, so the script passes it to the container as `MARIADB_ROOT_PASSWORD` from the
+  environment (not on the command line). The bench folder already exists (it holds `.env`), so `bench init` gets
+  `--ignore-exist`. The script also sets `redis_socketio` to the cache port, answers `bench setup procfile`'s
+  overwrite prompt, and takes part names (`db bench ports apps link sites wizard`) to run only some parts.
+- `new-site` gets `--db-root-username root --mariadb-user-host-login-scope='%'` (the container sees Docker's
+  gateway, not localhost) and needs Redis up: the script starts the bench's two Redis as daemons when they are down.
+- The app symlink is absolute (`apps/erp_internal -> ~/Desktop/Projects/erp-internal`).
+- `new-app` answers: title "ERP Internal", license mit, no GitHub workflow, branch `main`.
+- Step 5's wizard runs without a browser, as the script's `wizard` part: `bench --site erp.localhost execute
+  frappe.desk.page.setup_wizard.setup_wizard.setup_complete` with English, Indonesia, Asia/Jakarta, IDR,
+  PT Contoh Plastik / CPL, chart "Standard", fiscal year Jan-Dec of the current year, Administrator only.
+- Still open on 2026-10-27: the `sites` and `wizard` parts and Step 7's test run (the agent's run of `new-site`
+  was refused by the permission check; the developer runs `tools/setup_bench.sh sites wizard`).
 
 ### Task 2: Site setup on every migrate
 
