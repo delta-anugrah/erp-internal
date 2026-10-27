@@ -51,6 +51,7 @@ def pastikan_setup() -> None:
 	_satuan()
 	for company in perusahaan("Pabrik"):
 		_gudang_pabrik(company)
+	_bawaan()
 	tampilan.terapkan()
 
 
@@ -141,3 +142,25 @@ def _gudang_pabrik(company: str) -> None:
 		# A warehouse with stock history stays; disabling it would hide stock that exists.
 		if wh not in milik and not frappe.db.exists("Stock Ledger Entry", {"warehouse": wh}):
 			frappe.db.set_value("Warehouse", wh, "disabled", 1)
+
+
+def _bawaan() -> None:
+	"""Defaults so nobody picks twice: a factory's documents default to its Gudang Barang Jadi (v16 keeps the
+	default warehouse on the Company, not in Stock Settings), and a user's only Company permission is their
+	default."""
+	for company in perusahaan("Pabrik"):
+		wh = gudang(company, "Gudang Barang Jadi")
+		if (
+			frappe.db.exists("Warehouse", wh)
+			and frappe.db.get_value("Company", company, "default_warehouse") != wh
+		):
+			frappe.db.set_value("Company", company, "default_warehouse", wh)
+
+	izin = {}
+	for row in frappe.get_all("User Permission", {"allow": "Company"}, ["name", "user", "is_default"]):
+		izin.setdefault(row.user, []).append(row)
+	for rows in izin.values():
+		if len(rows) == 1 and not rows[0].is_default:
+			doc = frappe.get_doc("User Permission", rows[0].name)
+			doc.is_default = 1
+			doc.save(ignore_permissions=True)

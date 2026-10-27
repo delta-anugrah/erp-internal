@@ -1,4 +1,7 @@
-"""Only the modules in use: the dock, the sidebars, and the Role and Module Profiles per bagian."""
+"""Only the modules in use (the dock, sidebars, Role and Module Profiles per bagian) and friendly screens
+(module home pages, shorter forms)."""
+
+import json
 
 import frappe
 from frappe.desk.doctype.dock.dock import get_app_dock, resolve_app_dock
@@ -6,7 +9,17 @@ from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
-from erp_internal.tampilan import APLIKASI, IKON, MODUL_BOLEH, SIDEBAR, modul_aplikasi, terapkan
+from erp_internal.tampilan import (
+	APLIKASI,
+	IKON,
+	MODUL_BOLEH,
+	PINTASAN,
+	SEMBUNYI,
+	SIDEBAR,
+	modul_aplikasi,
+	pintasan_aktif,
+	terapkan,
+)
 from erp_internal.tests.utils import buat_barang, buat_pelanggan, buat_pengguna, buat_perusahaan
 
 IZIN = {
@@ -58,6 +71,8 @@ def jejak_modified() -> dict:
 			("Custom Sidebar", {"user": ("is", "not set")}),
 			("Module Profile", {}),
 			("Role Profile", {}),
+			("Custom Workspace", {"workspace": ("in", list(PINTASAN))}),
+			("Property Setter", {"doc_type": ("in", list(SEMBUNYI)), "property": "hidden"}),
 		)
 	}
 
@@ -143,3 +158,37 @@ class TestTampilan(IntegrationTestCase):
 		sebelum = jejak_modified()
 		terapkan()
 		self.assertEqual(jejak_modified(), sebelum)
+
+	def test_sembunyi_aman(self):
+		# Every hidden field exists and none is required without a default.
+		for dt, fields in SEMBUNYI.items():
+			meta = frappe.get_meta(dt)
+			for f in fields:
+				df = meta.get_field(f)
+				self.assertIsNotNone(df, f"{dt}.{f}")
+				self.assertFalse(df.reqd and not df.default, f"{dt}.{f} is required")
+				self.assertEqual(df.hidden, 1, f"{dt}.{f}")
+
+	def test_pintasan(self):
+		# Each module home shows the PINTASAN shortcuts first, and no chart or onboarding.
+		from frappe.desk.doctype.custom_workspace.custom_workspace import (
+			apply_customization,
+			get_customization,
+		)
+
+		for ws in PINTASAN:
+			doc = frappe.get_doc("Workspace", ws)
+			apply_customization(doc, get_customization(ws))
+			blok = json.loads(doc.content)
+			aktif = pintasan_aktif(ws)
+			self.assertEqual(
+				[b["data"]["shortcut_name"] for b in blok if b["type"] == "shortcut"],
+				[p["label"] for p in aktif],
+				ws,
+			)
+			baris = {s.label: s for s in doc.shortcuts}
+			for p in aktif:
+				self.assertEqual(
+					(baris[p["label"]].type, baris[p["label"]].link_to), (p["type"], p["link_to"])
+				)
+			self.assertFalse({b["type"] for b in blok} & {"chart", "onboarding"}, ws)

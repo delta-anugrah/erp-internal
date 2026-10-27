@@ -53,3 +53,7 @@ cd ~/Desktop/Projects/erp-internal-bench
 bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs   # one file
 ```
+
+Browser check of each bagian's screens (needs `bench start` and the sample users):
+`cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`.
+Screenshots land in `tools/hasil/` (not committed).

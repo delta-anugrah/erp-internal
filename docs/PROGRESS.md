@@ -16,6 +16,13 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Task 4: `translations/id.csv` (the plan's table plus our own strings), `bahasa.ganti` and the user-menu switch
   (`standard_navbar_items` in `hooks.py`, `public/js/erp_internal.bundle.js`); `tests/test_bahasa.py` (5 tests).
   Checked: every `_()`/`__()` string and menu label has a row (regex scan), `node --check`. Tests not run.
+- Task 4b: full width by default (bundle), module homes as `Custom Workspace` (`PINTASAN`), shorter forms
+  (`SEMBUNYI`, 89 fields on 10 forms), Company default warehouse and default Company permission
+  (`setup._bawaan`), `tools/cek_layar.mjs` + `tools/package.json`. Checked offline: every `SEMBUNYI` field exists
+  and is not required, every `PINTASAN` target exists except Order Readiness (Task 13), every stats filter
+  evaluates in Node, every label has an `id.csv` row. Tests and `cek_layar` not run.
+- Next: Abel runs `tools/setup_bench.sh sites wizard`; then `/run-checks` (all tests), fix what fails, then
+  Task 5. `cek_layar` waits for `contoh.py`.
 
 ## 2026-10-27 (evening)
 - Design and plan written; repo `delta-anugrah/erp-internal` created (private). `main` needs a PR, so work goes on

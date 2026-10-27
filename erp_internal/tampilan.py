@@ -88,6 +88,245 @@ PROFIL_PERAN = {
 }
 
 
+# Module home Workspace → its shortcuts, in order. They replace the page's charts and onboarding; its number
+# cards and link cards stay. `stats_filter` is a JS expression the desk evaluates (so `frappe.session.user`
+# works); with `format` the shortcut shows a count. A shortcut whose target does not exist yet (Order
+# Readiness, Task 13) is left out until it does (`pintasan_aktif`).
+PINTASAN = {
+	"Stock": (
+		{"label": "New Stock Entry", "type": "DocType", "link_to": "Stock Entry", "doc_view": "New"},
+		{
+			"label": "Stock Reconciliation",
+			"type": "DocType",
+			"link_to": "Stock Reconciliation",
+			"doc_view": "List",
+		},
+		{"label": "Stock Balance", "type": "Report", "link_to": "Stock Balance"},
+		{"label": "Item", "type": "DocType", "link_to": "Item", "doc_view": "List"},
+	),
+	"Selling": (
+		{"label": "New Sales Order", "type": "DocType", "link_to": "Sales Order", "doc_view": "New"},
+		{
+			"label": "Open Sales Orders",
+			"type": "DocType",
+			"link_to": "Sales Order",
+			"doc_view": "List",
+			"stats_filter": '[["Sales Order","docstatus","=",1],["Sales Order","status","in",'
+			'["To Deliver and Bill","To Bill","To Deliver","To Pay","On Hold"]]]',
+			"format": "{} Open",
+			"color": "Blue",
+		},
+		{"label": "Delivery Note", "type": "DocType", "link_to": "Delivery Note", "doc_view": "List"},
+		{
+			"label": "Unpaid Sales Invoices",
+			"type": "DocType",
+			"link_to": "Sales Invoice",
+			"doc_view": "List",
+			"stats_filter": '[["Sales Invoice","docstatus","=",1],["Sales Invoice","outstanding_amount",">",0]]',
+			"format": "{} Unpaid",
+			"color": "Orange",
+		},
+		{"label": "Order Readiness", "type": "Report", "link_to": "Order Readiness"},
+	),
+	"Buying": (
+		{
+			"label": "Pending Material Requests",
+			"type": "DocType",
+			"link_to": "Material Request",
+			"doc_view": "List",
+			"stats_filter": '[["Material Request","docstatus","=",1],["Material Request","status","in",'
+			'["Pending","Partially Ordered"]]]',
+			"format": "{} Pending",
+			"color": "Orange",
+		},
+		{"label": "New Purchase Order", "type": "DocType", "link_to": "Purchase Order", "doc_view": "New"},
+		{"label": "Purchase Receipt", "type": "DocType", "link_to": "Purchase Receipt", "doc_view": "List"},
+		{"label": "Purchase Invoice", "type": "DocType", "link_to": "Purchase Invoice", "doc_view": "List"},
+	),
+	"Manufacturing": (
+		{"label": "Order Readiness", "type": "Report", "link_to": "Order Readiness"},
+		{"label": "Sales Forecast", "type": "DocType", "link_to": "Sales Forecast", "doc_view": "List"},
+		{
+			"label": "Master Production Schedule",
+			"type": "DocType",
+			"link_to": "Master Production Schedule",
+			"doc_view": "List",
+		},
+		{"label": "MRP", "type": "Report", "link_to": "Material Requirements Planning Report"},
+		{
+			"label": "Work Orders in Process",
+			"type": "DocType",
+			"link_to": "Work Order",
+			"doc_view": "List",
+			"stats_filter": '[["Work Order","status","=","In Process"]]',
+			"format": "{} In Process",
+			"color": "Blue",
+		},
+		{"label": "Item Lead Time", "type": "DocType", "link_to": "Item Lead Time", "doc_view": "List"},
+	),
+	"Projects": (
+		{
+			"label": "Open Projects",
+			"type": "DocType",
+			"link_to": "Project",
+			"doc_view": "List",
+			"stats_filter": '[["Project","status","=","Open"]]',
+			"format": "{} Open",
+			"color": "Blue",
+		},
+		{
+			"label": "My Open Tasks",
+			"type": "DocType",
+			"link_to": "Task",
+			"doc_view": "List",
+			"stats_filter": '[["Task","status","=","Open"],["Task","_assign","like","%" + frappe.session.user + "%"]]',
+			"format": "{} Open",
+			"color": "Orange",
+		},
+		{"label": "New Timesheet", "type": "DocType", "link_to": "Timesheet", "doc_view": "New"},
+	),
+	"Shift & Attendance": (
+		{
+			"label": "Today's Attendance",
+			"type": "DocType",
+			"link_to": "Attendance",
+			"doc_view": "List",
+			"stats_filter": '[["Attendance","docstatus","=",1],'
+			'["Attendance","attendance_date","=",frappe.datetime.get_today()]]',
+			"format": "{} Today",
+			"color": "Green",
+		},
+		{"label": "Employee Checkin", "type": "DocType", "link_to": "Employee Checkin", "doc_view": "List"},
+		{"label": "Employee", "type": "DocType", "link_to": "Employee", "doc_view": "List"},
+	),
+	"Leaves": (
+		{
+			"label": "New Leave Application",
+			"type": "DocType",
+			"link_to": "Leave Application",
+			"doc_view": "New",
+		},
+		{
+			"label": "Leave Applications to Approve",
+			"type": "DocType",
+			"link_to": "Leave Application",
+			"doc_view": "List",
+			"stats_filter": '[["Leave Application","docstatus","=",0],["Leave Application","status","=","Open"]]',
+			"format": "{} To Approve",
+			"color": "Orange",
+		},
+	),
+}
+BLOK_TETAP = ("number_card", "card")  # base Workspace blocks kept below the shortcuts
+KOLOM_PINTASAN = ("type", "link_to", "doc_view", "label", "stats_filter", "format", "color")
+
+# DocType → fields and sections of features not in use, hidden by Property Setter: accounting dimensions
+# (cost center, project on factory documents), website, loyalty, sales team and commission, coupons,
+# inter-company, auto repeat, quality inspection, assets, deferred accounting, shipping rule, and payroll on
+# Employee. Each was read from the v16 JSON: it exists and is not required (`test_sembunyi_aman`).
+SEMBUNYI = {
+	"Item": (
+		"is_fixed_asset",
+		"asset_category",
+		"asset_naming_series",
+		"auto_create_assets",
+		"is_grouped_asset",
+		"deferred_accounting_section",
+		"enable_deferred_revenue",
+		"enable_deferred_expense",
+		"inspection_required_before_purchase",
+		"inspection_required_before_delivery",
+		"quality_inspection_template",
+		"grant_commission",
+	),
+	"Customer": (
+		"website",
+		"loyalty_program",
+		"loyalty_program_tier",
+		"loyalty_points_tab",
+		"default_sales_partner",
+		"default_commission_rate",
+		"sales_team_tab",
+		"sales_team_section",
+		"sales_team",
+	),
+	"Supplier": ("website",),
+	"Sales Order": (
+		"accounting_dimensions_section",
+		"cost_center",
+		"project",
+		"shipping_rule",
+		"coupon_code",
+		"inter_company_order_reference",
+		"sales_team_section_break",
+		"sales_partner",
+		"commission_rate",
+		"total_commission",
+		"amount_eligible_for_commission",
+		"section_break1",
+		"sales_team",
+		"auto_repeat_section",
+		"auto_repeat",
+	),
+	"Delivery Note": (
+		"accounting_dimensions_section",
+		"cost_center",
+		"project",
+		"shipping_rule",
+		"inter_company_reference",
+		"sales_team_section_break",
+		"sales_partner",
+		"commission_rate",
+		"total_commission",
+		"amount_eligible_for_commission",
+		"section_break1",
+		"sales_team",
+		"auto_repeat_section",
+		"auto_repeat",
+	),
+	"Sales Invoice": (
+		"accounting_dimensions_section",
+		"cost_center",
+		"project",
+		"shipping_rule",
+		"loyalty_points_redemption",
+		"redeem_loyalty_points",
+		"loyalty_program",
+		"coupon_code",
+		"inter_company_invoice_reference",
+		"sales_team_section",
+		"commission_section",
+		"sales_partner",
+		"commission_rate",
+		"total_commission",
+		"amount_eligible_for_commission",
+		"sales_team",
+		"subscription_section",
+		"auto_repeat",
+	),
+	"Purchase Order": (
+		"accounting_dimensions_section",
+		"cost_center",
+		"project",
+		"shipping_rule",
+		"inter_company_order_reference",
+		"auto_repeat_section",
+		"auto_repeat",
+	),
+	"Purchase Receipt": (
+		"accounting_dimensions_section",
+		"cost_center",
+		"project",
+		"shipping_rule",
+		"inter_company_reference",
+		"subscription_detail",
+		"auto_repeat",
+	),
+	"Work Order": ("project", "update_consumed_material_cost_in_project"),
+	"Employee": ("salary_information", "salary_mode", "salary_currency", "ctc"),
+}
+
+
 def terapkan() -> None:
 	"""Apply the tables above to the site. Idempotent."""
 	_halaman_apps()
@@ -95,6 +334,8 @@ def terapkan() -> None:
 	_sidebar()
 	_profil_peran()
 	_profil_modul()
+	_pintasan()
+	_sembunyi()
 
 
 def peran_bagian(bagian: tuple[str, ...]) -> set[str]:
@@ -104,6 +345,11 @@ def peran_bagian(bagian: tuple[str, ...]) -> set[str]:
 			"Has Role", {"parenttype": "Role Profile", "parent": ("in", list(bagian))}, pluck="role"
 		)
 	)
+
+
+def pintasan_aktif(workspace: str) -> list[dict]:
+	"""The PINTASAN shortcuts of one Workspace whose target exists on this site."""
+	return [p for p in PINTASAN.get(workspace, ()) if frappe.db.exists(p["type"], p["link_to"])]
 
 
 def modul_aplikasi() -> list[str]:
@@ -307,3 +553,64 @@ def _profil_modul() -> None:
 			doc.module_profile_name = nama
 		doc.set("block_modules", [{"module": m} for m in blok])
 		doc.save(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------------------------------------
+# Module home pages and shorter forms
+
+
+def _pintasan() -> None:
+	"""A `Custom Workspace` per module home: PINTASAN's shortcuts, then the page's number and link cards.
+
+	A standard Workspace's content refuses edits outside developer mode; the customization is the site's
+	snapshot of the layout plus the shortcut rows it adds. It is rebuilt from the live base each migrate."""
+	import json
+
+	for ws in PINTASAN:
+		if not frappe.db.exists("Workspace", ws):
+			continue
+		aktif = pintasan_aktif(ws)
+		dasar = json.loads(frappe.db.get_value("Workspace", ws, "content") or "[]")
+		konten = [
+			{
+				"id": _id_blok(ws, p["label"]),
+				"type": "shortcut",
+				"data": {"shortcut_name": p["label"], "col": 3},
+			}
+			for p in aktif
+		]
+		konten += [b for b in dasar if b.get("type") in BLOK_TETAP]
+		widget = {"shortcut": [{k: p[k] for k in KOLOM_PINTASAN if p.get(k)} for p in aktif]} if aktif else {}
+
+		if frappe.db.exists("Custom Workspace", ws):
+			doc = frappe.get_doc("Custom Workspace", ws)
+			if json.loads(doc.content or "[]") == konten and json.loads(doc.widgets or "{}") == widget:
+				continue
+		else:
+			doc = frappe.new_doc("Custom Workspace")
+			doc.workspace = ws
+		doc.content = json.dumps(konten)
+		doc.widgets = json.dumps(widget)
+		doc.save(ignore_permissions=True)
+
+
+def _id_blok(workspace: str, label: str) -> str:
+	"""A stable block id, so a rebuild with the same shortcuts writes nothing."""
+	import hashlib
+
+	return "erp" + hashlib.sha1(f"{workspace}|{label}".encode()).hexdigest()[:7]
+
+
+def _sembunyi() -> None:
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	for dt, fields in SEMBUNYI.items():
+		meta = frappe.get_meta(dt)
+		for f in fields:
+			if not meta.has_field(f):
+				continue  # an app update dropped it; `test_sembunyi_aman` names it
+			nilai = frappe.db.get_value(
+				"Property Setter", {"doc_type": dt, "field_name": f, "property": "hidden"}, "value"
+			)
+			if str(nilai) != "1":
+				make_property_setter(dt, f, "hidden", 1, "Check", validate_fields_for_doctype=False)

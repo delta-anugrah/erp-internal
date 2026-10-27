@@ -36,6 +36,7 @@ bench start                              # its own terminal tab; http://erp.loca
 bench --site erp.localhost migrate
 bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
+node tools/cek_layar.mjs                  # each bagian's screens (ERP_SANDI; tools/package.json)
 ```
 
 Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).

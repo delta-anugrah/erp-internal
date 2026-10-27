@@ -12,7 +12,7 @@ from erp_internal.setup import (
 	pastikan_setup,
 	perusahaan,
 )
-from erp_internal.tests.utils import buat_perusahaan
+from erp_internal.tests.utils import buat_pengguna, buat_perusahaan
 
 
 class TestSetup(IntegrationTestCase):
@@ -54,3 +54,26 @@ class TestSetup(IntegrationTestCase):
 		pastikan_setup()
 		pastikan_setup()
 		self.assertEqual(hitung(), sebelum)
+
+	def test_gudang_bawaan(self):
+		# Documents of a factory default to its finished-goods warehouse.
+		self.assertEqual(
+			frappe.db.get_value("Company", self.pabrik, "default_warehouse"),
+			gudang(self.pabrik, "Gudang Barang Jadi"),
+		)
+
+	def test_izin_perusahaan_jadi_bawaan(self):
+		# A user's only Company permission becomes their default, so nobody picks the company twice.
+		u = buat_pengguna("_uji.bawaan@contoh.test", None, None, None)
+		frappe.db.delete("User Permission", {"user": u})
+		izin = frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": u,
+				"allow": "Company",
+				"for_value": self.pabrik,
+				"is_default": 0,
+			}
+		).insert(ignore_permissions=True)
+		pastikan_setup()
+		self.assertEqual(frappe.db.get_value("User Permission", izin.name, "is_default"), 1)

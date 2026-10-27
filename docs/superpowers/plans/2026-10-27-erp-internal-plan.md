@@ -89,6 +89,29 @@ image on its own server.
 
      Save screenshots to `tools/hasil/`, which is gitignored.
    - Commit `feat(tampilan): full width, module home pages, shorter forms, defaults`.
+   - Status (2026-10-27): [x] tests written, [x] implemented, [x] `tools/cek_layar.mjs` and `tools/package.json`
+     written, [x] committed; [ ] tests and `cek_layar` run (not run: no site yet, and `cek_layar` also needs the
+     sample users of `contoh.py`).
+   - Deviations, read from the v16.53 source:
+     - Stock Settings has no `default_warehouse` in v16; the default warehouse is `Company.default_warehouse`.
+       `setup._bawaan()` sets it to Gudang Barang Jadi for each Pabrik company, and turns a user's only Company
+       permission into their default (`test_gudang_bawaan`, `test_izin_perusahaan_jadi_bawaan`).
+     - A standard Workspace's content refuses edits outside developer mode. `PINTASAN` is written as a
+       `Custom Workspace` per module home (Frappe's site delta): our shortcut blocks, then the page's number and
+       link cards; charts and onboarding go. The Accounts home ("Accounting") is not in `PINTASAN`.
+     - `Order Readiness` stays in `PINTASAN` but shows only once its Report exists (Task 13):
+       `tampilan.pintasan_aktif()`. The MRP report's shortcut is labelled "MRP".
+     - `SEMBUNYI` (fieldnames read from each form's JSON): Item (assets, deferred accounting, quality inspection,
+       commission), Customer (website, loyalty, sales partner and team), Supplier (website), Sales Order and
+       Delivery Note (accounting dimensions, project, shipping rule, coupon, inter-company, commission, sales team,
+       auto repeat), Sales Invoice (the same plus loyalty and subscription), Purchase Order and Purchase Receipt
+       (accounting dimensions, project, shipping rule, inter-company, auto repeat), Work Order (project), Employee
+       (the Salary tab: payroll is not used). UTM fields are left alone.
+     - New `test_layar_diterjemahkan` (test_bahasa): every shortcut label, count format and `LABEL` has an
+       `id.csv` row.
+     - `cek_layar.mjs` checks the rail through `frappe.boot.dock` and `frappe.boot.module_sidebars` (there are no
+       desktop icons), signs in through `/api/method/login` with `ERP_SANDI`, and opens the form with
+       `frappe.new_doc`. Playwright is pinned at 1.49.1.
 5. **Task 1 changes, because the repo already exists.**
    - The repo `~/Desktop/Projects/erp-internal` (GitHub `delta-anugrah/erp-internal`, private) was
      created on 2026-10-27 with these docs.
@@ -728,7 +751,8 @@ code. Record every value used in `deploy/server/README.md` or CLAUDE.md, never s
   - Counts must equal his files.
   - Five random items' stock must equal a physical count.
 - [ ] **Step 5: Create the users.**
-  - One per person, with Role Profile, Module Profile "Pabrik" and a User Permission on the factory company.
+  - One per person, with the Role Profile and Module Profile of their bagian (Task 3 deviations) and a User
+    Permission on the factory company.
   - Samuel gets System Manager.
   - Passwords are handed over in person.
 - [ ] **Step 6: Backups.** Run `cadangan.sh`, find the off-site copy, and do one restore drill on a scratch stack.

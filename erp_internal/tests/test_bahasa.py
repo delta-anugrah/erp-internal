@@ -43,3 +43,12 @@ class TestBahasa(IntegrationTestCase):
 		pesan = {m[1] for m in get_messages_for_app("erp_internal") if m[0] != "Navbar:"}
 		pesan |= {i["item_label"] for i in frappe.get_hooks("standard_navbar_items", app_name="erp_internal")}
 		self.assertEqual(sorted(pesan - set(baris_csv())), [])
+
+	def test_layar_diterjemahkan(self):
+		# Shortcut labels and counts, and renamed modules, are shown through _() / __() as well.
+		from erp_internal.tampilan import LABEL, PINTASAN
+
+		teks = set(LABEL.values())
+		for daftar in PINTASAN.values():
+			teks |= {p["label"] for p in daftar} | {p["format"] for p in daftar if p.get("format")}
+		self.assertEqual(sorted(teks - set(baris_csv())), [])

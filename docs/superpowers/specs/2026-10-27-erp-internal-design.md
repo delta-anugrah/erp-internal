@@ -130,6 +130,9 @@ and holds System Manager.
      Leaves (office). Every other ERPNext/HRMS icon is hidden on every migrate, like bpt's `_sembunyikan_ikon`.
    - Sidebars are cut down to the screens in §9. There are Module Profiles "Pabrik" and "Kantor", and one Role
      Profile per bagian.
+   - As built on v16.53 (plan Task 3 deviations): there is no icon grid, so the kept modules are the rail of each
+     app's dock (a site `Dock` layer), "Invoicing" is the Accounts module renamed, and there is one Module Profile
+     per bagian instead of "Pabrik"/"Kantor".
    - This is tidying, not a security fence. Staff are internal, and a hidden screen's URL still opens for a role
      that can read it.
 3. **Indonesian labels** for the screens we keep, in `erp_internal/translations/id.csv`.
