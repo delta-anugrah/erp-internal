@@ -35,7 +35,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/erp_internal/css/erp_internal.css"
-# app_include_js = "/assets/erp_internal/js/erp_internal.js"
+app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: the language switch
 
 # include js, css files in header of web template
 # web_include_css = "/assets/erp_internal/css/erp_internal.css"
@@ -91,6 +91,28 @@ app_license = "mit"
 # 	"methods": "erp_internal.utils.jinja_methods",
 # 	"filters": "erp_internal.utils.jinja_filters"
 # }
+
+# User menu
+# ---------
+# The language switch: one row shows, naming the other language. `frappe.boot.lang` is the user's own.
+standard_navbar_items = [
+	{
+		"item_label": "Bahasa Indonesia",
+		"item_type": "Action",
+		"action": "erp_internal.ganti_bahasa('id')",
+		"is_standard": 1,
+		"condition": "eval: frappe.boot.lang !== 'id'",
+		"icon": "languages",
+	},
+	{
+		"item_label": "English",
+		"item_type": "Action",
+		"action": "erp_internal.ganti_bahasa('en')",
+		"is_standard": 1,
+		"condition": "eval: frappe.boot.lang === 'id'",
+		"icon": "languages",
+	},
+]
 
 # Installation
 # ------------

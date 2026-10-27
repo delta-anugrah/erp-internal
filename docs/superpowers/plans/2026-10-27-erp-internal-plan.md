@@ -564,7 +564,7 @@ def test_idempoten(self):
 | Shift Assignment | Jadwal Shift | Leave Application | Pengajuan Cuti |
 | Leave Allocation | Jatah Cuti | Holiday List | Daftar Hari Libur |
 
-- [ ] **Step 1: Write the failing test.**
+- [x] **Step 1: Write the failing test.**
 
 ```python
 def test_label_kita_dipakai(self):
@@ -574,11 +574,21 @@ def test_label_kita_dipakai(self):
 			self.assertEqual(semua.get(sumber), target, sumber)
 ```
 
-- [ ] **Step 2: Run it.** Expected: FAIL (FileNotFoundError).
-- [ ] **Step 3: Write `id.csv`** with the table above, one row per pair.
+- [ ] **Step 2: Run it.** Expected: FAIL (FileNotFoundError). Not run: no site yet.
+- [x] **Step 3: Write `id.csv`** with the table above, one row per pair.
 - [ ] **Step 4: Run it again.** Expected: OK. Then `bench --site erp.localhost clear-cache` and look at the desktop
-  and two forms (Sales Order, Work Order). Their titles and sidebars are in Indonesian.
-- [ ] **Step 5: Commit** `feat(bahasa): Indonesian labels for the kept screens`.
+  and two forms (Sales Order, Work Order). Their titles and sidebars are in Indonesian. Not run: no site yet.
+- [x] **Step 5: Commit** `feat(bahasa): Indonesian labels for the kept screens`.
+
+**Task 4 deviations (2026-10-27, Revision 2 item 3 as built):**
+- v16.53's user menu has no JS hook for extra rows; it lists `Navbar Settings.settings_dropdown`. The switch is
+  two `standard_navbar_items` rows in `hooks.py` ("Bahasa Indonesia" when `frappe.boot.lang` is not `id`,
+  "English" when it is), whose action calls `erp_internal.ganti_bahasa(lang)` from `erp_internal.bundle.js`.
+  Frappe syncs those rows on `migrate`, not on install.
+- `test_semua_teks_kita_diterjemahkan` skips the Navbar rows of other apps that `get_messages_for_app` returns,
+  and adds our two navbar labels. New `test_tamu_ditolak`: Guest gets `frappe.PermissionError`.
+- `id.csv` also holds our own strings: the `Kind` label and description of `Company.erp_jenis`, the two menu labels
+  and the two messages of `bahasa.ganti`. "Invoicing" is the title `tampilan.LABEL` gives the Accounts module.
 
 ### Task 5: The factory's sales and purchasing flow
 

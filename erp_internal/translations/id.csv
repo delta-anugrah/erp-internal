@@ -1,0 +1,50 @@
+Stock,Stok
+Selling,Penjualan
+Buying,Pembelian
+Manufacturing,Produksi
+Invoicing,Faktur & Pembayaran
+Projects,Proyek
+Shift & Attendance,Absensi
+Leaves,Cuti
+Item,Barang
+Warehouse,Gudang
+Stock Entry,Mutasi Stok
+Stock Reconciliation,Stok Opname
+Stock Balance,Saldo Stok
+Stock Ledger,Kartu Stok
+Customer,Pelanggan
+Sales Order,Pesanan Penjualan
+Delivery Note,Surat Jalan
+Sales Invoice,Faktur Penjualan
+Payment Entry,Pembayaran
+Sales Order Analysis,Analisis Pesanan Penjualan
+Supplier,Pemasok
+Material Request,Permintaan Barang
+Purchase Order,Pesanan Pembelian
+Purchase Receipt,Penerimaan Barang
+Purchase Invoice,Faktur Pembelian
+Accounts Receivable,Piutang
+Accounts Payable,Hutang
+BOM,Resep Produk (BOM)
+Item Lead Time,Lama Produksi Barang
+Sales Forecast,Perkiraan Penjualan
+Master Production Schedule,Jadwal Produksi Induk
+Material Requirements Planning Report,Rencana Kebutuhan Material (MRP)
+Work Order,Perintah Produksi
+Project,Proyek
+Task,Tugas
+Timesheet,Catatan Jam Kerja
+Employee,Karyawan
+Employee Checkin,Absen Masuk/Pulang
+Attendance,Kehadiran
+Shift Type,Jenis Shift
+Shift Assignment,Jadwal Shift
+Leave Application,Pengajuan Cuti
+Leave Allocation,Jatah Cuti
+Holiday List,Daftar Hari Libur
+Kind,Jenis
+"Pabrik: the factory (stock, sales, purchasing, production). Kantor: the office (attendance, projects).","Pabrik: pabrik (stok, penjualan, pembelian, produksi). Kantor: kantor (absensi, proyek)."
+Bahasa Indonesia,Bahasa Indonesia
+English,English
+Sign in to change the language.,Masuk dulu untuk mengganti bahasa.
+Choose English or Indonesian.,Pilih English atau Bahasa Indonesia.

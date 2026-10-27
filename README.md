@@ -40,6 +40,12 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
 No extra user is created; Administrator only. `erp-test.localhost` is completed by ERPNext's `before_tests` on the
 first test run.
 
+## Language
+
+The UI is English. Each user switches to Indonesian, and back, from the user menu ("Bahasa Indonesia" /
+"English"); the Indonesian is `erp_internal/translations/id.csv`. Dates, numbers, time zone and currency are
+Indonesian for everyone.
+
 ## Tests
 
 ```bash

@@ -13,7 +13,7 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 - [~] Task 1: repo, bench, sites, app (sites waiting on Abel)
 - [~] Task 2: site setup on every migrate (written, tests not run)
 - [~] Task 3: only the used modules (written, tests not run)
-- [ ] Task 4: English default, Indonesian switch
+- [~] Task 4: English default, Indonesian switch (written, tests not run)
 - [ ] Task 4b: friendly screens
 - [ ] Task 5: sales and purchasing flow
 - [ ] Task 6: import guide

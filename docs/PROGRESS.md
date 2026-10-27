@@ -13,6 +13,9 @@ Newest first. One entry per working session: what changed, test results as run, 
   (`MODUL_BOLEH`) and the Role Profiles (`PROFIL_PERAN`). `tests/test_tampilan.py` (9 tests). Checked offline: the
   tables against the shipped dock/sidebar/DocPerm JSON, and the dock and sidebar layers merged with Frappe's own
   `resolve_layers`/`merged_arrangement` (all 8 sidebars and both docks as expected). Tests not run.
+- Task 4: `translations/id.csv` (the plan's table plus our own strings), `bahasa.ganti` and the user-menu switch
+  (`standard_navbar_items` in `hooks.py`, `public/js/erp_internal.bundle.js`); `tests/test_bahasa.py` (5 tests).
+  Checked: every `_()`/`__()` string and menu label has a row (regex scan), `node --check`. Tests not run.
 
 ## 2026-10-27 (evening)
 - Design and plan written; repo `delta-anugrah/erp-internal` created (private). `main` needs a PR, so work goes on
