@@ -428,11 +428,11 @@ The tables:
 - `terapkan()` follows bpt's `bpt/setup.py` `_sembunyikan_ikon`. Read it first: it writes only what differs,
   deletes Desktop Layout rows and clears the `desktop_icons` cache key.
 
-- [ ] **Step 1: Check the exact names.** Read the labels in `apps/erpnext/erpnext/desktop_icon/*.json` and
+- [x] **Step 1: Check the exact names.** Read the labels in `apps/erpnext/erpnext/desktop_icon/*.json` and
   `apps/hrms/hrms/desktop_icon/*.json`, the Workspace Sidebar names, and `frappe.get_all("Module Def",
   {"app_name": ("in", ["erpnext", "hrms"])}, pluck="name")`. Fix any key in `IKON`, `SIDEBAR` or `MODUL_BOLEH` that
   differs, and note the change in the commit message.
-- [ ] **Step 2: Write the failing tests.**
+- [x] **Step 2: Write the failing tests.**
 
 ```python
 IZIN = {
@@ -493,12 +493,41 @@ def test_idempoten(self):
   - `peran_bagian(bagian) -> set[str]` and `modul_aplikasi() -> list[str]` are public helpers in `tampilan.py`.
   - `jejak_modified()` is a test helper: the `modified` values of every Desktop Icon, Workspace Sidebar, Module
     Profile and Role Profile.
-  - Run the test module. Expected: FAIL (ImportError).
-- [ ] **Step 3: Implement `terapkan()`** and the tables. Desktop icons: hidden flag and roles. Sidebars: keep and
+  - Run the test module. Expected: FAIL (ImportError). Not run: no site yet.
+- [x] **Step 3: Implement `terapkan()`** and the tables. Desktop icons: hidden flag and roles. Sidebars: keep and
   add as `SIDEBAR` says. Module Profiles and Role Profiles: get or create, then update.
 - [ ] **Step 4: Run the tests.** Expected: OK. Then `bench --site erp.localhost migrate` and look in the browser as
-  Administrator. The desktop shows only the kept icons, and each kept sidebar shows only its links.
-- [ ] **Step 5: Commit** `feat(tampilan): only the used modules, sidebars and role profiles per bagian`.
+  Administrator. The desktop shows only the kept icons, and each kept sidebar shows only its links. Not run: no
+  site yet.
+- [x] **Step 5: Commit** `feat(tampilan): only the used modules, sidebars and role profiles per bagian`.
+
+**Task 3 deviations (2026-10-27, read from the v16.53 source; `.claude/rules/tampilan.md`):**
+- v16.53 has no icon grid by default. Desktop Settings is on "Apps", which creates no Desktop Icon rows, and
+  `Workspace Sidebar` is an inert archive (both are the "retiring" batch in `frappe/desk/RETIRING.md`). The
+  live surfaces are the app's dock (rail of modules), the per-module `Sidebar` and `User.block_modules`. Standard
+  `Sidebar` rows refuse edits outside developer mode, so everything is a site layer:
+  - `IKON` keys are dock entries (sidebar names). `terapkan()` writes a site `Dock` layer per app (erpnext, hrms):
+    `IKON` entries in order, every other entry hidden for everyone. `_halaman_apps()` keeps Desktop Settings on
+    "Apps". `test_ikon` became `test_dok`, plus `test_halaman_apps`.
+  - There is no "Invoicing" module: its icon pointed at the Accounts module. `IKON`/`SIDEBAR` use `Accounts`, and
+    `LABEL = {"Accounts": "Invoicing"}` titles its rail button and sidebar header.
+  - `SIDEBAR` is a site `Custom Sidebar` layer per module, written through Frappe's own
+    `custom_sidebar._save_customization`. The module's home Workspace stays first (Revision 2 item 4), so
+    `test_sidebar` checks Home, then the `SIDEBAR` links. Added because the app's sidebar lacks them: Selling
+    "Sales Order Analysis" (Report); Manufacturing "Sales Forecast", "Master Production Schedule", "Item Lead Time";
+    Shift & Attendance "Employee".
+- Per-bagian visibility needs per-user module blocking (a dock entry has no roles), so `MODUL_BOLEH` holds one
+  Module Profile per bagian, named like its Role Profile, instead of "Pabrik"/"Kantor". New
+  `test_profil_modul_ikut_ikon` keeps it equal to the modules of each bagian's `IKON` entries, and
+  `test_dok_per_bagian` checks each bagian's rail. `test_penjualan_tetap_bisa_buat_order` uses profile
+  "Penjualan". Task 8 Step 5 gives each user the Module Profile of their bagian. Module Def names:
+  `Shift and Attendance` (hrms), `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing`, `Projects`, `Leaves`.
+- `PROFIL_PERAN` (from the v16 DocPerms): Gudang Stock Manager + Item Manager; Penjualan Sales User + Accounts
+  User; Pembelian Purchase User + Purchase Master Manager + Accounts User; Produksi Manufacturing User +
+  Manufacturing Manager; HR HR Manager + HR User; Karyawan Employee; Manajer Proyek Projects User + Projects
+  Manager. A static check of `IZIN` against the DocPerm JSON passes; HRMS's install-time permissions are not in it.
+- `jejak_modified()` tracks Dock (site layers), Custom Sidebar, Module Profile and Role Profile.
+- `buat_pelanggan` takes the first leaf Customer Group: ERPNext refuses a group one.
 
 ### Task 4: Indonesian labels
 

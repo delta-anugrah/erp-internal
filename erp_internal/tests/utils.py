@@ -48,3 +48,74 @@ def tahun_fiskal(tanggal: date) -> str:
 		.insert(ignore_permissions=True)
 		.name
 	)
+
+
+def buat_pengguna(email: str, profil_peran: str | None, profil_modul: str | None, company: str | None) -> str:
+	"""Get or create a System User with that Role Profile and Module Profile, plus a default User
+	Permission on `company`."""
+	if frappe.db.exists("User", email):
+		user = frappe.get_doc("User", email)
+	else:
+		user = frappe.new_doc("User")
+		user.update({"email": email, "first_name": email.split("@")[0], "send_welcome_email": 0})
+	user.user_type = "System User"
+	user.set("role_profiles", [{"role_profile": profil_peran}] if profil_peran else [])
+	user.module_profile = profil_modul
+	user.save(ignore_permissions=True)
+
+	if company and not frappe.db.exists(
+		"User Permission", {"user": email, "allow": "Company", "for_value": company}
+	):
+		frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": email,
+				"allow": "Company",
+				"for_value": company,
+				"is_default": 1,
+			}
+		).insert(ignore_permissions=True)
+	return email
+
+
+def buat_barang(
+	kode: str, grup: str, satuan: str = "Pcs", konversi: dict[str, float] | None = None, **field
+) -> str:
+	"""Get or create a stock item. `konversi` maps extra UOMs to their factor, e.g. `{"Karton": 24}`."""
+	if not frappe.db.exists("Item", kode):
+		frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": kode,
+				"item_name": kode,
+				"item_group": grup,
+				"stock_uom": satuan,
+				"is_stock_item": 1,
+				"uoms": [{"uom": satuan, "conversion_factor": 1}]
+				+ [{"uom": u, "conversion_factor": f} for u, f in (konversi or {}).items()],
+				**field,
+			}
+		).insert(ignore_permissions=True)
+	return kode
+
+
+def buat_pelanggan(nama: str) -> str:
+	"""Get or create a company customer in the first leaf customer group and territory."""
+	if not frappe.db.exists("Customer", nama):
+		frappe.get_doc(
+			{
+				"doctype": "Customer",
+				"customer_name": nama,
+				"customer_type": "Company",
+				"customer_group": _daun("Customer Group"),
+				"territory": _daun("Territory"),
+			}
+		).insert(ignore_permissions=True)
+	return nama
+
+
+def _daun(doctype: str) -> str:
+	"""The first leaf of a tree doctype, or its root when it has none (ERPNext refuses a group Customer Group)."""
+	return frappe.db.get_value(doctype, {"is_group": 0}, "name", order_by="lft asc") or frappe.db.get_value(
+		doctype, {"is_group": 1}, "name", order_by="lft asc"
+	)

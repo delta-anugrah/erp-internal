@@ -7,6 +7,8 @@ setup wizard: before it is complete there is no company, root item group or root
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+from erp_internal import tampilan
+
 # System Settings. The UI is English by default (each user may switch to Indonesian); dates, numbers,
 # time zone and currency stay Indonesian.
 PENGATURAN_SISTEM = {
@@ -49,6 +51,7 @@ def pastikan_setup() -> None:
 	_satuan()
 	for company in perusahaan("Pabrik"):
 		_gudang_pabrik(company)
+	tampilan.terapkan()
 
 
 def perusahaan(jenis: str) -> list[str]:

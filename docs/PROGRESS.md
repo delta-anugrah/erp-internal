@@ -8,6 +8,11 @@ Newest first. One entry per working session: what changed, test results as run, 
   `tests/test_setup.py` (5 tests), `tests/utils.py`. The `wizard` part now sets Jenis and migrates.
   Checked: `py_compile`, `ruff check`, `ruff format --check`; every fieldname read in the v16 JSON under `apps/`.
   Tests not run: no site yet.
+- Task 3: `tampilan.terapkan()`. v16.53 has no icon grid on the default Apps page, so the tables write site layers:
+  a `Dock` layer per app (`IKON`), a `Custom Sidebar` per module (`SIDEBAR`), one Module Profile per bagian
+  (`MODUL_BOLEH`) and the Role Profiles (`PROFIL_PERAN`). `tests/test_tampilan.py` (9 tests). Checked offline: the
+  tables against the shipped dock/sidebar/DocPerm JSON, and the dock and sidebar layers merged with Frappe's own
+  `resolve_layers`/`merged_arrangement` (all 8 sidebars and both docks as expected). Tests not run.
 
 ## 2026-10-27 (evening)
 - Design and plan written; repo `delta-anugrah/erp-internal` created (private). `main` needs a PR, so work goes on
