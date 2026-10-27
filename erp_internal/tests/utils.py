@@ -222,3 +222,78 @@ def riwayat(company: str, kode: str, bulan: date, qty: float) -> str:
 		.insert(ignore_permissions=True)
 		.name
 	)
+
+
+def akar_gudang(company: str) -> str:
+	"""The company's root warehouse (the group without a parent)."""
+	return frappe.db.get_value(
+		"Warehouse", {"company": company, "is_group": 1, "parent_warehouse": ("is", "not set")}, "name"
+	)
+
+
+def buat_order(
+	company: str,
+	pelanggan: str,
+	kode: str,
+	qty: float,
+	tanggal: date,
+	kirim: date,
+	satuan: str | None = None,
+	submit: bool = True,
+):
+	"""A new Sales Order of `qty` `kode` (in `satuan`, default the stock UOM) dated `tanggal`, delivered on
+	`kirim` from the company's Gudang Barang Jadi; submitted unless `submit` is false."""
+	from erp_internal.setup import gudang
+
+	tahun_fiskal(tanggal)
+	satuan = satuan or frappe.db.get_value("Item", kode, "stock_uom")
+	faktor = frappe.db.get_value(
+		"UOM Conversion Detail", {"parent": kode, "uom": satuan}, "conversion_factor"
+	)
+	so = frappe.get_doc(
+		{
+			"doctype": "Sales Order",
+			"company": company,
+			"customer": pelanggan,
+			"currency": "IDR",
+			"selling_price_list": daftar_harga("_Uji Harga Jual", jual=True),
+			"transaction_date": tanggal,
+			"delivery_date": kirim,
+			"items": [
+				{
+					"item_code": kode,
+					"qty": qty,
+					"uom": satuan,
+					"conversion_factor": faktor or 1,
+					"rate": 10000,
+					"delivery_date": kirim,
+					"warehouse": gudang(company, "Gudang Barang Jadi"),
+				}
+			],
+		}
+	).insert(ignore_permissions=True)
+	if submit:
+		so.submit()
+	return so
+
+
+def buat_perkiraan(company: str, items: list[str], dari: date, periode: int, tanggal: date | None = None):
+	"""A new draft Monthly Sales Forecast of `items` from `dari` for `periode` months, posted on `tanggal`
+	(default today), its parent warehouse the company's root warehouse. Its demand rows are left empty
+	(`forecast.isi` generates them)."""
+	from frappe.utils import getdate, today
+
+	tanggal = getdate(tanggal or today())
+	tahun_fiskal(tanggal)
+	return frappe.get_doc(
+		{
+			"doctype": "Sales Forecast",
+			"company": company,
+			"posting_date": tanggal,
+			"frequency": "Monthly",
+			"from_date": dari,
+			"demand_number": periode,
+			"parent_warehouse": akar_gudang(company),
+			"selected_items": [{"item_code": k} for k in items],
+		}
+	).insert(ignore_permissions=True)

@@ -86,3 +86,8 @@ Sales Manager,Manajer Penjualan
 Sales User,Staf Penjualan
 Manufacturing Manager,Manajer Produksi
 Manufacturing User,Staf Produksi
+Fill from History,Isi dari Riwayat
+Fill from History works only on a draft monthly Sales Forecast.,Isi dari Riwayat cuma untuk Perkiraan Penjualan bulanan yang masih draf.
+Select the items first.,Pilih barangnya dulu.
+Filled from the average of {0}.,Diisi dari rata-rata {0}.
+No history yet: {0}. Enter their numbers by hand.,Belum ada riwayat: {0}. Isi angkanya manual.

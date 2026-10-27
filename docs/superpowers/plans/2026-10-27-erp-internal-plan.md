@@ -987,7 +987,7 @@ Rules:
   `freeze: true`, then `frm.reload_doc()` and `frappe.msgprint`. The message is "Diisi dari rata-rata {bulan}." plus,
   when the list is non-empty, "Belum ada riwayat: {barang}. Isi angkanya manual."
 
-- [ ] **Step 1: Write the failing tests.** Let `m(k)` be the first day of the month `k` months before today. Item A
+- [x] **Step 1: Write the failing tests.** Let `m(k)` be the first day of the month `k` months before today. Item A
   has Riwayat 300 in each of `m(3)`, `m(2)` and `m(1)`. The forecast starts at `m(-1)` with 2 periods.
   - `test_rata_rata_dari_riwayat`: both rows of A get 300; `bulan` lists the three months.
   - `test_order_ikut_dihitung`: B has no Riwayat. Sales Orders of 100 in `m(2)` and 200 in `m(1)` give 100.
@@ -999,12 +999,28 @@ Rules:
   - `test_ditolak_sesudah_submit_atau_mingguan`: a submitted forecast and a Weekly one both raise
     `frappe.ValidationError` from `isi_dari_riwayat`.
   - `test_izin`: as a user with Role Profile Gudang, `isi_dari_riwayat` raises `frappe.PermissionError`.
-- [ ] **Step 2: Run them.** Expected: FAIL (ImportError).
-- [ ] **Step 3: Implement** `qty_per_bulan` (two grouped queries, summed in Python), `isi`, `isi_dari_riwayat` and
+- [ ] **Step 2: Run them.** Expected: FAIL (ImportError). Not run: no site yet.
+- [x] **Step 3: Implement** `qty_per_bulan` (two grouped queries, summed in Python), `isi`, `isi_dari_riwayat` and
   the JS.
 - [ ] **Step 4: Run them again.** Expected: 8 tests OK. Then `bench build --app erp_internal` and try the button on
-  `erp.localhost`.
-- [ ] **Step 5: Commit** `feat(perencanaan): fill Sales Forecast from sales history and orders`.
+  `erp.localhost`. Not run: no site yet.
+- [x] **Step 5: Commit** `feat(planning): fill Sales Forecast from sales history and orders`.
+
+**Task 11 deviations (2026-10-28, written without a site; Sales Forecast read in the v16 source):**
+- `erp_internal/planning/forecast.py`. v16's `Sales Forecast.selected_items` (Table MultiSelect) is required and
+  `generate_demand()` builds one row per item and period from it, so `buat_perkiraan` fills `selected_items` and
+  leaves `items` empty. `isi` refuses with "Select the items first." before calling `generate_demand` when both
+  are empty.
+- `isi` sets every row of an item, including rows typed by hand; `diisi` counts rows, not items.
+- `qty_per_bulan` reads Sales History by `bulan` and Sales Orders by `transaction_date`, both between the first
+  reference month and the last day of the last one, `parenttype` "Sales Order" on the item table.
+- `buat_perkiraan(company, items, dari, periode, tanggal=None)`: `tanggal` is the posting date (Task 13's newest
+  forecast test needs it). `buat_order` sets `uom`, its `conversion_factor` from the item's UOM table, the
+  row's warehouse (Gudang Barang Jadi) and the fiscal year of `tanggal`; `tests/utils.py` also gains
+  `akar_gudang(company)`.
+- New `test_tombol_menyimpan` (`isi_dari_riwayat` saves the numbers); 9 tests, not 8.
+- The message's item codes are HTML-escaped in the JS.
+
 
 ### Task 12: The production flow (defaults and a chain test)
 

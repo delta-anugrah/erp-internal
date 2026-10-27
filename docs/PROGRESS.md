@@ -9,6 +9,10 @@ Newest first. One entry per working session: what changed, test results as run, 
   role and `_()` string has an `id.csv` row. Tests not run: no site yet.
 - Task 10: `planning/rumus.py` (`bulan_acuan`, `rata_rata`, `bulatkan`, `ada_riwayat`), `tests/test_rumus.py`.
   Run with the bench's Python and no site (`frappe.local.session` stubbed): 6 tests OK.
+- Task 11: `planning/forecast.py` (`qty_per_bulan`, `isi`, `isi_dari_riwayat`), the "Fill from History" button
+  (`public/js/sales_forecast.js`, `doctype_js`), `tests/test_forecast.py` (9 tests), `buat_order`,
+  `buat_perkiraan`, `akar_gudang`. Checked: ruff, `py_compile`, `node --check`, import with the bench's Python,
+  translation scan. Tests and the button not run: no site yet.
 
 ## 2026-10-28: Tasks 5, 6, 7 written, no site yet
 - Task 5: `setup._alur_jual_beli()` (order-first selling and buying, no negative stock, FIFO, perpetual inventory

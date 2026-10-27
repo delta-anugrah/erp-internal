@@ -52,7 +52,8 @@ app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: t
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+# The "Fill from History" button (planning/forecast.py).
+doctype_js = {"Sales Forecast": "public/js/sales_forecast.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
