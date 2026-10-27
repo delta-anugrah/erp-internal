@@ -57,3 +57,11 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - Docs follow code in the same commit: CLAUDE.md, README.md, `docs/`.
 - Conventional Commits, no Claude attribution. Work on `feat/lokal`; `main` is protected (PR only). Tag and deploy
   only with Abel's approval.
+
+## Working here
+
+- Status and next steps: `docs/TODO.md`; what happened per session: `docs/PROGRESS.md`; Samuel's open questions and
+  their defaults: `docs/menunggu-samuel.md`. Update all three when a task ends.
+- `/run-checks` before calling a task done; reviewer agents: `reviewer` (a task against the plan), `docs-sync`
+  (docs after a change). Rules per area: `.claude/rules/`.
+- Work on branch `feat/lokal`; `main` takes PRs only.
