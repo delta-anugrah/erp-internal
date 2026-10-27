@@ -13,5 +13,5 @@ Status 2026-10-27: only the design and the plan exist. Start with Task 1 of the 
   re-applied idempotently on migrate; ERPNext modules hidden, never deleted; never share a bench, site, database or
   server with BPT or the sawit server; Conventional Commits without Claude attribution; push, tag and deploy only
   with Abel's approval.
-- Paths: this repo `~/Desktop/Projects/erp-internal/erp_internal`, bench `~/Desktop/Projects/erp-internal/bench`,
-  secrets `~/Desktop/Projects/erp-internal/.env`.
+- Paths: this repo `~/Desktop/Projects/erp-internal`, bench `~/Desktop/Projects/erp-internal-bench`,
+  secrets `~/Desktop/Projects/erp-internal-bench/.env`.

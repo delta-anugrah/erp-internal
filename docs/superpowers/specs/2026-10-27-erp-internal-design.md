@@ -90,8 +90,9 @@ and holds System Manager.
 - Production runs on a separate server, never the sawit droplet. It uses a Docker image built on a version tag,
   following bpt's `deploy/Containerfile`, `.github/workflows/image.yml` and `deploy/droplet/docker-compose.yml`.
 - Dev setup:
-  - folder `~/Desktop/Projects/erp-internal/`, holding the repo `erp_internal/`, the bench `bench/` (the app
-    symlinked in, like bpt) and `.env` with the secrets (mode 0600);
+  - the repo `~/Desktop/Projects/erp-internal/` (the app root) and, beside it, the bench
+    `~/Desktop/Projects/erp-internal-bench/` with `apps/erp_internal` symlinked to the repo (like bpt and bpt-bench) and
+    `.env` with the secrets (mode 0600);
   - MariaDB container `erp-mariadb` on 127.0.0.1:3308;
   - bench ports 8002/9002/11002/13002;
   - sites `erp.localhost` and `erp-test.localhost`.

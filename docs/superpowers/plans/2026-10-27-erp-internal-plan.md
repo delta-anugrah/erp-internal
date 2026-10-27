@@ -90,7 +90,7 @@ image on its own server.
      Save screenshots to `tools/hasil/`, which is gitignored.
    - Commit `feat(tampilan): full width, module home pages, shorter forms, defaults`.
 5. **Task 1 changes, because the repo already exists.**
-   - The repo `~/Desktop/Projects/erp-internal/erp_internal` (GitHub `delta-anugrah/erp-internal`, private) was
+   - The repo `~/Desktop/Projects/erp-internal` (GitHub `delta-anugrah/erp-internal`, private) was
      created on 2026-10-27 with these docs.
    - In Step 4, run `bench new-app erp_internal --no-git` inside the bench. Copy the generated files into the repo
      (`rsync -a --ignore-existing apps/erp_internal/ ../erp_internal/`), delete `apps/erp_internal`, then symlink it
@@ -100,6 +100,41 @@ image on its own server.
 6. Task 2: `PENGATURAN_SISTEM["language"]` is `"en"`. Task 2's test asserts `en`.
 7. User guides (`docs/panduan/*.md`) stay in plain Indonesian for the staff. They name the buttons as the English
    UI shows them.
+
+## Revision 3 (Abel, 2026-10-27 23:10): local first, Samuel's answers later
+
+1. **Paths.** The repo is `~/Desktop/Projects/erp-internal` and is the app root itself (`pyproject.toml`,
+   `erp_internal/` package). The bench is `~/Desktop/Projects/erp-internal-bench`, with `apps/erp_internal`
+   symlinked to the repo and `.env` inside it. `tools/setup_bench.sh` reads `$ERP_BENCH/.env`, where `ERP_BENCH`
+   defaults to `~/Desktop/Projects/erp-internal-bench`. Task 1 Step 4: run `bench new-app erp_internal --no-git` in
+   the bench, `rsync -a --ignore-existing apps/erp_internal/ ~/Desktop/Projects/erp-internal/`, remove
+   `apps/erp_internal`, then symlink.
+2. **Everything runs locally first.**
+   - Build every code task (1–7, 4b, 9–13, 15–16) on the dev sites.
+   - The go-live tasks 8, 14 and 17 wait. For now each one only gets a local dry run: the same steps on
+     `erp.localhost` with sample data marked DATA CONTOH.
+   - Task 7 builds and tests the image and the compose stack locally. There is no real server yet.
+3. **None of Samuel's answers blocks the local build.** These defaults are used until he answers. Each one is easy
+   to change later:
+
+   | Question (design §12) | Default until he answers | Where it changes later |
+   |---|---|---|
+   | 1 company names | PT Contoh Plastik (CPL), PT Contoh Kantor (CKT) | go-live wizard (Task 8) |
+   | 2 past orders | sample Sales History, 6 months, DATA CONTOH | import at Task 14 |
+   | 3 invoices / PKP | invoices on, PPN templates present but not default | `is_default` at Task 8 |
+   | 4 products, machines, capacity | 5 sample products with BOM and Item Lead Time | data at Task 14 |
+   | 5 attendance method, hours | phone with location, 08:00–17:00 | `setup.SHIFT_KANTOR` |
+   | 6 server, domain, backup | local compose stack, rclone remote of type local | `.env` on the server |
+   | 7 users per bagian | one sample user per bagian (`@contoh.test`) | users at go-live |
+
+   Keep `docs/menunggu-samuel.md` up to date: each question, its default, and where the answer goes.
+4. **Sample data.** Add `erp_internal/contoh.py` with `buat_contoh()`, run by `bench --site erp.localhost execute
+   erp_internal.contoh.buat_contoh`. It is idempotent and refuses to run when site config `erp_produksi` is set.
+   - It creates the two sample companies, 5 products, 3 raw materials, 1 packaging item and their BOMs, Item Lead
+     Times and stock.
+   - It also creates 3 customers, 2 suppliers, 6 months of Sales History and some open orders.
+   - Last, one user per bagian, all sharing a password taken from site config `erp_sandi_contoh`.
+   - It is needed for the local dry runs and the browser check.
 
 ## Global Constraints
 
@@ -128,9 +163,9 @@ image on its own server.
   - integration tests date their records relative to `today()` and pass `hari_ini` explicitly to the code under
     test.
 - Dev:
-  - repo `~/Desktop/Projects/erp-internal/erp_internal`, bench `~/Desktop/Projects/erp-internal/bench` (with
+  - repo `~/Desktop/Projects/erp-internal`, bench `~/Desktop/Projects/erp-internal-bench` (with
     `apps/erp_internal` symlinked to the repo);
-  - secrets `~/Desktop/Projects/erp-internal/.env` (0600, never committed);
+  - secrets `~/Desktop/Projects/erp-internal-bench/.env` (0600, never committed);
   - MariaDB container `erp-mariadb` on 127.0.0.1:3308; bench ports 8002 (web), 9002 (socketio), 11002 (redis
     queue), 13002 (redis cache);
   - sites `erp.localhost` and `erp-test.localhost` (`allow_tests`).
@@ -156,10 +191,9 @@ image on its own server.
 ## File structure
 
 ```
-~/Desktop/Projects/erp-internal/
-├── .env                          # DB_ROOT_PASSWORD, ADMIN_PASSWORD
-├── bench/                        # not a repo
-└── erp_internal/                 # the repo (GitHub: delta-anugrah/erp-internal, private)
+~/Desktop/Projects/erp-internal-bench/   # not a repo; .env (DB_ROOT_PASSWORD, ADMIN_PASSWORD); apps/erp_internal -> ../../erp-internal
+~/Desktop/Projects/erp-internal/         # the repo = the app root (GitHub: delta-anugrah/erp-internal, private)
+└── (repo root)
     ├── versi.json                # pinned tags
     ├── CLAUDE.md  README.md  .dockerignore
     ├── .claude/skills/setup-bench/SKILL.md
