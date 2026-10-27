@@ -911,7 +911,7 @@ Controller rules:
   - `ada_riwayat(per_bulan: dict[date, float], bulan: list[date]) -> bool`: true when any month in `bulan` is
     above 0.
 
-- [ ] **Step 1: Write the failing tests** (`UnitTestCase`).
+- [x] **Step 1: Write the failing tests** (`UnitTestCase`).
 
 ```python
 def test_bulan_acuan_sebelum_bulan_berjalan(self):
@@ -935,11 +935,21 @@ def test_ada_riwayat(self):
 	self.assertEqual([ada_riwayat({}, b), ada_riwayat({b[0]: 0}, b), ada_riwayat({b[0]: 5}, b)], [False, False, True])
 ```
 
-- [ ] **Step 2: Run them.** Expected: FAIL (ImportError).
-- [ ] **Step 3: Implement the four functions.** Use `frappe.utils.add_months` and `get_first_day`; there is no DB
+- [ ] **Step 2: Run them.** Expected: FAIL (ImportError). Not recorded: tests and code were written in one pass.
+- [x] **Step 3: Implement the four functions.** Use `frappe.utils.add_months` and `get_first_day`; there is no DB
   access.
-- [ ] **Step 4: Run them again.** Expected: 6 tests OK.
-- [ ] **Step 5: Commit** `feat(perencanaan): forecast math, last 3 full months averaged and rounded up`.
+- [x] **Step 4: Run them again.** Expected: 6 tests OK. Done 2026-10-28 without a site: 6 tests OK (command in the
+  deviations).
+- [x] **Step 5: Commit** `feat(planning): forecast math, last 3 full months averaged and rounded up`.
+
+**Task 10 deviations (2026-10-28):**
+- `erp_internal/planning/rumus.py` (Revision 2's folder). `rata_rata` of an empty month list is 0.
+- Run without a site: `UnitTestCase.setUpClass` only needs `frappe.local.session`, so from the bench
+  `env/bin/python -c "import sys, unittest, frappe; frappe.local.session = frappe._dict(); import
+  erp_internal.tests.test_rumus as t; sys.exit(not unittest.TextTestRunner(verbosity=2).run(
+  unittest.defaultTestLoader.loadTestsFromModule(t)).wasSuccessful())"` gives 6 tests OK. `bench run-tests` on
+  `erp-test.localhost` is the real run once the site exists.
+
 
 ### Task 11: Fill the forecast from history
 

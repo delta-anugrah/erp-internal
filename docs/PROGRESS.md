@@ -7,6 +7,8 @@ Newest first. One entry per working session: what changed, test results as run, 
   `unik_riwayat` constraint); `tests/test_sales_history.py` (5 tests), `tests/data/riwayat.csv`, `docs/impor.md`
   section 5. Checked: `ruff check`, `ruff format --check`, `py_compile`, JSON valid, offline scan that every label,
   role and `_()` string has an `id.csv` row. Tests not run: no site yet.
+- Task 10: `planning/rumus.py` (`bulan_acuan`, `rata_rata`, `bulatkan`, `ada_riwayat`), `tests/test_rumus.py`.
+  Run with the bench's Python and no site (`frappe.local.session` stubbed): 6 tests OK.
 
 ## 2026-10-28: Tasks 5, 6, 7 written, no site yet
 - Task 5: `setup._alur_jual_beli()` (order-first selling and buying, no negative stock, FIFO, perpetual inventory
