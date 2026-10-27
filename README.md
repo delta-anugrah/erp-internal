@@ -19,7 +19,8 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
    4. `apps`: erpnext and hrms at their pinned tags;
    5. `link`: `apps/erp_internal` → this repo, `pip install -e`, `sites/apps.txt`;
    6. `sites`: `erp.localhost` and `erp-test.localhost` (`allow_tests`) with erpnext, hrms and erp_internal;
-   7. `wizard`: completes the setup wizard of `erp.localhost` without a browser.
+   7. `wizard`: completes the setup wizard of `erp.localhost` without a browser, sets PT Contoh Plastik's Jenis to Pabrik and runs
+      `migrate`, which builds the factory warehouses, item groups and UOMs (`erp_internal/setup.py`).
 3. `cd ~/Desktop/Projects/erp-internal-bench && bench start`, then open http://erp.localhost:8002 and sign in as
    Administrator.
 

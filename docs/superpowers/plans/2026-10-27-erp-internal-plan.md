@@ -328,7 +328,7 @@ Values to set:
   (`is_group` 1, no parent). Then set `disabled` = 1 on every other non-group warehouse of that company that has no
   Stock Ledger Entry.
 
-- [ ] **Step 1: Write the failing tests.** `setUpClass` makes `_Uji Pabrik` (Pabrik) and `_Uji Kantor` (Kantor).
+- [x] **Step 1: Write the failing tests.** `setUpClass` makes `_Uji Pabrik` (Pabrik) and `_Uji Kantor` (Kantor).
 
 ```python
 def test_pengaturan_indonesia(self):
@@ -360,14 +360,25 @@ def test_idempoten(self):
 ```
 
 - [ ] **Step 2: Run them.** `--module erp_internal.tests.test_setup`. Expected: FAIL (ImportError on
-  `erp_internal.setup`).
-- [ ] **Step 3: Implement `pastikan_setup()`.** It calls these in order: `_pengaturan()`, `_field_jenis()`, then
+  `erp_internal.setup`). Not run: no site yet.
+- [x] **Step 3: Implement `pastikan_setup()`.** It calls these in order: `_pengaturan()`, `_field_jenis()`, then
   returns when `not frappe.is_setup_complete()`, then `_grup_barang()`, `_satuan()`, and `_gudang_pabrik(c)` for each
   `c` in `perusahaan("Pabrik")`. Each helper writes only when a value differs. Later tasks append their own helpers
   to this sequence.
 - [ ] **Step 4: Run them again.** Expected: 5 tests OK. Then `bench --site erp.localhost migrate` and set "PT
-  Contoh Plastik" Jenis = Pabrik.
-- [ ] **Step 5: Commit** `feat(setup): Indonesian site defaults, company kind, groups, UOMs, factory warehouses`.
+  Contoh Plastik" Jenis = Pabrik. Not run: no site yet (the `wizard` part of `tools/setup_bench.sh` now sets
+  Jenis and migrates).
+- [x] **Step 5: Commit** `feat(setup): Indonesian site defaults, company kind, groups, UOMs, factory warehouses`.
+
+**Task 2 deviations (2026-10-27, written without a site):**
+- `Company.erp_jenis` has the English label "Kind" and a description (Revision 2); the option values stay
+  `Pabrik`/`Kantor`, which the code reads.
+- `GLOBAL_DEFAULTS` and `SATUAN_PECAHAN` (Kg) are named tables. An existing UOM gets its `must_be_whole_number` set
+  too, not only new ones.
+- Unused warehouses are disabled with `frappe.db.set_value` after checking they have no Stock Ledger Entry
+  (`Warehouse.validate` would check the same).
+- `tools/setup_bench.sh wizard` sets PT Contoh Plastik's Jenis to Pabrik and runs `migrate` after the wizard, since
+  the wizard alone does not run `after_migrate`.
 
 ### Task 3: Show only the modules in use
 

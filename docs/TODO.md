@@ -11,7 +11,7 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 
 ## Part A: foundation and the factory
 - [~] Task 1: repo, bench, sites, app (sites waiting on Abel)
-- [ ] Task 2: site setup on every migrate
+- [~] Task 2: site setup on every migrate (written, tests not run)
 - [ ] Task 3: only the used modules
 - [ ] Task 4: English default, Indonesian switch
 - [ ] Task 4b: friendly screens

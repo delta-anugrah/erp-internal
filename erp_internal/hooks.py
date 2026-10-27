@@ -96,7 +96,9 @@ app_license = "mit"
 # ------------
 
 # before_install = "erp_internal.install.before_install"
-# after_install = "erp_internal.install.after_install"
+# Site setup, re-applied on every install and migrate (erp_internal/setup.py).
+after_install = "erp_internal.setup.pastikan_setup"
+after_migrate = "erp_internal.setup.pastikan_setup"
 
 # Uninstallation
 # ------------
@@ -276,4 +278,3 @@ app_license = "mit"
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
