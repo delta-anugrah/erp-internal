@@ -20,7 +20,7 @@ from erp_internal.tampilan import (
 	pintasan_aktif,
 	terapkan,
 )
-from erp_internal.tests.utils import buat_barang, buat_pelanggan, buat_pengguna, buat_perusahaan
+from erp_internal.tests.utils import buat_barang, buat_pelanggan, buat_pengguna, buat_perusahaan, daftar_harga
 
 IZIN = {
 	"Gudang": (
@@ -134,6 +134,7 @@ class TestTampilan(IntegrationTestCase):
 		u = buat_pengguna("_uji.penjualan.pabrik@contoh.test", "Penjualan", "Penjualan", pabrik)
 		pelanggan = buat_pelanggan("_Uji Pelanggan")
 		barang = buat_barang("_UJI-EMBER", "Barang Jadi")
+		harga = daftar_harga("_Uji Harga Jual", jual=True)  # IDR: the test site's own lists are INR
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		so = frappe.get_doc(
@@ -141,6 +142,8 @@ class TestTampilan(IntegrationTestCase):
 				"doctype": "Sales Order",
 				"company": pabrik,
 				"customer": pelanggan,
+				"currency": "IDR",
+				"selling_price_list": harga,
 				"transaction_date": today(),
 				"delivery_date": add_days(today(), 7),
 				"items": [{"item_code": barang, "qty": 10, "rate": 10000}],

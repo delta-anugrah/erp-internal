@@ -2,6 +2,13 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28: Tasks 5, 6, 7 written, no site yet
+- Task 5: `setup._alur_jual_beli()` (order-first selling and buying, no negative stock, FIFO, perpetual inventory
+  off per factory, PPN accounts and templates, not default); `tests/test_alur_jual_beli.py` (5 tests);
+  `tests/utils.py` `buat_pemasok`, `daftar_harga`, `stok_awal`; guides `docs/panduan/{penjualan,pembelian,gudang}.md`
+  (no screenshots yet). Checked: `py_compile`, `ruff check`, `ruff format --check`; the settings fields, mapper
+  paths and refusals read in the v16 source. Tests not run: no site yet.
+
 ## 2026-10-27 (night): Tasks 2, 3, 4, 4b written, no site yet
 - Task 2: `setup.pastikan_setup()` on `after_install`/`after_migrate` (System Settings, sign-up and OAuth
   registration off, Global Defaults, `Company.erp_jenis`, item groups, UOMs, factory warehouses);

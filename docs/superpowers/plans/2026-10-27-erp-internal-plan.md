@@ -637,7 +637,7 @@ Settings:
   - a Sales Taxes and Charges Template "PPN 11% - <abbr>" and a Purchase Taxes and Charges Template "PPN Masukan
     11% - <abbr>". Both charge "On Net Total" at `TARIF_PPN`, with `is_default` 0.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `test_alur_penjualan`: stock 500 of `_UJI-EMBER` in Gudang Barang Jadi. Submit a Sales Order of 100 at 10.000.
     `make_delivery_note(so)` and submit; the Bin `actual_qty` is 400. `make_sales_invoice(dn)` with template "PPN
     11% - _UP", run `set_taxes`, submit; `grand_total` is 1.110.000.
@@ -646,12 +646,37 @@ Settings:
     submit; the Bin in Gudang Bahan Baku grows by 50. A Purchase Receipt with no Purchase Order raises
     `frappe.ValidationError`.
   - `test_tanpa_jurnal_stok`: after the Delivery Note, `frappe.db.count("GL Entry", {"voucher_no": dn.name})` is 0.
-- [ ] **Step 2: Run them.** Expected: FAIL (templates missing, Delivery Note without an order allowed).
-- [ ] **Step 3: Implement `_alur_jual_beli()`.**
-- [ ] **Step 4: Run them again.** Expected: 4 tests OK.
-- [ ] **Step 5: Write `docs/panduan/penjualan.md`, `pembelian.md` and `gudang.md`** in plain Indonesian: the daily
-  steps per bagian, one screenshot per step, taken on `erp.localhost`.
-- [ ] **Step 6: Commit** `feat(alur): sales and purchasing flow, PPN templates, perpetual inventory off`.
+- [ ] **Step 2: Run them.** Expected: FAIL (templates missing, Delivery Note without an order allowed). Not run:
+  no site yet.
+- [x] **Step 3: Implement `_alur_jual_beli()`.**
+- [ ] **Step 4: Run them again.** Expected: 5 tests OK. Not run: no site yet.
+- [x] **Step 5: Write `docs/panduan/penjualan.md`, `pembelian.md` and `gudang.md`** in plain Indonesian: the daily
+  steps per bagian, one screenshot per step, taken on `erp.localhost`. Text written; screenshots not taken (no
+  site yet): the guides link `docs/panduan/gambar/*.png`, still missing.
+- [x] **Step 6: Commit** `feat(alur): sales and purchasing flow, PPN templates, perpetual inventory off`.
+
+**Task 5 deviations (2026-10-28, written without a site; fieldnames and methods read in the v16 source):**
+- `make_delivery_note` (`erpnext.selling.doctype.sales_order.sales_order`), `make_sales_invoice`
+  (`erpnext.stock.doctype.delivery_note.delivery_note`) and `make_purchase_receipt`
+  (`erpnext.buying.doctype.purchase_order.purchase_order`) are the v16 paths. `so_required` is checked in
+  `DeliveryNote.validate` and `po_required` in `PurchaseReceipt.validate`, so the refusals raise on `insert`.
+- The Sales Invoice gets its taxes by `taxes_and_charges`, an emptied `taxes` table and `set_taxes()` (it only
+  fills an empty table on a new doc).
+- New `test_pengaturan_alur` (5 tests, not 4): the settings, perpetual inventory off, both templates and the Tax
+  accounts.
+- `tests/utils.py` gains `daftar_harga(nama, jual)`: an IDR price list. The test site's wizard (HRMS
+  `before_tests`) makes INR price lists, which an IDR company would need an exchange rate for. Task 3's
+  `test_penjualan_tetap_bisa_buat_order` now uses it too.
+- `stok_awal` uses Opening Stock only when the item has no stock entry in that warehouse yet (ERPNext refuses a
+  second opening), a plain reconciliation after, and nothing when the stock is already `qty` (ERPNext refuses a
+  reconciliation that changes nothing).
+- The PPN group is found by name "Duties and Taxes", else the first group of type Tax. A chart without one logs an
+  error and skips the templates instead of failing the migrate. An existing template keeps its `is_default`, so
+  Task 8's hand-set default survives a migrate; only its tax row is put back.
+- v16 also has `Company.valuation_method` (default FIFO); it is left alone (ERPNext refuses a change after stock
+  moves).
+- Perpetual inventory is set with `db.set_value` (Company's own save rebuilds default accounts) and ERPNext's
+  per-request cache entry is dropped.
 
 ### Task 6: The import guide and tested templates
 

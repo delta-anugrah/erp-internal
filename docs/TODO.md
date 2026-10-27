@@ -15,7 +15,7 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 - [~] Task 3: only the used modules (written, tests not run)
 - [~] Task 4: English default, Indonesian switch (written, tests not run)
 - [~] Task 4b: friendly screens (written, tests not run; `cek_layar` also needs `contoh.py`'s users)
-- [ ] Task 5: sales and purchasing flow
+- [~] Task 5: sales and purchasing flow (written, tests not run; guide screenshots wait for the site)
 - [ ] Task 6: import guide
 - [ ] Task 7: server image, compose, backups (local)
 - [ ] Task 8: go-live wave 1 (local dry run only)

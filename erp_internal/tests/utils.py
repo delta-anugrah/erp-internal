@@ -119,3 +119,59 @@ def _daun(doctype: str) -> str:
 	return frappe.db.get_value(doctype, {"is_group": 0}, "name", order_by="lft asc") or frappe.db.get_value(
 		doctype, {"is_group": 1}, "name", order_by="lft asc"
 	)
+
+
+def buat_pemasok(nama: str) -> str:
+	"""Get or create a company supplier in the first leaf supplier group."""
+	if not frappe.db.exists("Supplier", nama):
+		frappe.get_doc(
+			{
+				"doctype": "Supplier",
+				"supplier_name": nama,
+				"supplier_type": "Company",
+				"supplier_group": _daun("Supplier Group"),
+			}
+		).insert(ignore_permissions=True)
+	return nama
+
+
+def daftar_harga(nama: str, jual: bool) -> str:
+	"""Get or create an IDR price list for selling (`jual`) or buying. The test site's wizard made its
+	standard price lists in INR, which would need an exchange rate."""
+	if not frappe.db.exists("Price List", nama):
+		frappe.get_doc(
+			{
+				"doctype": "Price List",
+				"price_list_name": nama,
+				"currency": "IDR",
+				"enabled": 1,
+				"selling": int(jual),
+				"buying": int(not jual),
+			}
+		).insert(ignore_permissions=True)
+	return nama
+
+
+def stok_awal(company: str, kode: str, qty: float, nama_gudang: str, rate: float = 1000) -> None:
+	"""Set the stock of `kode` in warehouse `nama_gudang` of `company` to `qty` with a submitted Stock
+	Reconciliation: Opening Stock the first time, a plain reconciliation after (ERPNext refuses a second
+	opening), nothing when the stock is already `qty`."""
+	from frappe.utils import nowdate
+
+	from erp_internal.setup import gudang
+
+	wh = gudang(company, nama_gudang)
+	if (frappe.db.get_value("Bin", {"item_code": kode, "warehouse": wh}, "actual_qty") or 0) == qty:
+		return
+	ada = frappe.db.exists("Stock Ledger Entry", {"item_code": kode, "warehouse": wh, "is_cancelled": 0})
+	abbr = frappe.get_cached_value("Company", company, "abbr")
+	frappe.get_doc(
+		{
+			"doctype": "Stock Reconciliation",
+			"company": company,
+			"purpose": "Stock Reconciliation" if ada else "Opening Stock",
+			"posting_date": nowdate(),
+			"expense_account": f"Temporary Opening - {abbr}",
+			"items": [{"item_code": kode, "warehouse": wh, "qty": qty, "valuation_rate": rate}],
+		}
+	).insert(ignore_permissions=True).submit()

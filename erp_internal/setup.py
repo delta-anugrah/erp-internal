@@ -40,6 +40,25 @@ SATUAN = ("Pcs", "Lusin", "Karton", "Sak", "Roll", "Kg")
 SATUAN_PECAHAN = ("Kg",)  # every other UOM takes whole numbers only
 GUDANG_PABRIK = ("Gudang Bahan Baku", "Gudang Produksi", "Gudang Barang Jadi", "Gudang Reject")
 
+# The sales and purchasing flow: every delivery and every receipt starts from an order; stock never goes
+# negative and is valued FIFO.
+PENGATURAN_ALUR = {
+	"Selling Settings": {"so_required": "Yes", "dn_required": "No"},
+	"Buying Settings": {"po_required": "Yes", "pr_required": "No"},
+	"Stock Settings": {"allow_negative_stock": 0, "valuation_method": "FIFO"},
+}
+# Per factory company: stock moves post no journal entries (perpetual inventory off).
+PERUSAHAAN_PABRIK = {"enable_perpetual_inventory": 0}
+
+# PPN: one sales and one purchase template per factory, never the default (Samuel decides PKP, Task 8).
+TARIF_PPN = 11
+PAJAK = {
+	"jual": ("PPN 11%", "PPN Keluaran"),
+	"beli": ("PPN Masukan 11%", "PPN Masukan"),
+}  # (template, account)
+TEMPLATE_PAJAK = {"jual": "Sales Taxes and Charges Template", "beli": "Purchase Taxes and Charges Template"}
+INDUK_PAJAK = "Duties and Taxes"  # the chart's group for tax accounts
+
 
 def pastikan_setup() -> None:
 	"""Bring the site to the state this app expects. Idempotent; safe before the setup wizard."""
@@ -52,6 +71,7 @@ def pastikan_setup() -> None:
 	for company in perusahaan("Pabrik"):
 		_gudang_pabrik(company)
 	_bawaan()
+	_alur_jual_beli()
 	tampilan.terapkan()
 
 
@@ -164,3 +184,80 @@ def _bawaan() -> None:
 			doc = frappe.get_doc("User Permission", rows[0].name)
 			doc.is_default = 1
 			doc.save(ignore_permissions=True)
+
+
+def _alur_jual_beli() -> None:
+	"""Order-first selling and buying, no negative stock, no stock journal entries, PPN templates."""
+	for doctype, nilai in PENGATURAN_ALUR.items():
+		doc = frappe.get_single(doctype)
+		beda = {k: v for k, v in nilai.items() if doc.get(k) != v}
+		if beda:
+			doc.update(beda)
+			doc.flags.ignore_mandatory = True
+			doc.save(ignore_permissions=True)
+
+	for company in perusahaan("Pabrik"):
+		for field, nilai in PERUSAHAAN_PABRIK.items():
+			if frappe.db.get_value("Company", company, field) != nilai:
+				frappe.db.set_value("Company", company, field, nilai)
+		# ERPNext caches the perpetual flag per request (erpnext.is_perpetual_inventory_enabled).
+		getattr(frappe.local, "enable_perpetual_inventory", {}).pop(company, None)
+
+		for jenis, (judul, nama_akun) in PAJAK.items():
+			akun = _akun_pajak(company, nama_akun)
+			if akun:
+				_template_pajak(company, TEMPLATE_PAJAK[jenis], judul, akun)
+
+
+def _akun_pajak(company: str, nama: str) -> str | None:
+	"""Get or create the tax account `"<nama> - <abbr>"` under the company's Duties and Taxes group."""
+	akun = f"{nama} - {frappe.get_cached_value('Company', company, 'abbr')}"
+	if frappe.db.exists("Account", akun):
+		if frappe.db.get_value("Account", akun, "account_type") != "Tax":
+			frappe.db.set_value("Account", akun, "account_type", "Tax")
+		return akun
+
+	induk = frappe.db.get_value(
+		"Account", {"company": company, "account_name": INDUK_PAJAK, "is_group": 1}, "name"
+	) or frappe.db.get_value(
+		"Account", {"company": company, "account_type": "Tax", "is_group": 1}, "name", order_by="lft asc"
+	)
+	if not induk:
+		# A chart without a tax group: leave the templates out rather than fail the migrate.
+		frappe.log_error(
+			f"No {INDUK_PAJAK} group in {company}; PPN accounts not created", "erp_internal setup"
+		)
+		return None
+	frappe.get_doc(
+		{
+			"doctype": "Account",
+			"account_name": nama,
+			"parent_account": induk,
+			"company": company,
+			"account_type": "Tax",
+			"tax_rate": TARIF_PPN,
+			"is_group": 0,
+		}
+	).insert(ignore_permissions=True)
+	return akun
+
+
+def _template_pajak(company: str, doctype: str, judul: str, akun: str) -> None:
+	"""Get or create a tax template with one On Net Total row at `TARIF_PPN`. A new template is not the
+	default; an existing one keeps its `is_default`, which the go-live sets by hand for a PKP factory."""
+	baris = {"charge_type": "On Net Total", "account_head": akun, "description": judul, "rate": TARIF_PPN}
+	if doctype == TEMPLATE_PAJAK["beli"]:
+		baris.update({"category": "Total", "add_deduct_tax": "Add"})
+
+	nama = f"{judul} - {frappe.get_cached_value('Company', company, 'abbr')}"
+	if not frappe.db.exists(doctype, nama):
+		frappe.get_doc(
+			{"doctype": doctype, "title": judul, "company": company, "is_default": 0, "taxes": [baris]}
+		).insert(ignore_permissions=True)
+		return
+
+	doc = frappe.get_doc(doctype, nama)
+	kini = [(t.charge_type, t.account_head, t.rate) for t in doc.taxes]
+	if kini != [(baris["charge_type"], akun, TARIF_PPN)]:
+		doc.set("taxes", [baris])
+		doc.save(ignore_permissions=True)
