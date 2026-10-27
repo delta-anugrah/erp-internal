@@ -1,0 +1,4 @@
+Company,Purpose,Difference Account,Item Code (Items),Warehouse (Items),Quantity (Items),Valuation Rate (Items)
+_Uji Pabrik,Opening Stock,Temporary Opening - _UP,_UJI-S1,Gudang Bahan Baku - _UP,120,15000
+,,,_UJI-S2,Gudang Barang Jadi - _UP,80,9000
+,,,_UJI-S3,Gudang Barang Jadi - _UP,40,12000

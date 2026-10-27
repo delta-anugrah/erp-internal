@@ -1,0 +1,4 @@
+Item Code,Item Name,Item Group,Default Unit of Measure,Maintain Stock,Safety Stock,UOM (uoms),Conversion Factor (uoms)
+_UJI-B1,_Uji Ember 10 L,Barang Jadi,Pcs,1,50,Karton,24
+_UJI-B2,_Uji Baskom 40 cm,Barang Jadi,Pcs,1,30,Lusin,12
+_UJI-B3,_Uji Biji PP Impor,Bahan Baku,Kg,1,100,Sak,25

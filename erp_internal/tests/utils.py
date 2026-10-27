@@ -175,3 +175,31 @@ def stok_awal(company: str, kode: str, qty: float, nama_gudang: str, rate: float
 			"items": [{"item_code": kode, "warehouse": wh, "qty": qty, "valuation_rate": rate}],
 		}
 	).insert(ignore_permissions=True).submit()
+
+
+def impor_csv(doctype: str, path: str, jenis: str = "Insert New Records", ajukan: bool = False):
+	"""Import the CSV at `path` into `doctype` through a Data Import, run synchronously, and return the
+	reloaded Data Import. `ajukan` submits each imported document (Stock Reconciliation).
+
+	The importer commits after every row (and rolls back a failed one), so this commits too: what it
+	imports outlives the test's rollback, and callers clean up their own records."""
+	import os
+
+	with open(path, "rb") as f:
+		isi = f.read()
+	berkas = frappe.get_doc(
+		{"doctype": "File", "file_name": os.path.basename(path), "content": isi, "is_private": 1}
+	).insert(ignore_permissions=True)
+	impor = frappe.get_doc(
+		{
+			"doctype": "Data Import",
+			"reference_doctype": doctype,
+			"import_type": jenis,
+			"import_file": berkas.file_url,
+			"submit_after_import": int(ajukan),
+			"mute_emails": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep: a failed first row must not roll back the Data Import itself
+	impor.start_import()  # runs now under tests (frappe.in_test)
+	return impor.reload()

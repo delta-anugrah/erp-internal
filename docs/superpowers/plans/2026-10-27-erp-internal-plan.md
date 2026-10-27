@@ -689,7 +689,7 @@ Settings:
 - Produces: `tests/utils.py` `impor_csv(doctype: str, path: str, jenis: str = "Insert New Records") ->
   Document`. It creates a Data Import, runs it synchronously and returns the reloaded doc.
 
-- [ ] **Step 1: Make the test files from ERPNext itself.** On `erp.localhost`, use Data Import → Download Template.
+- [x] **Step 1: Make the test files from ERPNext itself.** On `erp.localhost`, use Data Import → Download Template.
   Keep the headers exactly as an Indonesian user gets them, and record them in `docs/impor.md`.
   - Item: code, name, group, default UOM, maintain stock, safety stock, and UOMs child (UOM, conversion factor).
   - Customer: name, type, group, territory.
@@ -699,19 +699,40 @@ Settings:
 
   Each file holds 3 rows. `barang.csv` gives `_UJI-B1` a Karton conversion of 24. `barang_salah.csv` has one row
   with an Item Group that does not exist.
-- [ ] **Step 2: Write the failing tests.**
+- [x] **Step 2: Write the failing tests.**
   - `test_impor_barang`: 3 Items, and `_UJI-B1` has a Karton conversion factor of 24.
   - `test_impor_pelanggan_dan_pemasok`: 3 of each.
   - `test_impor_stok_awal`: the Bin `actual_qty` equals the file per row.
   - `test_impor_salah_terbaca`: the Data Import status is not "Success", and its import log names row 1 and the
     Item Group.
-- [ ] **Step 3: Run them.** Expected: FAIL (`impor_csv` missing).
-- [ ] **Step 4: Implement `impor_csv`** and run again. Expected: 4 tests OK.
-- [ ] **Step 5: Write `docs/impor.md`** in plain Indonesian:
+- [ ] **Step 3: Run them.** Expected: FAIL (`impor_csv` missing). Not run: no site yet.
+- [x] **Step 4: Implement `impor_csv`** and run again. Expected: 4 tests OK. Implemented; run not done: no site yet.
+- [x] **Step 5: Write `docs/impor.md`** in plain Indonesian:
   - the order: Barang, Pelanggan, Pemasok, then Stok awal dated the day before go-live;
   - the headers, one example row per file, and how to read the error log, fix the file and import again;
   - a note that each import is checked against Samuel's file counts.
-- [ ] **Step 6: Commit** `docs(impor): tested Data Import templates and guide`.
+- [x] **Step 6: Commit** `docs(impor): tested Data Import templates and guide`.
+
+**Task 6 deviations (2026-10-28, written without a site):**
+- No site to press Download Template on. The headers are built from v16's `data_import/exporter.py`
+  (`add_header`: a field's label; a child field as `"<label> (<table label or fieldname>)"`) for an English user
+  (Revision 2), so `UOM (uoms)` (Item's `uoms` table has no label), `Item Code (Items)`. The importer also accepts
+  the translated labels, so an Indonesian user's template works too. **Re-check every header against the site's
+  Download Template** once `erp.localhost` exists, and the button names of v16.53's Data Import wizard in the guide.
+- v16.53 checks every Link and Select value before importing (`value_mapping.get_blocking_warnings`). An unknown
+  Item Group stops the whole file: no row is imported, the status goes back to Pending, there is no import log, and
+  `template_warnings` holds `"<value>" is not a valid Item Group — row 2`, row 2 being the first data row under the
+  header (sheet numbering). `test_impor_salah_terbaca` asserts that, not "row 1 in the import log". `docs/impor.md`
+  explains both kinds of error (blocked before import, with Value Mappings to fix it; failed rows in the log).
+- `impor_csv(doctype, path, jenis, ajukan=False)`: `ajukan` sets `submit_after_import` (Stock Reconciliation).
+  It commits like the importer itself (which commits per row), so `test_impor` cleans up its own records at the
+  start and end of the class (`bersihkan`: delete the imported items, customers and suppliers, cancel the earlier
+  openings of `_UJI-S1..S3`).
+- `stok_awal.csv` has no Posting Date column, so the test does not depend on a date (the import day is used); the
+  guide's example has it. Customers use the wizard's English groups (`Commercial`, `Individual`, territory `Rest Of
+  The World`) that both sites have.
+- Numbers in the files are plain (`15000`): with `#.###,##`, v16 reads `15.000` as 15000 and refuses ambiguous
+  values; the guide says so.
 
 ### Task 7: Server image, compose stack and backups
 

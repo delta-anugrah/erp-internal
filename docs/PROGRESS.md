@@ -8,6 +8,10 @@ Newest first. One entry per working session: what changed, test results as run, 
   `tests/utils.py` `buat_pemasok`, `daftar_harga`, `stok_awal`; guides `docs/panduan/{penjualan,pembelian,gudang}.md`
   (no screenshots yet). Checked: `py_compile`, `ruff check`, `ruff format --check`; the settings fields, mapper
   paths and refusals read in the v16 source. Tests not run: no site yet.
+- Task 6: `tests/utils.impor_csv`, `tests/test_impor.py` (4 tests), `tests/data/{barang,pelanggan,pemasok,stok_awal,
+  barang_salah}.csv`, `docs/impor.md`. Headers built from v16's `exporter.py` (no site to download from); v16.53
+  blocks a file with an unknown link before importing, so the wrong-file test reads `template_warnings`.
+  Checked: `py_compile`, ruff. Tests not run: no site yet.
 
 ## 2026-10-27 (night): Tasks 2, 3, 4, 4b written, no site yet
 - Task 2: `setup.pastikan_setup()` on `after_install`/`after_migrate` (System Settings, sign-up and OAuth
