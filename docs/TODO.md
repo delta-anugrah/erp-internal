@@ -3,6 +3,8 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 2 and 3 first).
 
 ## Waiting on Abel
+- [ ] After the sites exist: run Tasks 2-6's tests, re-check `docs/impor.md`'s headers against Download Template,
+      take the `docs/panduan/` screenshots, then Task 7 Steps 2-4 (compose boot, `cadangan.sh`, restore drill).
 - [ ] Create the two dev sites in your own terminal: `tools/setup_bench.sh sites wizard` (the permission check stops
       Claude from running `bench new-site`). Then `bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs`.
 
@@ -17,7 +19,8 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 - [~] Task 4b: friendly screens (written, tests not run; `cek_layar` also needs `contoh.py`'s users)
 - [~] Task 5: sales and purchasing flow (written, tests not run; guide screenshots wait for the site)
 - [~] Task 6: import guide (written, tests not run; headers to re-check against the site's Download Template)
-- [ ] Task 7: server image, compose, backups (local)
+- [~] Task 7: server image, compose, backups (image built and checked locally; compose boot, backup and restore
+      drill wait for a site: `new-site` needs the database root password)
 - [ ] Task 8: go-live wave 1 (local dry run only)
 
 ## Part B: production and forecast

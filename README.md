@@ -37,8 +37,8 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
 | Chart of accounts | Standard |
 | Fiscal year | 1 January to 31 December of the current year |
 
-No extra user is created; Administrator only. `erp-test.localhost` is completed by ERPNext's `before_tests` on the
-first test run.
+No extra user is created; Administrator only. `erp-test.localhost` is completed by HRMS's `before_tests` on the
+first test run (company `_Test Company`, INR; our tests make their own IDR companies and price lists).
 
 ## Language
 
@@ -57,3 +57,21 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 Browser check of each bagian's screens (needs `bench start` and the sample users):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`.
 Screenshots land in `tools/hasil/` (not committed).
+
+## Factory flow and data import
+
+- Every Delivery Note and Purchase Receipt comes from an order, stock never goes negative, stock posts no journal
+  entries, and each factory gets PPN templates that are not the default (`setup._alur_jual_beli`). Staff guides:
+  `docs/panduan/{penjualan,pembelian,gudang}.md`.
+- Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
+  by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`).
+
+## Server
+
+The image is built from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`) by
+`.github/workflows/image.yml` on a `vX.Y.Z` tag and checked by `deploy/check_image.sh`. The stack, backups
+(`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:
+
+```bash
+docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
+```

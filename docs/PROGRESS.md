@@ -12,6 +12,12 @@ Newest first. One entry per working session: what changed, test results as run, 
   barang_salah}.csv`, `docs/impor.md`. Headers built from v16's `exporter.py` (no site to download from); v16.53
   blocks a file with an unknown link before importing, so the wrong-file test reads `template_warnings`.
   Checked: `py_compile`, ruff. Tests not run: no site yet.
+- Task 7: `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workflows/image.yml`, `.dockerignore`,
+  `deploy/server/{docker-compose.yml,.env.example,cadangan.sh,README.md}`. `docker build` passed locally (arm64,
+  ~20 min, 5.43 GB) and `check_image.sh` printed OK with the three pinned tags. `docker compose config` and
+  `shellcheck` clean; `cadangan.sh` dry run with a stub docker and a local rclone remote passed. Not run: compose
+  boot, real backup and restore drill (need `new-site`, i.e. a database root password).
+- Next: Abel creates the sites; run every test; fix what fails; then Task 8's local dry run.
 
 ## 2026-10-27 (night): Tasks 2, 3, 4, 4b written, no site yet
 - Task 2: `setup.pastikan_setup()` on `after_install`/`after_migrate` (System Settings, sign-up and OAuth

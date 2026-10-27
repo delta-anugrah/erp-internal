@@ -765,21 +765,44 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
 
   Cron runs it daily at 02:00 WIB.
 
-- [ ] **Step 1: Build.** `docker build -f deploy/Containerfile -t erp-internal:uji .` succeeds, and
-  `deploy/check_image.sh erp-internal:uji` exits 0.
-- [ ] **Step 2: Boot it.** `docker compose up -d` with `SITE=erp-uji.localhost` and a new site. Then `curl -fsS -H
+- [x] **Step 1: Build.** `docker build -f deploy/Containerfile -t erp-internal:uji .` succeeds, and
+  `deploy/check_image.sh erp-internal:uji` exits 0. Done 2026-10-28 on the Mac (linux/arm64, about 20 min, 5.43 GB):
+  `OK: frappe v16.53.0 erpnext v16.52.1 hrms v16.52.0 erp_internal 77867c1`. CI builds linux/amd64.
+- [ ] **Step 2: Boot it.** Not run: `new-site` needs a database root password (left to Abel); `docker compose
+  config` validates the file. `docker compose up -d` with `SITE=erp-uji.localhost` and a new site. Then `curl -fsS -H
   "Host: erp-uji.localhost" http://127.0.0.1:8080/api/method/ping` prints `{"message":"pong"}`.
-- [ ] **Step 3: Back it up.** Run `cadangan.sh` with an rclone remote of type `local` (a temp directory). Expected:
+- [ ] **Step 3: Back it up.** Not run against a real stack (needs Step 2). Dry run with a stub `docker` and a local
+  rclone remote passed: three files copied, a 15-day-old set deleted locally and remotely, a bad remote exits non-zero. Run `cadangan.sh` with an rclone remote of type `local` (a temp directory). Expected:
   three files (database, public files, private files). A fake set dated 15 days ago is deleted on the next run.
-- [ ] **Step 4: Restore drill.** Restore that backup into a second fresh stack. `ping` answers, and
+- [ ] **Step 4: Restore drill.** Not run (needs Step 2); the commands are in the runbook. Restore that backup into a second fresh stack. `ping` answers, and
   `frappe.db.count("Item")` equals the source's.
-- [ ] **Step 5: Write `deploy/server/README.md`** with these sections:
+- [x] **Step 5: Write `deploy/server/README.md`** with these sections:
   - first install: server, DNS, reverse proxy with TLS, `.env`, `up -d`, new site, wizard values, set Jenis;
   - new version: tag, image, pull, `migrate`;
   - backup and restore: the cron line and a monthly restore drill;
   - who holds which secret.
-- [ ] **Step 6: Commit** `feat(deploy): pinned image, compose stack, nightly off-site backup, runbook`. Tag `v0.1.0`
-  only with Abel's approval.
+- [x] **Step 6: Commit** `feat(deploy): pinned image, compose stack, nightly off-site backup, runbook`. Tag `v0.1.0`
+  only with Abel's approval (not tagged).
+
+**Task 7 deviations (2026-10-28):**
+- `frappe/build` has no `v16.53.0` tag; its tags follow the frappe_docker release. `BUILD_IMAGE` is
+  `frappe/build:v16.52.1` and `BASE_IMAGE` `frappe/base:v16.53.0`, both pinned by index digest, both from the
+  2026-10-27 release (same Python 3.14.10). The base already ships Node 24.22.1, so bpt's Node swap is dropped.
+- The apps are cloned by bench (`bench init --frappe-branch <tag>`, `bench get-app --branch <tag>`, which run
+  `git clone --depth 1 --branch`), reading the tags from `versi.json` in the build; the build fails unless
+  `git describe --tags --exact-match` equals the pin. `BUILD_INFO` records the tags and `ERP_SHA`.
+- `check_image.sh` compares each app's tag and `__version__` with the host's `versi.json`, imports
+  `erp_internal`, checks `erp_internal.bundle.js`, Python 3.14, Node 24, socket.io deps, WeasyPrint and baked-in
+  credentials. `apps.txt` is compared as a set: bench writes it as `frappe hrms erpnext erp_internal` and the
+  configurator rewrites it alphabetically.
+- Compose: bpt's services without its droplet caps and `oom_score_adj` (our own server); a `logs` volume; the
+  frontend serves `SITE` whatever the Host header (`FRAPPE_SITE_NAME_HEADER: ${SITE}`); `tools` mounts
+  `./cadangan` for restores. The variable is `DB_ROOT_PASSWORD` (plan) where bpt has `MARIADB_ROOT_PASSWORD`;
+  `.env` also holds `ADMIN_PASSWORD`.
+- `cadangan.sh` copies the three data files only; the site config backup (it holds the database password) stays on
+  the server and the encryption key is kept with the secrets (runbook). It reads only `SITE` and `RCLONE_REMOTE`
+  from `.env`, checks the remote holds the 3 files, and deletes sets older than `SIMPAN_HARI` (14) days. Bash 3
+  compatible (no `mapfile`).
 
 ### Task 8: Go-live wave 1, the factory
 

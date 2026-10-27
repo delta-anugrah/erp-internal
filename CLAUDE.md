@@ -4,8 +4,9 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (stock, sales, purchasing, production with a monthly forecast and the Order Readiness report) and our office
 (attendance, projects). Plain ERPNext showing only the modules in use, nothing from BPT.
 
-Status 2026-10-27: Task 1 is partly done (the two sites and the wizard wait on Abel). Tasks 2, 3, 4 and 4b are
-written but their tests have not run (no site yet). Next: Abel creates the sites, then the test run.
+Status 2026-10-28: Task 1 is partly done (the two sites and the wizard wait on Abel). Tasks 2-7 and 4b are
+written but their tests have not run (no site yet); Task 6's CSV headers and Task 7's compose boot, backup and
+restore drill wait for a site too. Next: Abel creates the sites, then the test run.
 
 - Design: `docs/superpowers/specs/2026-10-27-erp-internal-design.md`
 - Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md`. Its "Revision 2" and "Revision 3" sections
@@ -37,6 +38,8 @@ bench --site erp.localhost migrate
 bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 node tools/cek_layar.mjs                  # each bagian's screens (ERP_SANDI; tools/package.json)
+# from the repo: the server image and its check (deploy/server/README.md is the runbook)
+docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
 ```
 
 Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
