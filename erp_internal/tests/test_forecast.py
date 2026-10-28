@@ -81,6 +81,7 @@ class TestForecast(IntegrationTestCase):
 		asal = self.order(d, 30, 2)
 		asal.cancel()
 		ubah = frappe.copy_doc(asal)
+		ubah.docstatus = 0  # copy_doc keeps the cancelled original's docstatus 2
 		ubah.amended_from = asal.name
 		ubah.insert(ignore_permissions=True)
 		ubah.submit()
@@ -121,7 +122,12 @@ class TestForecast(IntegrationTestCase):
 		doc = buat_perkiraan(self.pabrik, [a], m(-1), 2)
 		isi_dari_riwayat(doc.name)
 		self.assertEqual(
-			set(frappe.get_all("Sales Forecast Item", {"parent": doc.name}, pluck="demand_qty")), {50}
+			set(
+				frappe.get_all(
+					"Sales Forecast Item", {"parent": doc.name, "parentfield": "items"}, pluck="demand_qty"
+				)
+			),
+			{50},
 		)
 
 	def test_izin(self):
