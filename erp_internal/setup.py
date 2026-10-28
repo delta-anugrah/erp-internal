@@ -24,8 +24,22 @@ PENGATURAN_SISTEM = {
 	"allow_error_traceback": 0,
 	"enable_password_policy": 1,
 	"minimum_password_score": "2",
+	"app_name": "Delta Anugrah",
 }
 GLOBAL_DEFAULTS = {"default_currency": "IDR", "country": "Indonesia"}
+
+# The brand: PT Delta Anugrah's mark on the login page, the Apps screen, the loading splash and the browser
+# tab. The files sit in `public/images/` (served as-is, no build); the original JPEG stays beside them.
+LOGO = "/assets/erp_internal/images/delta-anugrah.png"
+MEREK = {
+	"Website Settings": {
+		"app_name": "Delta Anugrah",
+		"app_logo": LOGO,
+		"splash_image": LOGO,
+		"favicon": "/assets/erp_internal/images/favicon-32.png",
+	},
+	"Navbar Settings": {"app_logo": LOGO},
+}
 
 # One company runs everything: the factory (stock, sales, purchasing, production) and the office (attendance,
 # projects). Setup builds both for each company with this box ticked; ERPNext's own test companies have it off.
@@ -177,6 +191,14 @@ def _pengaturan() -> None:
 	if oauth.get("enable_dynamic_client_registration"):
 		oauth.enable_dynamic_client_registration = 0
 		oauth.save(ignore_permissions=True)
+
+	for doctype, nilai in MEREK.items():
+		doc = frappe.get_single(doctype)
+		beda = {k: v for k, v in nilai.items() if doc.get(k) != v}
+		if beda:
+			doc.update(beda)
+			doc.flags.ignore_mandatory = True
+			doc.save(ignore_permissions=True)
 
 	defaults = frappe.get_single("Global Defaults")
 	beda = {k: v for k, v in GLOBAL_DEFAULTS.items() if defaults.get(k) != v}

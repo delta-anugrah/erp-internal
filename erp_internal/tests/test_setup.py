@@ -1,12 +1,17 @@
 """Site setup on every migrate: locale, the company marker, item groups, UOMs, warehouses and the office."""
 
+import os
+
 import frappe
+from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
 from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate, today
 
 from erp_internal.setup import (
 	GRUP_BARANG,
 	GUDANG_PABRIK,
+	LOGO,
+	MEREK,
 	PENGATURAN_SISTEM,
 	SATUAN,
 	gudang,
@@ -30,6 +35,24 @@ class TestSetup(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_single_value("OAuth Settings", "enable_dynamic_client_registration"), 0
 		)
+
+	def test_merek(self):
+		# The Delta Anugrah mark on login, Apps screen, splash and favicon; each file is in public/.
+		self.assertEqual(frappe.db.get_single_value("System Settings", "app_name"), "Delta Anugrah")
+		for doctype, nilai in MEREK.items():
+			for field, isi in nilai.items():
+				self.assertEqual(frappe.db.get_single_value(doctype, field), isi, f"{doctype}.{field}")
+				if isi.startswith("/assets/erp_internal/"):
+					berkas = frappe.get_app_path(
+						"erp_internal", "public", isi.removeprefix("/assets/erp_internal/")
+					)
+					self.assertTrue(os.path.isfile(berkas), berkas)
+		self.assertEqual(get_app_logo(), LOGO)
+
+		# A rerun saves nothing: the singles keep their modified stamp.
+		sebelum = {dt: frappe.db.get_single_value(dt, "modified") for dt in MEREK}
+		pastikan_setup()
+		self.assertEqual({dt: frappe.db.get_single_value(dt, "modified") for dt in MEREK}, sebelum)
 
 	def test_gudang_pabrik(self):
 		aktif = frappe.get_all(

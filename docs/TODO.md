@@ -18,6 +18,9 @@ unit + 89 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK.
 - [ ] Sign in as `user@` and `admin@contoh.test`: User has no Settings, Admin does; full width.
 - [ ] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused).
 - [ ] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid.
+- [ ] Ask the designer for the Delta Anugrah logo as SVG or a transparent PNG of 512 px or more: the current
+      source is a 200 px JPEG (`erp_internal/public/images/delta-anugrah.jpeg`); the transparent PNG and favicons
+      were cut from it. Then replace the files under the same names (no code change).
 - [ ] Decide: the PPN Masukan account under assets or liabilities (recommended: assets).
 
 ## Waiting on Mas Samuel

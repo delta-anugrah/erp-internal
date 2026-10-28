@@ -33,6 +33,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   Administrator's access (`FIELD_AKSES`, roles, password, rename). Frappe's `populate_role_profile_roles` drops any
   role ticked outside a user's Role Profiles by itself. An Admin-profile user never keeps the Employee role (the
   profile drops it); HR Manager covers their attendance.
+- Branding (`setup.MEREK`, `_pengaturan`): Website Settings `app_name`, `app_logo`, `splash_image`, `favicon` and
+  Navbar Settings `app_logo` point at `/assets/erp_internal/images/` (public files, served through the
+  `sites/assets` symlink, no build); System Settings `app_name` is "Delta Anugrah". Login uses `get_app_logo`
+  (Website Settings first), the Apps screen top left Navbar Settings. The rail's top slot and the Apps tiles are
+  each app's own logo (`app_data[].app_logo_url`), left alone so ERPNext and HR stay told apart.
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen

@@ -2,6 +2,18 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (Delta Anugrah logo)
+- `erp_internal/public/images/`: the original `delta-anugrah.jpeg` (200 px), a transparent trimmed
+  `delta-anugrah.png` (168 px, Pillow via uvx) and `favicon-32.png`, `favicon-192.png`.
+- `setup.MEREK` (Website Settings app_name, app_logo, splash_image, favicon; Navbar Settings app_logo) and System
+  Settings `app_name` "Delta Anugrah", set in `_pengaturan` on every migrate, saved only on a difference;
+  `test_setup.test_merek`.
+- Browser (Playwright, developer@): logo on /login, top left of the Apps screen, splash, favicon on login and desk,
+  no dialog, page styled. Inside a module the rail's top slot keeps ERPNext's logo (Frappe's per-app mark).
+- Tests: `bench --site erp-test.localhost run-tests --app erp_internal`: Ran 91 tests, OK. `uvx ruff check`,
+  `uvx ruff format --check`: clean. `migrate` on both sites.
+- No JS/CSS changed, no build. Next: a sharper source file from the designer (TODO).
+
 ## 2026-10-28 (Revision 4: one company, three roles)
 - Samuel's answers (Abel confirmed): one company (PT Delta Anugrah), roles Admin and User (plus Developer), no PKP.
 - Code: `Company.erp_aktif` replaces `erp_jenis`, every ticked company gets the factory and the office

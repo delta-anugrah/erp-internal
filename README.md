@@ -41,6 +41,14 @@ No extra user is created; Administrator only. `erp-test.localhost` is completed 
 `before_tests` hook (`erp_internal.tests.utils.sebelum_tes`), which runs HRMS's (company `_Test Company`, INR; our
 tests make their own IDR companies and price lists) and then our setup. That first run takes about 8 minutes.
 
+## Branding
+
+The site shows PT Delta Anugrah's mark and the name "Delta Anugrah" on the login page, the top left of the Apps
+screen, the loading splash and the browser tab. Setup sets it on every migrate (`setup.MEREK`, System Settings
+`app_name`); the files are `erp_internal/public/images/` (`delta-anugrah.png` transparent, `favicon-32.png`,
+`favicon-192.png`, the original `delta-anugrah.jpeg`). Inside a module the rail's top slot still shows ERPNext's or
+HR's own logo: Frappe draws each app's mark there.
+
 ## Language
 
 The UI is English. Each user switches to Indonesian, and back, from the user menu ("Bahasa Indonesia" /
