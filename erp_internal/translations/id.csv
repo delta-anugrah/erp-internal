@@ -111,3 +111,4 @@ OK,Aman,Order Readiness
 Sample data is not allowed on a production site (site config erp_produksi is set).,Data contoh tidak boleh di situs produksi (site config erp_produksi terisi).
 Set site config erp_sandi_contoh first: it is the password of the sample users.,Isi dulu site config erp_sandi_contoh: itu sandi para pengguna contoh.
 "Warehouse {0} does not belong to company {1}.","Gudang {0} bukan milik perusahaan {1}."
+"You can only submit your own timesheet.","Kamu cuma bisa submit timesheet milikmu sendiri."

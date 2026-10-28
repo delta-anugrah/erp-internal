@@ -75,3 +75,28 @@ class TestProyek(IntegrationTestCase):
 		sebelum = hitung()
 		pastikan_setup()
 		self.assertEqual(hitung(), sebelum)
+
+	def test_timesheet_orang_lain_ditolak(self):
+		# Security review 2026-10-28: Employee may submit, but only a timesheet booked to their own Employee.
+		pekerja = buat_pengguna("_uji.pekerja2@contoh.test", "Karyawan", "Karyawan", self.kantor)
+		buat_karyawan("_Uji Pekerja 2", self.kantor, user=pekerja)
+		lain = buat_karyawan("_Uji Orang Lain", self.kantor)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(pekerja)
+		kemarin = getdate(today()) - timedelta(days=1)
+		ts = frappe.get_doc(
+			{
+				"doctype": "Timesheet",
+				"company": self.kantor,
+				"employee": lain,
+				"time_logs": [
+					{
+						"activity_type": "Pengembangan",
+						"from_time": datetime.combine(kemarin, get_time("09:00:00")),
+						"hours": 1,
+					}
+				],
+			}
+		).insert()
+		with self.assertRaises(frappe.PermissionError):
+			ts.submit()

@@ -54,6 +54,9 @@ app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: t
 # include js in doctype views
 # The "Fill from History" button (planning/forecast.py).
 doctype_js = {"Sales Forecast": "public/js/sales_forecast.js"}
+
+# proyek.py: an employee submits only their own timesheet (IZIN_TAMBAHAN gives the Employee role submit)
+doc_events = {"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"}}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
