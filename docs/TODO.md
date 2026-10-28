@@ -51,6 +51,15 @@ Last full run (2026-10-28, after the Production Floor final review fixes): `benc
         the home; it opens the floor.
   - [ ] Go to a Work Order and come back (sidebar link and browser back): the floor fills the screen, no empty strip.
 
+## Production Floor, next round (Abel, 2026-10-28 22:32)
+- [ ] Labels overlap from the default camera (08/09, 05/06): spread or stack them so none covers another.
+- [ ] Zoomed in, the KPI cards cover the back row's labels: hide or fade a label under a card, or keep labels out
+      of the cards' area.
+- [ ] The floor looks too empty and plain next to BPT Live. Make it richer and livelier: a factory building around
+      the floor (walls, roof edge, doors), material and product areas (resin bags by the hoppers, product crates,
+      a dryer or mould rack), forklift and operator figures, floor markings, light from the windows. Keep the
+      smoothness budget (`.claude/rules/lantai.md`); plan it first (spec revision, then tasks).
+
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
 
