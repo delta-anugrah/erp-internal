@@ -9,6 +9,7 @@ from frappe.utils import add_months, get_first_day, getdate, today
 from erp_internal.tests.utils import buat_barang, buat_perusahaan, impor_csv, riwayat
 
 BARANG_IMPOR = ("_UJI-RW1", "_UJI-RW2")
+BARANG_UJI = "_UJI-RIWAYAT"
 
 
 def berkas(nama: str) -> str:
@@ -16,8 +17,11 @@ def berkas(nama: str) -> str:
 
 
 def bersihkan() -> None:
-	"""The importer commits, so the rows it made outlive the test's rollback."""
-	for nama in frappe.get_all("Sales History", {"item_code": ("in", BARANG_IMPOR)}, pluck="name"):
+	"""The importer commits, so the rows it made outlive the test's rollback, and so do the rows the
+	tests before it made in the same transaction."""
+	for nama in frappe.get_all(
+		"Sales History", {"item_code": ("in", [*BARANG_IMPOR, BARANG_UJI])}, pluck="name"
+	):
 		frappe.delete_doc("Sales History", nama, force=1)
 	frappe.db.commit()  # nosemgrep
 
@@ -27,7 +31,7 @@ class TestSalesHistory(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
-		cls.barang = buat_barang("_UJI-RIWAYAT", "Barang Jadi")
+		cls.barang = buat_barang(BARANG_UJI, "Barang Jadi")
 		for kode in BARANG_IMPOR:
 			buat_barang(kode, "Barang Jadi")
 		bersihkan()
