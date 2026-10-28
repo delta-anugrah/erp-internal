@@ -14,13 +14,21 @@ from erp_internal.tampilan import (
 	IKON,
 	MODUL_BOLEH,
 	PINTASAN,
+	PROFIL_PERAN,
 	SEMBUNYI,
 	SIDEBAR,
 	modul_aplikasi,
 	pintasan_aktif,
 	terapkan,
 )
-from erp_internal.tests.utils import buat_barang, buat_pelanggan, buat_pengguna, buat_perusahaan, daftar_harga
+from erp_internal.tests.utils import (
+	buat_barang,
+	buat_karyawan,
+	buat_pelanggan,
+	buat_pengguna,
+	buat_perusahaan,
+	daftar_harga,
+)
 
 IZIN = {
 	"Gudang": (
@@ -82,6 +90,9 @@ class TestTampilan(IntegrationTestCase):
 	def test_izin_per_bagian(self):
 		for bagian, (boleh, tidak) in IZIN.items():
 			u = buat_pengguna(surel(bagian), bagian, None, None)
+			if "Employee" in PROFIL_PERAN[bagian]:
+				# ERPNext drops the Employee role from a user with no Employee record (validate_employee_role).
+				buat_karyawan(f"_Uji Izin {bagian}", buat_perusahaan("_Uji Kantor", "_UK", "Kantor"), user=u)
 			for dt in boleh:
 				self.assertTrue(frappe.has_permission(dt, "create", user=u), f"{bagian} must create {dt}")
 			for dt in tidak:
