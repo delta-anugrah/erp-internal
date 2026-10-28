@@ -126,6 +126,10 @@ standard_navbar_items = [
 after_install = "erp_internal.setup.pastikan_setup"
 after_migrate = "erp_internal.setup.pastikan_setup"
 
+# Frappe runs only the tested app's before_tests: complete the test site's wizard (HRMS's own hook,
+# which also runs ERPNext's setup), then our setup.
+before_tests = "erp_internal.tests.utils.sebelum_tes"
+
 # Uninstallation
 # ------------
 

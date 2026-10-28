@@ -5,6 +5,18 @@ from datetime import date
 import frappe
 
 
+def sebelum_tes() -> None:
+	"""before_tests: complete the wizard on a fresh test site the way HRMS's tests do, then run our setup
+	(the wizard alone does not run after_migrate)."""
+	from hrms.tests.test_utils import before_tests
+
+	from erp_internal.setup import pastikan_setup
+
+	before_tests()
+	pastikan_setup()
+	frappe.db.commit()  # nosemgrep
+
+
 def buat_perusahaan(nama: str, abbr: str, jenis: str) -> str:
 	"""Get or create a company (Indonesia, IDR, chart "Standard") of kind `jenis`, then run the setup."""
 	from erp_internal.setup import pastikan_setup
