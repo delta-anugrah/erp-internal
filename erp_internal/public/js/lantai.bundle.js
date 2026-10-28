@@ -101,13 +101,22 @@ function kirimStatus(machine, status) {
 }
 
 // Realtime nudge (any machine, any change: always refetch everything; the payload is not trusted for content),
-// plus a poll every POLL seconds while the page shows. `muat()` is the controller's refetch.
+// plus a poll every POLL seconds, both only while the floor is on screen. Hidden (Desk page left via `jeda()`, or
+// the browser tab hidden) a nudge only marks the view stale; showing it again refetches at once when it is stale or
+// older than POLL. `muat()` is the controller's refetch.
 function pasangLive(ctl) {
 	let tunda = null;
 	let jam = null;
+	let ditahan = false; // the Desk page is not shown
+	let basi = false; // a nudge arrived while hidden
+	const tampil = () => !ditahan && !document.hidden;
 	const nudge = () => {
 		clearTimeout(tunda);
-		tunda = setTimeout(() => ctl.muat(), TUNDA);
+		if (!tampil()) {
+			basi = true;
+			return;
+		}
+		tunda = setTimeout(() => (tampil() ? ctl.muat() : (basi = true)), TUNDA);
 	};
 	try {
 		frappe.realtime.doctype_subscribe("Workstation");
@@ -115,26 +124,37 @@ function pasangLive(ctl) {
 	} catch {
 		/* no realtime: the poll still runs */
 	}
-	const mulai = () => {
+	const henti = () => {
 		clearInterval(jam);
-		jam = setInterval(() => {
-			if (!document.hidden) ctl.muat();
-		}, POLL * 1000);
+		jam = null;
 	};
-	mulai();
+	const mulai = () => {
+		henti();
+		if (!tampil()) return;
+		// Back on screen: catch up now if anything was missed, then poll again.
+		if (basi || Date.now() - ctl.terakhir >= POLL * 1000) {
+			basi = false;
+			ctl.muat();
+		}
+		jam = setInterval(() => tampil() && ctl.muat(), POLL * 1000);
+	};
+	const saatTampil = () => (document.hidden ? henti() : mulai());
+	document.addEventListener("visibilitychange", saatTampil);
+	jam = setInterval(() => tampil() && ctl.muat(), POLL * 1000); // the first fetch is the mount's own
 	return {
 		lanjut() {
-			// Back on the page after a while: catch up now, then the poll again.
-			if (Date.now() - ctl.terakhir >= POLL * 1000) ctl.muat();
+			ditahan = false;
 			mulai();
 		},
 		jeda() {
-			clearInterval(jam);
-			jam = null;
+			ditahan = true;
+			clearTimeout(tunda);
+			henti();
 		},
 		buang() {
 			clearTimeout(tunda);
-			clearInterval(jam);
+			henti();
+			document.removeEventListener("visibilitychange", saatTampil);
 			try {
 				frappe.realtime.off(EVENT, nudge);
 				frappe.realtime.doctype_unsubscribe("Workstation");

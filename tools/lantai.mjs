@@ -28,6 +28,7 @@
 //   set_value    frappe.db.set_value on a status (no event) with ?poll=3: the view follows
 //   poll         /socket.io blocked, ?poll=3: a status change still shows
 //   live         realtime on, default 60 s poll: a change from another tab shows within 5 s
+//   hidden       page left / tab hidden: no get_data on a nudge; on return the change shows within 3 s
 //   id           user@example.com in Indonesian: "Lantai Produksi" and the status names (switched back after)
 // ERP_BENCH (default ~/Desktop/Projects/erp-internal-bench) and ERP_SITE (erp.localhost) are for bench execute.
 
@@ -814,6 +815,49 @@ if (jalankan("live")) await kasus("live", async () => {
 	await ctx.close();
 });
 
+// Hidden: neither the Desk page left nor a hidden browser tab fetches on a nudge; back on screen, the view catches
+// up at once (not at the next 60 s poll).
+if (jalankan("hidden")) await kasus("hidden", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const NAMA = "Mesin 09";
+	const asli = await catatStatus(p, [NAMA]);
+	let ambil = 0;
+	p.on("request", (r) => r.url().includes("production_floor.get_data") && (ambil += 1));
+	const lihatStatus = (s) => tunggu(p, ([n, s]) => erp.lantai.aktif.info().mesin.find((m) => m.nama === n)?.status === s, [NAMA, s], 3000);
+	try {
+		await p.waitForTimeout(1500); // the socket joins its rooms
+		// 1. Leave the Desk page.
+		await p.evaluate(() => frappe.set_route("Workspaces", "Manufacturing"));
+		await p.waitForTimeout(500);
+		ambil = 0;
+		await api(p, "erp_internal.production_floor.set_status", { machine: NAMA, status: "Problem" });
+		await p.waitForTimeout(2000);
+		cek(ambil === 0, `hidden: ${ambil} get_data request(s) while the page was left`);
+		await p.evaluate(() => frappe.set_route("production-floor"));
+		cek(await lihatStatus("Problem"), "hidden: back on the page, the change made while away did not show within 3 s");
+		// 2. Hide the browser tab.
+		await p.evaluate(() => {
+			Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+			document.dispatchEvent(new Event("visibilitychange"));
+		});
+		await p.waitForTimeout(300);
+		ambil = 0;
+		await api(p, "erp_internal.production_floor.set_status", { machine: NAMA, status: "Off" });
+		await p.waitForTimeout(2000);
+		cek(ambil === 0, `hidden: ${ambil} get_data request(s) while the tab was hidden`);
+		await p.evaluate(() => {
+			delete document.hidden;
+			document.dispatchEvent(new Event("visibilitychange"));
+		});
+		cek(await lihatStatus("Off"), "hidden: the tab shown again did not catch up within 3 s");
+		cek((await dialog(p)) === 0, "hidden: a message dialog is open");
+	} finally {
+		await pulihkanStatus(p, asli);
+	}
+	await ctx.close();
+});
+
 // Indonesian: the page title and the status names.
 if (jalankan("id")) await kasus("id", async () => {
 	const ctx = await konteksMasuk(browser);
@@ -1086,4 +1130,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, id, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, hidden, id, perf, adaptive"})`);
