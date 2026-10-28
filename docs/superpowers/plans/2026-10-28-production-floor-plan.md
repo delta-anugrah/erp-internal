@@ -287,6 +287,13 @@ still passes under the new names.
 
 Spec Revision 1, second to fourth bullets.
 
+**Layout reference (Abel's BPT Live screenshot, 2026-10-28 17:30):** a full-width top bar (company logo and
+name on the left; on the right a chip "N machines" and the live dot with the clock), a row of KPI cards under it
+on the right (Machines, Running + utilization, Problem, Work Orders running, Output produced ÷ planned, each with a
+small caption line), a collapsible machine table at the bottom left (No., Machine, Status chip, Work Order; a row
+click selects the machine like a click in the scene), and a small vertical camera bar (+, −, home = reset view).
+Read the layout only; nothing is copied from BPT. The per-status chips sit in the table header as the legend.
+
 **Files:**
 - Create: `erp_internal/public/js/lantai/hud.js`, `erp_internal/public/js/lantai/kaca.js` (the shared glass CSS)
 - Modify: `production_floor.py` (`get_data()` adds `perusahaan`), its tests, `lantai.bundle.js`, `label.js`,

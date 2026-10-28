@@ -117,4 +117,6 @@ smooth, jangan patah2 / laggy".
   `prefers-reduced-transparency`, the cards turn solid. Every figure stays readable (contrast ≥ 4.5:1).
 - The smoothness budget still holds with the info bar and glass on; the clock writes text once a second, never
   per frame.
+- **Layout like BPT Live** (Abel's screenshot): top bar, a KPI card row, a collapsible machine table bottom left
+  whose rows select a machine, and a +/−/home camera bar.
 - **Not now** (needs data Samuel hasn't sent): shift and shift target, OEE, today's downtime, cycle time.
