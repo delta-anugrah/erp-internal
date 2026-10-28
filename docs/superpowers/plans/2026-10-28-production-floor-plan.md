@@ -54,6 +54,11 @@ the browser checks.
 - After `bench build` the running `bench start` serves stale asset names. Abel must restart it, and every task that
   builds says so in its report.
 
+**Final review fix (6cb0a98) supersedes the realtime details in Tasks 1, 4 and 5:** Workstation `on_update` and Work Order
+`on_change` (ERPNext sets `produced_qty` and status with `db_set`, which fires only `on_change`) call `siarkan`, which
+publishes `production_floor` with an empty payload `{}` to the room `doctype:Workstation` (a Workstation without a number
+sends nothing); the bundle re-emits `doctype_subscribe` on socket `connect` and in `lanjut()`. See `.claude/rules/lantai.md`.
+
 ## Review Focus
 
 1. **Missing or duplicate machine numbers** (13 machines, two with `erp_nomor` 5, one with 0). Expected: draw what

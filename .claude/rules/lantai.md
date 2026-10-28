@@ -45,7 +45,8 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - **The nudge goes to the room `doctype:Workstation`**, not to the site: `publish_realtime(doctype=...)` without a docname
   broadcasts to every System User and ignores the doctype. Frappe's realtime server keeps no room state, so after a socket
   reconnect (sleep, network blip, `bench start` restart) the bundle emits `doctype_subscribe` again on `socket.on("connect")` and in `lanjut()`
-  (`lantai.mjs reconnect`). Socket.io gives up after 3 failed reconnects; the poll still runs then.
+  (`lantai.mjs reconnect`). Socket.io gives up after 3 failed reconnects; the poll still runs then. The `lanjut()` re-emit is
+  also needed because leaving a Workstation list view calls `doctype_unsubscribe("Workstation")` on the shared socket.
 - An empty floor and a floor that never loaded say so in an inline glass note (`.catatan-lantai`, textContent, role status); a later failed
   refetch with machines on screen stays silent. The note clears on the next good fetch (`lantai.mjs notes`).
 - The open panel writes a node only when its text changed and waits for the camera to rest like the labels; `aria-live` is on the status chip and the note only (`lantai.mjs panel-quiet`).
