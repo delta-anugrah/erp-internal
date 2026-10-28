@@ -4,6 +4,7 @@ Each helper writes only what differs, so running it twice changes nothing. Compa
 setup wizard: before it is complete there is no company, root item group or root warehouse to build on.
 """
 
+import json
 from datetime import date
 
 import frappe
@@ -75,6 +76,17 @@ FIELD_MESIN = [
 	{"fieldname": "erp_tahun", "label": "Year Made", "fieldtype": "Int", "insert_after": "erp_tonase"},
 	{"fieldname": "erp_negara", "label": "Made In", "fieldtype": "Data", "insert_after": "erp_tahun"},
 ]
+
+# The machine a Work Order runs on (the Production Floor page shows the order on that machine). Only the
+# numbered machines are offered; Workstations made for other uses are not.
+FIELD_WO_MESIN = {
+	"fieldname": "erp_mesin",
+	"label": "Machine",
+	"fieldtype": "Link",
+	"options": "Workstation",
+	"insert_after": "production_item",
+	"link_filters": json.dumps([["Workstation", "erp_nomor", ">", 0]]),
+}
 
 GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart")
 # Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`).
@@ -246,7 +258,7 @@ def _impor_boleh() -> None:
 
 def _field_aktif() -> None:
 	# create_custom_fields saves only a field that is missing or differs.
-	create_custom_fields({"Company": [FIELD_AKTIF], "Workstation": FIELD_MESIN}, update=True)
+	create_custom_fields({"Company": [FIELD_AKTIF], "Workstation": FIELD_MESIN, "Work Order": [FIELD_WO_MESIN]}, update=True)
 
 
 def _grup_barang() -> None:

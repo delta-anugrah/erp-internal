@@ -81,7 +81,8 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
   `tests/utils.py`; date records relative to `today()`.
 - Docs follow code in the same commit: CLAUDE.md, README.md, `docs/`.
 - Conventional Commits, no Claude attribution. Work on `feat/lokal`; `main` is protected (PR only). Tag and deploy
-  only with Abel's approval.
+  only with Abel's approval. Every PR: assignee `marcoabelz`, reviewer `supportusahaai`
+  (`gh pr create --assignee marcoabelz --reviewer supportusahaai`).
 
 ## Working here
 
