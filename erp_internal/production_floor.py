@@ -1,14 +1,14 @@
 """Server side of the Production Floor page: the machines (Workstations numbered 1-14) with their status and
 running Work Order, a status change from the page, and a realtime nudge when either changes.
 
-The nudge carries the machine's name only. The page then asks `data()` again, so what it shows is always what
+The nudge carries the machine's name only. The page then asks `get_data()` again, so what it shows is always what
 that user may read.
 """
 
 import frappe
 from frappe import _
 
-EVENT = "erp_lantai"
+EVENT = "production_floor"
 FIELD_MESIN = (
 	"name",
 	"erp_nomor",
@@ -24,19 +24,19 @@ STATUS_WO = ("In Process", "Not Started")
 
 
 @frappe.whitelist()
-def data() -> dict:
+def get_data() -> dict:
 	"""Every numbered machine in floor order, each with its newest running Work Order (or None)."""
 	frappe.has_permission("Workstation", "read", throw=True)
 	return {"mesin": _daftar(), "waktu": frappe.utils.now()}
 
 
 @frappe.whitelist(methods=["POST"])
-def ubah_status(mesin: str, status: str) -> dict:
-	"""Set a machine's status (one of the Workstation's own options) and return its row as `data()` does."""
-	doc = frappe.get_doc("Workstation", mesin)
+def set_status(machine: str, status: str) -> dict:
+	"""Set a machine's status (one of the Workstation's own options) and return its row as `get_data()` does."""
+	doc = frappe.get_doc("Workstation", machine)
 	doc.check_permission("write")
 	if not (doc.get("erp_nomor") or 0) > 0:
-		frappe.throw(_("{0} is not a numbered machine.").format(mesin), frappe.ValidationError)
+		frappe.throw(_("{0} is not a numbered machine.").format(machine), frappe.ValidationError)
 	if status not in _pilihan_status():
 		frappe.throw(_("Unknown machine status: {0}").format(status), frappe.ValidationError)
 	doc.status = status
@@ -65,7 +65,7 @@ def _daftar() -> list[dict]:
 
 
 def _baris(b, wo: dict[str, dict]) -> dict:
-	"""One machine row of `data()`: `b` is a Workstation (doc or row), `wo` maps machine → Work Order."""
+	"""One machine row of `get_data()`: `b` is a Workstation (doc or row), `wo` maps machine → Work Order."""
 	return {
 		"name": b.name,
 		"nomor": b.erp_nomor,

@@ -1,4 +1,4 @@
-// Browser check of the Production Floor page (/desk/lantai-produksi). Needs `bench start` and the sample users.
+// Browser check of the Production Floor page (/desk/production-floor). Needs `bench start` and the sample users.
 //
 //   cd tools && npm install && npx playwright install chromium
 //   ERP_SANDI=<password> node tools/lantai.mjs          # ERP_URL defaults to http://erp.localhost:8002
@@ -8,7 +8,7 @@
 // front row on screen). Screenshot in tools/hasil/ (gitignored). Exit code 1 on any failure.
 //
 // Then, with the machines (pass case names to run only some: `node tools/lantai.mjs states perf`):
-//   states       six statuses set through ubah_status on Mesin 01-06; lamps, pulse, dimming and motion read back
+//   states       six statuses set through set_status on Mesin 01-06; lamps, pulse, dimming and motion read back
 //                from info().mesin (statuses restored after)
 //   13-machines  Mesin 05's erp_nomor set to 0 for the run (bench execute; restored after): 13 machines, slot 5
 //                empty, no dialog; a duplicate and an unknown number land in the spare row
@@ -73,7 +73,7 @@ if (!masuk.ok()) {
 }
 
 if (DASAR) {
-await page.goto(`${URL}/desk/lantai-produksi`);
+await page.goto(`${URL}/desk/production-floor`);
 try {
 	await page.waitForFunction(() => window.erp?.lantai?.aktif, null, { timeout: 20000 });
 } catch {
@@ -113,7 +113,7 @@ if (!gagal.length) {
 	for (let i = 0; i < 5; i++) {
 		await page.evaluate(() => frappe.set_route("Workspaces", "Manufacturing"));
 		await page.waitForTimeout(700);
-		await page.evaluate(() => frappe.set_route("lantai-produksi"));
+		await page.evaluate(() => frappe.set_route("production-floor"));
 		await page.waitForTimeout(700);
 	}
 	// While the page is hidden the loop must stand still; back on the page it must draw again.
@@ -123,7 +123,7 @@ if (!gagal.length) {
 	const a1 = await total();
 	await page.waitForTimeout(1000);
 	cek((await total()) === a1, "frames kept drawing while the page was hidden");
-	await page.evaluate(() => frappe.set_route("lantai-produksi"));
+	await page.evaluate(() => frappe.set_route("production-floor"));
 	await page.waitForTimeout(500);
 	const a2 = await total();
 	await page.waitForTimeout(500);
@@ -144,7 +144,7 @@ if (!gagal.length) {
 	await p2.goto(`${URL}/desk`);
 	await p2.waitForFunction(() => window.frappe?.boot && frappe.set_route);
 	await p2.evaluate(() => {
-		frappe.set_route("lantai-produksi");
+		frappe.set_route("production-floor");
 		frappe.set_route("Workspaces", "Manufacturing");
 	});
 	try {
@@ -170,7 +170,7 @@ if (!gagal.length) {
 			document.dispatchEvent(new Event("visibilitychange"));
 		};
 	});
-	await p3.goto(`${URL}/desk/lantai-produksi`);
+	await p3.goto(`${URL}/desk/production-floor`);
 	try {
 		await p3.waitForFunction(() => window.erp?.lantai?.aktif, null, { timeout: 20000 });
 		await p3.waitForTimeout(500);
@@ -215,7 +215,7 @@ async function bukaLantai(ctx, { tunggu = true } = {}) {
 	p.__galat = [];
 	p.on("console", (m) => m.type() === "error" && p.__galat.push(m.text()));
 	p.on("pageerror", (e) => p.__galat.push(String(e)));
-	await p.goto(`${URL}/desk/lantai-produksi`, { waitUntil: "domcontentloaded", timeout: 60000 });
+	await p.goto(`${URL}/desk/production-floor`, { waitUntil: "domcontentloaded", timeout: 60000 });
 	await p.waitForFunction(() => window.erp?.lantai?.aktif, null, { timeout: 20000 });
 	if (tunggu) await p.waitForFunction(() => (erp.lantai.aktif.info().mesin || []).length > 0, null, { timeout: 10000 });
 	return p;
@@ -234,15 +234,15 @@ const hexJarak = (a, b) => {
 };
 // Statuses of the given machines from data(), to put them back after a case.
 async function catatStatus(p, nama) {
-	const d = await api(p, "erp_internal.lantai.data", {}, false);
+	const d = await api(p, "erp_internal.production_floor.get_data", {}, false);
 	return Object.fromEntries(d.mesin.filter((m) => nama.includes(m.name)).map((m) => [m.name, m.status || ""]));
 }
-// ubah_status refuses an empty status (not one of the Workstation's options), so an originally empty one goes back
+// set_status refuses an empty status (not one of the Workstation's options), so an originally empty one goes back
 // through bench execute.
 async function pulihkanStatus(p, asli) {
 	for (const [mesin, status] of Object.entries(asli)) {
 		try {
-			if (status) await api(p, "erp_internal.lantai.ubah_status", { mesin, status });
+			if (status) await api(p, "erp_internal.production_floor.set_status", { machine: mesin, status });
 			else bench("execute", "frappe.db.set_value", "--args", JSON.stringify(["Workstation", mesin, "status", ""]));
 		} catch (e) {
 			gagal.push(`could not restore ${mesin} to ${status}: ${e.message}`);
@@ -274,8 +274,8 @@ if (jalankan("states")) {
 	const asli = await catatStatus(p, Object.keys(RENCANA));
 	try {
 		for (const [mesin, status] of Object.entries(RENCANA)) {
-			const baris = await api(p, "erp_internal.lantai.ubah_status", { mesin, status });
-			cek(baris?.status === status, `ubah_status ${mesin} → ${status} answered ${JSON.stringify(baris)?.slice(0, 120)}`);
+			const baris = await api(p, "erp_internal.production_floor.set_status", { machine: mesin, status });
+			cek(baris?.status === status, `set_status ${mesin} → ${status} answered ${JSON.stringify(baris)?.slice(0, 120)}`);
 		}
 		await p.evaluate(() => erp.lantai.aktif.muat());
 		// Easing settles in well under a second at 60 fps; allow a slow GL more.
@@ -390,7 +390,7 @@ if (jalankan("no-webgl")) {
 		const p = await ctx.newPage();
 		const galatP = [];
 		p.on("pageerror", (e) => galatP.push(String(e)));
-		await p.goto(`${URL}/desk/lantai-produksi`);
+		await p.goto(`${URL}/desk/production-floor`);
 		try {
 			await p.waitForFunction(
 				() => document.querySelector(".lantai-host")?.shadowRoot?.querySelectorAll("table tbody tr").length >= 14,
@@ -464,7 +464,7 @@ if (jalankan("perf")) {
 			await p.mouse.move(cx + Math.sin(t * 0.9) * 300, cy + Math.sin(t * 0.5) * 40);
 			while (ubah.length && Date.now() - t0 >= ubah[0][0]) {
 				const [, mesin, status] = ubah.shift();
-				janji.push(api(p, "erp_internal.lantai.ubah_status", { mesin, status }).then(() => p.evaluate(() => erp.lantai.aktif.muat())));
+				janji.push(api(p, "erp_internal.production_floor.set_status", { machine: mesin, status }).then(() => p.evaluate(() => erp.lantai.aktif.muat())));
 			}
 			await p.waitForTimeout(8);
 		}
@@ -638,4 +638,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: lantai-produksi (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, perf, adaptive"})`);

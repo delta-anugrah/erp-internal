@@ -232,3 +232,5 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Task 1 (`421bf7c`): MariaDB `erp-mariadb` on 3308, bench at `~/Desktop/Projects/erp-internal-bench` on the pinned
   v16 tags, app scaffolded and linked, `tools/setup_bench.sh`, setup-bench skill. Sites not created yet: `bench
   new-site` was refused by the permission check, so Abel runs `tools/setup_bench.sh sites wizard`. Tests not run.
+- Production Floor Task 4: English route and endpoints (page `production-floor`, `erp_internal.production_floor.get_data`/
+  `set_status(machine, status)`, event `production_floor`); the old Page `lantai-produksi` is deleted on migrate.

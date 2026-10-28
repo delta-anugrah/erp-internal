@@ -59,13 +59,13 @@ doctype_js = {"Sales Forecast": "public/js/sales_forecast.js"}
 # pengguna.py: an Admin hands out only Admin and User roles and leaves Developer accounts alone.
 doc_events = {
 	"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"},
-	# lantai.py: the Production Floor page refreshes the machine that changed.
-	"Workstation": {"on_update": "erp_internal.lantai.siarkan"},
+	# production_floor.py: the Production Floor page refreshes the machine that changed.
+	"Workstation": {"on_update": "erp_internal.production_floor.siarkan"},
 	"Work Order": {
-		"on_update": "erp_internal.lantai.siarkan",
-		"on_submit": "erp_internal.lantai.siarkan",
-		"on_cancel": "erp_internal.lantai.siarkan",
-		"on_update_after_submit": "erp_internal.lantai.siarkan",
+		"on_update": "erp_internal.production_floor.siarkan",
+		"on_submit": "erp_internal.production_floor.siarkan",
+		"on_cancel": "erp_internal.production_floor.siarkan",
+		"on_update_after_submit": "erp_internal.production_floor.siarkan",
 	},
 	"User": {
 		"before_validate": "erp_internal.pengguna.cek_user_awal",

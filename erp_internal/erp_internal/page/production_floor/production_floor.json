@@ -4,12 +4,12 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2026-10-28 10:00:00.000000",
+ "modified": "2026-10-28 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "ERP Internal",
- "name": "lantai-produksi",
+ "name": "production-floor",
  "owner": "Administrator",
- "page_name": "lantai-produksi",
+ "page_name": "production-floor",
  "roles": [
   {
    "role": "System Manager"

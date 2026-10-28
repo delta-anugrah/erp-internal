@@ -189,6 +189,7 @@ def pastikan_setup() -> None:
 	_pengaturan()
 	_field_aktif()
 	_impor_boleh()
+	_halaman_lama()
 	tampilan.pastikan_peran()  # the Admin role, before IZIN_TAMBAHAN names it
 	if not frappe.is_setup_complete():
 		return
@@ -203,6 +204,12 @@ def pastikan_setup() -> None:
 	_kantor()
 	_proyek()
 	tampilan.terapkan()
+
+
+def _halaman_lama() -> None:
+	"""Delete the Production Floor's old Page (`lantai-produksi`, now `production-floor`) if it still exists."""
+	if frappe.db.exists("Page", "lantai-produksi"):
+		frappe.delete_doc("Page", "lantai-produksi", force=True, ignore_permissions=True)
 
 
 def perusahaan() -> list[str]:

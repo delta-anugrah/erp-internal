@@ -5,7 +5,7 @@ frappe.provide("erp.lantai");
 
 // `data()` without frappe.call, so a failed request never opens a message dialog; rejects on any failure.
 erp.lantai.ambil = function () {
-	return fetch("/api/method/erp_internal.lantai.data", { headers: { Accept: "application/json" } })
+	return fetch("/api/method/erp_internal.production_floor.get_data", { headers: { Accept: "application/json" } })
 		.then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
 		.then((r) => r.message);
 };
@@ -43,7 +43,7 @@ p{color:var(--text-muted,#6c7680)}
 	}
 };
 
-frappe.pages["lantai-produksi"].on_page_load = function (wrapper) {
+frappe.pages["production-floor"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Production Floor"),
@@ -81,7 +81,7 @@ frappe.pages["lantai-produksi"].on_page_load = function (wrapper) {
 		});
 };
 
-frappe.pages["lantai-produksi"].on_page_show = function (wrapper) {
+frappe.pages["production-floor"].on_page_show = function (wrapper) {
 	wrapper.fit?.();
 	frappe.route_options = {};
 	wrapper.ctl?.lanjut();
