@@ -1,7 +1,7 @@
 # Panduan Produksi
 
-Untuk **User** dan **Admin**; lama produksi (Item Lead Time) diisi **Admin**. **Order Readiness** dan
-**Sales History** juga ada di menu **Selling**.
+Untuk **User** dan **Admin**; lama produksi (Item Lead Time) diisi **Admin**. **Sales History** juga
+ada di menu **Selling**.
 Alurnya:
 
 1. sekali per produk: **lama produksi** dan **resep (BOM)**;
@@ -60,7 +60,7 @@ Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, 
 
 ## Tiap Senin: Order Readiness (Siap Order)
 
-**Manufacturing → Order Readiness** (atau **Selling → Order Readiness**). Satu baris per produk jadi, untuk bulan yang dipilih:
+**Manufacturing → Order Readiness** Satu baris per produk jadi, untuk bulan yang dipilih:
 
 Pilih Company dan (kalau perlu) Warehouse milik company itu. Kalau muncul izin ditolak atau "Warehouse ... does
 not belong to company", akunmu nggak boleh buka company atau gudang itu.

@@ -92,6 +92,24 @@ Browser check of each role's screens (needs `bench start` and the sample users `
   start (`planning/rumus.py`, design §10). It needs read permission on the chosen Company (and Warehouse);
   other companies' stock is refused. Staff guide: `docs/panduan/produksi.md`.
 
+## Screens
+
+Every module shows only what the guides' flows use (`tampilan.IKON`, `SIDEBAR`, `PINTASAN`); each home is a row of
+shortcuts to the same links as its sidebar, nothing else:
+
+| Rail icon | Home and sidebar |
+|---|---|
+| Stock | Item, Stock Entry, Warehouse, Stock Balance, Stock Ledger |
+| Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
+| Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
+| Manufacturing | Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Order Readiness, BOM, Item Lead Time |
+| Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
+| HR (HR app) | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
+| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings |
+
+A User sees only what their roles read (no Holiday List or Leave Allocation). A direct URL to another permitted
+doctype or report still opens.
+
 ## Roles
 
 Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one company:

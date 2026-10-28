@@ -25,16 +25,10 @@ const IKON_TILE = {
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
 // Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on.
-const KERJA = [
-	"Stock",
-	"Selling",
-	"Buying",
-	"Manufacturing",
-	"Accounts",
-	"Projects",
-	"Shift & Attendance",
-	"Leaves",
-];
+const KERJA = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance"];
+// Rail module → its home Workspace (tampilan.PINTASAN keys). Every home is shortcuts only, at most this many.
+const RUMAH = { Setup: "Home" };
+const PINTASAN_MAKS = 10;
 const PROFIL = {
 	Developer: { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
 	Admin: { modul: [...KERJA, "Setup"], build: false, rumah: "Home", form: "User" },
@@ -136,6 +130,24 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			const atas = await page.locator(".dock-logo .header-logo img").first().getAttribute("src");
 			cek(Object.values(IKON_TILE).some((i) => atas?.endsWith(i)), `rail top logo: ${atas}`);
 		}
+	}
+	// Every module home on this user's rail: shortcuts only (no link card, number card, chart or onboarding),
+	// and short. Screenshots: <profile>-home-<module>.png.
+	for (const modul of harap.modul) {
+		await page.evaluate((ws) => frappe.set_route("Workspaces", ws), RUMAH[modul] || modul);
+		await page.waitForLoadState("networkidle");
+		await page.waitForTimeout(800);
+		await page.screenshot({ path: join(HASIL, `${slug(profil)}-home-${slug(modul)}.png`), fullPage: true });
+		const { pintasan, lain } = await page.evaluate(() => {
+			const w = [...document.querySelectorAll(".layout-main-section .widget")].filter((e) => e.offsetParent);
+			return {
+				pintasan: w.filter((e) => e.classList.contains("shortcut-widget-box")).length,
+				lain: w.filter((e) => !e.classList.contains("shortcut-widget-box")).length,
+			};
+		});
+		cek(pintasan > 0 && pintasan <= PINTASAN_MAKS && lain === 0, `home ${modul}: ${pintasan} shortcuts, ${lain} other widgets`);
+		const pesan = page.locator(".modal.show.msgprint-dialog, .modal.show .msgprint");
+		cek((await pesan.count()) === 0, `home ${modul}: a message dialog is open`);
 	}
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
 	await context.close();

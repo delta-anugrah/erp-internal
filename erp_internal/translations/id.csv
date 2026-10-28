@@ -122,3 +122,8 @@ Set site config erp_sandi_contoh first: it is the password of the sample users.,
 HR,SDM
 ERP,ERP
 System,Sistem
+Manufacturing Settings,Pengaturan Manufaktur
+Accounts Settings,Pengaturan Akun
+Projects Settings,Pengaturan Proyek
+HR Settings,Pengaturan SDM
+Opening Stock & Stock Count,Stok Awal & Stok Opname

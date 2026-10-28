@@ -24,62 +24,68 @@ DEVELOPER, ADMIN, USER = "Developer", "Admin", "User"
 PERAN_ADMIN = "ERP Admin"  # our role: user management (setup.IZIN_TAMBAHAN), checked by pengguna.py
 
 # Dock entry (the module's sidebar name) → the profiles that see it. System Manager sees every kept one.
-# Order is the rail's order. Every other entry of the APLIKASI docks is hidden for everyone.
+# Order is the rail's order. Every other entry of the APLIKASI docks is hidden for everyone. Kept short (Samuel,
+# 2026-10-28): invoices and payments live in Selling and Buying, leave in HR, so Accounts and Leaves have no
+# icon of their own.
 IKON = {
 	"Stock": (ADMIN, USER),
 	"Selling": (ADMIN, USER),
 	"Buying": (ADMIN, USER),
 	"Manufacturing": (ADMIN, USER),
-	"Accounts": (ADMIN, USER),
 	"Projects": (ADMIN, USER),
 	"Shift & Attendance": (ADMIN, USER),
-	"Leaves": (ADMIN, USER),
 	"Setup": (ADMIN,),
 }
 
 # A kept module shown under another name, on its rail button and its sidebar header.
-LABEL = {"Accounts": "Invoicing", "Setup": "Settings"}
+LABEL = {"Accounts": "Invoicing", "Setup": "Settings", "Shift & Attendance": "HR"}
 
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
-# so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden.
-# Sales History and Order Readiness (module Planning, ours) sit in Selling and Manufacturing: Planning has no
-# rail entry of its own and stays blocked in every Module Profile. Setup (shown as Settings) holds users and the
-# business settings; System Settings and Build stay with System Manager.
+# so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
+# guides' flows use (docs/panduan/): each module home shows the same links as shortcuts (`PINTASAN`,
+# `test_rumah_sama_dengan_sidebar`). Sales History and Order Readiness (module Planning, ours) sit in Selling and
+# Manufacturing: Planning has no rail entry and stays blocked in every Module Profile. Accounts and Leaves keep a
+# short sidebar for a page Frappe opens in its own module (no rail icon). Setup (shown as Settings) holds users,
+# opening stock (Stock Reconciliation, Admin only) and the business settings; System Settings and Build stay
+# with System Manager.
 SIDEBAR = {
-	"Stock": ["Item", "Warehouse", "Stock Entry", "Stock Reconciliation", "Stock Balance", "Stock Ledger"],
+	"Stock": ["Item", "Stock Entry", "Warehouse", "Stock Balance", "Stock Ledger"],
 	"Selling": [
 		"Customer",
 		"Sales Order",
 		"Delivery Note",
 		"Sales Invoice",
-		"Sales Order Analysis",
+		"Payment Entry",
 		"Sales History",
-		"Order Readiness",
 	],
 	"Buying": ["Supplier", "Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice"],
 	"Manufacturing": [
-		"Order Readiness",
+		"Sales History",
 		"Sales Forecast",
 		"Master Production Schedule",
 		"Material Requirements Planning Report",
 		"Work Order",
+		"Order Readiness",
 		"BOM",
 		"Item Lead Time",
-		"Sales History",
 	],
-	"Accounts": [
-		"Sales Invoice",
-		"Purchase Invoice",
-		"Payment Entry",
-		"Accounts Receivable",
-		"Accounts Payable",
-	],
+	"Accounts": ["Sales Invoice", "Purchase Invoice", "Payment Entry"],
 	"Projects": ["Project", "Task", "Timesheet"],
-	"Shift & Attendance": ["Employee", "Employee Checkin", "Attendance", "Shift Type", "Shift Assignment"],
+	"Shift & Attendance": [
+		"Employee",
+		"Employee Checkin",
+		"Attendance",
+		"Leave Application",
+		"Shift Type",
+		"Shift Assignment",
+		"Holiday List",  # Admin only from here: last, so a User's home has no gap
+		"Leave Allocation",
+	],
 	"Leaves": ["Leave Application", "Leave Allocation", "Holiday List"],
 	"Setup": [
 		"User",
 		"Company",
+		"Stock Reconciliation",
 		"Stock Settings",
 		"Selling Settings",
 		"Buying Settings",
@@ -92,16 +98,17 @@ SIDEBAR = {
 
 # Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
 # erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the modules of that profile's
-# IKON entries (`test_profil_modul_ikut_ikon`). Developer has no Module Profile: it sees everything.
+# IKON entries plus MODUL_TANPA_IKON (`test_profil_modul_ikut_ikon`). Developer has no Module Profile: it sees
+# everything.
+MODUL_TANPA_IKON = ("Accounts", "Leaves")  # their documents show in other sidebars; allowed, no rail icon
 _MODUL_KERJA = (
 	"Stock",
 	"Selling",
 	"Buying",
 	"Manufacturing",
-	"Accounts",
 	"Projects",
 	"Shift and Attendance",
-	"Leaves",
+	*MODUL_TANPA_IKON,
 )
 MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), USER: _MODUL_KERJA}
 
@@ -147,143 +154,131 @@ PERAN_BOLEH_ADMIN = frozenset(
 )
 
 
-# Module home Workspace → its shortcuts, in order. They replace the page's charts and onboarding; its number
-# cards and link cards stay. `stats_filter` is a JS expression the desk evaluates (so `frappe.session.user`
-# works); with `format` the shortcut shows a count. A shortcut whose target does not exist yet (Order
-# Readiness, Task 13) is left out until it does (`pintasan_aktif`).
+def _p(link_to: str, label: str | None = None, jenis: str = "DocType", **lain) -> dict:
+	"""One shortcut: a DocType list (or `doc_view`), or a Report."""
+	p = {"label": label or link_to, "type": jenis, "link_to": link_to, **lain}
+	if jenis == "DocType":
+		p.setdefault("doc_view", "List")
+	return p
+
+
+# Module home Workspace → its shortcuts, in order: the page's only content (no number cards, link cards,
+# charts or onboarding: `BLOK_TETAP` is empty). Each home's targets are its sidebar's links (`SIDEBAR`).
+# `stats_filter` is a JS expression the desk evaluates (so `frappe.session.user` works); with `format` the
+# shortcut shows a count. A shortcut whose target does not exist on the site is left out (`pintasan_aktif`).
 PINTASAN = {
 	"Stock": (
-		{"label": "New Stock Entry", "type": "DocType", "link_to": "Stock Entry", "doc_view": "New"},
-		{
-			"label": "Stock Reconciliation",
-			"type": "DocType",
-			"link_to": "Stock Reconciliation",
-			"doc_view": "List",
-		},
-		{"label": "Stock Balance", "type": "Report", "link_to": "Stock Balance"},
-		{"label": "Item", "type": "DocType", "link_to": "Item", "doc_view": "List"},
+		_p("Item"),
+		_p("Stock Entry"),
+		_p("Warehouse"),
+		_p("Stock Balance", jenis="Report"),
+		_p("Stock Ledger", jenis="Report"),
 	),
 	"Selling": (
-		{"label": "New Sales Order", "type": "DocType", "link_to": "Sales Order", "doc_view": "New"},
-		{
-			"label": "Open Sales Orders",
-			"type": "DocType",
-			"link_to": "Sales Order",
-			"doc_view": "List",
-			"stats_filter": '[["Sales Order","docstatus","=",1],["Sales Order","status","in",'
+		_p("Customer"),
+		_p(
+			"Sales Order",
+			"Open Sales Orders",
+			stats_filter='[["Sales Order","docstatus","=",1],["Sales Order","status","in",'
 			'["To Deliver and Bill","To Bill","To Deliver","To Pay","On Hold"]]]',
-			"format": "{} Open",
-			"color": "Blue",
-		},
-		{"label": "Delivery Note", "type": "DocType", "link_to": "Delivery Note", "doc_view": "List"},
-		{
-			"label": "Unpaid Sales Invoices",
-			"type": "DocType",
-			"link_to": "Sales Invoice",
-			"doc_view": "List",
-			"stats_filter": '[["Sales Invoice","docstatus","=",1],["Sales Invoice","outstanding_amount",">",0]]',
-			"format": "{} Unpaid",
-			"color": "Orange",
-		},
-		{"label": "Order Readiness", "type": "Report", "link_to": "Order Readiness"},
+			format="{} Open",
+			color="Blue",
+		),
+		_p("Delivery Note"),
+		_p(
+			"Sales Invoice",
+			"Unpaid Sales Invoices",
+			stats_filter='[["Sales Invoice","docstatus","=",1],["Sales Invoice","outstanding_amount",">",0]]',
+			format="{} Unpaid",
+			color="Orange",
+		),
+		_p("Payment Entry"),
+		_p("Sales History"),
 	),
 	"Buying": (
-		{
-			"label": "Pending Material Requests",
-			"type": "DocType",
-			"link_to": "Material Request",
-			"doc_view": "List",
-			"stats_filter": '[["Material Request","docstatus","=",1],["Material Request","status","in",'
+		_p("Supplier"),
+		_p(
+			"Material Request",
+			"Pending Material Requests",
+			stats_filter='[["Material Request","docstatus","=",1],["Material Request","status","in",'
 			'["Pending","Partially Ordered"]]]',
-			"format": "{} Pending",
-			"color": "Orange",
-		},
-		{"label": "New Purchase Order", "type": "DocType", "link_to": "Purchase Order", "doc_view": "New"},
-		{"label": "Purchase Receipt", "type": "DocType", "link_to": "Purchase Receipt", "doc_view": "List"},
-		{"label": "Purchase Invoice", "type": "DocType", "link_to": "Purchase Invoice", "doc_view": "List"},
+			format="{} Pending",
+			color="Orange",
+		),
+		_p("Purchase Order"),
+		_p("Purchase Receipt"),
+		_p("Purchase Invoice"),
 	),
 	"Manufacturing": (
-		{"label": "Order Readiness", "type": "Report", "link_to": "Order Readiness"},
-		{"label": "Sales Forecast", "type": "DocType", "link_to": "Sales Forecast", "doc_view": "List"},
-		{
-			"label": "Master Production Schedule",
-			"type": "DocType",
-			"link_to": "Master Production Schedule",
-			"doc_view": "List",
-		},
-		{"label": "MRP", "type": "Report", "link_to": "Material Requirements Planning Report"},
-		{
-			"label": "Work Orders in Process",
-			"type": "DocType",
-			"link_to": "Work Order",
-			"doc_view": "List",
-			"stats_filter": '[["Work Order","status","=","In Process"]]',
-			"format": "{} In Process",
-			"color": "Blue",
-		},
-		{"label": "Item Lead Time", "type": "DocType", "link_to": "Item Lead Time", "doc_view": "List"},
+		_p("Sales History"),
+		_p("Sales Forecast"),
+		_p("Master Production Schedule"),
+		_p("Material Requirements Planning Report", "MRP", "Report"),
+		_p(
+			"Work Order",
+			"Work Orders in Process",
+			stats_filter='[["Work Order","status","=","In Process"]]',
+			format="{} In Process",
+			color="Blue",
+		),
+		_p("Order Readiness", jenis="Report"),
+		_p("BOM"),
+		_p("Item Lead Time"),
 	),
+	"Accounting": (_p("Sales Invoice"), _p("Purchase Invoice"), _p("Payment Entry")),
 	"Projects": (
-		{
-			"label": "Open Projects",
-			"type": "DocType",
-			"link_to": "Project",
-			"doc_view": "List",
-			"stats_filter": '[["Project","status","=","Open"]]',
-			"format": "{} Open",
-			"color": "Blue",
-		},
-		{
-			"label": "My Open Tasks",
-			"type": "DocType",
-			"link_to": "Task",
-			"doc_view": "List",
-			"stats_filter": '[["Task","status","=","Open"],["Task","_assign","like","%" + frappe.session.user + "%"]]',
-			"format": "{} Open",
-			"color": "Orange",
-		},
-		{"label": "New Timesheet", "type": "DocType", "link_to": "Timesheet", "doc_view": "New"},
+		_p(
+			"Project",
+			"Open Projects",
+			stats_filter='[["Project","status","=","Open"]]',
+			format="{} Open",
+			color="Blue",
+		),
+		_p(
+			"Task",
+			"My Open Tasks",
+			stats_filter='[["Task","status","=","Open"],["Task","_assign","like","%" + frappe.session.user + "%"]]',
+			format="{} Open",
+			color="Orange",
+		),
+		_p("Timesheet", "New Timesheet", doc_view="New"),
 	),
 	"Shift & Attendance": (
-		{
-			"label": "Today's Attendance",
-			"type": "DocType",
-			"link_to": "Attendance",
-			"doc_view": "List",
-			"stats_filter": '[["Attendance","docstatus","=",1],'
+		_p("Employee"),
+		_p("Employee Checkin"),
+		_p(
+			"Attendance",
+			"Today's Attendance",
+			stats_filter='[["Attendance","docstatus","=",1],'
 			'["Attendance","attendance_date","=",frappe.datetime.get_today()]]',
-			"format": "{} Today",
-			"color": "Green",
-		},
-		{"label": "Employee Checkin", "type": "DocType", "link_to": "Employee Checkin", "doc_view": "List"},
-		{"label": "Employee", "type": "DocType", "link_to": "Employee", "doc_view": "List"},
+			format="{} Today",
+			color="Green",
+		),
+		_p("Leave Application", "New Leave Application", doc_view="New"),
+		_p("Shift Type"),
+		_p("Shift Assignment"),
+		_p("Holiday List"),
+		_p("Leave Allocation"),
 	),
 	"Leaves": (
-		{
-			"label": "New Leave Application",
-			"type": "DocType",
-			"link_to": "Leave Application",
-			"doc_view": "New",
-		},
-		{
-			"label": "Leave Applications to Approve",
-			"type": "DocType",
-			"link_to": "Leave Application",
-			"doc_view": "List",
-			"stats_filter": '[["Leave Application","docstatus","=",0],["Leave Application","status","=","Open"]]',
-			"format": "{} To Approve",
-			"color": "Orange",
-		},
+		_p("Leave Application", "New Leave Application", doc_view="New"),
+		_p("Leave Allocation"),
+		_p("Holiday List"),
 	),
 	"Home": (
-		{"label": "Users", "type": "DocType", "link_to": "User", "doc_view": "List"},
-		{"label": "Company", "type": "DocType", "link_to": "Company", "doc_view": "List"},
-		{"label": "Stock Settings", "type": "DocType", "link_to": "Stock Settings"},
-		{"label": "Selling Settings", "type": "DocType", "link_to": "Selling Settings"},
-		{"label": "Buying Settings", "type": "DocType", "link_to": "Buying Settings"},
+		_p("User", "Users"),
+		_p("Company"),
+		_p("Stock Reconciliation", "Opening Stock & Stock Count"),
+		_p("Stock Settings", doc_view=""),
+		_p("Selling Settings", doc_view=""),
+		_p("Buying Settings", doc_view=""),
+		_p("Manufacturing Settings", doc_view=""),
+		_p("Accounts Settings", doc_view=""),
+		_p("Projects Settings", doc_view=""),
+		_p("HR Settings", doc_view=""),
 	),
 }
-BLOK_TETAP = ("number_card", "card")  # base Workspace blocks kept below the shortcuts
+BLOK_TETAP = ()  # base Workspace blocks kept below the shortcuts: none (Samuel, 2026-10-28: homes kept short)
 KOLOM_PINTASAN = ("type", "link_to", "doc_view", "label", "stats_filter", "format", "color")
 
 # DocType → fields and sections of features not in use, hidden by Property Setter: accounting dimensions
@@ -564,7 +559,12 @@ def _baris_sidebar(shell: str, modul: str, link: list[str]) -> list[dict]:
 	beranda = next((r for r in dasar if r.get("type") == "Link" and r.get("link_type") == "Workspace"), None)
 	per_link = {}
 	for r in dasar:
-		if r.get("type") == "Link" and r.get("link_to") and r.get("link_type") != "Workspace":
+		# A Dashboard shares its name with a DocType (Project, Attendance): SIDEBAR names the DocType or Report.
+		if (
+			r.get("type") == "Link"
+			and r.get("link_to")
+			and r.get("link_type") not in ("Workspace", "Dashboard")
+		):
 			per_link.setdefault(r["link_to"], r)
 
 	baris, dipakai = [], set()

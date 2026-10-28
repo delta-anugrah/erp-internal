@@ -237,6 +237,7 @@ class TestTampilan(IntegrationTestCase):
 			items = [i for i in resolve_sidebar(shell, "Administrator").items if i["type"] == "Link"]
 			self.assertEqual(items[0]["link_type"], "Workspace", shell)
 			self.assertEqual([i["link_to"] for i in items[1:]], link, shell)
+			self.assertNotIn("Dashboard", {i["link_type"] for i in items}, shell)
 
 	def test_profil_modul(self):
 		for profil, boleh in MODUL_BOLEH.items():
@@ -244,12 +245,43 @@ class TestTampilan(IntegrationTestCase):
 			self.assertEqual(blok, set(modul_aplikasi()) - set(boleh), profil)
 
 	def test_profil_modul_ikut_ikon(self):
-		# Every module a profile has an icon for is allowed by its Module Profile, and nothing else is.
+		# Every module a profile has an icon for is allowed by its Module Profile, plus the modules whose
+		# documents sit in other sidebars (MODUL_TANPA_IKON), and nothing else is.
 		from frappe.desk.doctype.sidebar.sidebar import module_of_shell
+
+		from erp_internal.tampilan import MODUL_TANPA_IKON
 
 		for profil, boleh in MODUL_BOLEH.items():
 			ikon = {module_of_shell(k) for k, siapa in IKON.items() if profil in siapa}
-			self.assertEqual(ikon, set(boleh), profil)
+			self.assertEqual(ikon | set(MODUL_TANPA_IKON), set(boleh), profil)
+
+	def test_rumah_sama_dengan_sidebar(self):
+		# Each module home lists only its sidebar's links, as shortcuts and nothing else: no number card, link
+		# card, chart, header or onboarding (Samuel, 2026-10-28: keep every screen short).
+		from frappe.desk.doctype.custom_workspace.custom_workspace import (
+			apply_customization,
+			get_customization,
+		)
+
+		for shell, link in SIDEBAR.items():
+			items = [i for i in resolve_sidebar(shell, "Administrator").items if i["type"] == "Link"]
+			ws = items[0]["link_to"]
+			self.assertIn(ws, PINTASAN, shell)
+			doc = frappe.get_doc("Workspace", ws)
+			apply_customization(doc, get_customization(ws))
+			blok = json.loads(doc.content)
+			self.assertEqual({b["type"] for b in blok}, {"shortcut"}, ws)
+			self.assertEqual(len(blok), len(link), ws)
+			tampil = {
+				s.link_to for s in doc.shortcuts if s.label in {b["data"]["shortcut_name"] for b in blok}
+			}
+			self.assertEqual(tampil, set(link), ws)
+
+	def test_rel_pendek(self):
+		# The rail: at most seven modules, no Accounts or Leaves icon; Settings for Admin only.
+		self.assertLessEqual(len(IKON), 7)
+		self.assertFalse({"Accounts", "Leaves"} & set(IKON))
+		self.assertEqual(IKON["Setup"], (ADMIN,))
 
 	def test_user_tetap_bisa_buat_order(self):
 		# a Module Profile must not break link fields on a kept form

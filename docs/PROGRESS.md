@@ -2,6 +2,21 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (short screens; sample users on @example.com)
+- Sample users are `developer@`, `admin@`, `user@example.com` (`contoh.surel`, tests, tools, docs). On
+  `erp.localhost` the three were renamed with `rename_doc` (Employee links follow); no `@contoh.test` user is left.
+- Samuel found the module homes far too long. `tampilan.py`: the rail is Stock, Selling, Buying, Manufacturing,
+  Projects, HR (`Shift & Attendance`, label) and Settings (Admin); Accounts and Leaves lost their icons (modules
+  still allowed: `MODUL_TANPA_IKON`). Homes are shortcuts only (`BLOK_TETAP = ()`: no number or link cards) and
+  equal their sidebars (`test_rumah_sama_dengan_sidebar`, `test_rel_pendek`). Payment Entry moved into Selling,
+  Order Readiness only in Manufacturing, Sales Order Analysis gone, Stock Reconciliation under Settings as
+  "Opening Stock & Stock Count", leave and holidays in HR. `_baris_sidebar` no longer picks the Project and
+  Attendance dashboards for the DocType links. The list per module is in README "Screens".
+- Guides updated (absen, gudang, produksi, admin menu paths); `panduan_gambar` retook the 6 pictures.
+  `cek_layar` now screenshots every home on each user's rail and fails on a non-shortcut widget or more than 10.
+- Tests: `bench --site erp-test.localhost run-tests --app erp_internal`: 13 unit + 95 integration, OK; ruff clean;
+  `migrate` on both sites. `cek_layar`: 3 users OK (20 home screenshots). No JS/CSS build.
+
 ## 2026-10-28 (SVG logo, app tiles renamed)
 - `delta-anugrah.svg`: the mark redrawn by hand (one outline, dark 14-unit edge under the blue fill, colours sampled
   from the JPEG: #1f4782, #111216), compared rendered against the JPEG (shape off by under 1 % of pixels). The

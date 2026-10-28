@@ -31,7 +31,7 @@ Yang perlu diingat:
 
 ## Ajukan cuti
 
-1. Di aplikasi HP: **Leaves** → **Request a Leave** (di komputer: **Leaves → New Leave Application**).
+1. Di aplikasi HP: **Leaves** → **Request a Leave** (di komputer: **HR → New Leave Application**).
 2. Pilih **Leave Type**:
    - **Cuti Tahunan**: jatahnya 12 hari setahun;
    - **Sakit**: lampirkan surat dokter kalau diminta HR;
@@ -48,7 +48,7 @@ Sistem sudah membuat daftar libur tiap tahun, isinya baru Sabtu dan Minggu: **Li
 2027**, dan seterusnya (DAN = singkatan perusahaan). Libur nasional dan cuti bersama diisi HR sendiri dari
 **SKB 3 Menteri** tahun itu:
 
-1. **Leaves → Holiday List**, buka **Libur DAN <tahun>**.
+1. **HR → Holiday List**, buka **Libur DAN <tahun>**.
 2. Di tabel **Holidays**, tambah satu baris per tanggal libur: **Date** dan **Description** (misalnya "Idul Fitri").
 3. **Save**.
 
@@ -56,12 +56,12 @@ Tombol **Get Local Holidays** (pilih negara Indonesia) bisa membantu mengisi, ta
 cuti bersama sering tidak ada di sana.
 
 ### Karyawan baru
-1. **Shift & Attendance → Employee → + Add Employee**, isi nama, jenis kelamin, tanggal lahir, tanggal masuk,
+1. **HR → Employee → + Add Employee**, isi nama, jenis kelamin, tanggal lahir, tanggal masuk,
    perusahaan, dan **User ID**-nya.
-2. **Shift Assignment → + Add Shift Assignment**: karyawannya, **Shift Type** `Kantor`, **Start Date** hari
+2. **HR → Shift Assignment → + Add Shift Assignment**: karyawannya, **Shift Type** `Kantor`, **Start Date** hari
    pertamanya. **Submit**.
-3. **Leaves → Leave Allocation**: **Cuti Tahunan** 12 hari, 1 Januari sampai 31 Desember. **Submit**.
+3. **HR → Leave Allocation**: **Cuti Tahunan** 12 hari, 1 Januari sampai 31 Desember. **Submit**.
 
 ### Tiap pagi
-Buka **Shift & Attendance**: kotak **Today's Attendance** menunjukkan berapa yang sudah hadir. Cek yang belum
+Buka **HR**: kotak **Today's Attendance** menunjukkan berapa yang sudah hadir. Cek yang belum
 absen.

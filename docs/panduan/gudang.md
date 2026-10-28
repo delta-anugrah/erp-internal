@@ -39,7 +39,7 @@ Delivery Note sudah di-**Submit** sebelum truk berangkat.
 ## Bulanan: stok opname (Admin)
 
 1. Hitung fisik.
-2. **Stock → Stock Reconciliation → + Add Stock Reconciliation**, **Purpose** `Stock Reconciliation`.
+2. **Settings → Opening Stock & Stock Count → + Add Stock Reconciliation**, **Purpose** `Stock Reconciliation`.
 3. Isi per baris: barang, gudang, **Quantity** hasil hitung. **Save**, **Submit**: sistem menyamakan stoknya.
 
 Selisih besar? Laporkan dulu ke atasan sebelum Submit.

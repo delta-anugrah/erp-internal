@@ -11,13 +11,22 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 | Apps screen | `add_to_apps_screen` hook (erpnext: any desk user; hrms: Employee read) | `saring_aplikasi` (`extend_bootinfo`): a tile with no visible rail entry for the user is hidden |
 | Rail of modules | `<app>/dock/<app>/<app>.json` (`Dock`, standard 1) | `Dock` with blank `user`: `IKON` order, rest `hidden` 1, title from `LABEL` |
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
-| Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`, Task 4b) |
+| Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards) |
 | Per user | none | `User.block_modules` from the Module Profile (`MODUL_BOLEH`: Admin, User; Developer has none) |
 
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
+- Short screens (Samuel, 2026-10-28): each home's shortcuts point at exactly its sidebar's links
+  (`test_rumah_sama_dengan_sidebar`), taken from the guides' flows (`docs/panduan/`). Rail: Stock, Selling, Buying,
+  Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), and Settings for Admin. Accounts and Leaves have no
+  icon: invoices and payments sit in Selling and Buying, leave in HR. Their modules stay allowed
+  (`MODUL_TANPA_IKON`) with a short sidebar and home, for a page Frappe opens in its own module. Admin-only
+  shortcuts go last, so a User's home (which drops what they cannot read) has no gap. Stock Reconciliation
+  (opening stock and stock count) is under Settings ("Opening Stock & Stock Count"). `_baris_sidebar` skips a
+  base Dashboard row named like a DocType (Project, Attendance). The HR home's page title stays the Workspace name
+  "Shift & Attendance": `Custom Workspace` has no title field.
 - Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
-  and Order Readiness are reached through `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`.
+  is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing.
 - Blocking a module hides navigation only; DocPerm still decides document access.
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.
@@ -25,7 +34,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Three Role Profiles (`PROFIL_PERAN`): User, Admin, Developer. Admin holds the manager roles plus the User roles
   (Stock Manager alone reads neither Company nor Stock Balance in v16) and `PERAN_ADMIN` ("ERP Admin"). Every
   profile must read Company (`test_izin_per_profil`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
-- Admin's rail adds `Setup`, shown as "Settings" (`LABEL`): users, Company and the business settings; its home is
+- Admin's rail adds `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock and the business settings; its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Developer only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on
@@ -48,4 +57,5 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen
-  (`app_data[].on_apps_screen`), failing on a tile with nothing behind it.
+  (`app_data[].on_apps_screen`), failing on a tile with nothing behind it. It also opens every home on the user's
+  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (10).
