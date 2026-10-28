@@ -106,6 +106,12 @@ JENIS_CUTI = {
 	"Izin": {"is_lwp": 1},
 }
 
+# Projects: what a timesheet row is spent on. No billing or costing rates (internal work).
+JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")
+# DocType → role → rights added to ERPNext's own (a Custom DocPerm copy). A Karyawan (role Employee) creates and
+# writes timesheets in v16 but cannot submit them; ERPNext's Employee User Permission keeps them to their own.
+IZIN_TAMBAHAN = {"Timesheet": {"Employee": ("submit",)}}
+
 
 def pastikan_setup() -> None:
 	"""Bring the site to the state this app expects. Idempotent; safe before the setup wizard."""
@@ -121,6 +127,7 @@ def pastikan_setup() -> None:
 	_alur_jual_beli()
 	_produksi()
 	_kantor()
+	_proyek()
 	tampilan.terapkan()
 
 
@@ -456,3 +463,29 @@ def pastikan_libur(company: str, tahun: int) -> str:
 		hla.insert()
 		hla.submit()
 	return nama
+
+
+def _proyek() -> None:
+	"""The Activity Types of a timesheet, without rates, and the extra rights of IZIN_TAMBAHAN."""
+	for nama in JENIS_KEGIATAN:
+		if not frappe.db.exists("Activity Type", nama):
+			frappe.get_doc(
+				{"doctype": "Activity Type", "activity_type": nama, "costing_rate": 0, "billing_rate": 0}
+			).insert(ignore_permissions=True)
+			continue
+		tarif = frappe.db.get_value("Activity Type", nama, ["costing_rate", "billing_rate", "disabled"])
+		if any(tarif):
+			frappe.db.set_value("Activity Type", nama, {"costing_rate": 0, "billing_rate": 0, "disabled": 0})
+
+	from frappe.permissions import add_permission, setup_custom_perms, update_permission_property
+
+	for doctype, per_peran in IZIN_TAMBAHAN.items():
+		for peran, hak in per_peran.items():
+			syarat = {"parent": doctype, "role": peran, "permlevel": 0, "if_owner": 0}
+			for h in hak:
+				if frappe.db.get_value("Custom DocPerm", syarat, h):
+					continue
+				setup_custom_perms(doctype)  # first time: copies ERPNext's rules, then ours are added
+				if not frappe.db.exists("Custom DocPerm", syarat):
+					add_permission(doctype, peran, 0)
+				update_permission_property(doctype, peran, 0, h, 1)
