@@ -23,7 +23,7 @@ bpt.localhost, cloud.localhost, onprem.localhost.
 5. Check: `git -C $ERP_BENCH/apps/<app> describe --tags` equals `versi.json` for frappe, erpnext and hrms;
    `bench --site erp.localhost execute frappe.is_setup_complete` prints `true`.
 6. Run the test: `cd $ERP_BENCH && bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs`
-   (2 tests OK). The first run also completes the test site's wizard (ERPNext `before_tests`).
+   (2 tests OK). The first run also completes the test site's wizard (our `before_tests` hook, `erp_internal.tests.utils.sebelum_tes`, which runs HRMS's).
 7. `part_sites`/`part_wizard` start the bench's Redis as daemons when `bench start` isn't running. Before `bench
    start`, stop them: `redis-cli -p 13002 shutdown nosave; redis-cli -p 11002 shutdown nosave`.
 8. Optional, dev only: sample data. The developer sets the sample users' password in their own terminal

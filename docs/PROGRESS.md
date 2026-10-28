@@ -3,6 +3,31 @@
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
 
+## 2026-10-28 (first run on the sites)
+- Tests: `bench --site erp-test.localhost migrate`, then `bench --site erp-test.localhost run-tests --app
+  erp_internal`: 13 unit + 77 integration tests, all OK (run 5 of the day; first run 25 ran, 17 failed).
+  Per module: absen 5, alur_jual_beli 5, alur_produksi 2, bahasa 6, contoh 5, forecast 9, impor 4,
+  order_readiness 9, proyek 5, rumus 13, sales_history 5, setup 7, situs 2, tampilan 13.
+- Code fixes: `before_tests` hook completes the test site's wizard (Frappe runs only the tested app's hook);
+  `setup.IMPOR_BOLEH` lets Data Import take Stock Reconciliation; Gudang has Stock User and Manufacturing User
+  reads Company (`IZIN_TAMBAHAN`); `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with
+  nothing on the user's rail (HR's ERPNext tile opened a blocked module); `tests.utils.buat_pengguna` saves only
+  on a change, so a `buat_contoh` rerun writes nothing.
+- Test fixes (expectations wrong for v16): amended copy's docstatus, `selected_items` rows in Sales Forecast Item,
+  shift times as `timedelta`, the Employee role needs an Employee record, a Karyawan's own-Employee permission
+  refuses another's timesheet at insert, Sales History test rows committed by the importer.
+- `erp.localhost`: migrated, `bench build --app erp_internal`, `erp_sandi_contoh` set (password only in the
+  bench's `.env` as `SAMPLE_PASSWORD`), `buat_contoh` run twice: the second run changed no row in any table.
+- `node tools/cek_layar.mjs` (Playwright 1.49.1, Chromium installed): 7 bagian OK, 21 screenshots in
+  `tools/hasil/` checked (full width, only the bagian's rail and Apps screen, no message dialog). Script fixes:
+  open the module home by its Workspace, count only message dialogs, check Apps screen tiles.
+- Dry runs of the go-live tasks 8, 14 and 17 on `erp.localhost` (results in the plan under each task): imports
+  through the worker, the PPN switch, an order to payment as Penjualan, Fill from History → MPS → MRP → Work Order
+  as Produksi, Order Readiness checked by hand for 5 products, employee import, check-in, auto attendance,
+  a timesheet as Karyawan. Not run: Task 7's compose boot, backup and restore drill (needs the root password).
+- Next: Abel runs Task 7 Steps 2-4, takes the guide screenshots, tries the buttons in the browser and a phone
+  check-in.
+
 ## 2026-10-28 (security fixes)
 - 731d843: Order Readiness checks Company read, and the Warehouse's company and read, before reading Bin, Sales
   Order and Work Order (2 new tests).

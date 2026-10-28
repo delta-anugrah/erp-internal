@@ -90,8 +90,8 @@ image on its own server.
      Save screenshots to `tools/hasil/`, which is gitignored.
    - Commit `feat(tampilan): full width, module home pages, shorter forms, defaults`.
    - Status (2026-10-27): [x] tests written, [x] implemented, [x] `tools/cek_layar.mjs` and `tools/package.json`
-     written, [x] committed; [ ] tests and `cek_layar` run (not run: no site yet, and `cek_layar` also needs the
-     sample users of `contoh.py`).
+     written, [x] committed; [x] tests and `cek_layar` run 2026-10-28 (`test_tampilan` 13 OK; `node
+     tools/cek_layar.mjs`: 7 bagian OK, screenshots checked; fixes under Task 3's and Task 4's deviations).
    - Deviations, read from the v16.53 source:
      - Stock Settings has no `default_warehouse` in v16; the default warehouse is `Company.default_warehouse`.
        `setup._bawaan()` sets it to Gudang Barang Jadi for each Pabrik company, and turns a user's only Company
@@ -158,8 +158,12 @@ image on its own server.
    - It also creates 3 customers, 2 suppliers, 6 months of Sales History and some open orders.
    - Last, one user per bagian, all sharing a password taken from site config `erp_sandi_contoh`.
    - It is needed for the local dry runs and the browser check.
-   - Status (2026-10-28): [x] `tests/test_contoh.py` written, [x] `contoh.py` written, [x] committed; [ ] tests
-     run (not run: no site yet), [ ] run on `erp.localhost`.
+   - Status (2026-10-28): [x] `tests/test_contoh.py` written, [x] `contoh.py` written, [x] committed; [x] tests
+     run (5 OK), [x] run on `erp.localhost` twice: Company 2, Item 9, BOM 5, Item Lead Time 5, Stock
+     Reconciliation 9, Price List 1, Customer 3, Supplier 2, Sales History 30, Sales Order 4, User 7, Employee 5,
+     Shift Assignment 5, Leave Allocation 5, Project 1, Task 3. The second run first re-saved the 7 users (new
+     Version rows); `tests.utils.buat_pengguna` now saves only when a profile or the user type differs, and a
+     rerun changes no row in any table (checked on every table's `modified`).
    - Deviations (2026-10-28, written without a site):
      - It also makes office employees with "Kantor" shift assignments and this year's Cuti Tahunan, and one project
        with tasks (the first assigned to the Karyawan user), for Tasks 15-17's dry runs.
@@ -290,9 +294,10 @@ image on its own server.
   6. Make the sites: `bench new-site` for `erp.localhost` and `erp-test.localhost` with `--db-host 127.0.0.1
      --db-port 3308`, `--db-root-password`, `--admin-password` and `--install-app` erpnext, hrms, erp_internal. Then `bench --site erp-test.localhost
      set-config allow_tests true`.
-- [ ] **Step 4: Run parts 1–4 of the script.** In `bench/`, run `bench new-app erp_internal` (title "ERP Internal";
+- [x] **Step 4: Run parts 1–4 of the script.** (Done by Abel, 2026-10-28.) In `bench/`, run `bench new-app erp_internal` (title "ERP Internal";
   publisher and email from `git config`). Then `mv apps/erp_internal ../erp_internal` and run parts 5–6.
-- [ ] **Step 5: Complete the setup wizard on http://erp.localhost:8002.**
+- [x] **Step 5: Complete the setup wizard on http://erp.localhost:8002.** (Done by Abel with `tools/setup_bench.sh
+  sites wizard`, 2026-10-28; English per Revision 2.)
   - Bahasa Indonesia, Indonesia, Asia/Jakarta, IDR, fiscal year January–December.
   - Company "PT Contoh Plastik", abbreviation CPL (DATA CONTOH).
   - Write these values in README.md.
@@ -310,8 +315,8 @@ class TestSitus(IntegrationTestCase):
 				self.assertEqual("v" + importlib.import_module(app).__version__, tag)
 ```
 
-- [ ] **Step 7: Run the tests.** `bench --site erp-test.localhost run-tests --module
-  erp_internal.tests.test_situs`. Expected: 2 tests OK.
+- [x] **Step 7: Run the tests.** `bench --site erp-test.localhost run-tests --module
+  erp_internal.tests.test_situs`. Expected: 2 tests OK. Ran 2026-10-28: 2 tests OK (inside the full run).
 - [x] **Step 8: Write the docs.**
   - CLAUDE.md (at most 80 lines): what the project is and why, paths, commands, the Global Constraints, links to the
     spec and plan.
@@ -337,6 +342,10 @@ class TestSitus(IntegrationTestCase):
   PT Contoh Plastik / CPL, chart "Standard", fiscal year Jan-Dec of the current year, Administrator only.
 - Still open on 2026-10-27: the `sites` and `wizard` parts and Step 7's test run (the agent's run of `new-site`
   was refused by the permission check; the developer runs `tools/setup_bench.sh sites wizard`).
+- 2026-10-28, first test run: Frappe runs only the tested app's `before_tests` hook, so HRMS's never ran and the
+  test site stayed without a wizard (every integration test failed on `Warehouse Type: Transit`). `hooks.py`
+  `before_tests = erp_internal.tests.utils.sebelum_tes` calls HRMS's `before_tests` (wizard `_Test Company`, INR)
+  and then `pastikan_setup()`. The first run takes about 8 minutes for the wizard; later runs about 3 minutes.
 
 ### Task 2: Site setup on every migrate
 
@@ -400,14 +409,14 @@ def test_idempoten(self):
 ```
 
 - [ ] **Step 2: Run them.** `--module erp_internal.tests.test_setup`. Expected: FAIL (ImportError on
-  `erp_internal.setup`). Not run: no site yet.
+  `erp_internal.setup`). Skipped: the code was written before a site existed, so there was no red run.
 - [x] **Step 3: Implement `pastikan_setup()`.** It calls these in order: `_pengaturan()`, `_field_jenis()`, then
   returns when `not frappe.is_setup_complete()`, then `_grup_barang()`, `_satuan()`, and `_gudang_pabrik(c)` for each
   `c` in `perusahaan("Pabrik")`. Each helper writes only when a value differs. Later tasks append their own helpers
   to this sequence.
-- [ ] **Step 4: Run them again.** Expected: 5 tests OK. Then `bench --site erp.localhost migrate` and set "PT
-  Contoh Plastik" Jenis = Pabrik. Not run: no site yet (the `wizard` part of `tools/setup_bench.sh` now sets
-  Jenis and migrates).
+- [x] **Step 4: Run them again.** Expected: 5 tests OK. Then `bench --site erp.localhost migrate` and set "PT
+  Contoh Plastik" Jenis = Pabrik. Ran 2026-10-28: `test_setup` 7 tests OK (2 added since); `erp.localhost`
+  migrated, Jenis Pabrik set by the `wizard` part.
 - [x] **Step 5: Commit** `feat(setup): Indonesian site defaults, company kind, groups, UOMs, factory warehouses`.
 
 **Task 2 deviations (2026-10-27, written without a site):**
@@ -536,9 +545,9 @@ def test_idempoten(self):
   - Run the test module. Expected: FAIL (ImportError). Not run: no site yet.
 - [x] **Step 3: Implement `terapkan()`** and the tables. Desktop icons: hidden flag and roles. Sidebars: keep and
   add as `SIDEBAR` says. Module Profiles and Role Profiles: get or create, then update.
-- [ ] **Step 4: Run the tests.** Expected: OK. Then `bench --site erp.localhost migrate` and look in the browser as
-  Administrator. The desktop shows only the kept icons, and each kept sidebar shows only its links. Not run: no
-  site yet.
+- [x] **Step 4: Run the tests.** Expected: OK. Then `bench --site erp.localhost migrate` and look in the browser as
+  Administrator. The desktop shows only the kept icons, and each kept sidebar shows only its links. Ran
+  2026-10-28: `test_tampilan` 13 tests OK; the screens checked per bagian with `tools/cek_layar.mjs` (Task 4b).
 - [x] **Step 5: Commit** `feat(tampilan): only the used modules, sidebars and role profiles per bagian`.
 
 **Task 3 deviations (2026-10-27, read from the v16.53 source; `.claude/rules/tampilan.md`):**
@@ -568,6 +577,19 @@ def test_idempoten(self):
   Manager. A static check of `IZIN` against the DocPerm JSON passes; HRMS's install-time permissions are not in it.
 - `jejak_modified()` tracks Dock (site layers), Custom Sidebar, Module Profile and Role Profile.
 - `buat_pelanggan` takes the first leaf Customer Group: ERPNext refuses a group one.
+- 2026-10-28, on the sites:
+  - `test_izin_per_bagian`'s Karyawan check failed: ERPNext drops the Employee role from a user with no Employee
+    record (`validate_employee_role`). The test links an Employee to the Karyawan user first (a real Karyawan
+    always has one).
+  - `tools/cek_layar.mjs` found "No permission for Company" on Gudang's new Stock Entry, and Gudang's Stock Balance
+    shortcut blank: Stock Manager neither reads Company nor the Stock Balance report in v16. `PROFIL_PERAN["Gudang"]`
+    is now Stock Manager, **Stock User**, Item Manager (Stock User adds no create right the test forbids), and
+    `setup.IZIN_TAMBAHAN` gives Produksi's Manufacturing User Company read. `test_izin_per_bagian` asserts Company
+    read for every bagian.
+  - ERPNext puts its tile on every desk user's Apps screen: HR saw "ERPNext" and clicking it opened `/desk/home`, a
+    blocked module ("No permission for Page"). `hooks.py` `extend_bootinfo = tampilan.saring_aplikasi` turns
+    `on_apps_screen` off for an app with no visible rail entry for that user (only the tile; boot never fails).
+    New `test_layar_apps_per_bagian`.
 
 ### Task 4: Indonesian labels
 
@@ -614,10 +636,11 @@ def test_label_kita_dipakai(self):
 			self.assertEqual(semua.get(sumber), target, sumber)
 ```
 
-- [ ] **Step 2: Run it.** Expected: FAIL (FileNotFoundError). Not run: no site yet.
+- [ ] **Step 2: Run it.** Expected: FAIL (FileNotFoundError). Skipped: `id.csv` existed before the first run.
 - [x] **Step 3: Write `id.csv`** with the table above, one row per pair.
-- [ ] **Step 4: Run it again.** Expected: OK. Then `bench --site erp.localhost clear-cache` and look at the desktop
-  and two forms (Sales Order, Work Order). Their titles and sidebars are in Indonesian. Not run: no site yet.
+- [x] **Step 4: Run it again.** Expected: OK. Then `bench --site erp.localhost clear-cache` and look at the desktop
+  and two forms (Sales Order, Work Order). Their titles and sidebars are in Indonesian. Ran 2026-10-28:
+  `test_bahasa` 6 tests OK. The Indonesian screens were not looked at in a browser (`cek_layar` runs in English).
 - [x] **Step 5: Commit** `feat(bahasa): Indonesian labels for the kept screens`.
 
 **Task 4 deviations (2026-10-27, Revision 2 item 3 as built):**
@@ -629,6 +652,13 @@ def test_label_kita_dipakai(self):
   and adds our two navbar labels. New `test_tamu_ditolak`: Guest gets `frappe.PermissionError`.
 - `id.csv` also holds our own strings: the `Kind` label and description of `Company.erp_jenis`, the two menu labels
   and the two messages of `bahasa.ganti`. "Invoicing" is the title `tampilan.LABEL` gives the Accounts module.
+- 2026-10-28 run: `cek_layar` signs in as every bagian on `erp.localhost` and passes (7 bagian, 21 screenshots, all
+  full width, rail and Apps screen only the bagian's modules, no message dialog). Fixed in the script: the module
+  home is opened with `frappe.set_route("Workspaces", <name>)` (`/desk/shift-and-attendance` names the shell, not
+  the Workspace); only message dialogs count (a new Project opens a Quick Entry dialog); the rail check reads the
+  tiles on the user's Apps screen (`app_data[].on_apps_screen`) and fails on a tile with nothing behind it. Run it
+  after a restart of `bench start` when `bench build` ran while it was up: the web process kept the old
+  `assets.json` and served 404s for the bundles.
 
 ### Task 5: The factory's sales and purchasing flow
 
@@ -663,10 +693,10 @@ Settings:
     submit; the Bin in Gudang Bahan Baku grows by 50. A Purchase Receipt with no Purchase Order raises
     `frappe.ValidationError`.
   - `test_tanpa_jurnal_stok`: after the Delivery Note, `frappe.db.count("GL Entry", {"voucher_no": dn.name})` is 0.
-- [ ] **Step 2: Run them.** Expected: FAIL (templates missing, Delivery Note without an order allowed). Not run:
-  no site yet.
+- [ ] **Step 2: Run them.** Expected: FAIL (templates missing, Delivery Note without an order allowed).
+  Skipped: no red run (code first).
 - [x] **Step 3: Implement `_alur_jual_beli()`.**
-- [ ] **Step 4: Run them again.** Expected: 5 tests OK. Not run: no site yet.
+- [x] **Step 4: Run them again.** Expected: 5 tests OK. Ran 2026-10-28: 5 tests OK.
 - [x] **Step 5: Write `docs/panduan/penjualan.md`, `pembelian.md` and `gudang.md`** in plain Indonesian: the daily
   steps per bagian, one screenshot per step, taken on `erp.localhost`. Text written; screenshots not taken (no
   site yet): the guides link `docs/panduan/gambar/*.png`, still missing.
@@ -722,8 +752,9 @@ Settings:
   - `test_impor_stok_awal`: the Bin `actual_qty` equals the file per row.
   - `test_impor_salah_terbaca`: the Data Import status is not "Success", and its import log names row 1 and the
     Item Group.
-- [ ] **Step 3: Run them.** Expected: FAIL (`impor_csv` missing). Not run: no site yet.
-- [x] **Step 4: Implement `impor_csv`** and run again. Expected: 4 tests OK. Implemented; run not done: no site yet.
+- [ ] **Step 3: Run them.** Expected: FAIL (`impor_csv` missing). Skipped: no red run (code first).
+- [x] **Step 4: Implement `impor_csv`** and run again. Expected: 4 tests OK. Ran 2026-10-28: 4 tests OK after
+  the fix below.
 - [x] **Step 5: Write `docs/impor.md`** in plain Indonesian:
   - the order: Barang, Pelanggan, Pemasok, then Stok awal dated the day before go-live;
   - the headers, one example row per file, and how to read the error log, fix the file and import again;
@@ -748,6 +779,9 @@ Settings:
 - `stok_awal.csv` has no Posting Date column, so the test does not depend on a date (the import day is used); the
   guide's example has it. Customers use the wizard's English groups (`Commercial`, `Individual`, territory `Rest Of
   The World`) that both sites have.
+- 2026-10-28, on the sites: v16 ships Stock Reconciliation with `allow_import` off ("Data Import is not allowed
+  for Stock Reconciliation"). `setup.IMPOR_BOLEH` turns it on with a Property Setter on every migrate. The headers
+  of all five test files were compared with the site's Download Template (Exporter, English): none missing.
 - Numbers in the files are plain (`15000`): with `#.###,##`, v16 reads `15.000` as 15000 and refuses ambiguous
   values; the guide says so.
 
@@ -820,6 +854,8 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
   the server and the encryption key is kept with the secrets (runbook). It reads only `SITE` and `RCLONE_REMOTE`
   from `.env`, checks the remote holds the 3 files, and deletes sets older than `SIMPAN_HARI` (14) days. Bash 3
   compatible (no `mapfile`).
+- Still not run on 2026-10-28: Steps 2-4 need a new site in the compose stack, and `new-site` needs the database
+  root password (Abel). The local stand-in for Task 8 Step 6 was `bench --site erp.localhost backup` (below).
 
 ### Task 8: Go-live wave 1, the factory
 
@@ -845,6 +881,25 @@ code. Record every value used in `deploy/server/README.md` or CLAUDE.md, never s
 - [ ] **Step 7: Train.** 30 minutes per bagian with `docs/panduan/{gudang,penjualan,pembelian}.md`.
 - [ ] **Step 8: Accept.** One real order goes Sales Order → Delivery Note → Sales Invoice (→ payment) on day one,
   and Samuel signs off. Write the go-live date in CLAUDE.md.
+
+**Task 8 local dry run (Revision 3 item 2), 2026-10-28 on `erp.localhost` with DATA CONTOH.** Script in the
+session's scratchpad, not in the repo; each check below passed unless it says otherwise.
+- Step 1: setup complete, PT Contoh Plastik Jenis Pabrik; System Settings `en`, Asia/Jakarta, `dd-mm-yyyy`,
+  `#.###,##`, company currency IDR. No server, DNS or TLS (none yet).
+- Step 2: PT Contoh Kantor exists with Jenis Kantor.
+- Step 3: "PPN 11% - CPL" and "PPN Masukan 11% - CPL" exist with `is_default` 0; setting both to 1 saves (rolled
+  back).
+- Step 4: the `docs/impor.md` templates with dry-run rows (3 items, 3 customers, 3 suppliers, an Opening Stock of 3
+  rows) imported through Data Import on the background worker, as in the browser: every status Success, counts
+  equal the files, each Bin equals its file row. Then removed. Five random sample items: Bin equals the stock
+  ledger's last `qty_after_transaction` (stand-in for a physical count).
+- Step 5: the 7 sample users each have their bagian's Role and Module Profile and one default Company
+  permission.
+- Step 6: `bench --site erp.localhost backup`: database 1.2 MiB, `gunzip -t` OK, 911 tables. `cadangan.sh`, the
+  off-site copy and the restore drill: not run (compose stack needs `new-site`, Task 7).
+- Step 7 (training): not applicable to a dry run.
+- Step 8: as `penjualan@contoh.test`, Sales Order (2 Karton of CTH-GAYUNG = 96 Pcs) → Delivery Note → Sales
+  Invoice Rp 528.000 → Payment Entry: SO Completed, SI Paid. Records tagged DATA CONTOH.
 
 ---
 
@@ -889,10 +944,10 @@ Controller rules:
   - `test_impor_riwayat`: `riwayat.csv` (2 items × 6 months) gives 12 rows; importing it again adds 0 rows and the
     Data Import is not "Success".
   - `test_tampilan.test_izin_per_bagian` runs again with the new `IZIN` rows.
-- [ ] **Step 2: Run them.** Expected: FAIL (the DocType doesn't exist). Not run: no site yet.
+- [ ] **Step 2: Run them.** Expected: FAIL (the DocType doesn't exist). Skipped: no red run (code first).
 - [x] **Step 3: Implement the DocType** (JSON by hand, `modified` bumped), the controller and `on_doctype_update`.
   Then `bench --site erp-test.localhost migrate` (not run: no site yet).
-- [ ] **Step 4: Run them again.** Expected: OK. Not run: no site yet.
+- [x] **Step 4: Run them again.** Expected: OK. Ran 2026-10-28: 5 tests OK, twice in a row (see the deviation).
 - [x] **Step 5: Commit** `feat(planning): Sales History, one row per company, item and month`.
 
 **Task 9 deviations (2026-10-28, written without a site; Revision 2 names):**
@@ -911,7 +966,8 @@ Controller rules:
   `dd-mm-yyyy`, day 15 to show the 1st-of-month rule). The importer commits, so the test cleans up its rows
   (like `test_impor`). `tests/utils.py` gains `riwayat(company, kode, bulan, qty)` (get or create, for Tasks 11-13).
 - `id.csv` also holds the DocType's labels and its roles (`get_messages_for_app` returns both).
-
+- 2026-10-28, on the sites: the importer commits mid-class, which kept `test_bulan_jadi_tanggal_1`'s row of
+  `_UJI-RIWAYAT` and failed the next run on the duplicate check. `bersihkan()` also removes that item's rows.
 
 ### Task 10: The forecast math (pure functions)
 
@@ -1016,11 +1072,12 @@ Rules:
   - `test_ditolak_sesudah_submit_atau_mingguan`: a submitted forecast and a Weekly one both raise
     `frappe.ValidationError` from `isi_dari_riwayat`.
   - `test_izin`: as a user with Role Profile Gudang, `isi_dari_riwayat` raises `frappe.PermissionError`.
-- [ ] **Step 2: Run them.** Expected: FAIL (ImportError). Not run: no site yet.
+- [ ] **Step 2: Run them.** Expected: FAIL (ImportError). Skipped: no red run (code first).
 - [x] **Step 3: Implement** `qty_per_bulan` (two grouped queries, summed in Python), `isi`, `isi_dari_riwayat` and
   the JS.
-- [ ] **Step 4: Run them again.** Expected: 8 tests OK. Then `bench build --app erp_internal` and try the button on
-  `erp.localhost`. Not run: no site yet.
+- [x] **Step 4: Run them again.** Expected: 8 tests OK. Then `bench build --app erp_internal` and try the button on
+  `erp.localhost`. Ran 2026-10-28: 9 tests OK; built. The button's server method (`isi_dari_riwayat`) ran as the
+  Produksi user in the Task 14 dry run; the button itself was not clicked in a browser.
 - [x] **Step 5: Commit** `feat(planning): fill Sales Forecast from sales history and orders`.
 
 **Task 11 deviations (2026-10-28, written without a site; Sales Forecast read in the v16 source):**
@@ -1037,7 +1094,10 @@ Rules:
   `akar_gudang(company)`.
 - New `test_tombol_menyimpan` (`isi_dari_riwayat` saves the numbers); 9 tests, not 8.
 - The message's item codes are HTML-escaped in the JS.
-
+- 2026-10-28, on the sites (test fixes, no code change): `frappe.copy_doc` keeps a cancelled original's
+  docstatus 2, so `test_draf_batal_dan_amend` resets it to 0 before inserting the amendment; `selected_items` rows
+  share the Sales Forecast Item table with the demand rows, so `test_tombol_menyimpan` reads only `parentfield`
+  `items` (the report already did).
 
 ### Task 12: The production flow (defaults and a chain test)
 
@@ -1072,9 +1132,9 @@ Settings:
      Gudang Barang Jadi - _UP.
   6. After material transfer and `make_stock_entry(wo, "Manufacture", 3000)`, the finished-goods Bin grows by 3000
      and the PP Bin shrinks by 750.
-- [ ] **Step 2: Run it.** Expected: FAIL (the Work Order's warehouses are empty or wrong). Not run: no site yet.
+- [ ] **Step 2: Run it.** Expected: FAIL (the Work Order's warehouses are empty or wrong). Skipped: no red run.
 - [x] **Step 3: Implement `_produksi()`.**
-- [ ] **Step 4: Run it again.** Expected: OK. Not run: no site yet. If ERPNext's MRP API differs from this description, stop and report
+- [x] **Step 4: Run it again.** Expected: OK. Ran 2026-10-28: `test_alur_produksi` 2 tests OK. If ERPNext's MRP API differs from this description, stop and report
   the difference; don't patch ERPNext.
 - [x] **Step 5: Write `docs/panduan/produksi.md`** in plain Indonesian:
   - filling Item Lead Time and BOM;
@@ -1195,16 +1255,16 @@ def test_kurang_cuma_dari_perkiraan(self):
     `posting_date` is used.
   - In `test_tampilan`, `test_izin_siap_order`: `frappe.get_doc("Report", "Siap Order").is_permitted()` is true as
     Produksi and Penjualan, false as Gudang.
-- [ ] **Step 3: Run them.** Expected: FAIL (ImportError, report missing). Not run: no site yet (the unit tests
+- [ ] **Step 3: Run them.** Expected: FAIL (ImportError, report missing). Skipped: no red run (the unit tests
   were run only after the code, below).
 - [x] **Step 4: Implement** the two `rumus` functions, then the report:
   - one grouped query each for stock, open orders (with the earliest date), orders this month, the newest forecast
     and Work Orders;
   - Item Lead Time rows read with the fields `get_own_lead_time` uses;
   - JSON by hand, then migrate.
-- [ ] **Step 5: Run them again.** Expected: OK. Then open the report on `erp.localhost` as Administrator. Partly done
-  2026-10-28: `tests/test_rumus.py` (13 unit tests, both classes) OK with the bench's Python and no site (Task 10's
-  command). Integration tests and the report in the browser: not run, no site yet.
+- [x] **Step 5: Run them again.** Expected: OK. Then open the report on `erp.localhost` as Administrator. Ran
+  2026-10-28: `test_rumus` 13 unit tests and `test_order_readiness` 9 tests OK. The report ran on `erp.localhost`
+  as the Produksi user in the Task 14 dry run; not opened in a browser.
 - [x] **Step 6: Commit** `feat(planning): Order Readiness report, what is short and when to start`.
 
 **Task 13 deviations (2026-10-28, written without a site; Revision 2 names):**
@@ -1249,6 +1309,20 @@ Manual, with Samuel. It needs his answers to questions 2 and 4 and the factory's
 - [ ] **Step 5: Accept.** Siap Order lists every finished product with a status, and five products checked by hand
   agree. Write the date in CLAUDE.md.
 
+**Task 14 local dry run, 2026-10-28 on `erp.localhost` with DATA CONTOH** (as `produksi@contoh.test` where a person
+would act):
+- Step 1: Sales History of the 3 months before October (07-09 2026) equals `contoh.py`'s numbers month by month.
+- Step 2: each of the 5 finished products has an Item Lead Time and a default BOM; safety stock 0.
+- Step 3: November's Sales Forecast → Fill from History (months 07-2026..09-2026): Ember 2400, Baskom 3600, Gayung
+  6000, Toples 1800, Kursi 300, the 3-month averages rounded up → submit → MPS → MRP. MRP's finished-goods
+  `required_qty` is the forecast minus stock on hand (1920, 2880, 5136, 1560, 240), not the forecast as in the
+  chain test (which has no stock); its materials are the 4 raw/packing items. Work Order 60 Kursi → transfer →
+  manufacture: Completed, WIP Gudang Produksi - CPL, FG Gudang Barang Jadi - CPL, Kursi 60 → 120.
+- Step 4 (training): not applicable.
+- Step 5: Order Readiness for October and for November lists all 5 finished products with a status (November:
+  Baskom Late, Ember/Toples/Kursi Start this week, Gayung Scheduled). Stock, open orders, in production and
+  forecast of all 5 equal independent SQL over Bin, Sales Order, Work Order and Sales Forecast.
+
 ---
 
 ## Part C: the office (attendance and projects)
@@ -1291,9 +1365,9 @@ Settings:
   - `test_cuti_tahunan_maks_12`: with an allocation of 12, a 13-day Leave Application raises
     `frappe.ValidationError`.
   - `test_sabtu_bukan_alpa`: no "Absent" is marked on a Saturday.
-- [ ] **Step 2: Run them.** Expected: FAIL (shift "Kantor" missing). Not run: no site yet.
+- [ ] **Step 2: Run them.** Expected: FAIL (shift "Kantor" missing). Skipped: no red run (code first).
 - [x] **Step 3: Implement `_kantor()`.**
-- [ ] **Step 4: Run them again.** Expected: 4 tests OK. Not run: no site yet.
+- [x] **Step 4: Run them again.** Expected: 4 tests OK. Ran 2026-10-28: 5 tests OK after the test fix below.
 - [x] **Step 5: Write `docs/panduan/absen.md`** in plain Indonesian:
   - open `https://erp.<domain>/hrms` on the phone → Add to Home Screen;
   - check in and check out, with location allowed;
@@ -1326,6 +1400,9 @@ Settings:
 - `tests/utils.py` gains `buat_karyawan`, `penugasan_shift`, `jatah_cuti` (get or create).
 - The guide names the HRMS app's buttons (Check In, Check Out, Request a Leave) as read in `hrms/frontend`; check
   them on the site.
+- 2026-10-28, on the sites (test fix): `test_pengaturan_absen` compared every field ending in `_time` as a time;
+  `begin_check_in_before_shift_start_time` is minutes and the DB returns the shift's start and end as
+  `timedelta`, so only `start_time`/`end_time` are compared, as strings.
 
 ### Task 16: Projects
 
@@ -1343,8 +1420,9 @@ Settings:
     `actual_time` is then 2.
   - `test_jenis_kegiatan`: all four Activity Types exist.
   - `test_gudang_tidak_baca_proyek`: as Gudang, `frappe.has_permission("Project", "read")` is false.
-- [ ] **Step 2: Run them.** Expected: FAIL (Activity Types missing). Not run: no site yet.
-- [x] **Step 3: Implement `_proyek()`** and run again. Expected: 5 tests OK (see the deviations). Implemented; not run: no site yet.
+- [ ] **Step 2: Run them.** Expected: FAIL (Activity Types missing). Skipped: no red run (code first).
+- [x] **Step 3: Implement `_proyek()`** and run again. Expected: 5 tests OK (see the deviations). Ran 2026-10-28:
+  5 tests OK after the test fix below.
 - [x] **Step 4: Write `docs/panduan/proyek.md`** in plain Indonesian: projects, tasks, the daily timesheet, and what
   the Manajer Proyek checks each week.
 - [x] **Step 5: Commit** `feat(proyek): activity types and the project flow`.
@@ -1358,6 +1436,11 @@ Settings:
   Projects Manager/User or HR Manager/User a user submits only a timesheet of their own Employee. Cancel and amend stay with Projects User.
 - An existing Activity Type with a rate or disabled gets rates 0 and enabled again.
 - New `test_idempoten` (Activity Type and Custom DocPerm counts after a second `pastikan_setup`): 4 tests, not 3; 5 with `test_timesheet_orang_lain_ditolak` (4e815e4).
+- 2026-10-28, on the sites (test fix): `test_timesheet_orang_lain_ditolak` expected the insert to work and the
+  submit to fail, but a Karyawan with ERPNext's own-Employee User Permission (`buat_karyawan(izin_sendiri=True)`,
+  as `contoh.py` makes them) is refused already at insert. The test now covers both: with the permission the
+  insert is refused; without it (`izin_sendiri=False`) the insert works and `proyek.cek_pemilik_timesheet`
+  refuses the submit.
 
 ### Task 17: Go-live wave 3, the office
 
@@ -1376,3 +1459,19 @@ Manual, with Samuel. It needs his answers to questions 5 and 7.
 - [ ] **Step 5: Projects.** Enter the current projects and tasks, and start daily timesheets.
 - [ ] **Step 6: Accept.** One week of attendance with every gap explained, and every active project has tasks and
   timesheets. Write the date in CLAUDE.md.
+
+**Task 17 local dry run, 2026-10-28 on `erp.localhost` with DATA CONTOH:**
+- Step 1: a 2-row Employee file (First Name, Last Name, Gender, Date of Birth, Date of Joining, Company; dates
+  `dd-mm-yyyy`) through Data Import on the worker: Success, 2 = 2. Removed afterwards.
+- Step 2: HR, Karyawan and Manajer Proyek users have their Role and Module Profile, a default PT Contoh Kantor
+  permission and a linked Employee (the plan's single "Kantor" Module Profile became one per bagian in Task 3);
+  all 5 employees have the Kantor shift and Cuti Tahunan 12; `hr@contoh.test` adds a holiday to "Libur CKT 2026"
+  (rolled back).
+- Step 3: `karyawan@contoh.test` checks in with coordinates (Employee Checkin, shift Kantor; rolled back);
+  `/hrms` answers 200 and `hrms.api.get_current_employee_info` returns Citra Wulandari. No phone was used.
+- Step 4: a dry-run employee on the shift from Monday, Monday 08:05-17:10 and Tuesday 08:25-17:05 check-ins, the
+  shift's auto attendance run with `process_attendance_after` moved to Monday (put back to 2026-10-28 after):
+  Monday Present, Tuesday Present and late; no other employee got an Attendance. Removed afterwards.
+- Step 5: `karyawan@contoh.test` submits a 3-hour timesheet on their assigned task of "Katalog Produk Online"
+  (3 tasks); tagged DATA CONTOH.
+- Step 6: not applicable (needs a real week).

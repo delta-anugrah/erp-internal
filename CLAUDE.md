@@ -4,10 +4,10 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (stock, sales, purchasing, production with a monthly forecast and the Order Readiness report) and our office
 (attendance, projects). Plain ERPNext showing only the modules in use, nothing from BPT.
 
-Status 2026-10-28: Task 1 is partly done (the two sites and the wizard wait on Abel). Tasks 2-7, 4b, 9-13, 15,
-16 and the sample data (`contoh.py`) are written but their integration tests have not run (no site yet; Task
-10/13's pure math passes without one); Task 6's CSV headers and Task 7's compose boot, backup and restore drill
-wait for a site too. Next: Abel creates the sites, then the test run and `buat_contoh`.
+Status 2026-10-28: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites: 13 unit + 77
+integration tests OK, `cek_layar` 7 bagian OK, sample data on `erp.localhost`, local dry runs of the go-live
+tasks 8, 14 and 17 done (results in the plan). Open: Task 7's compose boot, backup and restore drill (Abel: needs
+the database root password), the guide screenshots, and the real go-live with Samuel.
 
 - Design: `docs/superpowers/specs/2026-10-27-erp-internal-design.md`
 - Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md`. Its "Revision 2" and "Revision 3" sections
@@ -21,7 +21,7 @@ wait for a site too. Next: Abel creates the sites, then the test run and `buat_c
 |---|---|
 | `~/Desktop/Projects/erp-internal` | This repo. It is the app root (`pyproject.toml`, package `erp_internal/`). Commit here. |
 | `~/Desktop/Projects/erp-internal-bench` | The bench (not a repo). `apps/erp_internal` is a symlink to this repo. |
-| `~/Desktop/Projects/erp-internal-bench/.env` | Secrets, mode 0600, never committed: `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD`. |
+| `~/Desktop/Projects/erp-internal-bench/.env` | Secrets, mode 0600, never committed: `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD`, `SAMPLE_PASSWORD` (= `erp_sandi_contoh`). |
 | Docker `erp-mariadb` | MariaDB 11.8.9 on 127.0.0.1:3308, volume `erp-mariadb`, utf8mb4. |
 | Bench ports | web 8002, socketio 9002, redis queue 11002, redis cache 13002. |
 | Sites | `erp.localhost` (dev; wizard: PT Contoh Plastik, CPL) and `erp-test.localhost` (`allow_tests`). |
@@ -41,7 +41,7 @@ bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 bench --site erp.localhost set-config erp_sandi_contoh <password>   # the sample users' password (dev only)
 bench --site erp.localhost execute erp_internal.contoh.buat_contoh   # DATA CONTOH; refused with erp_produksi
-node tools/cek_layar.mjs                  # each bagian's screens (ERP_SANDI; tools/package.json)
+ERP_SANDI=<SAMPLE_PASSWORD> node tools/cek_layar.mjs   # each bagian's screens; restart bench start after a build
 # from the repo: the server image and its check (deploy/server/README.md is the runbook)
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
 ```
@@ -51,6 +51,8 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 ## Rules (the plan's Global Constraints, as revised)
 
 - A report that reads with `get_all` checks the caller's Company/Warehouse permission itself (Order Readiness).
+- `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with nothing on that user's rail; it
+  must never fail boot. `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
 - `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Projects/HR/System Manager
   roles submit someone else's timesheet; `setup.IZIN_TAMBAHAN` gives Employee `submit`.
 

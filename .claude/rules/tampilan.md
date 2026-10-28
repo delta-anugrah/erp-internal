@@ -8,7 +8,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 
 | Surface | App's row (read only) | Our site layer |
 |---|---|---|
-| Apps screen | `add_to_apps_screen` hook (erpnext: any desk user; hrms: Employee read) | none |
+| Apps screen | `add_to_apps_screen` hook (erpnext: any desk user; hrms: Employee read) | `saring_aplikasi` (`extend_bootinfo`): a tile with no visible rail entry for the user is hidden |
 | Rail of modules | `<app>/dock/<app>/<app>.json` (`Dock`, standard 1) | `Dock` with blank `user`: `IKON` order, rest `hidden` 1, title from `LABEL` |
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
 | Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`, Task 4b) |
@@ -22,3 +22,10 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.
 - Reference code: `frappe/desk/doctype/{dock,sidebar,custom_sidebar,custom_workspace}/`, `frappe/desk/layers.py`.
+- `PROFIL_PERAN["Gudang"]` is Stock Manager, Stock User, Item Manager: Stock Manager alone reads neither Company
+  nor Stock Balance in v16.
+  Every bagian must read Company (`test_izin_per_bagian`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
+- `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
+- `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
+  dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen
+  (`app_data[].on_apps_screen`), failing on a tile with nothing behind it.

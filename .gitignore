@@ -5,3 +5,4 @@ node_modules/
 tools/hasil/
 .env
 .DS_Store
+erp_internal/public/dist/

@@ -37,8 +37,9 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
 | Chart of accounts | Standard |
 | Fiscal year | 1 January to 31 December of the current year |
 
-No extra user is created; Administrator only. `erp-test.localhost` is completed by HRMS's `before_tests` on the
-first test run (company `_Test Company`, INR; our tests make their own IDR companies and price lists).
+No extra user is created; Administrator only. `erp-test.localhost` is completed on the first test run by our
+`before_tests` hook (`erp_internal.tests.utils.sebelum_tes`), which runs HRMS's (company `_Test Company`, INR; our
+tests make their own IDR companies and price lists) and then our setup. That first run takes about 8 minutes.
 
 ## Language
 
@@ -55,8 +56,10 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 ```
 
 Browser check of each bagian's screens (needs `bench start` and the sample users of `contoh.py`):
-`cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`.
-Screenshots land in `tools/hasil/` (not committed).
+`cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
+(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). If
+`bench build` ran while `bench start` was up, restart `bench start` first: the web process keeps the old
+`assets.json` and the desk loads blank.
 
 ## Factory flow and data import
 
@@ -93,7 +96,8 @@ bench --site erp.localhost set-config erp_sandi_contoh <password>
 bench --site erp.localhost execute erp_internal.contoh.buat_contoh
 ```
 
-It is idempotent and refuses to run on a site with `erp_produksi` set.
+It is idempotent (a second run writes nothing) and refuses to run on a site with `erp_produksi` set. On the dev
+Mac the password is kept only in `~/Desktop/Projects/erp-internal-bench/.env` as `SAMPLE_PASSWORD`.
 
 ## Server
 
