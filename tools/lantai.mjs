@@ -35,7 +35,8 @@
 //                remembered; at 390 px two compact rows, the table collapsed, the bottom sheet on top
 //   hud-live     the dot reads Live with realtime, "Updated HH:MM" with /socket.io blocked
 //   hud-xss      a company name of <img onerror> shows as text; only a same-origin /files/ logo becomes an image
-//   glass        every fixed card's backdrop-filter blurs; every text >= 4.5:1 on its card, light and dark
+//   glass        every fixed card's backdrop-filter blurs; every text >= 4.5:1 on its card, light and dark; with
+//                prefers-reduced-transparency (CDP) every card and label is opaque with no backdrop-filter
 // ERP_BENCH (default ~/Desktop/Projects/erp-internal-bench) and ERP_SITE (erp.localhost) are for bench execute.
 
 import { execFileSync } from "node:child_process";
@@ -1181,6 +1182,38 @@ if (jalankan("glass")) await kasus("glass", async () => {
 		await p.screenshot({ path: join(HASIL, `lantai-kaca-${tema === "light" ? "terang" : "gelap"}.png`) });
 	}
 	await p.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+	// Less transparency asked for (CDP media emulation; Playwright's emulateMedia has no such option): every card
+	// and every label turns solid.
+	const cdp = await ctx.newCDPSession(p);
+	await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-transparency", value: "reduce" }] });
+	cek(await p.evaluate(() => matchMedia("(prefers-reduced-transparency: reduce)").matches), "glass: reduced transparency is not emulated");
+	for (const tema of ["light", "dark"]) {
+		await p.evaluate((t) => document.documentElement.setAttribute("data-theme", t), tema);
+		await p.waitForTimeout(300);
+		const tembus = await p.evaluate((KARTU) => {
+			const r = erp.lantai.aktif.host.shadowRoot;
+			const c = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+			const alfa = (css) => {
+				c.clearRect(0, 0, 1, 1);
+				c.fillStyle = "rgba(0,0,0,0)";
+				c.fillStyle = css;
+				c.fillRect(0, 0, 1, 1);
+				return c.getImageData(0, 0, 1, 1).data[3];
+			};
+			const semua = KARTU.flatMap((sel) => [...r.querySelectorAll(sel)].map((e) => [sel, e]));
+			return {
+				n: semua.length,
+				buruk: semua
+					.filter(([, e]) => alfa(getComputedStyle(e).backgroundColor) < 255 || !/^(none)?$/.test(getComputedStyle(e).backdropFilter))
+					.map(([sel, e]) => `${sel}${e.closest(".label")?.dataset.mesin ? ` (${e.closest(".label").dataset.mesin})` : ""}: ${getComputedStyle(e).backgroundColor} ${getComputedStyle(e).backdropFilter}`),
+			};
+		}, KARTU);
+		cek(tembus.n >= 19, `glass (reduced, ${tema}): only ${tembus.n} cards and labels found`);
+		cek(!tembus.buruk.length, `glass (reduced, ${tema}): not solid: ${tembus.buruk.slice(0, 4).join("; ")}`);
+	}
+	await p.screenshot({ path: join(HASIL, "lantai-kaca-padat.png") });
+	await p.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+	await cdp.send("Emulation.setEmulatedMedia", { features: [] });
 	await ctx.close();
 });
 

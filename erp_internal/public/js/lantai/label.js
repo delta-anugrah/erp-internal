@@ -16,6 +16,12 @@ export const GAYA_LABEL = `
 .label{position:absolute;left:0;top:0;will-change:transform}
 .label > .isi{transform:translate(-50%,-100%);padding:5px 10px 6px;font-size:12px;line-height:1.35;white-space:nowrap;
 	max-width:150px;border-radius:16px;--kaca-blur:none;background:var(--kaca-isi-label)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+	.label > .isi{background:var(--kaca-padat)}
+}
+@media (prefers-reduced-transparency:reduce){
+	.label > .isi{background:var(--kaca-padat)}
+}
 .label .baris{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .label .judul{font-weight:600;font-variant-numeric:tabular-nums}
 .label.dipilih > .isi{outline:2px solid var(--kaca-aksen);outline-offset:1px}
