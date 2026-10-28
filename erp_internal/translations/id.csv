@@ -127,3 +127,10 @@ Accounts Settings,Pengaturan Akun
 Projects Settings,Pengaturan Proyek
 HR Settings,Pengaturan SDM
 Opening Stock & Stock Count,Stok Awal & Stok Opname
+Machine No.,No. Mesin
+Machine Brand,Merek Mesin
+Machine Model,Model Mesin
+Clamping Force (Ton),Daya Jepit (Ton)
+Year Made,Tahun Buat
+Made In,Buatan
+"Order on the factory floor, 1 is the first machine.","Urutan di lantai pabrik, 1 = mesin pertama."

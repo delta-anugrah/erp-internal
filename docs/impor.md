@@ -43,7 +43,7 @@ template ikut berbahasa Indonesia; dua-duanya diterima.
 | `Item Code` | kode barang, unik |
 | `Item Name` | nama barang |
 | `Item Group` | `Barang Jadi`, `Bahan Baku`, `Bahan Penolong`, `Kemasan` atau `Sparepart` |
-| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Karton`, `Sak`, `Roll` atau `Kg` |
+| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll` atau `Kg` (hanya `Kg` boleh pecahan) |
 | `Maintain Stock` | `1` untuk barang yang distok |
 | `Safety Stock` | stok minimum |
 | `UOM (uoms)` | satuan lain, misalnya `Karton` |
@@ -131,6 +131,56 @@ baris yang sudah ada ditolak (*Sales history for EMB-10 in 08-2026 already exist
 impor dengan **Import Type** `Update Existing Records`.
 
 Cek setelah impor: total per bulan di **Sales History** (Report view, group by Month) sama dengan file Samuel.
+
+## Data induk Samuel: katalog dan mesin (`master.py`)
+
+Barang jadi Dinda House Ware, daftar harganya dan mesin injection tidak lewat CSV, tapi lewat importer sendiri
+yang membaca file dari Samuel apa adanya:
+
+- `erp_internal/data/katalog.json`: daftar harga "POLA PLASTIK TAHUN 2026" (20 produk, tipe, warna, harga per
+  lusin/gross/ball/dus/pack, kemasan). Harga tidak mengikat (sewaktu-waktu dapat berubah).
+- `erp_internal/data/mesin.json`: 14 mesin injection moulding (merek, tonase, negara, tahun, model).
+
+```bash
+cd ~/Desktop/Projects/erp-internal-bench
+bench --site erp.localhost execute erp_internal.master.muat
+```
+
+Hasilnya angka (`template`, `varian`, `harga`, `mesin`), berapa record yang ditulis kali ini (`ditulis`, 0 kalau
+tidak ada yang berubah) dan `catatan`: hal yang file-nya tidak jelas. Dijalankan dua kali = sama saja.
+
+Yang dibuat:
+
+| Apa | Isi |
+|---|---|
+| Barang (template + varian) | satu template per produk di grup `Barang Jadi`, merek `Dinda House Ware`; varian **hanya** kombinasi yang ada di daftar (atribut `Jenis`, `Warna`, dan `Ukuran` untuk Toples Dinda). Kode: `GAYUNG-LUMBA` → `GAYUNG-LUMBA-SPR-MRH` |
+| Satuan | stok dalam `Pcs`; `Lusin` = 12, `Gross` = 144; `Ball`/`Dus`/`Ikat` per varian dari teks kemasan, misalnya "1 Ball (20 Lusin)" = 240 Pcs |
+| Daftar harga | `Harga Pola 2026` (jual, IDR), satu Item Price per varian per satuan yang ada harganya |
+| Mesin | Workstation `Mesin 01`..`Mesin 14`, tipe `Injection Moulding`; nomor urut lantai (`Machine No.`), merek, model, tonase, tahun, negara |
+
+Pilihan model:
+
+- **Sendok Makan** jadi dua template: `SENDOK-MAKAN-PACK` (stok dalam `Pack`, 1 Dus = 250 Pack) dan
+  `SENDOK-MAKAN` (curah, stok `Pcs`, 1 Ball = 20 Gross). Isi sendok per pack tidak ada di daftar.
+- **Toples Dinda** satu template dengan atribut `Ukuran` (1 KG, 1,5 KG). "Toples (UK: 1 1/2 KG)" produk sendiri
+  (`TOPLES-1.5KG`).
+- Ejaan disamakan (`master.SAMA`): "Orens" → Orange, "Warna DX" → DX, "Super & Dx warna" → Super & DX.
+- Kemasan tanpa isi ("per ball", "Perball") diambil dari perbandingan harga kalau hasilnya bulat (misalnya Baskom
+  Dinda 303 DX: 544.500 / 30.250 = 18 Lusin), dan dicatat di `catatan` supaya dicek Samuel.
+- Varian boleh punya kemasan sendiri (`setup.PENGATURAN_VARIAN`, Item Variant Settings `allow_different_uom`):
+  Gantungan Dinda Super 1 Dus = 3 Gross, DX 1 Dus = 5 Gross.
+
+### Kalau Samuel kirim file baru
+
+1. Timpa `erp_internal/data/katalog.json` dan/atau `mesin.json` (format sama). Produk baru tanpa kode di
+   `master.KODE` dapat kode dari namanya (huruf besar); warna atau tipe baru tanpa singkatan di
+   `master.SINGKATAN` dapat singkatan dari hurufnya. Tambahkan dulu ke tabel itu kalau mau kodenya rapi.
+2. Jalankan `muat` di atas, baca `catatan`.
+3. Judul file menentukan nama daftar harga: "... TAHUN 2027" membuat `Harga Pola 2027` baru, yang lama tetap ada.
+   Harga di daftar itu yang sudah tidak ada di file dihapus.
+4. Yang **tidak** dihapus: barang dan mesin yang hilang dari file (mungkin sudah dipakai transaksi). Nonaktifkan
+   manual (Item `Disabled`, Workstation status `Off`). Singkatan atribut yang sudah ada juga tidak diubah, karena
+   mengubahnya mengganti kode semua varian.
 
 ## Kalau ada yang salah
 

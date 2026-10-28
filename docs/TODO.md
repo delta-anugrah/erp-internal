@@ -3,7 +3,7 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
 Last full run (2026-10-28, after the short screens): `bench --site erp-test.localhost run-tests --app erp_internal`:
-13 unit + 99 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+13 unit + 107 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
@@ -24,6 +24,15 @@ Last full run (2026-10-28, after the short screens): `bench --site erp-test.loca
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
+
+## Master data
+- [x] Samuel's catalog and machines (`erp_internal/master.py`, `test_master` 8 OK; run twice on `erp.localhost`,
+      the second run writes nothing): 21 templates, 84 variants, 157 prices in `Harga Pola 2026`, `Mesin 01`..`14`.
+- [ ] Still from Samuel (`docs/menunggu-samuel.md` row 4): capacity per product per machine (cycle time, cavities),
+      mould per machine, raw material per product (kg per pcs, PP/HDPE, masterbatch), minimum stock, spoons per
+      Sendok Makan pack; confirm the "per ball" contents taken from prices and Gantungan Dinda Super's Dus price.
+- [ ] At go-live: the items are loaded into the default company's setup (PT Contoh Plastik on `erp.localhost`);
+      on PT Delta Anugrah's site rerun `muat` after the wizard.
 
 ## Part A: foundation and the factory
 - [x] Task 1: repo, bench, sites, app (sites by Abel; test site's wizard now via our `before_tests` hook)

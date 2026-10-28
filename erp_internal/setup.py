@@ -54,9 +54,35 @@ FIELD_AKTIF = {
 	"description": "Setup builds this company's warehouses, production defaults, holiday lists and PPN templates.",
 }
 
+# The injection moulding machines (`master.py` loads them from `data/mesin.json`): one Workstation each, with
+# the machine's plate and its place in the floor order (the 3D view's layout).
+FIELD_MESIN = [
+	{
+		"fieldname": "erp_nomor",
+		"label": "Machine No.",
+		"fieldtype": "Int",
+		"insert_after": "workstation_type",
+		"description": "Order on the factory floor, 1 is the first machine.",
+	},
+	{"fieldname": "erp_merek", "label": "Machine Brand", "fieldtype": "Data", "insert_after": "erp_nomor"},
+	{"fieldname": "erp_model", "label": "Machine Model", "fieldtype": "Data", "insert_after": "erp_merek"},
+	{
+		"fieldname": "erp_tonase",
+		"label": "Clamping Force (Ton)",
+		"fieldtype": "Int",
+		"insert_after": "erp_model",
+	},
+	{"fieldname": "erp_tahun", "label": "Year Made", "fieldtype": "Int", "insert_after": "erp_tonase"},
+	{"fieldname": "erp_negara", "label": "Made In", "fieldtype": "Data", "insert_after": "erp_tahun"},
+]
+
 GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart")
-SATUAN = ("Pcs", "Lusin", "Karton", "Sak", "Roll", "Kg")
+# Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`).
+SATUAN = ("Pcs", "Lusin", "Gross", "Karton", "Ball", "Dus", "Ikat", "Pack", "Sak", "Roll", "Kg")
 SATUAN_PECAHAN = ("Kg",)  # every other UOM takes whole numbers only
+# A variant keeps its own packings (one colour's Dus holds 3 Gross, another's 5): a template's save then no
+# longer copies its UOM table over its variants'.
+PENGATURAN_VARIAN = {"allow_different_uom": 1}  # Item Variant Settings
 GUDANG_PABRIK = ("Gudang Bahan Baku", "Gudang Produksi", "Gudang Barang Jadi", "Gudang Reject")
 
 # The sales and purchasing flow: every delivery and every receipt starts from an order; stock never goes
@@ -156,6 +182,7 @@ def pastikan_setup() -> None:
 		return
 	_grup_barang()
 	_satuan()
+	_varian()
 	for company in perusahaan():
 		_gudang_pabrik(company)
 	_bawaan()
@@ -219,7 +246,7 @@ def _impor_boleh() -> None:
 
 def _field_aktif() -> None:
 	# create_custom_fields saves only a field that is missing or differs.
-	create_custom_fields({"Company": [FIELD_AKTIF]}, update=True)
+	create_custom_fields({"Company": [FIELD_AKTIF], "Workstation": FIELD_MESIN}, update=True)
 
 
 def _grup_barang() -> None:
@@ -241,6 +268,12 @@ def _satuan() -> None:
 			)
 		elif frappe.db.get_value("UOM", nama, "must_be_whole_number") != bulat:
 			frappe.db.set_value("UOM", nama, "must_be_whole_number", bulat)
+
+
+def _varian() -> None:
+	for field, nilai in PENGATURAN_VARIAN.items():
+		if frappe.db.get_single_value("Item Variant Settings", field) != nilai:
+			frappe.db.set_single_value("Item Variant Settings", field, nilai)
 
 
 def _gudang_pabrik(company: str) -> None:

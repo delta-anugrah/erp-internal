@@ -2,6 +2,21 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (Samuel's real master data: catalog and machines)
+- `erp_internal/master.py` `muat()` reads `erp_internal/data/katalog.json` (price list "POLA PLASTIK TAHUN 2026",
+  Dinda House Ware, 20 products) and `data/mesin.json` (14 machines), idempotent (`docs/impor.md`).
+- Items: one template per product in Barang Jadi, brand Dinda House Ware, attributes Jenis/Warna (Ukuran for
+  Toples Dinda), only the listed combinations; Sendok Makan split into `SENDOK-MAKAN-PACK` (stock Pack) and
+  `SENDOK-MAKAN` (Pcs). Stock UOM Pcs, Lusin 12, Gross 144, Ball/Dus/Ikat per variant from the packing text; four
+  "per ball" packings taken from the price ratio (noted). 21 templates, 84 variants.
+- Price List `Harga Pola 2026` (selling, IDR): 157 Item Prices. Garpu Makan has none.
+- Workstations `Mesin 01`..`14`, type Injection Moulding, custom fields `erp_nomor` (floor order), `erp_merek`,
+  `erp_model`, `erp_tonase`, `erp_tahun`, `erp_negara` (`setup.FIELD_MESIN`).
+- `setup.py`: UOMs Gross, Ball, Dus, Ikat, Pack; Item Variant Settings `allow_different_uom` 1
+  (`PENGATURAN_VARIAN`, `_varian`). `id.csv`: the machine field labels.
+- `erp.localhost`: migrate, `muat` twice (282 records written, then 0). Tests: `test_master` 8 OK; full run
+  13 unit + 107 integration OK. ruff check/format clean.
+
 ## 2026-10-28 (avatar pointer, sidebar fold arrow)
 - The sidebar toggle was there but hidden: Frappe v16.53 shows the fold arrow only while the pointer is on
   the panel's 8 px edge (BPT's older Frappe has a "Collapse" button instead). `public/css/erp_internal.css`

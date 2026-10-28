@@ -6,7 +6,7 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
 Status 2026-10-28: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
-company and three roles (plan "Revision 4"): 13 unit + 99 integration tests OK, `cek_layar` 3 users OK (short homes, Samuel 2026-10-28), sample
+company and three roles (plan "Revision 4"): 13 unit + 107 integration tests OK, `cek_layar` 3 users OK (short homes, Samuel 2026-10-28), sample
 data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
 the plan). Open: Task 7's compose boot, backup and restore drill (Abel: needs the database root password), and the
 real go-live with Samuel.
