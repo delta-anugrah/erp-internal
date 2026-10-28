@@ -160,6 +160,18 @@ class TestLantai(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, ubah_status, mesin, "Problem")
 		self.assertEqual(frappe.db.get_value("Workstation", mesin, "status"), "Idle")
 
+	def test_ubah_status_tanpa_nomor(self):
+		mesin = buat_mesin("A", 0, "Idle")
+		frappe.set_user(self.operator)
+		self.assertRaises(frappe.ValidationError, ubah_status, mesin, "Problem")
+		self.assertEqual(frappe.db.get_value("Workstation", mesin, "status"), "Idle")
+
+	def test_ubah_status_baris_dengan_wo(self):
+		mesin = buat_mesin("A", 1, "Idle")
+		wo = buat_wo(self.pabrik, mesin)
+		frappe.set_user(self.operator)
+		self.assertEqual(ubah_status(mesin, "Production")["wo"]["name"], wo.name)
+
 	def test_siaran_hanya_nama(self):
 		mesin = buat_mesin("A", 1)
 		with patch("frappe.publish_realtime") as siar:

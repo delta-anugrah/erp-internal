@@ -35,12 +35,14 @@ def ubah_status(mesin: str, status: str) -> dict:
 	"""Set a machine's status (one of the Workstation's own options) and return its row as `data()` does."""
 	doc = frappe.get_doc("Workstation", mesin)
 	doc.check_permission("write")
+	if not (doc.get("erp_nomor") or 0) > 0:
+		frappe.throw(_("{0} is not a numbered machine.").format(mesin), frappe.ValidationError)
 	if status not in _pilihan_status():
 		frappe.throw(_("Unknown machine status: {0}").format(status), frappe.ValidationError)
 	doc.status = status
 	# Tests skip the Version log by default; the status change should always leave a row in it.
 	doc.save(ignore_version=False)
-	return _daftar(doc.name)[0]
+	return _baris(doc, _pekerjaan([doc.name]))
 
 
 def siarkan(doc, method=None) -> None:
@@ -53,29 +55,28 @@ def _pilihan_status() -> list[str]:
 	return [s for s in (frappe.get_meta("Workstation").get_field("status").options or "").split("\n") if s]
 
 
-def _daftar(nama: str | None = None) -> list[dict]:
-	"""The machines the user may read (one when `nama` is given), sorted by number, then name."""
-	filter = {"erp_nomor": (">", 0)}
-	if nama:
-		filter["name"] = nama
+def _daftar() -> list[dict]:
+	"""The numbered machines the user may read, sorted by number, then name."""
 	baris = frappe.get_list(
-		"Workstation", filters=filter, fields=list(FIELD_MESIN), order_by="erp_nomor, name"
+		"Workstation", filters={"erp_nomor": (">", 0)}, fields=list(FIELD_MESIN), order_by="erp_nomor, name"
 	)
 	wo = _pekerjaan([b.name for b in baris])
-	return [
-		{
-			"name": b.name,
-			"nomor": b.erp_nomor,
-			"merek": b.erp_merek,
-			"model": b.erp_model,
-			"tonase": b.erp_tonase,
-			"tahun": b.erp_tahun,
-			"negara": b.erp_negara,
-			"status": b.status,
-			"wo": wo.get(b.name),
-		}
-		for b in baris
-	]
+	return [_baris(b, wo) for b in baris]
+
+
+def _baris(b, wo: dict[str, dict]) -> dict:
+	"""One machine row of `data()`: `b` is a Workstation (doc or row), `wo` maps machine → Work Order."""
+	return {
+		"name": b.name,
+		"nomor": b.erp_nomor,
+		"merek": b.erp_merek,
+		"model": b.erp_model,
+		"tonase": b.erp_tonase,
+		"tahun": b.erp_tahun,
+		"negara": b.erp_negara,
+		"status": b.status,
+		"wo": wo.get(b.name),
+	}
 
 
 def _pekerjaan(mesin: list[str]) -> dict[str, dict]:

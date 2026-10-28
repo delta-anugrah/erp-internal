@@ -258,7 +258,9 @@ def _impor_boleh() -> None:
 
 def _field_aktif() -> None:
 	# create_custom_fields saves only a field that is missing or differs.
-	create_custom_fields({"Company": [FIELD_AKTIF], "Workstation": FIELD_MESIN, "Work Order": [FIELD_WO_MESIN]}, update=True)
+	create_custom_fields(
+		{"Company": [FIELD_AKTIF], "Workstation": FIELD_MESIN, "Work Order": [FIELD_WO_MESIN]}, update=True
+	)
 
 
 def _grup_barang() -> None:
