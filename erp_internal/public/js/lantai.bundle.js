@@ -48,6 +48,10 @@ canvas{display:block}
 ${GAYA_LABEL}
 ${GAYA_PANEL}
 ${GAYA_HUD}
+.catatan-lantai{position:absolute;z-index:2;left:50%;transform:translateX(-50%);top:calc(var(--atas,170px) + 12px);
+	max-width:min(420px,calc(100% - 24px));box-sizing:border-box;padding:9px 14px;font-size:13px;line-height:1.4;
+	text-align:center;pointer-events:none}
+.catatan-lantai[hidden]{display:none}
 </style>`;
 const IKON_RUMAH = `<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 9.2 10 3.8l6.5 5.4M5.5 7.8V16h3.3v-4.2h2.4V16h3.3V7.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const ZUM = 0.8; // distance factor of one + click (− divides by it)
@@ -128,9 +132,21 @@ function pasangLive(ctl) {
 			else basi = true;
 		}, TUNDA);
 	};
+	// Frappe's realtime server keeps no room state: after a reconnect (sleep, network blip, `bench start` restart)
+	// the socket must join the Workstation room again, or the floor says "Live" and hears nothing.
+	const gabung = () => {
+		try {
+			frappe.realtime.doctype_subscribe("Workstation");
+		} catch {
+			/* no realtime: the poll still runs */
+		}
+	};
+	let soket = null;
 	try {
-		frappe.realtime.doctype_subscribe("Workstation");
+		gabung();
 		frappe.realtime.on(EVENT, nudge);
+		soket = frappe.realtime.socket || null;
+		soket?.on("connect", gabung);
 	} catch {
 		/* no realtime: the poll still runs */
 	}
@@ -154,6 +170,7 @@ function pasangLive(ctl) {
 	return {
 		lanjut() {
 			ditahan = false;
+			gabung(); // cheap, and covers a reconnect that happened while the page was away
 			mulai();
 		},
 		jeda() {
@@ -169,6 +186,7 @@ function pasangLive(ctl) {
 			henti();
 			document.removeEventListener("visibilitychange", saatTampil);
 			try {
+				soket?.off("connect", gabung);
 				frappe.realtime.off(EVENT, nudge);
 				frappe.realtime.doctype_unsubscribe("Workstation");
 			} catch {
@@ -225,6 +243,30 @@ erp.lantai.pasang = function (host) {
 		diam: () => adegan.sejakGerak() >= DIAM_HUD,
 	});
 
+	// An inline note on the floor for a failed first load or an empty floor: a glass card, text only, no dialog.
+	const nota = document.createElement("div");
+	nota.className = "catatan-lantai kartu";
+	nota.hidden = true;
+	nota.setAttribute("role", "status");
+	nota.setAttribute("aria-live", "polite");
+	root.querySelector(".hud").appendChild(nota);
+	let notaMau = null; // the note to show (null: none), written once the camera rests
+	let notaAda = false; // whether `notaMau` still has to be written
+	const tulisNota = () => {
+		notaAda = false;
+		if (notaMau === null) nota.hidden = true;
+		else {
+			if (nota.textContent !== notaMau) nota.textContent = notaMau;
+			nota.hidden = false;
+		}
+	};
+	const setNota = (teks) => {
+		if (notaMau === teks) return;
+		notaMau = teks;
+		notaAda = true;
+		if (adegan.sejakGerak() >= DIAM_HUD) tulisNota();
+	};
+
 	// Camera bar: zoom in, zoom out, home (the default view).
 	const kameraBar = document.createElement("div");
 	kameraBar.className = "kamera kartu";
@@ -260,6 +302,7 @@ erp.lantai.pasang = function (host) {
 	const baris = (nama) => (data.mesin || []).find((m) => m.name === nama) || null;
 
 	const panel = buatPanel(root, {
+		diam: () => adegan.sejakGerak() >= DIAM_HUD,
 		saatStatus: (nama, status) =>
 			kirimStatus(nama, status).then((row) => {
 				// The answer is newer than any fetch in flight: draw it, then refetch the rest.
@@ -309,7 +352,10 @@ erp.lantai.pasang = function (host) {
 
 	let hudTunda = null; // data waiting for the camera to rest
 	adegan.tiap.push(() => {
-		if (!hudTunda || adegan.sejakGerak() < DIAM_HUD) return;
+		if (adegan.sejakGerak() < DIAM_HUD) return;
+		if (notaAda) tulisNota();
+		panel.tick();
+		if (!hudTunda) return;
 		const d = hudTunda;
 		hudTunda = null;
 		hud.perbarui(d);
@@ -317,16 +363,21 @@ erp.lantai.pasang = function (host) {
 
 	const titik = { x: 0, y: 0, depan: true };
 	const adaLive = () => frappe.realtime?.socket?.connected === true;
-	const ambilan = pengambil((d) => {
-		ctl.perbarui(d);
-		if (adegan.sejakGerak() >= DIAM_HUD) hud.status(adaLive(), ambilan.terakhir); // else the next clock tick
-	});
+	const ambilan = pengambil(
+		(d) => {
+			ctl.perbarui(d);
+			if (adegan.sejakGerak() >= DIAM_HUD) hud.status(adaLive(), ambilan.terakhir); // else the next clock tick
+		},
+		// A failed fetch keeps what is shown; only a floor that never loaded says so.
+		() => !data.mesin.length && setNota(__("The machine list could not be loaded."))
+	);
 	const ctl = {
 		host,
 		webgl: true,
 		// New data: the scene, labels and panel each touch only what changed.
 		perbarui(d) {
 			data = d && Array.isArray(d.mesin) ? d : { ...d, mesin: [] };
+			setNota(data.mesin.length ? null : __("No numbered machines yet (set Machine No. on a Workstation)."));
 			mesin.tata(data.mesin);
 			label.perbarui(data.mesin);
 			if (adegan.sejakGerak() >= DIAM_HUD) {
@@ -358,6 +409,7 @@ erp.lantai.pasang = function (host) {
 			live.buang();
 			pengamatTema.disconnect();
 			hud.buang();
+			nota.remove();
 			panel.buang();
 			label.buang();
 			mesin.buang();

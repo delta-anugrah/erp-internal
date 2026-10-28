@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 
 EVENT = "production_floor"
+SIARAN_RUANG = frappe.realtime.get_doctype_room("Workstation")  # "doctype:Workstation"
 FIELD_MESIN = (
 	"name",
 	"erp_nomor",
@@ -51,11 +52,14 @@ def set_status(machine: str, status: str) -> dict:
 
 
 def siarkan(doc, method=None) -> None:
-	"""Workstation and Work Order doc event: nudge open Production Floor pages (empty payload; they refetch).
+	"""Workstation on_update and Work Order on_change doc event: nudge open Production Floor pages (empty payload; they refetch).
 	A Workstation that is not a numbered machine is not on the floor, so it sends nothing."""
 	if doc.doctype == "Workstation" and not (doc.get("erp_nomor") or 0) > 0:
 		return
-	frappe.publish_realtime(EVENT, {}, doctype="Workstation", after_commit=True)
+	# To the Workstation room, not the site: `publish_realtime(doctype=...)` without a docname broadcasts to every
+	# System User. Only a socket that joined the room (and may read Workstation) is nudged, so the page must
+	# subscribe again after each reconnect.
+	frappe.publish_realtime(EVENT, {}, room=SIARAN_RUANG, after_commit=True)
 
 
 def _perusahaan_default() -> str | None:

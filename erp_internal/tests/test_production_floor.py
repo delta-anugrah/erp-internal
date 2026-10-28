@@ -227,7 +227,7 @@ class TestLantai(IntegrationTestCase):
 			doc.status = "Off"
 			doc.save()
 			self.assertIn(
-				call("production_floor", {}, doctype="Workstation", after_commit=True),
+				call("production_floor", {}, room="doctype:Workstation", after_commit=True),
 				siar.call_args_list,
 			)
 			siar.reset_mock()
@@ -236,13 +236,26 @@ class TestLantai(IntegrationTestCase):
 			self.assertTrue(lantai)
 			for c in lantai:
 				self.assertEqual(c.args, ("production_floor", {}))
-				self.assertEqual(c.kwargs, {"doctype": "Workstation", "after_commit": True})
+				self.assertEqual(c.kwargs, {"room": "doctype:Workstation", "after_commit": True})
 			siar.reset_mock()
 			luar = buat_mesin("B", 0)
 			doc = frappe.get_doc("Workstation", luar)
 			doc.status = "Off"
 			doc.save()
 			self.assertEqual([c for c in siar.call_args_list if c.args[0] == "production_floor"], [])
+
+	def test_siaran_kemajuan_wo(self):
+		# ERPNext sets produced_qty and status with db_set (stock entry, update_status), which runs on_change only.
+		mesin = buat_mesin("A", 1)
+		wo = buat_wo(self.pabrik, mesin)
+		for field, nilai in (("produced_qty", 10), ("status", "In Process")):
+			with patch("frappe.publish_realtime") as siar:
+				wo.db_set(field, nilai)
+				self.assertIn(
+					call("production_floor", {}, room="doctype:Workstation", after_commit=True),
+					siar.call_args_list,
+					field,
+				)
 
 	def test_idempoten(self):
 		def jumlah():

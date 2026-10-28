@@ -38,6 +38,17 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - Desk caches page scripts in the browser until `bench clear-cache`, so the page script stays small; logic is in the bundle.
 - The page hides Desk's sidebar, which Desk does at its own pace after the page's show: a `ResizeObserver` on the page body and the sidebar calls `wrapper.fit()` whenever the layout moves (no timers: Desk's timing varies), or the host keeps the old sidebar's width as an empty strip (`strip` case, which delays the hide by 1.2 s).
 - Only Manufacturing User opens the page (Administrator too): it is the role that reads Workstation, so another role would get an empty floor. The nudge `production_floor` has an empty payload and is not sent for a Workstation that is no numbered machine; `set_status` answers a missing and a forbidden machine alike; the company name and logo only for a user who may read that Company.
+- **Nudges (hooks.py).** Workstation `on_update`, Work Order `on_change`. ERPNext writes a Work Order's `produced_qty` and
+  status with `db_set` (stock entry, `update_status`), which fires only `before_change`/`on_change`, never `on_update`; `on_change` also runs after
+  save, submit, cancel and update-after-submit (`document.py` `run_post_save_methods`). Job Card writes a Workstation's status with
+  `frappe.db.set_value`, which fires no event at all: the 60 s poll covers it. That gap is known; do not "fix" it with another hook.
+- **The nudge goes to the room `doctype:Workstation`**, not to the site: `publish_realtime(doctype=...)` without a docname
+  broadcasts to every System User and ignores the doctype. Frappe's realtime server keeps no room state, so after a socket
+  reconnect (sleep, network blip, `bench start` restart) the bundle emits `doctype_subscribe` again on `socket.on("connect")` and in `lanjut()`
+  (`lantai.mjs reconnect`). Socket.io gives up after 3 failed reconnects; the poll still runs then.
+- An empty floor and a floor that never loaded say so in an inline glass note (`.catatan-lantai`, textContent, role status); a later failed
+  refetch with machines on screen stays silent. The note clears on the next good fetch (`lantai.mjs notes`).
+- The open panel writes a node only when its text changed and waits for the camera to rest like the labels; `aria-live` is on the status chip and the note only (`lantai.mjs panel-quiet`).
 - A sidebar or build change needs `bench build --app erp_internal` and a restart of `bench start`.
 
 ## Accepted deviations from the design

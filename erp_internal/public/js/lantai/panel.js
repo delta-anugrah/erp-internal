@@ -53,16 +53,18 @@ const angka = (n) => (typeof format_number === "function" ? format_number(n, nul
 
 // `saatStatus(nama, status)` returns a promise: it resolves when the server took the change and rejects with an
 // Error whose message is the note to show. `saatTutup()` is called when the user closes the panel.
-export function buatPanel(root, { saatStatus, saatTutup }) {
+// `diam()` says whether the camera rests: new text for an open panel waits for it, like the labels' (a text repaint
+// in a card while a drag moves the camera stalls Chrome's main thread); `tick()` is called on each frame.
+export function buatPanel(root, { saatStatus, saatTutup, diam = () => true }) {
 	const panel = el(root, "section", "panel kartu");
 	panel.hidden = true;
-	panel.setAttribute("aria-live", "polite");
 	const kepala = el(panel, "div", "kepala");
 	const judulBox = el(kepala, "div");
 	judulBox.style.flex = "1";
 	const judul = el(judulBox, "h3", "judul");
 	const nama = el(judulBox, "div", "nama");
 	const chip = el(kepala, "span", "chip");
+	chip.setAttribute("aria-live", "polite");
 	const tutup = el(kepala, "button", "tutup");
 	tutup.type = "button";
 	tutup.textContent = "×";
@@ -124,27 +126,37 @@ export function buatPanel(root, { saatStatus, saatTutup }) {
 
 	let baris = null; // the shown machine's row
 	let sibuk = null; // the machine whose status change is in flight
+	let tunda = null; // a row waiting for the camera to rest
+
+	// Writes a text only when it changed, so a refetch with the same data touches no node.
+	const teks = (node, v) => {
+		if (node.textContent !== v) node.textContent = v;
+	};
 
 	function isi(row) {
 		baris = row;
-		panel.dataset.mesin = row.name;
-		judul.textContent = judulMesin(row);
-		nama.textContent = String(row.name ?? "");
+		if (panel.dataset.mesin !== row.name) panel.dataset.mesin = row.name;
+		teks(judul, judulMesin(row));
+		teks(nama, String(row.name ?? ""));
 		isiChip(chip, row.status);
 		for (const [k] of FIELD) {
 			const v = row[k];
-			nilai[k].textContent = v == null || v === "" || v === 0 ? "–" : k === "tonase" ? `${Number(v)} T` : String(v);
+			teks(nilai[k], v == null || v === "" || v === 0 ? "–" : k === "tonase" ? `${Number(v)} T` : String(v));
 		}
 		const w = row.wo;
-		wo.hidden = !w;
-		woKosong.hidden = !!w;
+		if (wo.hidden !== !w) wo.hidden = !w;
+		if (woKosong.hidden !== !!w) woKosong.hidden = !!w;
 		if (w) {
-			woLink.textContent = String(w.name ?? "");
-			woLink.dataset.nama = String(w.name ?? "");
-			woLink.href = `/desk/work-order/${encodeURIComponent(w.name ?? "")}`;
-			woItem.textContent = String(w.item_name || w.item_code || "");
-			woBar.style.width = `${persen(w)}%`;
-			woAngka.textContent = `${angka(Number(w.produced_qty) || 0)} / ${angka(Number(w.qty) || 0)}`;
+			const n = String(w.name ?? "");
+			teks(woLink, n);
+			if (woLink.dataset.nama !== n) {
+				woLink.dataset.nama = n;
+				woLink.href = `/desk/work-order/${encodeURIComponent(n)}`;
+			}
+			teks(woItem, String(w.item_name || w.item_code || ""));
+			const lebar = `${persen(w)}%`;
+			if (woBar.style.width !== lebar) woBar.style.width = lebar;
+			teks(woAngka, `${angka(Number(w.produced_qty) || 0)} / ${angka(Number(w.qty) || 0)}`);
 		}
 		segarkanTombol();
 	}
@@ -154,9 +166,10 @@ export function buatPanel(root, { saatStatus, saatTutup }) {
 		const menunggu = sibuk !== null && sibuk === baris?.name;
 		for (const s of STATUS) {
 			const b = tombol[s];
-			b.setAttribute("aria-pressed", String(s === kini));
-			b.disabled = menunggu;
-			if (!menunggu) b.classList.remove("sibuk");
+			const tekan = String(s === kini);
+			if (b.getAttribute("aria-pressed") !== tekan) b.setAttribute("aria-pressed", tekan);
+			if (b.disabled !== menunggu) b.disabled = menunggu;
+			if (!menunggu && b.classList.contains("sibuk")) b.classList.remove("sibuk");
 		}
 	}
 
@@ -187,6 +200,7 @@ export function buatPanel(root, { saatStatus, saatTutup }) {
 	function sembunyikan() {
 		panel.hidden = true;
 		baris = null;
+		tunda = null;
 		delete panel.dataset.mesin;
 	}
 
@@ -194,6 +208,7 @@ export function buatPanel(root, { saatStatus, saatTutup }) {
 		// Shows `row`'s machine; a different machine clears the last note.
 		buka(row) {
 			if (baris?.name !== row.name) catatan.hidden = true;
+			tunda = null;
 			isi(row);
 			panel.hidden = false;
 		},
@@ -201,7 +216,17 @@ export function buatPanel(root, { saatStatus, saatTutup }) {
 		perbarui(row) {
 			if (!baris) return;
 			if (!row) sembunyikan();
-			else isi(row);
+			else if (diam()) {
+				tunda = null;
+				isi(row);
+			} else tunda = row;
+		},
+		// Called on each frame: writes the row that waited for the camera.
+		tick() {
+			if (!tunda || !diam()) return;
+			const row = tunda;
+			tunda = null;
+			if (baris && row.name === baris.name) isi(row);
 		},
 		tutup: sembunyikan,
 		nama: () => baris?.name ?? null,

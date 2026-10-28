@@ -44,11 +44,12 @@ class TestBahasa(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, ganti, "id")
 
 	def test_semua_teks_kita_diterjemahkan(self):
-		# Navbar rows come from every app's Navbar Settings; only ours (the language switch) count here.
+		# Navbar rows come from every app's Navbar Settings; only ours (the language switch) count here. The built
+		# bundles are skipped: a minified three.js has calls like _("x","y",...) that the scanner reads as messages.
 		pesan = {
 			kunci(m[1], m[2] if len(m) > 2 else None)
 			for m in get_messages_for_app("erp_internal")
-			if m[0] != "Navbar:"
+			if m[0] != "Navbar:" and "/public/dist/" not in (m[0] or "")
 		}
 		pesan |= {i["item_label"] for i in frappe.get_hooks("standard_navbar_items", app_name="erp_internal")}
 		self.assertEqual(sorted(pesan - set(baris_csv())), [])

@@ -59,14 +59,12 @@ doctype_js = {"Sales Forecast": "public/js/sales_forecast.js"}
 # pengguna.py: an Admin hands out only Admin and User roles and leaves Developer accounts alone.
 doc_events = {
 	"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"},
-	# production_floor.py: the Production Floor page refreshes the machine that changed.
+	# production_floor.py: the Production Floor page refreshes the machine that changed. Work Order uses on_change:
+	# ERPNext sets produced_qty and status with db_set, which runs only before_change/on_change, and on_change also
+	# runs after save, submit, cancel and update-after-submit. Workstation keeps on_update: Job Card writes its status
+	# with db.set_value (no event at all), which the page's poll catches.
 	"Workstation": {"on_update": "erp_internal.production_floor.siarkan"},
-	"Work Order": {
-		"on_update": "erp_internal.production_floor.siarkan",
-		"on_submit": "erp_internal.production_floor.siarkan",
-		"on_cancel": "erp_internal.production_floor.siarkan",
-		"on_update_after_submit": "erp_internal.production_floor.siarkan",
-	},
+	"Work Order": {"on_change": "erp_internal.production_floor.siarkan"},
 	"User": {
 		"before_validate": "erp_internal.pengguna.cek_user_awal",
 		"validate": "erp_internal.pengguna.cek_user",

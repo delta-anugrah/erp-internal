@@ -142,6 +142,7 @@ Production Floor,Lantai Produksi
 No.,No.
 Reset view,Atur Ulang Tampilan
 "The machine list could not be loaded.","Daftar mesin tidak dapat dimuat."
+"No numbered machines yet (set Machine No. on a Workstation).","Belum ada mesin bernomor (isi No. Mesin pada Workstation)."
 Close,Tutup
 Open machine,Buka mesin
 "No Work Order running on this machine.","Tidak ada Perintah Produksi yang berjalan di mesin ini."
@@ -161,7 +162,7 @@ Hide machine list,Sembunyikan daftar mesin
 "{0} not started","{0} belum mulai"
 "{0}% of plan","{0}% dari rencana"
 No Work Orders,Tidak ada Perintah Produksi
-Live,Langsung
+Live,Live
 "Updated {0}","Diperbarui {0}"
 Not updated yet,Belum diperbarui
 Zoom in,Perbesar

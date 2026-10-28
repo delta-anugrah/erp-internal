@@ -28,6 +28,10 @@
 //   set_value    frappe.db.set_value on a status (no event) with ?poll=3: the view follows
 //   poll         /socket.io blocked, ?poll=3: a status change still shows
 //   live         realtime on, default 60 s poll: a change from another tab shows within 5 s
+//   reconnect    the socket forced to disconnect and reconnect: a change made elsewhere shows within 5 s (the poll is 60 s)
+//   notes        get_data answering 500 on the first load: an inline note, no dialog; an empty floor has its own note;
+//                the next good fetch clears it
+//   panel-quiet  an unchanged refetch writes nothing into the open panel; aria-live is on the chip, not the panel
 //   strip        back to the floor from a Work Order form (sidebar link, browser back): host left edge = page body's
 //                left edge (no empty strip), no dialog
 //   hidden       page left / tab hidden: no get_data on a nudge; on return the change shows within 3 s
@@ -300,18 +304,29 @@ if (jalankan("states")) {
 			cek(baris?.status === status, `set_status ${mesin} → ${status} answered ${JSON.stringify(baris)?.slice(0, 120)}`);
 		}
 		await p.evaluate(() => erp.lantai.aktif.muat());
-		// Easing settles in well under a second at 60 fps; allow a slow GL more.
+		// Wait for the easing itself: every steady lamp at its colour and every body at its brightness (a fixed delay
+		// flaked when a slow frame stretched the easing), with a timeout; the checks below then report what is left.
+		const sasaran = Object.fromEntries(Object.entries(RENCANA).map(([n, s]) => [n, { warna: HARAP[s][1], redup: HARAP[s][3] }]));
 		await p
 			.waitForFunction(
-				(n) => {
-					const m = erp.lantai.aktif.info().mesin.filter((x) => n.includes(x.nama));
-					return m.length === n.length && m.every((x) => (x.gerak ? x.amp > 0.9 || erp.lantai.aktif.info().kualitas.rendah : x.amp === 0));
+				(sasaran) => {
+					const jarak = (a, b) => {
+						if (!a) return 999;
+						const n = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+						return Math.max(...n(a).map((v, i) => Math.abs(v - n(b)[i])));
+					};
+					const info = erp.lantai.aktif.info();
+					return Object.entries(sasaran).every(([nama, t]) => {
+						const m = info.mesin.find((x) => x.nama === nama);
+						if (!m || Math.abs(m.redup - t.redup) >= 0.01) return false;
+						if (t.warna && jarak(m.warna, t.warna) > 6) return false;
+						return m.gerak ? m.amp > 0.9 || info.kualitas.rendah : m.amp === 0;
+					});
 				},
-				Object.keys(RENCANA),
-				{ timeout: 10000 }
+				sasaran,
+				{ timeout: 10000, polling: 50 }
 			)
 			.catch(() => {});
-		await p.waitForTimeout(500);
 		const info = await p.evaluate(() => erp.lantai.aktif.info());
 		const per = Object.fromEntries(info.mesin.map((m) => [m.nama, m]));
 		for (const [mesin, status] of Object.entries(RENCANA)) {
@@ -821,6 +836,102 @@ if (jalankan("live")) await kasus("live", async () => {
 	} finally {
 		await pulihkanStatus(p, asli);
 	}
+	await ctx.close();
+});
+
+// Reconnect: Frappe's realtime server keeps no room state, so after the socket reconnects (sleep, network blip, a
+// `bench start` restart) the floor must join the Workstation room again. A forced disconnect and reconnect, then a
+// change made elsewhere shows within 5 s (the poll is 60 s).
+if (jalankan("reconnect")) await kasus("reconnect", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const lain = await ctx.newPage();
+	await lain.goto(`${URL}/desk`);
+	await lain.waitForFunction(() => window.frappe?.csrf_token);
+	const NAMA = "Mesin 06";
+	const asli = await catatStatus(p, [NAMA]);
+	const tujuan = asli[NAMA] === "Setup" ? "Idle" : "Setup";
+	try {
+		await tunggu(p, () => frappe.realtime.socket?.connected === true, null, 8000);
+		await p.waitForTimeout(1500);
+		await p.evaluate(() => frappe.realtime.socket.disconnect());
+		await p.waitForTimeout(500);
+		await p.evaluate(() => frappe.realtime.socket.connect());
+		cek(await tunggu(p, () => frappe.realtime.socket.connected === true, null, 8000), "reconnect: the socket did not reconnect");
+		await p.waitForTimeout(1500); // the new connection joins its rooms
+		await api(lain, "erp_internal.production_floor.set_status", { machine: NAMA, status: tujuan });
+		const ok = await tunggu(p, ([n, s]) => erp.lantai.aktif.info().mesin.find((m) => m.nama === n)?.status === s, [NAMA, tujuan], 5000);
+		cek(ok, `reconnect: after a socket reconnect the nudge did not bring ${NAMA} → ${tujuan} within 5 s`);
+	} finally {
+		await pulihkanStatus(p, asli);
+	}
+	await ctx.close();
+});
+
+// Notes: a failed first load and an empty floor each say so on the floor (a glass card, no dialog), and the note
+// clears on the next good fetch.
+if (jalankan("notes")) await kasus("notes", async () => {
+	const ctx = await konteksMasuk(browser);
+	const GAGAL = "The machine list could not be loaded.";
+	const KOSONG = "No numbered machines yet (set Machine No. on a Workstation).";
+	const catatan = (p) =>
+		p.evaluate(() => {
+			const n = erp.lantai.aktif.host.shadowRoot.querySelector(".catatan-lantai");
+			if (!n || n.hidden) return null;
+			const k = n.getBoundingClientRect();
+			return { teks: n.textContent, lebar: k.width, tinggi: k.height, kartu: n.classList.contains("kartu") };
+		});
+	const POLA = "**/api/method/erp_internal.production_floor.get_data";
+	const q = await ctx.newPage();
+	q.__galat = [];
+	q.on("pageerror", (e) => q.__galat.push(String(e)));
+	await q.route(POLA, (r) => r.fulfill({ status: 500, contentType: "application/json", body: "{}" }));
+	await q.goto(`${URL}/desk/production-floor`, { waitUntil: "domcontentloaded", timeout: 60000 });
+	await q.waitForFunction(() => window.erp?.lantai?.aktif, null, { timeout: 20000 });
+	cek(await tunggu(q, () => !!erp.lantai.aktif.host.shadowRoot.querySelector(".catatan-lantai:not([hidden])"), null, 8000), "notes: no note after a failed first load");
+	let n = await catatan(q);
+	cek(n?.teks === GAGAL, `notes: failed load says ${JSON.stringify(n?.teks)}`);
+	cek(n?.kartu && n.lebar > 100 && n.tinggi > 10, "notes: the failure note is not a visible glass card");
+	cek((await dialog(q)) === 0, "notes: a dialog opened on a failed load");
+	// An empty floor.
+	await q.unroute(POLA);
+	await q.route(POLA, (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ message: { mesin: [], perusahaan: { nama: "Uji", logo: null }, waktu: "" } }) }));
+	await q.evaluate(() => erp.lantai.aktif.muat());
+	await tunggu(q, (t) => erp.lantai.aktif.host.shadowRoot.querySelector(".catatan-lantai")?.textContent === t, KOSONG, 5000);
+	n = await catatan(q);
+	cek(n?.teks === KOSONG, `notes: an empty floor says ${JSON.stringify(n?.teks)}`);
+	// A good fetch clears it.
+	await q.unroute(POLA);
+	await q.evaluate(() => erp.lantai.aktif.muat());
+	cek(await tunggu(q, () => erp.lantai.aktif.host.shadowRoot.querySelector(".catatan-lantai")?.hidden === true && erp.lantai.aktif.info().mesin.length > 0, null, 8000), "notes: the note did not clear after a good fetch");
+	cek((await dialog(q)) === 0, "notes: a dialog is open");
+	cek(!q.__galat.length, `notes: page errors: ${q.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	await ctx.close();
+});
+
+// Panel-quiet: a refetch with unchanged data writes nothing into the open panel (no text, no attribute), and the
+// live regions are the status chip and the inline note, not the whole panel.
+if (jalankan("panel-quiet")) await kasus("panel-quiet", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	await klikMesin(p, "Mesin 03");
+	await tunggu(p, () => erp.lantai.aktif.info().pilih === "Mesin 03", null, 5000);
+	await p.waitForTimeout(1500); // the camera flight ends
+	await p.evaluate(() => {
+		const panel = erp.lantai.aktif.host.shadowRoot.querySelector(".panel");
+		window.__ubah = 0;
+		new MutationObserver((l) => (window.__ubah += l.length)).observe(panel, { subtree: true, childList: true, characterData: true, attributes: true });
+	});
+	const sebelum = await p.evaluate(() => erp.lantai.aktif.info().muat);
+	await p.evaluate(() => erp.lantai.aktif.muat());
+	await tunggu(p, (n) => erp.lantai.aktif.info().muat > n, sebelum, 5000);
+	await p.waitForTimeout(500);
+	cek((await p.evaluate(() => window.__ubah)) === 0, `panel-quiet: an unchanged refetch wrote ${await p.evaluate(() => window.__ubah)} mutations into the panel`);
+	const live = await p.evaluate(() => {
+		const r = erp.lantai.aktif.host.shadowRoot;
+		return { panel: r.querySelector(".panel").hasAttribute("aria-live"), chip: r.querySelector(".panel .chip").getAttribute("aria-live") };
+	});
+	cek(!live.panel && live.chip === "polite", `panel-quiet: aria-live on the panel ${live.panel}, on the chip ${live.chip}`);
 	await ctx.close();
 });
 
@@ -1498,4 +1609,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);

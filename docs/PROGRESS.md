@@ -44,6 +44,17 @@ Newest first. One entry per working session: what changed, test results as run, 
   `fit()`; `lantai.mjs strip` delays the sidebar hide 1.2 s and fails without the observer); review fixes: the
   nudge has an empty payload and skips non-machine Workstations, `set_status` answers a missing and a forbidden
   machine alike, the company name needs read on that Company, page roles Manufacturing User only.
+- Final review fixes (commit `fix(lantai): nudge on Work Order progress, resubscribe after reconnect, empty and failed
+  floor notes`): Work Order hook is `on_change` (ERPNext sets `produced_qty` and status with `db_set`, which fires only
+  that); the nudge goes to the `doctype:Workstation` room (`publish_realtime(doctype=...)` without a docname had been
+  broadcasting to every System User, so the subscription did nothing), and the page re-joins it on each socket
+  `connect` and in `lanjut()`; an inline note for a failed first load and for an empty floor; the open panel writes a
+  node only when its text changed and waits for the camera to rest, `aria-live` moved to the chip and the note; id.csv
+  "Live" = "Live"; `states` waits for the lamps' easing instead of a fixed delay; `test_bahasa` skips built bundles
+  (a minified three.js has `_("x","y",...)` calls the scanner read as messages after a production `bench build`).
+  Tests: `run-tests --app erp_internal` 123 OK; `node tools/lantai.mjs` all cases OK incl. new `reconnect`, `notes`,
+  `panel-quiet` (perf 485 frames, 60.0 fps, 2 dropped = 0.41 %, max 30.6 ms, 0 long tasks, 10 draw calls; adaptive
+  pixel ratio 1 after 2.4 s); `node tools/cek_layar.mjs` 3 users OK. Abel: restart `bench start` (hooks.py changed).
 - Next: Abel looks at the floor in his Chrome (smoothness), adds `erp.localhost` to `/etc/hosts`, restarts `bench start`;
   security review and docs sync of the whole feature; then review and merge.
 
