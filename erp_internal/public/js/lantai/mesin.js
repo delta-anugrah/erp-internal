@@ -162,7 +162,9 @@ export function buatMesin(adegan) {
 	const satu = new THREE.Vector3(1, 1, 1);
 	const SUMBU_Y = new THREE.Vector3(0, 1, 0);
 
+	const skala = new THREE.Vector3();
 	let keadaan = []; // one per drawn machine, instance order
+	let susunanLama = null; // names and numbers of the last layout, to tell a status refresh from a new layout
 	const lama = new Map(); // machine name → its state, kept across `tata` so a refresh does not flash
 	let waktu = 0;
 	let diam = false; // adaptive quality stopped the platens
@@ -191,13 +193,60 @@ export function buatMesin(adegan) {
 		}
 	}
 
+	// A machine's place, length and brand tint into its state, from its row and the slot `p` it got.
+	function bentukKeadaan(s, row, p) {
+		s.x = p.x;
+		s.z = p.z;
+		s.baris = p.baris;
+		s.slot = p.baris < BARIS.length ? s.nomor : null;
+		// The front row and the spare rows turn round, so every control panel faces the aisle.
+		s.putar = p.baris === 0 ? 0 : Math.PI;
+		s.skala = panjang(row?.tonase);
+		s.merek.set(WARNA_MEREK[String(row?.merek || "").toUpperCase()] ?? WARNA_LAIN);
+		// The platen's phase belongs to the machine: its number, and half a cycle more when it stands in the spare row.
+		s.fase = ((s.nomor * 0.37) % 1) + (s.slot === null ? 0.5 : 0);
+		v.set(p.x, 0, p.z);
+		skala.set(s.skala, 1, 1);
+		s.dasar.compose(v, q.setFromAxisAngle(SUMBU_Y, s.putar), skala);
+		s.tanda = `${row?.tonase}|${row?.merek}`;
+	}
+
 	// Lays the machines out: each in its number's slot, a duplicate or an unknown number in the next spare spot.
+	// When the machines and their numbers are the same as last time, only the rows that changed are touched.
 	function tata(daftar) {
+		const rows = (daftar || []).slice(0, MAKS); // more machines than instances: draw the first MAKS, never crash
+		const susunan = rows.map((r) => `${r?.name}\u0000${Number(r?.nomor) || 0}`).join("\u0001");
+		if (susunan === susunanLama) {
+			let ubahBentuk = false;
+			rows.forEach((row, i) => {
+				const s = keadaan[i];
+				const status = row?.status || "Idle";
+				const tanda = `${row?.tonase}|${row?.merek}`;
+				if (s.status === status && s.tanda === tanda) return;
+				s.sentuh += 1;
+				s.status = status; // tick() eases the lamp, body and platen to it
+				if (s.tanda !== tanda) {
+					bentukKeadaan(s, row, s);
+					tempatkan(i, s);
+					warnaiTubuh(i, s);
+					ubahBentuk = true;
+				}
+			});
+			if (ubahBentuk) {
+				for (const m of Object.values(mesh)) {
+					m.instanceMatrix.needsUpdate = true;
+					m.instanceColor.needsUpdate = true;
+					m.boundingSphere = null;
+				}
+				adegan.tandaiKotor();
+			}
+			return;
+		}
+		susunanLama = susunan;
 		const terpakai = new Set();
 		let sisa = 0;
 		const baru = [];
-		for (const row of daftar || []) {
-			if (baru.length >= MAKS) break; // more machines than instances: draw the first MAKS, never crash
+		for (const row of rows) {
 			const nomor = Number(row?.nomor) || 0;
 			let p = posisi(nomor);
 			if (!p || terpakai.has(nomor)) {
@@ -218,6 +267,7 @@ export function buatMesin(adegan) {
 					amp: 0,
 					fase: 0,
 					status: "Idle",
+					sentuh: 0,
 				};
 				const awal = gaya(row?.status);
 				s.redup = awal.redup;
@@ -227,18 +277,10 @@ export function buatMesin(adegan) {
 				}
 				lama.set(nama, s);
 			}
+			s.sentuh += 1;
 			s.nomor = nomor;
 			s.status = row?.status || "Idle";
-			s.x = p.x;
-			s.z = p.z;
-			s.baris = p.baris;
-			s.slot = p.baris < BARIS.length ? nomor : null;
-			// The front row and the spare rows turn round, so every control panel faces the aisle.
-			s.putar = p.baris === 0 ? 0 : Math.PI;
-			s.skala = panjang(row?.tonase);
-			s.merek.set(WARNA_MEREK[String(row?.merek || "").toUpperCase()] ?? WARNA_LAIN);
-			s.fase = ((nomor * 0.37) % 1) + (sisa ? 0.5 : 0);
-			s.dasar.compose(new THREE.Vector3(p.x, 0, p.z), q.setFromAxisAngle(SUMBU_Y, s.putar), new THREE.Vector3(s.skala, 1, 1));
+			bentukKeadaan(s, row, p);
 			baru.push(s);
 		}
 		keadaan = baru;
@@ -263,14 +305,11 @@ export function buatMesin(adegan) {
 		adegan.tandaiKotor();
 	}
 
-	function setel(kunci, status) {
-		for (const s of keadaan) if (s.nomor === kunci || s.nama === kunci) s.status = status || "Idle";
-	}
-
 	function tick(dt) {
 		waktu += dt;
 		const k = 1 - Math.exp(-dt * LAJU);
-		let ubahWarna = false;
+		let ubahTubuh = false; // body colours (dimming), four buffers
+		let ubahLampu = false; // andon colours only: a pulsing lamp uploads just this buffer
 		let ubahPelat = false;
 		for (let i = 0; i < keadaan.length; i++) {
 			const s = keadaan[i];
@@ -279,7 +318,7 @@ export function buatMesin(adegan) {
 				s.redup += (g.redup - s.redup) * k;
 				if (Math.abs(g.redup - s.redup) < 0.002) s.redup = g.redup;
 				warnaiTubuh(i, s);
-				ubahWarna = true;
+				ubahTubuh = true;
 			}
 			const nyala = g.denyut ? 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(2 * Math.PI * g.denyut * waktu)) : 1;
 			for (let j = 0; j < SEGMEN.length; j++) {
@@ -294,7 +333,7 @@ export function buatMesin(adegan) {
 				a[o + 2] += (c.b * f - a[o + 2]) * k;
 				warna.setRGB(a[o], a[o + 1], a[o + 2]);
 				mesh.lampu.setColorAt(i * SEGMEN.length + j, warna);
-				ubahWarna = true;
+				ubahLampu = true;
 			}
 			const tujuan = g.gerak && !diam ? 1 : 0;
 			if (s.amp === 0 && tujuan === 0) continue;
@@ -305,26 +344,28 @@ export function buatMesin(adegan) {
 			mesh.pelat.setMatrixAt(i, m4.multiplyMatrices(s.dasar, geser));
 			ubahPelat = true;
 		}
-		if (ubahWarna) {
+		if (ubahTubuh) {
 			mesh.tubuh.instanceColor.needsUpdate = true;
 			mesh.logam.instanceColor.needsUpdate = true;
 			mesh.pelat.instanceColor.needsUpdate = true;
 			mesh.layar.instanceColor.needsUpdate = true;
-			mesh.lampu.instanceColor.needsUpdate = true;
 		}
+		if (ubahLampu) mesh.lampu.instanceColor.needsUpdate = true;
 		if (ubahPelat) mesh.pelat.instanceMatrix.needsUpdate = true;
 	}
 
-	// The machine number under a ray (null when it hits none), for click selection.
+	// The name of the machine under a ray (null when it hits none), for click selection. Names are unique,
+	// numbers may not be.
 	function pilihDari(raycaster) {
 		const kena = raycaster.intersectObjects([mesh.tubuh, mesh.logam, mesh.pelat, mesh.layar], false)[0];
-		return kena && kena.instanceId != null ? keadaan[kena.instanceId]?.nomor ?? null : null;
+		return kena && kena.instanceId != null ? keadaan[kena.instanceId]?.nama ?? null : null;
 	}
 
 	return {
 		tata,
-		setel,
 		tick,
+		// The drawn machines' states, instance order (read only: x, z, nama, nomor, status), for labels and flights.
+		daftar: () => keadaan,
 		pilihDari,
 		// Adaptive quality: platens come to rest and stay there.
 		diam() {
@@ -348,6 +389,7 @@ export function buatMesin(adegan) {
 					redup: s.redup,
 					gerak: g.gerak,
 					amp: s.amp,
+					sentuh: s.sentuh,
 				};
 			});
 		},

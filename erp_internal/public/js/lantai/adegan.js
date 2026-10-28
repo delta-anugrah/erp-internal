@@ -35,6 +35,9 @@ const BATAS_LAMBAT = 22;
 const LAMA_LAMBAT = 2000;
 const JENDELA = 30; // frames in the rolling mean
 const MIN_FRAME = 5; // frames before the mean counts (a very slow machine must not wait for JENDELA)
+const LAMA_TERBANG = 700; // ms for the camera's flight to a selected machine
+const JARAK_TERBANG = 12; // camera distance from the machine after the flight
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 // The WebGL context, asked for on our own canvas so a missing one is a null to check, not an exception three logs.
 function buatRenderer() {
@@ -132,11 +135,42 @@ export function buatAdegan(root) {
 	const tandaiKotor = () => {
 		kotor = true;
 	};
-	kontrol.addEventListener("change", tandaiKotor);
+	let gerakTerakhir = 0; // performance.now() of the last camera change
+	kontrol.addEventListener("change", () => {
+		gerakTerakhir = performance.now();
+		tandaiKotor();
+	});
 
+	// The camera's flight to a machine: position and target eased from where they were. Scratch vectors only.
+	const terbang = {
+		aktif: false,
+		mulai: 0,
+		dariPos: new THREE.Vector3(),
+		dariTarget: new THREE.Vector3(),
+		kePos: new THREE.Vector3(),
+		keTarget: new THREE.Vector3(),
+	};
+	// A drag or a wheel during the flight hands the camera back to the user.
+	kontrol.addEventListener("start", () => {
+		terbang.aktif = false;
+	});
+	function langkahTerbang(sekarang) {
+		const t = Math.min((sekarang - terbang.mulai) / LAMA_TERBANG, 1);
+		const e = easeInOutCubic(t);
+		kamera.position.lerpVectors(terbang.dariPos, terbang.kePos, e);
+		kontrol.target.lerpVectors(terbang.dariTarget, terbang.keTarget, e);
+		if (t >= 1) terbang.aktif = false;
+		gerakTerakhir = sekarang;
+		tandaiKotor();
+	}
+
+	let lebarLayar = 1;
+	let tinggiLayar = 1;
 	function ukuran() {
 		const l = root.clientWidth || 1;
 		const t = root.clientHeight || 1;
+		lebarLayar = l;
+		tinggiLayar = t;
 		renderer.setSize(l, t);
 		kamera.aspect = l / t;
 		kamera.updateProjectionMatrix();
@@ -172,9 +206,11 @@ export function buatAdegan(root) {
 	function putar() {
 		const dt = Math.min(jam.getDelta(), 0.1);
 		ukurFrame(performance.now());
+		if (terbang.aktif) langkahTerbang(performance.now());
 		kontrol.update(dt);
 		for (const f of tiap) f(dt);
 		if (kotor) {
+			kamera.updateMatrixWorld(); // projections below must use this frame's camera
 			for (const s of penyegar) s();
 			kotor = false;
 		}
@@ -207,15 +243,49 @@ export function buatAdegan(root) {
 	const saatTampil = () => (document.hidden ? jeda() : lanjut());
 	document.addEventListener("visibilitychange", saatTampil);
 
+	const v0 = new THREE.Vector3();
+
 	return {
 		scene,
 		kamera,
+		kanvas: renderer.domElement,
+		// ms since the camera last moved (orbit, damping, flight).
+		sejakGerak: () => performance.now() - gerakTerakhir,
 		penanda,
 		penyegar,
 		tiap,
 		saatTurun,
 		tandaiKotor,
+		// Flies the camera to look at (x, y, z) from JARAK_TERBANG away, keeping the current viewing direction.
+		terbangKe(x, y, z) {
+			terbang.dariPos.copy(kamera.position);
+			terbang.dariTarget.copy(kontrol.target);
+			terbang.keTarget.set(x, y, z);
+			v0.subVectors(kamera.position, kontrol.target);
+			if (v0.lengthSq() < 1e-6) v0.set(0, 1, 1);
+			terbang.kePos.copy(terbang.keTarget).addScaledVector(v0.normalize(), JARAK_TERBANG);
+			terbang.mulai = performance.now();
+			terbang.aktif = true;
+			tandaiKotor();
+		},
+		// Debug for tools/lantai.mjs: put the camera at `pos` looking at `target` (arrays), no flight.
+		lihat(pos, target) {
+			terbang.aktif = false;
+			kamera.position.fromArray(pos);
+			kontrol.target.fromArray(target);
+			kontrol.update();
+			tandaiKotor();
+		},
+		// Screen pixels of a world point into `out` ({x, y, depan}); `depan` false when it is behind the camera.
+		proyeksi(x, y, z, out) {
+			v0.set(x, y, z).project(kamera);
+			out.x = ((v0.x + 1) / 2) * lebarLayar; // cached sizes: no layout read between label writes
+			out.y = ((1 - v0.y) / 2) * tinggiLayar;
+			out.depan = v0.z < 1;
+			return out;
+		},
 		reset() {
+			terbang.aktif = false;
 			// Damping keeps the last drag's spin; without damping one update applies and clears it, then reset.
 			kontrol.enableDamping = false;
 			kontrol.update();
@@ -246,6 +316,7 @@ export function buatAdegan(root) {
 				konteks,
 				kualitas: { rendah, rasio: renderer.getPixelRatio() },
 				kamera: kamera.position.toArray(),
+				target: kontrol.target.toArray(),
 				// Slot markers projected to screen pixels, for tools/lantai.mjs.
 				penanda: penanda.children.map((m) => {
 					v.copy(m.position).project(kamera);

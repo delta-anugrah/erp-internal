@@ -17,6 +17,18 @@
 //                >= 57 fps, intervals > 25 ms <= 1 %, max <= 50 ms, no long task, <= 60 draw calls, <= 150k
 //                triangles; 20 status changes grow no geometry, texture or shader program (p95 printed only)
 //   adaptive     CPU throttled 6x: pixel ratio 1 within 4 s, the reset button answers within 300 ms
+//   label        machine 3's label reads "03 · <brand> <tonnage>T" over its machine; no label writes while the camera
+//                rests; labels behind the camera hide
+//   pilih        a real click on Mesin 03 opens its panel and flies the camera to it; Open machine goes to the form;
+//                a bottom sheet at 390 px wide
+//   status       the Problem button: spinner and disabled until the answer, the server's status (get_value), the
+//                chip, the lamp; a refused change is an inline note; an unchanged refetch touches no machine
+//   wo, xss      a submitted In Process Work Order (40 produced) on Mesin 03: label item and progress, panel link;
+//                then an item name and a model of <img src=x onerror=...> show as text (Work Order removed after)
+//   set_value    frappe.db.set_value on a status (no event) with ?poll=3: the view follows
+//   poll         /socket.io blocked, ?poll=3: a status change still shows
+//   live         realtime on, default 60 s poll: a change from another tab shows within 5 s
+//   id           user@example.com in Indonesian: "Lantai Produksi" and the status names (switched back after)
 // ERP_BENCH (default ~/Desktop/Projects/erp-internal-bench) and ERP_SITE (erp.localhost) are for bench execute.
 
 import { execFileSync } from "node:child_process";
@@ -412,6 +424,429 @@ if (jalankan("no-webgl")) {
 	await tanpa.close();
 }
 
+// Runs one case; an exception fails that case and the run goes on (the case's own finally restores its records).
+async function kasus(nama, fn) {
+	try {
+		await fn();
+	} catch (e) {
+		gagal.push(`${nama}: ${String(e.message || e).split("\n")[0].slice(0, 300)}`);
+	}
+}
+
+// --- Task 5: labels, selection, status from the floor, live updates ---------------------------------------------
+
+// The shadow root's text and state for one machine: its label and, when open, the panel.
+const labelDari = (p, nama) =>
+	p.evaluate((nama) => {
+		const r = erp.lantai.aktif.host.shadowRoot;
+		const el = [...r.querySelectorAll(".label")].find((e) => e.dataset.mesin === nama);
+		if (!el) return null;
+		const k = el.querySelector(".isi").getBoundingClientRect();
+		return {
+			judul: el.querySelector(".judul")?.textContent,
+			chip: el.querySelector(".chip")?.textContent,
+			chipStatus: el.querySelector(".chip")?.dataset.status,
+			wo: el.querySelector(".wo")?.hidden === false ? el.querySelector(".wo").textContent : null,
+			bar: el.querySelector(".wo-bar span")?.style.width || null,
+			tampak: el.style.visibility !== "hidden" && k.width > 0,
+			x: k.left + k.width / 2,
+			bawah: k.bottom,
+		};
+	}, nama);
+const panelDari = (p) =>
+	p.evaluate(() => {
+		const el = erp.lantai.aktif.host.shadowRoot.querySelector(".panel");
+		if (!el || el.hidden) return null;
+		const k = el.getBoundingClientRect();
+		const tombol = [...el.querySelectorAll(".status button")];
+		return {
+			nama: el.dataset.mesin,
+			teks: el.textContent,
+			judul: el.querySelector(".judul")?.textContent,
+			wo: el.querySelector(".wo a")?.textContent || null,
+			tombol: tombol.map((b) => ({ status: b.dataset.status, teks: b.textContent.trim(), aktif: b.getAttribute("aria-pressed") === "true", mati: b.disabled, sibuk: b.classList.contains("sibuk") })),
+			catatan: el.querySelector(".catatan")?.hidden === false ? el.querySelector(".catatan").textContent : null,
+			kotak: { x: k.left, y: k.top, l: k.width, t: k.height, kanan: k.right, bawah: k.bottom },
+		};
+	});
+const mesinInfo = (p, nama) => p.evaluate((nama) => erp.lantai.aktif.info().mesin.find((m) => m.nama === nama), nama);
+// Back to the floor after following a link: wait for the form to finish loading first, or its late render
+// replaces the route again.
+async function kembaliKeLantai(p) {
+	await p.waitForFunction(() => window.cur_frm?.doc && !frappe.router?.current_route?.includes?.("production-floor"), null, { timeout: 8000 }).catch(() => {});
+	await p.waitForTimeout(400);
+	await p.evaluate(() => frappe.set_route("production-floor"));
+	const ok = await p
+		.waitForFunction(() => frappe.get_route_str() === "production-floor", null, { timeout: 8000 })
+		.then(() => true, () => false);
+	if (!ok) throw new Error(`could not return to the floor: ${await p.evaluate(() => `${location.pathname} ${frappe.get_route_str()}`)}`);
+	await p.waitForTimeout(500);
+}
+// A real click on a machine's body, at its projected screen point.
+async function klikMesin(p, nama) {
+	const m = await mesinInfo(p, nama);
+	const kotak = await p.locator(".lantai-host").boundingBox();
+	if (!m?.layar) throw new Error(`${nama}: no screen point in info()`);
+	await p.mouse.click(kotak.x + m.layar.x, kotak.y + m.layar.y);
+}
+// GET with query args (frappe.client.get_value takes them from the query string).
+const ambilNilai = (p, doctype, nama, field) =>
+	p.evaluate(
+		async ({ doctype, nama, field }) => {
+			const q = new URLSearchParams({ doctype, filters: nama, fieldname: field });
+			const r = await fetch(`/api/method/frappe.client.get_value?${q}`, { headers: { Accept: "application/json" } });
+			return (await r.json()).message?.[field];
+		},
+		{ doctype, nama, field }
+	);
+const tunggu = (p, fn, arg, ms = 8000) => p.waitForFunction(fn, arg, { timeout: ms, polling: 100 }).then(() => true, () => false);
+const setNilai = (doctype, nama, field, nilai) => bench("execute", "frappe.db.set_value", "--args", JSON.stringify([doctype, nama, field, nilai]));
+// bench execute prints a string bare and anything else as JSON; "None" for a null.
+const ambilBench = (doctype, nama, field) => {
+	const baris = bench("execute", "frappe.db.get_value", "--args", JSON.stringify([doctype, nama, field])).trim().split("\n").pop();
+	if (baris === "None" || baris === "") return null;
+	try {
+		return JSON.parse(baris);
+	} catch {
+		return baris;
+	}
+};
+const galatNyata = (l) => l.filter((t) => !/socket\.io|Failed to load resource|ERR_FAILED|net::/i.test(t));
+
+if (jalankan("label")) await kasus("label", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	await p.waitForTimeout(1500); // damping settles
+	const d = await api(p, "erp_internal.production_floor.get_data", {}, false);
+	const m3 = d.mesin.find((m) => m.nomor === 3);
+	const harap = `03 · ${m3.merek} ${m3.tonase}T`;
+	const l3 = await labelDari(p, m3.name);
+	cek(l3?.judul === harap, `label: ${m3.name} reads ${JSON.stringify(l3?.judul)}, wanted ${JSON.stringify(harap)}`);
+	cek(l3?.chip && l3.chipStatus === (m3.status || "Idle"), `label: ${m3.name} chip ${JSON.stringify(l3)}`);
+	const semua = await p.evaluate(() => erp.lantai.aktif.host.shadowRoot.querySelectorAll(".label").length);
+	cek(semua === d.mesin.length, `label: ${semua} labels for ${d.mesin.length} machines`);
+	// The label sits over its machine: same x (± 30 px), above the body's centre.
+	const info3 = await mesinInfo(p, m3.name);
+	const kotak = await p.locator(".lantai-host").boundingBox();
+	if (l3 && info3?.layar) {
+		cek(Math.abs(l3.x - (kotak.x + info3.layar.x)) < 30, `label: ${m3.name} label x ${l3.x} vs machine ${kotak.x + info3.layar.x}`);
+		cek(l3.bawah < kotak.y + info3.layar.y, `label: ${m3.name} label is not above its machine`);
+	}
+	// No camera motion → no label writes.
+	const tulis1 = await p.evaluate(() => erp.lantai.aktif.info().label.tulis);
+	await p.waitForTimeout(1000);
+	const tulis2 = await p.evaluate(() => erp.lantai.aktif.info().label.tulis);
+	cek(tulis1 === tulis2, `label: labels rewritten without a camera change (${tulis1} → ${tulis2})`);
+	// A camera standing in the aisle looking at the front row: the back row is behind it, its labels hide.
+	await p.evaluate(() => erp.lantai.aktif.lihat([0, 1.6, 0], [0, 1.6, 10]));
+	await p.waitForTimeout(300);
+	const belakang = d.mesin.find((m) => m.nomor === 11);
+	const lb = await labelDari(p, belakang.name);
+	cek(lb && !lb.tampak, `label: ${belakang.name}'s label shows although it is behind the camera`);
+	await p.screenshot({ path: join(HASIL, "lantai-label-lorong.png") });
+	await p.evaluate(() => erp.lantai.aktif.host.shadowRoot.querySelector(".reset").click());
+	await p.waitForTimeout(800);
+	const lb2 = await labelDari(p, belakang.name);
+	cek(lb2?.tampak, `label: ${belakang.name}'s label stays hidden after reset`);
+	await p.screenshot({ path: join(HASIL, "lantai-label.png") });
+	cek((await dialog(p)) === 0, "label: a message dialog is open");
+	cek(!galatNyata(p.__galat).length, `label: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	await ctx.close();
+});
+
+if (jalankan("pilih")) await kasus("pilih", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	await p.waitForTimeout(1500);
+	const kamera0 = await p.evaluate(() => erp.lantai.aktif.info().kamera);
+	await klikMesin(p, "Mesin 03");
+	const terbuka = await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelector(".panel")?.hidden === false, null, 3000);
+	cek(terbuka, "pilih: a click on Mesin 03 opened no panel");
+	const pn = await panelDari(p);
+	cek(pn?.nama === "Mesin 03", `pilih: the panel shows ${pn?.nama}`);
+	cek(pn?.tombol.length === 6, `pilih: ${pn?.tombol.length} status buttons`);
+	cek(/Open machine/.test(pn?.teks || ""), "pilih: no Open machine button");
+	// The fly: 700 ms, then the camera rests near Mesin 03.
+	await p.waitForTimeout(900);
+	const sesudah = await p.evaluate(() => ({ i: erp.lantai.aktif.info(), m: erp.lantai.aktif.info().mesin.find((m) => m.nama === "Mesin 03") }));
+	const jarak = Math.hypot(sesudah.i.target[0] - sesudah.m.x, sesudah.i.target[2] - sesudah.m.z);
+	cek(jarak < 0.3, `pilih: the camera target is ${jarak.toFixed(2)} from Mesin 03 after the fly`);
+	cek(Math.hypot(...sesudah.i.kamera.map((v, i) => v - kamera0[i])) > 3, "pilih: the camera did not move");
+	cek(sesudah.i.pilih === "Mesin 03", `pilih: info().pilih ${sesudah.i.pilih}`);
+	await p.screenshot({ path: join(HASIL, "lantai-pilih.png") });
+	// "Open machine" goes to the Workstation form.
+	await p.locator(".lantai-host .panel .buka").click();
+	cek(await tunggu(p, () => location.pathname.startsWith("/desk/workstation/Mesin"), null, 5000), `pilih: Open machine went to ${await p.evaluate(() => location.pathname)}`);
+	await kembaliKeLantai(p);
+	// Close button, then a click on empty floor keeps it closed.
+	if ((await panelDari(p)) === null) await klikMesin(p, "Mesin 03");
+	await p.locator(".lantai-host .panel .tutup").click();
+	cek((await panelDari(p)) === null, "pilih: the close button left the panel open");
+	cek((await dialog(p)) === 0, "pilih: a message dialog is open");
+	cek(!galatNyata(p.__galat).length, `pilih: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	await ctx.close();
+
+	// Phone width: the panel is a bottom sheet.
+	const hp = await konteksMasuk(browser, { viewport: { width: 390, height: 844 } });
+	const q = await bukaLantai(hp);
+	await q.waitForTimeout(1200);
+	await q.evaluate(() => erp.lantai.aktif.pilih("Mesin 03"));
+	await q.waitForTimeout(900);
+	const ph = await panelDari(q);
+	cek(ph && Math.abs(ph.kotak.bawah - 844) <= 1 && ph.kotak.l >= 380, `pilih: phone panel is not a bottom sheet ${JSON.stringify(ph?.kotak)}`);
+	await q.screenshot({ path: join(HASIL, "lantai-pilih-hp.png") });
+	await hp.close();
+});
+
+if (jalankan("status")) await kasus("status", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const NAMA = "Mesin 03";
+	const asli = await catatStatus(p, [NAMA]);
+	try {
+		await p.waitForTimeout(1200);
+		await klikMesin(p, NAMA);
+		await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelector(".panel")?.hidden === false, null, 3000);
+		// A slow answer: the clicked button spins and every button waits.
+		await ctx.route("**/api/method/erp_internal.production_floor.set_status", async (r) => {
+			await new Promise((s) => setTimeout(s, 700));
+			await r.continue();
+		});
+		await p.locator('.lantai-host .panel .status button[data-status="Problem"]').click();
+		await p.waitForTimeout(150);
+		const sibuk = await panelDari(p);
+		const tProblem = sibuk?.tombol.find((t) => t.status === "Problem");
+		cek(tProblem?.sibuk && tProblem?.mati, `status: the Problem button shows no spinner while saving ${JSON.stringify(tProblem)}`);
+		cek(sibuk?.tombol.every((t) => t.mati), "status: other buttons stay clickable while saving");
+		await tunggu(p, () => !erp.lantai.aktif.host.shadowRoot.querySelector(".panel .status button.sibuk"), null, 5000);
+		await ctx.unroute("**/api/method/erp_internal.production_floor.set_status");
+		cek((await ambilNilai(p, "Workstation", NAMA, "status")) === "Problem", `status: server status after the click is ${await ambilNilai(p, "Workstation", NAMA, "status")}`);
+		const l = await labelDari(p, NAMA);
+		cek(l?.chipStatus === "Problem", `status: the label chip reads ${l?.chipStatus}`);
+		const pn = await panelDari(p);
+		cek(pn?.tombol.find((t) => t.status === "Problem")?.aktif, "status: the panel does not mark Problem as current");
+		cek(pn?.tombol.every((t) => !t.mati), "status: buttons stay disabled after the answer");
+		cek(await tunggu(p, (n) => erp.lantai.aktif.info().mesin.find((m) => m.nama === n)?.lampu === "merah", NAMA, 3000), "status: the scene's lamp is not red");
+
+		// A refusal: an inline note with the server's message, never a dialog.
+		await ctx.route("**/api/method/erp_internal.production_floor.set_status", (r) =>
+			r.fulfill({
+				status: 417,
+				contentType: "application/json",
+				body: JSON.stringify({ exc_type: "ValidationError", _server_messages: JSON.stringify([JSON.stringify({ message: "Ditolak <b>uji</b>" })]) }),
+			})
+		);
+		await p.locator('.lantai-host .panel .status button[data-status="Off"]').click();
+		await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelector(".panel .catatan")?.hidden === false, null, 3000);
+		const tolak = await panelDari(p);
+		cek(tolak?.catatan?.includes("Ditolak uji"), `status: refusal note ${JSON.stringify(tolak?.catatan)}`);
+		cek((await dialog(p)) === 0, "status: a refusal opened a dialog");
+		cek(tolak?.tombol.find((t) => t.status === "Problem")?.aktif, "status: a refused change moved the current status");
+		await ctx.unroute("**/api/method/erp_internal.production_floor.set_status");
+
+		// Diffing: a refetch with nothing changed touches no machine; one change touches only that machine.
+		const sentuh = () => p.evaluate(() => Object.fromEntries(erp.lantai.aktif.info().mesin.map((m) => [m.nama, m.sentuh])));
+		const s1 = await sentuh();
+		await p.evaluate(() => erp.lantai.aktif.muat());
+		await p.evaluate(() => erp.lantai.aktif.muat());
+		const s2 = await sentuh();
+		cek(JSON.stringify(s1) === JSON.stringify(s2), `status: an unchanged refetch touched machines ${JSON.stringify(s1)} → ${JSON.stringify(s2)}`);
+		await p.locator('.lantai-host .panel .status button[data-status="Idle"]').click();
+		await tunggu(p, () => !erp.lantai.aktif.host.shadowRoot.querySelector(".panel .status button.sibuk"), null, 5000);
+		await p.waitForTimeout(600); // the realtime nudge's refetch too
+		const s3 = await sentuh();
+		const disentuh = Object.keys(s3).filter((k) => s3[k] !== s2[k]);
+		cek(JSON.stringify(disentuh) === JSON.stringify([NAMA]), `status: one change touched ${JSON.stringify(disentuh)}`);
+		cek((await panelDari(p))?.catatan === null, "status: the refusal note stayed after a good change");
+		await p.screenshot({ path: join(HASIL, "lantai-status-panel.png") });
+		cek(!galatNyata(p.__galat).length, `status: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	} finally {
+		await ctx.unroute("**/api/method/erp_internal.production_floor.set_status").catch(() => {});
+		await pulihkanStatus(p, asli);
+	}
+	await ctx.close();
+});
+
+// A submitted Work Order on Mesin 03, In Process at 40 of four BOM batches, for the "wo" and "xss" cases; removed after.
+if (jalankan("wo") || jalankan("xss")) await kasus("wo/xss", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	let wo = null;
+	let diajukan = false;
+	const modelAsli = ambilBench("Workstation", "Mesin 03", "erp_model");
+	try {
+		const bom = await p.evaluate(async () => {
+			const q = new URLSearchParams({ doctype: "BOM", filters: JSON.stringify({ is_default: 1, docstatus: 1, is_active: 1 }), fieldname: JSON.stringify(["name", "item", "quantity"]) });
+			return (await (await fetch(`/api/method/frappe.client.get_value?${q}`, { headers: { Accept: "application/json" } })).json()).message;
+		});
+		if (!bom?.name) throw new Error("no default BOM on the site for a sample Work Order");
+		// Four BOM batches, so no raw material row turns fractional.
+		const QTY = (Number(bom.quantity) || 1) * 4;
+		const baru = await api(p, "frappe.client.insert", {
+			doc: { doctype: "Work Order", production_item: bom.item, bom_no: bom.name, qty: QTY, company: await p.evaluate(() => frappe.defaults.get_default("company")), erp_mesin: "Mesin 03" },
+		});
+		wo = baru.name;
+		const kirim = await api(p, "frappe.client.submit", { doc: baru });
+		diajukan = true;
+		setNilai("Work Order", wo, "status", "In Process");
+		setNilai("Work Order", wo, "produced_qty", 40);
+		await p.evaluate(() => erp.lantai.aktif.muat());
+
+		if (jalankan("wo")) {
+			const ok = await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelector('.label[data-mesin="Mesin 03"] .wo')?.hidden === false, null, 5000);
+			cek(ok, "wo: Mesin 03's label shows no Work Order");
+			const l = await labelDari(p, "Mesin 03");
+			cek(l?.wo?.includes(kirim.item_name || bom.item), `wo: label Work Order text ${JSON.stringify(l?.wo)}`);
+			const qtyTeks = await p.evaluate((n) => format_number(n, null, 0), QTY);
+			cek(new RegExp(`40\\s*/\\s*${qtyTeks.replace(/\./g, "\\.")}`).test(l?.wo || ""), `wo: label progress text ${JSON.stringify(l?.wo)}, wanted 40 / ${qtyTeks}`);
+			cek(l?.bar === `${Math.round((40 / QTY) * 100)}%`, `wo: progress bar width ${l?.bar}, wanted ${Math.round((40 / QTY) * 100)}%`);
+			await p.evaluate(() => erp.lantai.aktif.pilih("Mesin 03"));
+			await p.waitForTimeout(800);
+			const pn = await panelDari(p);
+			cek(pn?.wo === wo, `wo: panel Work Order link ${pn?.wo}`);
+			await p.screenshot({ path: join(HASIL, "lantai-wo.png") });
+			await p.locator(".lantai-host .panel .wo a").click();
+			const ke = encodeURIComponent(wo).toLowerCase();
+			cek(await tunggu(p, (ke) => location.pathname.toLowerCase().includes(ke), ke, 5000), `wo: the link went to ${await p.evaluate(() => location.pathname)}`);
+			await kembaliKeLantai(p);
+		}
+		if (jalankan("xss")) {
+			const RACUN = "<img src=x onerror=window.kena=1>";
+			setNilai("Work Order", wo, "item_name", RACUN);
+			setNilai("Workstation", "Mesin 03", "erp_model", RACUN);
+			await p.evaluate(() => erp.lantai.aktif.muat());
+			await p.evaluate(() => erp.lantai.aktif.pilih("Mesin 03"));
+			await p.waitForTimeout(1000);
+			const l = await labelDari(p, "Mesin 03");
+			const pn = await panelDari(p);
+			const hasil = await p.evaluate(() => ({ kena: window.kena, img: erp.lantai.aktif.host.shadowRoot.querySelectorAll("img").length }));
+			cek(hasil.kena === undefined, "xss: window.kena was set (record text ran as HTML)");
+			cek(hasil.img === 0, `xss: ${hasil.img} <img> elements in the floor`);
+			cek(l?.wo?.includes(RACUN), `xss: the label does not show the item name as text: ${JSON.stringify(l?.wo)}`);
+			cek(pn?.teks?.includes(RACUN), "xss: the panel does not show the text");
+			await p.screenshot({ path: join(HASIL, "lantai-xss.png") });
+		}
+		cek((await dialog(p)) === 0, "wo/xss: a message dialog is open");
+		cek(!galatNyata(p.__galat).length, `wo/xss: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	} catch (e) {
+		gagal.push(`wo/xss: ${e.message}`);
+	} finally {
+		try {
+			setNilai("Workstation", "Mesin 03", "erp_model", modelAsli);
+			if (wo && diajukan) {
+				setNilai("Work Order", wo, "status", "Not Started");
+				bench("execute", "frappe.client.cancel", "--args", JSON.stringify(["Work Order", wo]));
+			}
+			if (wo) bench("execute", "frappe.client.delete", "--args", JSON.stringify(["Work Order", wo]));
+		} catch (e) {
+			gagal.push(`wo/xss: cleanup of ${wo}: ${e.message.slice(0, 300)}`);
+		}
+	}
+	await ctx.close();
+});
+
+// Status written without any event (as ERPNext's Job Card does): the poll picks it up.
+if (jalankan("set_value")) await kasus("set_value", async () => {
+	const ctx = await konteksMasuk(browser);
+	const NAMA = "Mesin 04";
+	const asli = ambilBench("Workstation", NAMA, "status");
+	const tujuan = asli === "Off" ? "Maintenance" : "Off";
+	try {
+		const p = await ctx.newPage();
+		await p.goto(`${URL}/desk/production-floor?poll=3`, { waitUntil: "domcontentloaded", timeout: 60000 });
+		await p.waitForFunction(() => window.erp?.lantai?.aktif?.info().mesin?.length > 0, null, { timeout: 20000 });
+		cek((await p.evaluate(() => erp.lantai.aktif.info().poll)) === 3, `set_value: ?poll=3 gave a poll of ${await p.evaluate(() => erp.lantai.aktif.info().poll)} s`);
+		setNilai("Workstation", NAMA, "status", tujuan);
+		const ok = await tunggu(p, ([n, s]) => erp.lantai.aktif.info().mesin.find((m) => m.nama === n)?.status === s, [NAMA, tujuan], 9000);
+		cek(ok, `set_value: the view did not follow ${NAMA} → ${tujuan} within 9 s`);
+		cek((await labelDari(p, NAMA))?.chipStatus === tujuan, `set_value: ${NAMA}'s chip did not follow`);
+	} finally {
+		setNilai("Workstation", NAMA, "status", asli ?? "");
+	}
+	await ctx.close();
+});
+
+// Realtime blocked: the poll keeps the view current, no dialog.
+if (jalankan("poll")) await kasus("poll", async () => {
+	const ctx = await konteksMasuk(browser);
+	await ctx.route("**/socket.io/**", (r) => r.abort());
+	await ctx.routeWebSocket(/socket\.io/, (ws) => ws.close());
+	const NAMA = "Mesin 05";
+	const p = await ctx.newPage();
+	p.__galat = [];
+	p.on("pageerror", (e) => p.__galat.push(String(e)));
+	await p.goto(`${URL}/desk/production-floor?poll=3`, { waitUntil: "domcontentloaded", timeout: 60000 });
+	await p.waitForFunction(() => window.erp?.lantai?.aktif?.info().mesin?.length > 0, null, { timeout: 20000 });
+	const asli = await catatStatus(p, [NAMA]);
+	const tujuan = asli[NAMA] === "Maintenance" ? "Setup" : "Maintenance";
+	try {
+		cek(!(await p.evaluate(() => frappe.realtime?.socket?.connected)), "poll: socket.io is connected although it is blocked");
+		await api(p, "erp_internal.production_floor.set_status", { machine: NAMA, status: tujuan });
+		const ok = await tunggu(p, ([n, s]) => erp.lantai.aktif.info().mesin.find((m) => m.nama === n)?.status === s, [NAMA, tujuan], 9000);
+		cek(ok, `poll: the view did not follow ${NAMA} → ${tujuan} within 9 s without realtime`);
+		cek((await dialog(p)) === 0, "poll: a message dialog is open");
+		cek(!p.__galat.length, `poll: page errors: ${p.__galat.join(" | ").slice(0, 300)}`);
+	} finally {
+		await pulihkanStatus(p, asli);
+	}
+	await ctx.close();
+});
+
+// Realtime: a change made elsewhere shows within a few seconds, with the 60 s poll.
+if (jalankan("live")) await kasus("live", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const lain = await ctx.newPage();
+	await lain.goto(`${URL}/desk`);
+	await lain.waitForFunction(() => window.frappe?.csrf_token);
+	const NAMA = "Mesin 06";
+	const asli = await catatStatus(p, [NAMA]);
+	const tujuan = asli[NAMA] === "Setup" ? "Idle" : "Setup";
+	try {
+		cek((await p.evaluate(() => erp.lantai.aktif.info().poll)) === 60, "live: the default poll is not 60 s");
+		await p.waitForTimeout(1500); // the socket joins its rooms
+		await api(lain, "erp_internal.production_floor.set_status", { machine: NAMA, status: tujuan });
+		const ok = await tunggu(p, ([n, s]) => erp.lantai.aktif.info().mesin.find((m) => m.nama === n)?.status === s, [NAMA, tujuan], 5000);
+		cek(ok, `live: the realtime nudge did not bring ${NAMA} → ${tujuan} within 5 s`);
+	} finally {
+		await pulihkanStatus(p, asli);
+	}
+	await ctx.close();
+});
+
+// Indonesian: the page title and the status names.
+if (jalankan("id")) await kasus("id", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	try {
+		await api(p, "erp_internal.bahasa.ganti", { lang: "id" });
+		await p.close();
+		const q = await bukaLantai(ctx);
+		await q.waitForTimeout(800);
+		cek((await q.title()).includes("Lantai Produksi"), `id: page title ${await q.title()}`);
+		const d = await api(q, "erp_internal.production_floor.get_data", {}, false);
+		const jalan = d.mesin.find((m) => m.status === "Production");
+		if (jalan) cek((await labelDari(q, jalan.name))?.chip === "Produksi", `id: Production chip reads ${(await labelDari(q, jalan.name))?.chip}`);
+		await q.evaluate(() => erp.lantai.aktif.pilih("Mesin 03"));
+		await q.waitForTimeout(600);
+		const pn = await panelDari(q);
+		const teks = Object.fromEntries((pn?.tombol || []).map((t) => [t.status, t.teks]));
+		cek(teks.Problem === "Masalah" && teks.Maintenance === "Pemeliharaan" && teks.Off === "Mati", `id: status buttons ${JSON.stringify(teks)}`);
+		cek(/Buka mesin/.test(pn?.teks || ""), "id: Open machine is not translated");
+		await q.screenshot({ path: join(HASIL, "lantai-id.png") });
+	} catch (e) {
+		gagal.push(`id: ${e.message}`);
+	} finally {
+		try {
+			setNilai("User", "user@example.com", "language", "en");
+			bench("execute", "frappe.clear_cache", "--kwargs", JSON.stringify({ user: "user@example.com" }));
+		} catch (e) {
+			gagal.push(`id: could not switch user@example.com back to English: ${e.message.slice(0, 200)}`);
+		}
+	}
+	await ctx.close();
+});
+
 cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ").slice(0, 400)}`);
 // The headless pages above still draw their scenes; close them so the headed cases measure this page alone.
 await browser.close();
@@ -507,6 +942,19 @@ if (jalankan("perf")) {
 			JSON.stringify(hasil.mesin) === JSON.stringify([["Mesin 07", "Problem"], ["Mesin 08", "Maintenance"]]),
 			`perf: status changes not shown: ${JSON.stringify(hasil.mesin)}`
 		);
+		// Label text waits for the camera to rest (label.js DIAM), then follows.
+		const labelIkut = await p
+			.waitForFunction(
+				() => {
+					const r = erp.lantai.aktif.host.shadowRoot;
+					const st = (n) => [...r.querySelectorAll(".label")].find((e) => e.dataset.mesin === n)?.querySelector(".chip")?.dataset.status;
+					return st("Mesin 07") === "Problem" && st("Mesin 08") === "Maintenance";
+				},
+				null,
+				{ timeout: 4000 }
+			)
+			.then(() => true, () => false);
+		cek(labelIkut, "perf: the labels did not follow the status changes once the camera rested");
 		await p.screenshot({ path: join(HASIL, "lantai-perf.png") });
 
 		// 20 status changes on the page: no new geometry or texture.
@@ -638,4 +1086,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, id, perf, adaptive"})`);

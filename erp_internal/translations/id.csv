@@ -141,3 +141,8 @@ Production Floor,Lantai Produksi
 No.,No.
 Reset view,Atur Ulang Tampilan
 "The machine list could not be loaded.","Daftar mesin tidak dapat dimuat."
+Close,Tutup
+Open machine,Buka mesin
+"No Work Order running on this machine.","Tidak ada Perintah Produksi yang berjalan di mesin ini."
+"The status could not be changed.","Status tidak dapat diubah."
+"The server could not be reached. Try again.","Server tidak dapat dihubungi. Coba lagi."
