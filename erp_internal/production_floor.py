@@ -25,9 +25,10 @@ STATUS_WO = ("In Process", "Not Started")
 
 @frappe.whitelist()
 def get_data() -> dict:
-	"""Every numbered machine in floor order, each with its newest running Work Order (or None)."""
+	"""Every numbered machine in floor order, each with its newest running Work Order (or None), and the company
+	shown in the page's info bar."""
 	frappe.has_permission("Workstation", "read", throw=True)
-	return {"mesin": _daftar(), "waktu": frappe.utils.now()}
+	return {"mesin": _daftar(), "perusahaan": _perusahaan(), "waktu": frappe.utils.now()}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -49,6 +50,25 @@ def siarkan(doc, method=None) -> None:
 	"""Workstation and Work Order doc event: tell open Production Floor pages which machine changed."""
 	mesin = doc.name if doc.doctype == "Workstation" else doc.get("erp_mesin")
 	frappe.publish_realtime(EVENT, {"mesin": mesin or None}, doctype="Workstation", after_commit=True)
+
+
+def _perusahaan_default() -> str | None:
+	"""The user's default company, else the site's."""
+	return frappe.defaults.get_user_default("Company") or frappe.db.get_single_value(
+		"Global Defaults", "default_company"
+	)
+
+
+def _perusahaan() -> dict:
+	"""`{"nama", "logo"}` of the default company. The logo only for a user who may read that Company; without a
+	default company the name is the site's app name."""
+	nama = _perusahaan_default()
+	if not nama or not frappe.db.exists("Company", nama):
+		return {"nama": frappe.get_system_settings("app_name") or "ERP Internal", "logo": None}
+	logo = None
+	if frappe.has_permission("Company", "read", doc=nama):
+		logo = frappe.db.get_value("Company", nama, "company_logo") or None
+	return {"nama": nama, "logo": logo}
 
 
 def _pilihan_status() -> list[str]:

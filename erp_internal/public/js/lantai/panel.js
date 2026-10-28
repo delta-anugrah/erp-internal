@@ -8,8 +8,9 @@ export const STATUS = ["Production", "Setup", "Idle", "Problem", "Maintenance", 
 
 // Panel layout. The card look itself is `.kartu`, defined once in the bundle.
 export const GAYA_PANEL = `
-.panel{position:absolute;top:56px;right:12px;width:320px;max-height:calc(100% - 68px);overflow:auto;
-	padding:14px 16px 16px;font-size:13px;line-height:1.4;box-sizing:border-box}
+.panel{position:absolute;z-index:3;top:calc(var(--atas,170px) + 10px);right:12px;width:320px;
+	max-height:calc(100% - var(--atas,170px) - 22px);overflow:auto;padding:14px 16px 16px;font-size:13px;line-height:1.4;
+	box-sizing:border-box}
 .panel[hidden]{display:none}
 .panel .kepala{display:flex;align-items:flex-start;gap:8px}
 .panel .judul{flex:1;margin:0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -19,7 +20,7 @@ export const GAYA_PANEL = `
 .panel dt{color:var(--kartu-teks-redup)}
 .panel dd{margin:0;overflow-wrap:anywhere}
 .panel h4{margin:12px 0 6px;font-size:12px;font-weight:600;color:var(--kartu-teks-redup)}
-.panel .wo a{color:var(--primary,#2490ef);font-weight:600;text-decoration:none}
+.panel .wo a{color:var(--kaca-aksen);font-weight:600;text-decoration:none}
 .panel .wo a:hover{text-decoration:underline}
 .panel .wo-item{display:block;overflow-wrap:anywhere}
 .panel .wo-bar{display:block;height:6px;margin:6px 0 2px;border-radius:3px;background:var(--kartu-jalur)}
@@ -27,7 +28,7 @@ export const GAYA_PANEL = `
 .panel .wo-angka,.panel .kosong{color:var(--kartu-teks-redup);font-variant-numeric:tabular-nums}
 .panel .status{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .panel .status button,.panel .buka{display:flex;align-items:center;gap:7px;font:inherit;padding:6px 10px;
-	border-radius:var(--border-radius,8px);border:1px solid var(--kartu-tepi);background:var(--kartu-tombol);
+	border-radius:12px;border:1px solid var(--kaca-garis);background:var(--kartu-tombol);
 	color:inherit;cursor:pointer;text-align:left}
 .panel .status button:hover:not(:disabled),.panel .buka:hover{background:var(--kartu-tombol-hover)}
 .panel .status button:disabled{cursor:default;opacity:.6}
@@ -36,10 +37,10 @@ export const GAYA_PANEL = `
 .panel .status button.sibuk .titik{background:none;border:2px solid currentColor;border-right-color:transparent;
 	width:7px;height:7px;animation:putar .7s linear infinite}
 @keyframes putar{to{transform:rotate(360deg)}}
-.panel .catatan{margin:10px 0 0;padding:7px 10px;border-radius:8px;background:var(--kartu-tolak);color:var(--kartu-tolak-teks)}
+.panel .catatan{margin:10px 0 0;padding:7px 10px;border-radius:10px;background:var(--kartu-tolak);color:var(--kartu-tolak-teks)}
 .panel .buka{width:100%;justify-content:center;margin-top:14px;font-weight:600}
 @media (max-width:759px){
-	.panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:60%;border-radius:16px 16px 0 0}
+	.panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:60%;border-radius:20px 20px 0 0}
 }
 `;
 

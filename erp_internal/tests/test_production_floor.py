@@ -3,6 +3,7 @@
 from unittest.mock import call, patch
 
 import frappe
+from frappe.permissions import add_permission
 from frappe.tests import IntegrationTestCase
 
 from erp_internal.production_floor import get_data, set_status
@@ -12,6 +13,8 @@ from erp_internal.tests.utils import buat_barang, buat_bom, buat_pengguna, buat_
 JADI, BAHAN = "_UJI-LNT-JADI", "_UJI-LNT-BAHAN"
 PREFIKS = "_Uji Lantai "
 PERAN_PRODUKSI = "Manufacturing User"
+PERAN_LIHAT = "_Uji Lantai Lihat"  # reads Workstation only, not Company
+LOGO = "/files/_uji-lantai-logo.png"
 
 
 def buat_mesin(nama: str, nomor: int, status: str = "Idle", **field) -> str:
@@ -55,6 +58,8 @@ def buat_wo(company: str, mesin: str, qty: float = 100, ajukan: bool = True):
 class TestLantai(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
+		# Registered first, so it runs after the class rollback: no cached permission of the test role survives.
+		cls.addClassCleanup(frappe.clear_cache, doctype="Workstation")
 		super().setUpClass()
 		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
 		buat_barang(JADI, "Barang Jadi")
@@ -63,6 +68,15 @@ class TestLantai(IntegrationTestCase):
 		cls.operator = buat_pengguna("lantai.operator@example.com", None, None, cls.pabrik)
 		frappe.get_doc("User", cls.operator).add_roles(PERAN_PRODUKSI)
 		cls.tamu = buat_pengguna("lantai.tamu@example.com", None, None, cls.pabrik)
+		if not frappe.db.exists("Role", PERAN_LIHAT):
+			frappe.get_doc({"doctype": "Role", "role_name": PERAN_LIHAT, "desk_access": 1}).insert()
+		add_permission("Workstation", PERAN_LIHAT)
+		cls.pelihat = buat_pengguna("lantai.pelihat@example.com", None, None, cls.pabrik)
+		frappe.get_doc("User", cls.pelihat).add_roles(PERAN_LIHAT)
+		frappe.db.set_value("Company", cls.pabrik, "company_logo", LOGO)
+		# The test site's global default company is another one; these users work for ours.
+		for u in (cls.operator, cls.pelihat):
+			frappe.defaults.set_user_default("company", cls.pabrik, u)
 
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -137,6 +151,23 @@ class TestLantai(IntegrationTestCase):
 		self.assertEqual(get_data()["mesin"][0]["wo"]["name"], jalan.name)
 		frappe.db.set_value("Work Order", jalan.name, "status", "Completed")
 		self.assertEqual(get_data()["mesin"][0]["wo"]["name"], baru.name)
+
+	def test_data_perusahaan(self):
+		buat_mesin("A", 1)
+		frappe.set_user(self.operator)
+		self.assertEqual(get_data()["perusahaan"], {"nama": self.pabrik, "logo": LOGO})
+		# Reads the machines but not Company: the name, never the logo.
+		frappe.set_user(self.pelihat)
+		self.assertFalse(frappe.has_permission("Company", "read"))
+		self.assertEqual(get_data()["perusahaan"], {"nama": self.pabrik, "logo": None})
+
+	def test_data_perusahaan_tanpa_default(self):
+		buat_mesin("A", 1)
+		with patch("erp_internal.production_floor._perusahaan_default", return_value=None):
+			nama = get_data()["perusahaan"]
+		self.assertEqual(
+			nama, {"nama": frappe.get_system_settings("app_name") or "ERP Internal", "logo": None}
+		)
 
 	def test_data_tanpa_izin(self):
 		buat_mesin("A", 1)

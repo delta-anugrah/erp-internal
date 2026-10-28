@@ -7,15 +7,18 @@
 // under a drag stalls the main thread for 50-100 ms (measured in a headed run, no script involved), which broke the
 // frame budget when a status change arrived mid-orbit. A resting label repaints for free.
 
-// Label and chip layout. The card look itself (fill, edge, radius, shadow) is `.kartu`, defined once in the bundle.
+// Label and chip layout. The card look (fill, light edge, radius, shadow) is `.kartu` from kaca.js, but without the
+// backdrop blur and with a denser fill: fourteen labels move with the camera and each blurred backdrop is redrawn
+// every frame. Measured in tools/lantai.mjs perf: blur 8 px and 3 px on the labels still dropped up to 1.5 % of
+// frames during an orbit; without it 0-0.2 %. The five fixed cards keep the full blur.
 export const GAYA_LABEL = `
 .label-lapis{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .label{position:absolute;left:0;top:0;will-change:transform}
-.label > .isi{transform:translate(-50%,-100%);padding:4px 8px 5px;font-size:12px;line-height:1.35;white-space:nowrap;
-	max-width:150px}
+.label > .isi{transform:translate(-50%,-100%);padding:5px 10px 6px;font-size:12px;line-height:1.35;white-space:nowrap;
+	max-width:150px;border-radius:16px;--kaca-blur:none;background:var(--kaca-isi-label)}
 .label .baris{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .label .judul{font-weight:600;font-variant-numeric:tabular-nums}
-.label.dipilih > .isi{outline:2px solid var(--primary,#2490ef);outline-offset:1px}
+.label.dipilih > .isi{outline:2px solid var(--kaca-aksen);outline-offset:1px}
 .label .wo{margin-top:3px;max-width:134px}
 .label .wo-item{display:block;overflow:hidden;text-overflow:ellipsis;color:var(--kartu-teks-redup)}
 .label .wo-bar{display:block;height:4px;margin:3px 0 1px;border-radius:2px;background:var(--kartu-jalur)}

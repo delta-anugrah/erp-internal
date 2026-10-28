@@ -4,6 +4,8 @@
 // this bundle does not load.
 import { Raycaster, Vector2 } from "three";
 import { buatAdegan, TanpaWebGL } from "./lantai/adegan.js";
+import { buatHud, GAYA_HUD } from "./lantai/hud.js";
+import { GAYA_KACA } from "./lantai/kaca.js";
 import { buatLabel, GAYA_LABEL } from "./lantai/label.js";
 import { buatMesin } from "./lantai/mesin.js";
 import { buatPanel, GAYA_PANEL } from "./lantai/panel.js";
@@ -19,35 +21,39 @@ const POLL = (() => {
 	return n >= 1 ? n : 60;
 })();
 
-// The card tokens and the `.kartu` look shared by labels, the panel and the reset button: Task 6 restyles them here.
-// Desk's CSS variables reach into the shadow root, so light and dark follow Desk's theme.
+// The glass card look (`.kartu`, kaca.js) and its tokens for labels, panel, info bar and camera bar; the host's
+// `data-tema` follows Desk's light or dark theme. Status chips use the andon colours for the dot and a darker (light
+// theme) or lighter (dark theme) shade of it for the text, so the text keeps its contrast.
 const GAYA = `<style>
-:host{display:block;background:#dfe3e8;color:var(--text-color,#1f272e);font-family:var(--font-stack,inherit);
-	--kartu-latar:var(--card-bg,var(--bg-color,#fff));--kartu-tepi:var(--border-color,#d1d8dd);
-	--kartu-bayang:var(--shadow-sm,0 1px 3px rgba(0,0,0,.12));--kartu-radius:var(--border-radius-md,10px);
-	--kartu-teks-redup:var(--text-muted,#6c7680);--kartu-jalur:var(--gray-200,#e9ecef);
-	--kartu-tombol:var(--control-bg,#f4f5f6);--kartu-tombol-hover:var(--fg-hover-color,#e9ecef);
-	--kartu-tolak:var(--bg-red,#fff0f0);--kartu-tolak-teks:var(--text-on-red,#b52a2a);
-	--andon-merah:#e5372c;--andon-kuning:#e0a800;--andon-hijau:#1fae5b;--andon-biru:#2f7ae5;--andon-mati:#8d969f}
+${GAYA_KACA}
+:host{display:block;background:var(--lantai-latar);color:var(--kaca-teks);font-family:var(--font-stack,inherit);
+	-webkit-font-smoothing:antialiased;
+	--kartu-teks-redup:var(--kaca-redup);--kartu-jalur:var(--kaca-jalur);--kartu-tombol:var(--kaca-tombol);
+	--kartu-tombol-hover:var(--kaca-tombol-hover);--kartu-tolak:var(--kaca-tolak);--kartu-tolak-teks:var(--kaca-tolak-teks);
+	--andon-merah:#e5372c;--andon-kuning:#e0a800;--andon-hijau:#1fae5b;--andon-biru:#2f7ae5;--andon-mati:#8d969f;
+	--chip-hijau:#0d6534;--chip-kuning:#6e5000;--chip-merah:#a11d17;--chip-biru:#1a4a9e;--chip-mati:#465059}
+:host([data-tema="dark"]){--chip-hijau:#7ee8ab;--chip-kuning:#ffd666;--chip-merah:#ffa19b;--chip-biru:#a6c8ff;
+	--chip-mati:#c8ced6}
 .lantai{width:100%;height:100%;position:relative;overflow:hidden}
 canvas{display:block}
-.kartu{background:var(--kartu-latar);border:1px solid var(--kartu-tepi);border-radius:var(--kartu-radius);
-	box-shadow:var(--kartu-bayang);color:var(--text-color,#1f272e)}
-.alat{position:absolute;top:12px;right:12px;display:flex;gap:8px}
-.alat button{font:inherit;font-size:var(--text-sm,13px);padding:4px 12px;cursor:pointer}
-.alat button:hover{background:var(--fg-hover-color,#f3f3f3)}
-[data-status="Production"]{--warna-status:var(--andon-hijau)}
-[data-status="Setup"],[data-status="Idle"]{--warna-status:var(--andon-kuning)}
-[data-status="Problem"]{--warna-status:var(--andon-merah)}
-[data-status="Maintenance"]{--warna-status:var(--andon-biru)}
-[data-status="Off"]{--warna-status:var(--andon-mati)}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:0 7px;border-radius:999px;font-size:11px;
-	font-weight:600;line-height:18px;white-space:nowrap;color:var(--warna-status);
-	background:color-mix(in srgb,var(--warna-status) 14%,transparent)}
-.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--warna-status)}
+[data-status="Production"]{--warna-status:var(--andon-hijau);--teks-status:var(--chip-hijau)}
+[data-status="Setup"],[data-status="Idle"]{--warna-status:var(--andon-kuning);--teks-status:var(--chip-kuning)}
+[data-status="Problem"]{--warna-status:var(--andon-merah);--teks-status:var(--chip-merah)}
+[data-status="Maintenance"]{--warna-status:var(--andon-biru);--teks-status:var(--chip-biru)}
+[data-status="Off"]{--warna-status:var(--andon-mati);--teks-status:var(--chip-mati)}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:0 8px;border-radius:999px;font-size:11px;
+	font-weight:600;line-height:20px;white-space:nowrap;color:var(--teks-status);
+	background:color-mix(in srgb,var(--warna-status) 16%,transparent)}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--warna-status)}
 ${GAYA_LABEL}
 ${GAYA_PANEL}
+${GAYA_HUD}
 </style>`;
+const IKON_RUMAH = `<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 9.2 10 3.8l6.5 5.4M5.5 7.8V16h3.3v-4.2h2.4V16h3.3V7.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ZUM = 0.8; // distance factor of one + click (− divides by it)
+// ms the camera must rest before the info bar's figures and table are rewritten: like the labels (label.js), a text
+// repaint in a card while a drag moves the camera stalls Chrome's main thread for ~100 ms.
+const DIAM_HUD = 120;
 
 // `get_data()` with a plain fetch, so a failed request never opens a message dialog; rejects on any failure.
 function ambil() {
@@ -116,7 +122,11 @@ function pasangLive(ctl) {
 			basi = true;
 			return;
 		}
-		tunda = setTimeout(() => (tampil() ? ctl.muat() : (basi = true)), TUNDA);
+		tunda = setTimeout(() => {
+			tunda = null;
+			if (tampil()) ctl.muat();
+			else basi = true;
+		}, TUNDA);
 	};
 	try {
 		frappe.realtime.doctype_subscribe("Workstation");
@@ -148,7 +158,10 @@ function pasangLive(ctl) {
 		},
 		jeda() {
 			ditahan = true;
+			// A nudge still waiting for its debounce is missed, not dropped: catch up on return.
+			if (tunda !== null) basi = true;
 			clearTimeout(tunda);
+			tunda = null;
 			henti();
 		},
 		buang() {
@@ -194,7 +207,7 @@ erp.lantai.pasang = function (host) {
 	erp.lantai.aktif?.buang();
 
 	const root = host.shadowRoot || host.attachShadow({ mode: "open" });
-	root.innerHTML = `${GAYA}<div class="lantai"></div><div class="alat"><button type="button" class="reset kartu"></button></div>`;
+	root.innerHTML = `${GAYA}<div class="lantai"></div>`;
 	let adegan;
 	try {
 		adegan = buatAdegan(root.querySelector(".lantai"));
@@ -206,9 +219,41 @@ erp.lantai.pasang = function (host) {
 	adegan.tiap.push(mesin.tick);
 	adegan.saatTurun.push(mesin.diam);
 	const label = buatLabel(root.querySelector(".lantai"), adegan, mesin);
-	const reset = root.querySelector(".reset");
-	reset.textContent = __("Reset view");
-	reset.addEventListener("click", () => adegan.reset());
+	const hud = buatHud(root, {
+		saatPilih: (nama) => pilih(nama),
+		saatDetik: () => hud.status(adaLive(), ambilan.terakhir),
+		diam: () => adegan.sejakGerak() >= DIAM_HUD,
+	});
+
+	// Camera bar: zoom in, zoom out, home (the default view).
+	const kameraBar = document.createElement("div");
+	kameraBar.className = "kamera kartu";
+	root.querySelector(".hud").appendChild(kameraBar);
+	for (const [kelas, judul, isi, aksi] of [
+		["zum-masuk", __("Zoom in"), "+", () => adegan.zum(ZUM)],
+		["zum-keluar", __("Zoom out"), "−", () => adegan.zum(1 / ZUM)],
+		["reset", __("Reset view"), null, () => adegan.reset()],
+	]) {
+		const b = kameraBar.appendChild(document.createElement("button"));
+		b.type = "button";
+		b.className = kelas;
+		b.title = judul;
+		b.setAttribute("aria-label", judul);
+		if (isi) b.textContent = isi;
+		else b.innerHTML = IKON_RUMAH;
+		b.addEventListener("click", aksi);
+	}
+
+	// Desk's theme on the cards (host `data-tema`) and on the floor; followed when the user switches it.
+	const ikutTema = () => {
+		const gelap = document.documentElement.dataset.theme === "dark";
+		const t = gelap ? "dark" : "light";
+		if (host.dataset.tema !== t) host.dataset.tema = t;
+		adegan.tema(gelap);
+	};
+	ikutTema();
+	const pengamatTema = new MutationObserver(ikutTema);
+	pengamatTema.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
 	let data = { mesin: [] };
 	let dipilih = null;
@@ -230,6 +275,8 @@ erp.lantai.pasang = function (host) {
 		const row = nama ? baris(nama) : null;
 		dipilih = row ? nama : null;
 		label.pilih(dipilih);
+		hud.pilih(dipilih);
+		host.toggleAttribute("data-panel", !!row);
 		if (!row) {
 			panel.tutup();
 			return;
@@ -260,8 +307,20 @@ erp.lantai.pasang = function (host) {
 		pilih(mesin.pilihDari(raycaster));
 	});
 
+	let hudTunda = null; // data waiting for the camera to rest
+	adegan.tiap.push(() => {
+		if (!hudTunda || adegan.sejakGerak() < DIAM_HUD) return;
+		const d = hudTunda;
+		hudTunda = null;
+		hud.perbarui(d);
+	});
+
 	const titik = { x: 0, y: 0, depan: true };
-	const ambilan = pengambil((d) => ctl.perbarui(d));
+	const adaLive = () => frappe.realtime?.socket?.connected === true;
+	const ambilan = pengambil((d) => {
+		ctl.perbarui(d);
+		if (adegan.sejakGerak() >= DIAM_HUD) hud.status(adaLive(), ambilan.terakhir); // else the next clock tick
+	});
 	const ctl = {
 		host,
 		webgl: true,
@@ -270,6 +329,10 @@ erp.lantai.pasang = function (host) {
 			data = d && Array.isArray(d.mesin) ? d : { ...d, mesin: [] };
 			mesin.tata(data.mesin);
 			label.perbarui(data.mesin);
+			if (adegan.sejakGerak() >= DIAM_HUD) {
+				hudTunda = null;
+				hud.perbarui(data);
+			} else hudTunda = data;
 			if (dipilih && !baris(dipilih)) pilih(null);
 			else if (dipilih) panel.perbarui(baris(dipilih));
 		},
@@ -284,13 +347,17 @@ erp.lantai.pasang = function (host) {
 		jeda() {
 			adegan.jeda();
 			live.jeda();
+			hud.jeda();
 		},
 		lanjut() {
 			adegan.lanjut();
 			live.lanjut();
+			hud.lanjut();
 		},
 		buang() {
 			live.buang();
+			pengamatTema.disconnect();
+			hud.buang();
 			panel.buang();
 			label.buang();
 			mesin.buang();
@@ -306,7 +373,16 @@ erp.lantai.pasang = function (host) {
 				adegan.proyeksi(s.x, 1.0, s.z, titik);
 				return { ...m, layar: { x: titik.x, y: titik.y, depan: titik.depan } };
 			});
-			return { ...i, webgl: true, mesin: mesinInfo, label: label.info(), pilih: dipilih, poll: POLL, muat: ambilan.jumlah };
+			return {
+				...i,
+				webgl: true,
+				mesin: mesinInfo,
+				label: label.info(),
+				hud: hud.info(),
+				pilih: dipilih,
+				poll: POLL,
+				muat: ambilan.jumlah,
+			};
 		},
 	};
 	const live = pasangLive(ctl);

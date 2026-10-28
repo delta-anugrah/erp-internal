@@ -146,3 +146,23 @@ Open machine,Buka mesin
 "No Work Order running on this machine.","Tidak ada Perintah Produksi yang berjalan di mesin ini."
 "The status could not be changed.","Status tidak dapat diubah."
 "The server could not be reached. Try again.","Server tidak dapat dihubungi. Coba lagi."
+Machines,Mesin
+Running,Berjalan
+Problem,Masalah
+Work Orders running,Perintah Produksi berjalan
+Output,Hasil
+Show machine list,Tampilkan daftar mesin
+Hide machine list,Sembunyikan daftar mesin
+"{0} machines","{0} mesin"
+"{0} off","{0} mati"
+"{0}% utilization","utilisasi {0}%"
+"{0} in maintenance","{0} dalam pemeliharaan"
+"{0} not started","{0} belum mulai"
+"{0}% of plan","{0}% dari rencana"
+No Work Orders,Tidak ada Perintah Produksi
+Live,Langsung
+"Updated {0}","Diperbarui {0}"
+Not updated yet,Belum diperbarui
+Zoom in,Perbesar
+Zoom out,Perkecil
+WO,PP

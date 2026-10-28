@@ -30,6 +30,12 @@
 //   live         realtime on, default 60 s poll: a change from another tab shows within 5 s
 //   hidden       page left / tab hidden: no get_data on a nudge; on return the change shows within 3 s
 //   id           user@example.com in Indonesian: "Lantai Produksi" and the status names (switched back after)
+//   hud          the info bar: company name, a ticking clock, 14 machines, status chips and KPIs equal to get_data(),
+//                a table row selects like a scene click, nothing covers the panel, camera +/−, the table's fold is
+//                remembered; at 390 px two compact rows, the table collapsed, the bottom sheet on top
+//   hud-live     the dot reads Live with realtime, "Updated HH:MM" with /socket.io blocked
+//   hud-xss      a company name of <img onerror> shows as text; only a same-origin /files/ logo becomes an image
+//   glass        every fixed card's backdrop-filter blurs; every text >= 4.5:1 on its card, light and dark
 // ERP_BENCH (default ~/Desktop/Projects/erp-internal-bench) and ERP_SITE (erp.localhost) are for bench execute.
 
 import { execFileSync } from "node:child_process";
@@ -720,9 +726,9 @@ if (jalankan("wo") || jalankan("xss")) await kasus("wo/xss", async () => {
 			await p.waitForTimeout(1000);
 			const l = await labelDari(p, "Mesin 03");
 			const pn = await panelDari(p);
-			const hasil = await p.evaluate(() => ({ kena: window.kena, img: erp.lantai.aktif.host.shadowRoot.querySelectorAll("img").length }));
+			const hasil = await p.evaluate(() => ({ kena: window.kena, img: [...erp.lantai.aktif.host.shadowRoot.querySelectorAll("img")].filter((i) => !i.closest(".logo")).length }));
 			cek(hasil.kena === undefined, "xss: window.kena was set (record text ran as HTML)");
-			cek(hasil.img === 0, `xss: ${hasil.img} <img> elements in the floor`);
+			cek(hasil.img === 0, `xss: ${hasil.img} <img> elements in the floor (besides the company logo)`);
 			cek(l?.wo?.includes(RACUN), `xss: the label does not show the item name as text: ${JSON.stringify(l?.wo)}`);
 			cek(pn?.teks?.includes(RACUN), "xss: the panel does not show the text");
 			await p.screenshot({ path: join(HASIL, "lantai-xss.png") });
@@ -891,6 +897,293 @@ if (jalankan("id")) await kasus("id", async () => {
 	await ctx.close();
 });
 
+// --- Task 6: the info bar, the machine table, the camera bar and the glass look -----------------------------------
+
+// The info bar's figures, the table and the card boxes, read from the shadow root.
+const hudDari = (p) =>
+	p.evaluate(() => {
+		const r = erp.lantai.aktif.host.shadowRoot;
+		const teks = (s) => r.querySelector(s)?.textContent ?? null;
+		const kotak = (s) => {
+			const e = r.querySelector(s);
+			if (!e || e.hidden || getComputedStyle(e).display === "none") return null;
+			const k = e.getBoundingClientRect();
+			return { x: k.left, y: k.top, kanan: k.right, bawah: k.bottom };
+		};
+		return {
+			nama: teks(".nama-perusahaan"),
+			inisial: r.querySelector(".logo .inisial")?.hidden ? null : teks(".logo .inisial"),
+			logo: r.querySelector(".logo img")?.getAttribute("src") ?? null,
+			jumlah: teks(".pil.jumlah"),
+			live: teks(".live .teks"),
+			liveData: r.querySelector(".live")?.dataset.live,
+			waktu: teks(".jam .waktu"),
+			tanggal: teks(".jam .tanggal"),
+			kpi: Object.fromEntries(
+				[...r.querySelectorAll(".kpi .sel")].map((s) => [s.dataset.kpi, { nilai: s.querySelector(".nilai").textContent, ket: s.querySelector(".ket").textContent }])
+			),
+			legenda: Object.fromEntries([...r.querySelectorAll(".legenda .chip")].map((c) => [c.dataset.status, c.querySelector(".jumlah").textContent])),
+			baris: [...r.querySelectorAll(".tabel tbody tr")].map((t) => ({ nama: t.dataset.mesin, teks: t.textContent, dipilih: t.classList.contains("dipilih") })),
+			tutup: r.querySelector(".tabel").hasAttribute("data-tutup"),
+			kotak: { bar: kotak(".bar"), kpi: kotak(".kpi"), tabel: kotak(".tabel"), kamera: kotak(".kamera"), panel: kotak(".panel") },
+		};
+	});
+const tumpang = (a, b) => a && b && a.x < b.kanan - 1 && b.x < a.kanan - 1 && a.y < b.bawah - 1 && b.y < a.bawah - 1;
+// The panel is on top: points inside it hit the panel, not a card of the info bar.
+const panelDiAtas = (p) =>
+	p.evaluate(() => {
+		const r = erp.lantai.aktif.host.shadowRoot;
+		const pn = r.querySelector(".panel");
+		const k = pn.getBoundingClientRect();
+		const titik = [
+			[0.5, 0.1],
+			[0.1, 0.5],
+			[0.9, 0.5],
+			[0.5, 0.9],
+			[0.1, 0.95],
+			[0.9, 0.95],
+		].map(([fx, fy]) => [k.left + k.width * fx, k.top + k.height * fy]);
+		return titik.filter(([x, y]) => !pn.contains(r.elementFromPoint(x, y))).map(([x, y]) => `${Math.round(x)},${Math.round(y)}`);
+	});
+
+if (jalankan("hud")) await kasus("hud", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	await p.evaluate(() => {
+		try {
+			localStorage.removeItem("erp.lantai.tabelTutup");
+		} catch {
+			/* nothing stored */
+		}
+	});
+	await p.reload({ waitUntil: "domcontentloaded" });
+	await p.waitForFunction(() => window.erp?.lantai?.aktif?.info().mesin?.length > 0, null, { timeout: 20000 });
+	await p.waitForTimeout(800);
+	const d = await api(p, "erp_internal.production_floor.get_data", {}, false);
+	const h = await hudDari(p);
+	cek(d.perusahaan?.nama && h.nama === d.perusahaan.nama, `hud: company name ${JSON.stringify(h.nama)}, server ${JSON.stringify(d.perusahaan)}`);
+	cek(h.inisial || h.logo, "hud: neither a logo nor initials");
+	cek(/\b14\b/.test(h.jumlah || ""), `hud: machine chip reads ${JSON.stringify(h.jumlah)}`);
+	cek(h.kpi.mesin?.nilai === "14", `hud: Machines KPI ${JSON.stringify(h.kpi.mesin)}`);
+	// Status chips (the legend) count the server's statuses, an empty one as Idle.
+	const per = {};
+	for (const m of d.mesin) per[m.status || "Idle"] = (per[m.status || "Idle"] || 0) + 1;
+	for (const s of ["Production", "Setup", "Idle", "Problem", "Maintenance", "Off"])
+		cek(h.legenda[s] === String(per[s] || 0), `hud: ${s} chip ${h.legenda[s]}, server ${per[s] || 0}`);
+	const prod = per.Production || 0;
+	cek(h.kpi.jalan?.nilai === String(prod), `hud: Running ${JSON.stringify(h.kpi.jalan)}, server ${prod}`);
+	const util = Math.round((prod / d.mesin.length) * 100);
+	cek((h.kpi.jalan?.ket || "").includes(`${util}%`), `hud: utilization ${JSON.stringify(h.kpi.jalan?.ket)}, wanted ${util}%`);
+	cek(h.kpi.masalah?.nilai === String(per.Problem || 0), `hud: Problem KPI ${JSON.stringify(h.kpi.masalah)}`);
+	const wo = d.mesin.map((m) => m.wo).filter(Boolean);
+	cek(h.kpi.wo?.nilai === String(wo.filter((w) => w.status === "In Process").length), `hud: Work Orders running ${JSON.stringify(h.kpi.wo)}`);
+	const fmt = await p.evaluate((ws) => ws.map((n) => format_number(n, null, 0)), [wo.reduce((a, w) => a + (w.produced_qty || 0), 0), wo.reduce((a, w) => a + (w.qty || 0), 0)]);
+	cek(h.kpi.hasil?.nilai === `${fmt[0]} / ${fmt[1]}`, `hud: Output ${JSON.stringify(h.kpi.hasil)}, wanted ${fmt[0]} / ${fmt[1]}`);
+	// The clock ticks: a new text within 2 s.
+	const w1 = h.waktu;
+	cek(/\d\d.\d\d.\d\d/.test(w1 || ""), `hud: clock reads ${JSON.stringify(w1)}`);
+	cek(await tunggu(p, (w) => erp.lantai.aktif.host.shadowRoot.querySelector(".jam .waktu").textContent !== w, w1, 2000), "hud: the clock did not change within 2 s");
+	cek(h.tanggal, "hud: no date");
+	// Table: one row per machine in floor order; a row click selects like a click in the scene.
+	cek(h.baris.length === d.mesin.length && h.baris.every((b, i) => b.nama === d.mesin[i].name), `hud: table rows ${h.baris.map((b) => b.nama).join(",")}`);
+	cek(!h.tutup, "hud: the machine table starts collapsed on a wide screen");
+	await p.locator('.lantai-host .tabel tbody tr[data-mesin="Mesin 05"]').click();
+	cek(await tunggu(p, () => erp.lantai.aktif.info().pilih === "Mesin 05", null, 2000), "hud: a row click did not select Mesin 05");
+	await p.waitForTimeout(900); // the fly
+	const pn = await panelDari(p);
+	cek(pn?.nama === "Mesin 05", `hud: the row click opened ${pn?.nama}`);
+	const sesudah = await p.evaluate(() => ({ i: erp.lantai.aktif.info(), m: erp.lantai.aktif.info().mesin.find((m) => m.nama === "Mesin 05") }));
+	cek(Math.hypot(sesudah.i.target[0] - sesudah.m.x, sesudah.i.target[2] - sesudah.m.z) < 0.3, "hud: the row click did not fly the camera to Mesin 05");
+	const h2 = await hudDari(p);
+	cek(h2.baris.find((b) => b.nama === "Mesin 05")?.dipilih, "hud: the selected row is not marked");
+	cek(await p.evaluate(() => [...erp.lantai.aktif.host.shadowRoot.querySelectorAll(".label.dipilih")].map((l) => l.dataset.mesin).join()) === "Mesin 05", "hud: the label of the row's machine is not selected");
+	// Nothing covers the open panel.
+	for (const [n, k] of Object.entries(h2.kotak)) if (n !== "panel") cek(!tumpang(h2.kotak.panel, k), `hud: the panel overlaps the ${n} ${JSON.stringify([h2.kotak.panel, k])}`);
+	const ditutupi = await panelDiAtas(p);
+	cek(!ditutupi.length, `hud: points of the panel are covered at ${ditutupi.join(" ")}`);
+	await p.screenshot({ path: join(HASIL, "lantai-hud-panel.png") });
+	// Camera bar: + brings the camera closer, − takes it back; home is the default view.
+	const jarak = () => p.evaluate(() => {
+		const i = erp.lantai.aktif.info();
+		return Math.hypot(...i.kamera.map((v, k) => v - i.target[k]));
+	});
+	const j0 = await jarak();
+	await p.locator(".lantai-host .kamera .zum-masuk").click();
+	await p.waitForTimeout(400);
+	const j1 = await jarak();
+	cek(j1 < j0 * 0.9, `hud: + did not zoom in (${j0.toFixed(2)} → ${j1.toFixed(2)})`);
+	await p.locator(".lantai-host .kamera .zum-keluar").click();
+	await p.waitForTimeout(400);
+	const j2 = await jarak();
+	cek(Math.abs(j2 - j0) < 0.2, `hud: − did not zoom back out (${j0.toFixed(2)} → ${j1.toFixed(2)} → ${j2.toFixed(2)})`);
+	// Collapse: remembered across a reload.
+	await p.locator(".lantai-host .panel .tutup").click();
+	await p.locator(".lantai-host .tabel .lipat").click();
+	cek((await hudDari(p)).tutup, "hud: the fold button did not collapse the table");
+	await p.reload({ waitUntil: "domcontentloaded" });
+	await p.waitForFunction(() => window.erp?.lantai?.aktif?.info().mesin?.length > 0, null, { timeout: 20000 });
+	cek((await hudDari(p)).tutup, "hud: the collapsed table opened again after a reload");
+	await p.locator(".lantai-host .tabel .lipat").click();
+	cek(!(await hudDari(p)).tutup, "hud: the fold button did not open the table");
+	cek((await dialog(p)) === 0, "hud: a message dialog is open");
+	cek(!galatNyata(p.__galat).length, `hud: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	await ctx.close();
+
+	// Phone width: two compact rows, the table collapsed, the bottom sheet over everything.
+	const hp = await konteksMasuk(browser, { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+	const q = await bukaLantai(hp);
+	await q.waitForTimeout(1000);
+	const hh = await hudDari(q);
+	cek(hh.tutup, "hud: the machine table is open on a phone");
+	cek(hh.kotak.bar && hh.kotak.bar.kanan <= 390 && hh.kotak.kpi && hh.kotak.kpi.kanan <= 390, `hud: the bar is wider than the phone ${JSON.stringify(hh.kotak)}`);
+	cek(!tumpang(hh.kotak.bar, hh.kotak.kpi), "hud: the bar and the KPI row overlap on a phone");
+	const lebar = await q.evaluate(() => document.documentElement.scrollWidth);
+	cek(lebar <= 390, `hud: the page scrolls sideways on a phone (${lebar} px)`);
+	await q.screenshot({ path: join(HASIL, "lantai-hud-hp.png") });
+	await q.evaluate(() => erp.lantai.aktif.pilih("Mesin 03"));
+	await q.waitForTimeout(900);
+	const tertutup = await panelDiAtas(q);
+	cek(!tertutup.length, `hud: on a phone, points of the panel are covered at ${tertutup.join(" ")}`);
+	await q.screenshot({ path: join(HASIL, "lantai-hud-hp-panel.png") });
+	await hp.close();
+});
+
+// Realtime blocked: the dot says when the view was last updated instead of "Live".
+if (jalankan("hud-live")) await kasus("hud-live", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	cek(await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelector(".live").dataset.live === "1", null, 6000), `hud-live: the dot does not read Live with realtime on (${(await hudDari(p)).live})`);
+	cek((await hudDari(p)).live === "Live", `hud-live: the dot reads ${(await hudDari(p)).live}`);
+	await ctx.close();
+	const blok = await konteksMasuk(browser);
+	await blok.route("**/socket.io/**", (r) => r.abort());
+	await blok.routeWebSocket(/socket\.io/, (ws) => ws.close());
+	const q = await blok.newPage();
+	await q.goto(`${URL}/desk/production-floor`, { waitUntil: "domcontentloaded", timeout: 60000 });
+	await q.waitForFunction(() => window.erp?.lantai?.aktif?.info().mesin?.length > 0, null, { timeout: 20000 });
+	await q.waitForTimeout(1500);
+	const h = await hudDari(q);
+	cek(/^Updated \d\d.\d\d$/.test(h.live || "") && h.liveData === "0", `hud-live: with realtime blocked the dot reads ${JSON.stringify(h.live)} (${h.liveData})`);
+	await blok.close();
+});
+
+// A company name and logo from the server are data: text only, and only a same-origin file as the image.
+if (jalankan("hud-xss")) await kasus("hud-xss", async () => {
+	const RACUN = "<img src=x onerror=window.kena=1>";
+	for (const [logo, boleh] of [
+		["javascript:window.kena=2", false],
+		["https://contoh.invalid/logo.png", false],
+		["//contoh.invalid/files/logo.png", false],
+		["/files/logo-uji.png", true],
+	]) {
+		const ctx = await konteksMasuk(browser);
+		await ctx.route("**/api/method/erp_internal.production_floor.get_data*", async (r) => {
+			const asli = await r.fetch();
+			const j = await asli.json();
+			j.message.perusahaan = { nama: RACUN, logo };
+			await r.fulfill({ response: asli, json: j });
+		});
+		const p = await bukaLantai(ctx);
+		await p.waitForTimeout(700);
+		const h = await hudDari(p);
+		cek(h.nama === RACUN, `hud-xss: the company name shows ${JSON.stringify(h.nama)}`);
+		cek((await p.evaluate(() => window.kena)) === undefined, `hud-xss: script ran (window.kena set) with logo ${logo}`);
+		const img = await p.evaluate(() => [...erp.lantai.aktif.host.shadowRoot.querySelectorAll("img")].map((i) => i.getAttribute("src")));
+		if (boleh) cek(img.length === 1 && img[0]?.endsWith("/files/logo-uji.png"), `hud-xss: a same-origin file logo was not used (${JSON.stringify(img)})`);
+		else cek(img.every((s) => s === null), `hud-xss: logo ${logo} became an image src ${JSON.stringify(img)}`);
+		if (!boleh) cek(h.inisial === "IS", `hud-xss: initials ${JSON.stringify(h.inisial)} for a refused logo`);
+		await ctx.close();
+	}
+});
+
+// Glass: every fixed card blurs what is behind it (the moving labels do not, see label.js), and every text keeps 4.5:1 against its card over the floor, light and
+// dark. The backdrop is taken as the scene's background colour (the floor under the cards is close to it).
+if (jalankan("glass")) await kasus("glass", async () => {
+	const ctx = await konteksMasuk(browser, { deviceScaleFactor: 2 });
+	const p = await bukaLantai(ctx);
+	await p.waitForTimeout(1200);
+	await p.evaluate(() => erp.lantai.aktif.pilih("Mesin 03"));
+	await p.waitForTimeout(1200);
+	const KARTU = [".bar", ".kpi", ".tabel", ".kamera", ".panel", ".label .isi"];
+	// The labels move with the camera: glass fill and edge without the blur (label.js), so no blur asserted.
+	const TANPA_BLUR = [".label .isi"];
+	for (const tema of ["light", "dark"]) {
+		await p.evaluate((t) => document.documentElement.setAttribute("data-theme", t), tema);
+		await p.waitForTimeout(500);
+		const hasil = await p.evaluate((KARTU) => {
+			const r = erp.lantai.aktif.host.shadowRoot;
+			const host = erp.lantai.aktif.host;
+			const c = document.createElement("canvas");
+			c.width = c.height = 1;
+			const g = c.getContext("2d", { willReadFrequently: true });
+			// Any CSS colour to [r, g, b, a] through the canvas.
+			const warna = (css) => {
+				g.clearRect(0, 0, 1, 1);
+				g.fillStyle = "rgba(0,0,0,0)";
+				g.fillStyle = css;
+				g.fillRect(0, 0, 1, 1);
+				const d = g.getImageData(0, 0, 1, 1).data;
+				return [d[0], d[1], d[2], d[3] / 255];
+			};
+			const atas = (f, b) => [0, 1, 2].map((i) => f[i] * f[3] + b[i] * (1 - f[3]));
+			const terang = (w) => {
+				const [R, G, B] = w.map((v) => {
+					const s = v / 255;
+					return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+				});
+				return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+			};
+			const rasio = (a, b) => {
+				const [x, y] = [terang(a), terang(b)].sort((m, n) => n - m);
+				return (x + 0.05) / (y + 0.05);
+			};
+			const latar = warna(getComputedStyle(host).getPropertyValue("--lantai-latar").trim()).slice(0, 3);
+			const blur = {};
+			const buruk = [];
+			let terendah = 99;
+			for (const sel of KARTU) {
+				const kartu = r.querySelector(sel);
+				if (!kartu) {
+					buruk.push(`${sel}: missing`);
+					continue;
+				}
+				const cs = getComputedStyle(kartu);
+				blur[sel] = cs.backdropFilter || cs.webkitBackdropFilter;
+				// Every visible text node's element inside the card.
+				const jalan = document.createTreeWalker(kartu, NodeFilter.SHOW_TEXT);
+				const dilihat = new Set();
+				while (jalan.nextNode()) {
+					const e = jalan.currentNode.parentElement;
+					if (!jalan.currentNode.textContent.trim() || dilihat.has(e) || !e.getClientRects().length) continue;
+					if (getComputedStyle(e).visibility === "hidden") continue;
+					dilihat.add(e);
+					// Backgrounds from the card down to the text's element, over the floor.
+					const rantai = [];
+					for (let x = e; x; x = x.parentElement) {
+						rantai.unshift(x);
+						if (x === kartu) break;
+					}
+					let bg = latar;
+					for (const x of rantai) bg = atas(warna(getComputedStyle(x).backgroundColor), bg);
+					const teks = atas(warna(getComputedStyle(e).color), bg);
+					const k = rasio(teks, bg);
+					terendah = Math.min(terendah, k);
+					if (k < 4.5) buruk.push(`${sel} "${e.textContent.trim().slice(0, 24)}" ${k.toFixed(2)}`);
+				}
+			}
+			return { blur, buruk, terendah, tema: host.dataset.tema };
+		}, KARTU);
+		cek(hasil.tema === tema, `glass: the host's theme is ${hasil.tema}, Desk's ${tema}`);
+		for (const [sel, b] of Object.entries(hasil.blur))
+			if (!TANPA_BLUR.includes(sel)) cek(/blur/.test(b || ""), `glass (${tema}): ${sel} backdrop-filter ${JSON.stringify(b)}`);
+		cek(!hasil.buruk.length, `glass (${tema}): contrast under 4.5:1: ${hasil.buruk.slice(0, 6).join("; ")}`);
+		console.log(`glass (${tema}): lowest text contrast ${hasil.terendah.toFixed(2)}:1`);
+		await p.screenshot({ path: join(HASIL, `lantai-kaca-${tema === "light" ? "terang" : "gelap"}.png`) });
+	}
+	await p.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+	await ctx.close();
+});
+
 cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ").slice(0, 400)}`);
 // The headless pages above still draw their scenes; close them so the headed cases measure this page alone.
 await browser.close();
@@ -912,7 +1205,7 @@ if (jalankan("perf")) {
 			const mulai = performance.now();
 			window.__mulai = mulai;
 			new PerformanceObserver((l) => {
-				for (const e of l.getEntries()) if (e.startTime >= mulai) window.__lt.push(e.duration);
+				for (const e of l.getEntries()) if (e.startTime >= mulai) window.__lt.push(`${((e.startTime - mulai) / 1000).toFixed(2)}s:${e.duration}`);
 			}).observe({ type: "longtask", buffered: true });
 			// Two clocks per frame: the rAF timestamp (vsync-aligned; Chrome keeps it on the beat even when the main
 			// thread stalled, so it only feeds the informational p95) and performance.now() inside the callback, which
@@ -1130,4 +1423,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, hidden, id, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);

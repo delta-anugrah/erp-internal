@@ -36,6 +36,12 @@ const LAMA_LAMBAT = 2000;
 const JENDELA = 30; // frames in the rolling mean
 const MIN_FRAME = 5; // frames before the mean counts (a very slow machine must not wait for JENDELA)
 const LAMA_TERBANG = 700; // ms for the camera's flight to a selected machine
+const LAMA_ZUM = 260; // ms for a zoom step of the camera bar
+// Floor and background per Desk theme; machines keep their own colours.
+const TEMA = {
+	light: { latar: 0xdfe3e8, lantai: 0xf2f4f6, penanda: 0x8a94a0 },
+	dark: { latar: 0x1e232a, lantai: 0x2b313a, penanda: 0x6b7480 },
+};
 const JARAK_TERBANG = 12; // camera distance from the machine after the flight
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
@@ -81,10 +87,8 @@ export function buatAdegan(root) {
 	matahari.position.set(10, 20, 12);
 	scene.add(matahari);
 
-	const lantai = new THREE.Mesh(
-		new THREE.PlaneGeometry(LEBAR, DALAM),
-		new THREE.MeshLambertMaterial({ color: 0xf2f4f6 })
-	);
+	const bahanLantai = new THREE.MeshLambertMaterial({ color: TEMA.light.lantai });
+	const lantai = new THREE.Mesh(new THREE.PlaneGeometry(LEBAR, DALAM), bahanLantai);
 	lantai.rotation.x = -Math.PI / 2;
 	scene.add(lantai);
 
@@ -145,17 +149,25 @@ export function buatAdegan(root) {
 	const terbang = {
 		aktif: false,
 		mulai: 0,
+		lama: LAMA_TERBANG,
 		dariPos: new THREE.Vector3(),
 		dariTarget: new THREE.Vector3(),
 		kePos: new THREE.Vector3(),
 		keTarget: new THREE.Vector3(),
 	};
-	// A drag or a wheel during the flight hands the camera back to the user.
+	// A drag or a wheel during the flight hands the camera back to the user. A held drag counts as moving from
+	// its first press, before the camera changes.
+	let seret = false;
 	kontrol.addEventListener("start", () => {
 		terbang.aktif = false;
+		seret = true;
+	});
+	kontrol.addEventListener("end", () => {
+		seret = false;
+		gerakTerakhir = performance.now();
 	});
 	function langkahTerbang(sekarang) {
-		const t = Math.min((sekarang - terbang.mulai) / LAMA_TERBANG, 1);
+		const t = Math.min((sekarang - terbang.mulai) / terbang.lama, 1);
 		const e = easeInOutCubic(t);
 		kamera.position.lerpVectors(terbang.dariPos, terbang.kePos, e);
 		kontrol.target.lerpVectors(terbang.dariTarget, terbang.keTarget, e);
@@ -249,8 +261,8 @@ export function buatAdegan(root) {
 		scene,
 		kamera,
 		kanvas: renderer.domElement,
-		// ms since the camera last moved (orbit, damping, flight).
-		sejakGerak: () => performance.now() - gerakTerakhir,
+		// ms since the camera last moved (orbit, damping, flight); 0 while a drag is held.
+		sejakGerak: () => (seret ? 0 : performance.now() - gerakTerakhir),
 		penanda,
 		penyegar,
 		tiap,
@@ -265,7 +277,32 @@ export function buatAdegan(root) {
 			if (v0.lengthSq() < 1e-6) v0.set(0, 1, 1);
 			terbang.kePos.copy(terbang.keTarget).addScaledVector(v0.normalize(), JARAK_TERBANG);
 			terbang.mulai = performance.now();
+			terbang.lama = LAMA_TERBANG;
 			terbang.aktif = true;
+			tandaiKotor();
+		},
+		// The camera bar's + and −: the distance to the target times `faktor`, within the orbit limits, eased.
+		zum(faktor) {
+			const dari = terbang.aktif ? terbang.kePos : kamera.position;
+			const ke = terbang.aktif ? terbang.keTarget : kontrol.target;
+			v0.subVectors(dari, ke);
+			const jarak = Math.min(Math.max(v0.length() * faktor, kontrol.minDistance), kontrol.maxDistance);
+			if (v0.lengthSq() < 1e-6) v0.set(0, 1, 1);
+			terbang.keTarget.copy(ke);
+			terbang.kePos.copy(ke).addScaledVector(v0.normalize(), jarak);
+			terbang.dariPos.copy(kamera.position);
+			terbang.dariTarget.copy(kontrol.target);
+			terbang.mulai = performance.now();
+			terbang.lama = LAMA_ZUM;
+			terbang.aktif = true;
+			tandaiKotor();
+		},
+		// Desk's light or dark theme on the floor and background.
+		tema(gelap) {
+			const t = gelap ? TEMA.dark : TEMA.light;
+			scene.background.setHex(t.latar);
+			bahanLantai.color.setHex(t.lantai);
+			bahanPenanda.color.setHex(t.penanda);
 			tandaiKotor();
 		},
 		// Debug for tools/lantai.mjs: put the camera at `pos` looking at `target` (arrays), no flight.
