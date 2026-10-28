@@ -4,8 +4,11 @@ Each helper writes only what differs, so running it twice changes nothing. Compa
 setup wizard: before it is complete there is no company, root item group or root warehouse to build on.
 """
 
+from datetime import date
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.utils import cint, get_time, getdate, today
 
 from erp_internal import tampilan
 
@@ -74,6 +77,35 @@ GUDANG_GRUP = {
 	"Kemasan": "Gudang Bahan Baku",
 }
 
+# The office. One shift for everyone, attendance by phone with location (Samuel's question 5; until he answers,
+# 08:00-17:00). `auto_update_last_sync` lets HRMS's hourly job move the sync point, without which auto attendance
+# never runs. `process_attendance_after` is site config `erp_mulai_absen`, else the day the shift is created.
+SHIFT_KANTOR = {
+	"name": "Kantor",
+	"start_time": "08:00:00",
+	"end_time": "17:00:00",
+	"enable_auto_attendance": 1,
+	"auto_update_last_sync": 1,
+	"determine_check_in_and_check_out": "Alternating entries as IN and OUT during the same shift",
+	"working_hours_calculation_based_on": "First Check-in and Last Check-out",
+	"begin_check_in_before_shift_start_time": 60,
+	"allow_check_out_after_shift_end_time": 120,
+	"late_entry_grace_period": 10,
+	"enable_late_entry_marking": 1,
+	"early_exit_grace_period": 10,
+	"enable_early_exit_marking": 1,
+}
+PENGATURAN_HR = {"allow_employee_checkin_from_mobile_app": 1, "allow_geolocation_tracking": 1}
+# Per office company and year, a Holiday List "Libur <abbr> <year>" with these weekly offs, assigned to the
+# company (v16 HRMS resolves holidays through Holiday List Assignment). HR adds the national holidays (SKB).
+LIBUR_MINGGUAN = ("Saturday", "Sunday")
+TAHUN_LIBUR = (0, 1)  # this year and next
+JENIS_CUTI = {
+	"Cuti Tahunan": {"max_leaves_allowed": 12, "is_lwp": 0},
+	"Sakit": {"is_lwp": 0},
+	"Izin": {"is_lwp": 1},
+}
+
 
 def pastikan_setup() -> None:
 	"""Bring the site to the state this app expects. Idempotent; safe before the setup wizard."""
@@ -88,6 +120,7 @@ def pastikan_setup() -> None:
 	_bawaan()
 	_alur_jual_beli()
 	_produksi()
+	_kantor()
 	tampilan.terapkan()
 
 
@@ -314,3 +347,112 @@ def _produksi() -> None:
 				ubah = True
 		if ubah:
 			doc.save(ignore_permissions=True)
+
+
+def _kantor() -> None:
+	"""Attendance and leave for the office: HR Settings, the Kantor shift, holiday lists, leave types."""
+	doc = frappe.get_single("HR Settings")
+	beda = {k: v for k, v in PENGATURAN_HR.items() if doc.get(k) != v}
+	if beda:
+		doc.update(beda)
+		doc.flags.ignore_mandatory = True
+		doc.save(ignore_permissions=True)
+
+	_shift()
+
+	tahun = getdate(today()).year
+	for company in perusahaan("Kantor"):
+		for tambah in TAHUN_LIBUR:
+			pastikan_libur(company, tahun + tambah)
+		daftar = nama_libur(company, tahun)
+		if frappe.db.get_value("Company", company, "default_holiday_list") != daftar:
+			# db.set_value: Company's own save rebuilds its default accounts.
+			frappe.db.set_value("Company", company, "default_holiday_list", daftar)
+
+	for nama, nilai in JENIS_CUTI.items():
+		if not frappe.db.exists("Leave Type", nama):
+			frappe.get_doc({"doctype": "Leave Type", "leave_type_name": nama, **nilai}).insert(
+				ignore_permissions=True
+			)
+			continue
+		doc = frappe.get_doc("Leave Type", nama)
+		beda = {k: v for k, v in nilai.items() if doc.get(k) != v}
+		if beda:
+			doc.update(beda)
+			doc.save(ignore_permissions=True)
+
+
+def _shift() -> None:
+	nama = SHIFT_KANTOR["name"]
+	nilai = {k: v for k, v in SHIFT_KANTOR.items() if k != "name"}
+	mulai = frappe.conf.get("erp_mulai_absen")
+	if not frappe.db.exists("Shift Type", nama):
+		frappe.get_doc(
+			{"doctype": "Shift Type", "name": nama, **nilai, "process_attendance_after": mulai or today()}
+		).insert(ignore_permissions=True)
+		return
+
+	doc = frappe.get_doc("Shift Type", nama)
+	beda = {k: v for k, v in nilai.items() if not _sama(doc.get(k), v)}
+	if mulai and getdate(doc.process_attendance_after) != getdate(mulai):
+		beda["process_attendance_after"] = mulai
+	if not beda:
+		return
+	doc.update(beda)
+	try:
+		doc.save(ignore_permissions=True)
+	except frappe.ValidationError:
+		# HRMS refuses a new start time while check-ins wait for attendance; the next migrate retries.
+		frappe.log_error(f"Shift {nama} not updated: {sorted(beda)}", "erp_internal setup")
+
+
+def _sama(kini, nilai) -> bool:
+	"""Whether a stored value equals a SHIFT_KANTOR value (times are stored as timedeltas)."""
+	if isinstance(nilai, str) and nilai.count(":") == 2:
+		return kini is not None and get_time(kini) == get_time(nilai)
+	if isinstance(nilai, int):
+		return cint(kini) == nilai
+	return kini == nilai
+
+
+def nama_libur(company: str, tahun: int) -> str:
+	"""The office company's Holiday List for `tahun`: `"Libur <abbr> <tahun>"`."""
+	return f"Libur {frappe.get_cached_value('Company', company, 'abbr')} {tahun}"
+
+
+def pastikan_libur(company: str, tahun: int) -> str:
+	"""Get or create the company's Holiday List for `tahun`, with the LIBUR_MINGGUAN weekly offs, and its
+	submitted Holiday List Assignment from 1 January. An existing list is left as HR keeps it."""
+	nama = nama_libur(company, tahun)
+	awal = date(tahun, 1, 1)
+	if not frappe.db.exists("Holiday List", nama):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Holiday List",
+				"holiday_list_name": nama,
+				"from_date": awal,
+				"to_date": date(tahun, 12, 31),
+			}
+		)
+		for hari in LIBUR_MINGGUAN:
+			doc.weekly_off = hari
+			doc.get_weekly_off_dates()
+		doc.insert(ignore_permissions=True)
+
+	# One submitted assignment per company and start date (HRMS refuses a second one); HR's own stays.
+	if not frappe.db.exists(
+		"Holiday List Assignment", {"assigned_to": company, "from_date": awal, "docstatus": 1}
+	):
+		hla = frappe.get_doc(
+			{
+				"doctype": "Holiday List Assignment",
+				"applicable_for": "Company",
+				"assigned_to": company,
+				"holiday_list": nama,
+				"from_date": awal,
+			}
+		)
+		hla.flags.ignore_permissions = True
+		hla.insert()
+		hla.submit()
+	return nama

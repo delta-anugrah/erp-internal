@@ -48,7 +48,19 @@ class TestSetup(IntegrationTestCase):
 
 	def test_idempoten(self):
 		def hitung():
-			return {dt: frappe.db.count(dt) for dt in ("Warehouse", "Item Group", "UOM", "Custom Field")}
+			return {
+				dt: frappe.db.count(dt)
+				for dt in (
+					"Warehouse",
+					"Item Group",
+					"UOM",
+					"Custom Field",
+					"Shift Type",
+					"Holiday List",
+					"Holiday List Assignment",
+					"Leave Type",
+				)
+			}
 
 		sebelum = hitung()
 		pastikan_setup()

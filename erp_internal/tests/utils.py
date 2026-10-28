@@ -345,3 +345,97 @@ def lama_produksi(kode: str, per_hari: float, cadangan: float = 0, beli_hari: fl
 		.insert(ignore_permissions=True)
 		.name
 	)
+
+
+def buat_karyawan(
+	nama: str,
+	company: str,
+	user: str | None = None,
+	masuk: date | None = None,
+	izin_sendiri: bool = True,
+	kelamin: str = "Female",
+	**field,
+) -> str:
+	"""Get or create the active Employee `nama` of `company` (found by first name and company), joined on
+	`masuk` (default two years ago), linked to `user` when given. `izin_sendiri` lets ERPNext restrict that
+	user to their own Employee record (a Karyawan); HR and managers get it off. `field` adds other fields
+	(`last_name`)."""
+	from frappe.utils import add_months, getdate, today
+
+	ada = frappe.db.get_value("Employee", {"first_name": nama, "company": company}, "name")
+	if ada:
+		return ada
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "Employee",
+				"first_name": nama,
+				"company": company,
+				"gender": kelamin,
+				"date_of_birth": add_months(getdate(today()), -12 * 30),
+				"date_of_joining": masuk or add_months(getdate(today()), -24),
+				"status": "Active",
+				"user_id": user,
+				"create_user_permission": int(bool(user) and izin_sendiri),
+				**field,
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
+
+
+def penugasan_shift(karyawan: str, shift: str, mulai: date) -> str:
+	"""Get or create the submitted Shift Assignment of `karyawan` to `shift` from `mulai`, open-ended."""
+	ada = frappe.db.get_value(
+		"Shift Assignment", {"employee": karyawan, "shift_type": shift, "docstatus": 1}, "name"
+	)
+	if ada:
+		return ada
+	doc = frappe.get_doc(
+		{
+			"doctype": "Shift Assignment",
+			"employee": karyawan,
+			"shift_type": shift,
+			"company": frappe.db.get_value("Employee", karyawan, "company"),
+			"start_date": mulai,
+			"status": "Active",
+		}
+	)
+	doc.flags.ignore_permissions = True
+	doc.insert()
+	doc.submit()
+	return doc.name
+
+
+def jatah_cuti(karyawan: str, jenis: str, jumlah: float, dari: date, sampai: date) -> str:
+	"""Get or create the submitted Leave Allocation of `jumlah` days of `jenis` for `karyawan`, from `dari`
+	to `sampai`."""
+	ada = frappe.db.get_value(
+		"Leave Allocation",
+		{
+			"employee": karyawan,
+			"leave_type": jenis,
+			"docstatus": 1,
+			"from_date": ("<=", sampai),
+			"to_date": (">=", dari),
+		},
+		"name",
+	)
+	if ada:
+		return ada
+	doc = frappe.get_doc(
+		{
+			"doctype": "Leave Allocation",
+			"employee": karyawan,
+			"company": frappe.db.get_value("Employee", karyawan, "company"),
+			"leave_type": jenis,
+			"from_date": dari,
+			"to_date": sampai,
+			"new_leaves_allocated": jumlah,
+		}
+	)
+	doc.flags.ignore_permissions = True
+	doc.insert()
+	doc.submit()
+	return doc.name
