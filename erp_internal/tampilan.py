@@ -427,22 +427,27 @@ def saring_aplikasi(bootinfo) -> None:
 		frappe.log_error("erp_internal: saring_aplikasi")
 
 
-# App → the name its Apps screen tile and rail header show (Samuel, 2026-10-28). Every app shows the Delta
-# Anugrah mark (`setup.LOGO`) instead of its own logo. Frappe's tile ("System") shows for Developer only.
-NAMA_APLIKASI = {"erpnext": "Operations", "hrms": "HR", "frappe": "System"}
+# App → the name and icon its Apps screen tile and its rail's top slot show (Abel, 2026-10-28). Each icon is a
+# Delta-blue rounded square with a white Lucide glyph (`public/images/aplikasi-*.svg`). Frappe's tile ("System")
+# shows for Developer only. The Delta Anugrah logo itself stays on the navbar, login, splash and favicon.
+NAMA_APLIKASI = {"erpnext": "ERP", "hrms": "HR", "frappe": "System"}
+IKON_APLIKASI = {
+	"erpnext": "/assets/erp_internal/images/aplikasi-erp.svg",  # Lucide factory
+	"hrms": "/assets/erp_internal/images/aplikasi-hr.svg",  # Lucide users
+	"frappe": "/assets/erp_internal/images/aplikasi-sistem.svg",  # Lucide settings
+}
 
 
 def merek_aplikasi(bootinfo) -> None:
-	"""extend_bootinfo: our mark and NAMA_APLIKASI on each app's tile and rail top slot (`app_data`).
+	"""extend_bootinfo: NAMA_APLIKASI and IKON_APLIKASI on each app's tile and rail top slot (`app_data`).
 
 	Only the boot copy changes; the apps' hooks stay theirs. Boot must never fail."""
 	try:
-		from erp_internal.setup import LOGO
-
 		for app in bootinfo.get("app_data") or []:
-			app["app_logo_url"] = LOGO
-			if app.get("app_name") in NAMA_APLIKASI:
-				app["app_title"] = NAMA_APLIKASI[app["app_name"]]
+			nama = app.get("app_name")
+			if nama in NAMA_APLIKASI:
+				app["app_title"] = NAMA_APLIKASI[nama]
+				app["app_logo_url"] = IKON_APLIKASI[nama]
 	except Exception:
 		frappe.log_error("erp_internal: merek_aplikasi")
 

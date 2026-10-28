@@ -6,9 +6,9 @@ Newest first. One entry per working session: what changed, test results as run, 
 - `delta-anugrah.svg`: the mark redrawn by hand (one outline, dark 14-unit edge under the blue fill, colours sampled
   from the JPEG: #1f4782, #111216), compared rendered against the JPEG (shape off by under 1 % of pixels). The
   512 px PNG and both favicons are rendered from it (cairosvg via uvx). `setup.LOGO` points at the SVG.
-- `tampilan.merek_aplikasi` (`extend_bootinfo`): every Apps tile and rail top slot shows the mark; tiles are
-  Operations, HR, System (id: Operasional, SDM, Sistem). `test_merek_aplikasi`, `cek_layar` checks the tile names,
-  tile logos and the rail's top logo.
+- `tampilan.merek_aplikasi` (`extend_bootinfo`): tiles named ERP, HR, System (id: ERP, SDM, Sistem), each with its
+  own icon (Delta-blue rounded square, white Lucide glyph: factory, users, settings; `aplikasi-*.svg`), also on the
+  rail's top slot. `test_merek_aplikasi`; `cek_layar` checks each tile's name and icon and the rail's top icon.
 - No JS/CSS changed, no build.
 
 ## 2026-10-28 (Delta Anugrah logo)

@@ -120,5 +120,5 @@ Set site config erp_sandi_contoh first: it is the password of the sample users.,
 "Warehouse {0} does not belong to company {1}.","Gudang {0} bukan milik perusahaan {1}."
 "You can only submit your own timesheet.","Kamu cuma bisa submit timesheet milikmu sendiri."
 HR,SDM
-Operations,Operasional
+ERP,ERP
 System,Sistem

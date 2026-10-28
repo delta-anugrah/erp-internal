@@ -39,8 +39,10 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   (Website Settings first), the Apps screen top left Navbar Settings. `setup.LOGO` is `delta-anugrah.svg`, hand-drawn
   from the original JPEG; the PNGs (512 px logo, favicons) are rendered from it, the favicon stays PNG.
 - App tiles and the rail's top slot: `tampilan.merek_aplikasi` (second `extend_bootinfo`, after `saring_aplikasi`)
-  sets every `app_data[].app_logo_url` to `setup.LOGO` and `app_title` from `NAMA_APLIKASI` (erpnext Operations,
-  hrms HR, frappe System); the names are in `id.csv` and `test_layar_diterjemahkan`. Frappe's
+  sets `app_title` from `NAMA_APLIKASI` (erpnext ERP, hrms HR, frappe System) and `app_logo_url` from
+  `IKON_APLIKASI` (`public/images/aplikasi-*.svg`: Delta blue #1f4782 rounded square, white Lucide glyph, path data
+  copied from lucide-static 1.47.0, ISC). The names are in `id.csv` and `test_layar_diterjemahkan`. The Delta logo
+  stays on the navbar, login, splash and favicon only. Frappe's
   `workspace_payload` (a workspace saved from the desk) sends a fresh `app_data` without our hooks: the old names
   and logos, and hidden tiles, come back on that tab until a reload.
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.

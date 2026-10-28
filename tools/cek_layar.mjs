@@ -16,7 +16,12 @@ import { chromium } from "playwright";
 
 const URL = (process.env.ERP_URL || "http://erp.localhost:8002").replace(/\/$/, "");
 const SANDI = process.env.ERP_SANDI;
-const MARK = "/assets/erp_internal/images/delta-anugrah.svg";
+// Keep in step with tampilan.NAMA_APLIKASI / IKON_APLIKASI.
+const IKON_TILE = {
+	ERP: "/images/aplikasi-erp.svg",
+	HR: "/images/aplikasi-hr.svg",
+	System: "/images/aplikasi-sistem.svg",
+};
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
 // Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on.
@@ -114,18 +119,22 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			const kurang = harap.modul.filter((m) => !rail.includes(m));
 			cek(!lebih.length && !kurang.length, `rail extra [${lebih}] missing [${kurang}]`);
 			cek(tile.includes("frappe") === harap.build, `System (Build) tile ${harap.build ? "missing" : "shown"}`);
-			// Our mark and names on every tile (tampilan.merek_aplikasi), never an app's own.
-			const ubin = await page.locator(".icons .icon-title").allInnerTexts();
-			cek(
-				ubin.length && ubin.every((t) => ["Operations", "HR", "System"].includes(t.trim())),
-				`tile names: [${ubin}]`
+			// Our names and icons on every tile (tampilan.merek_aplikasi), never an app's own.
+			const ubin = await page.locator(".icons > *").evaluateAll((l) =>
+				l.map((t) => [
+					t.querySelector(".icon-title")?.innerText.trim(),
+					t.querySelector("img.app-icon")?.getAttribute("src"),
+				])
 			);
-			const logo = await page.locator(".icons img.app-icon").evaluateAll((l) => l.map((i) => i.src));
-			cek(logo.length && logo.every((s) => s.endsWith(MARK)), `tile logos: [${logo}]`);
+			cek(
+				ubin.length && ubin.every(([t, src]) => IKON_TILE[t] && src?.endsWith(IKON_TILE[t])),
+				`tiles: ${JSON.stringify(ubin)}`
+			);
 		}
 		if (nama === "rumah") {
+			// The rail's top slot shows the icon of the app the module belongs to.
 			const atas = await page.locator(".dock-logo .header-logo img").first().getAttribute("src");
-			cek(atas?.endsWith(MARK), `rail top logo: ${atas}`);
+			cek(Object.values(IKON_TILE).some((i) => atas?.endsWith(i)), `rail top logo: ${atas}`);
 		}
 	}
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
