@@ -61,6 +61,10 @@ Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, 
 
 **Manufacturing → Order Readiness** (Penjualan: **Selling → Order Readiness**). Satu baris per produk jadi, untuk bulan yang dipilih:
 
+Pilih Company dan (kalau perlu) Warehouse milik company itu. Kalau muncul izin ditolak atau "Warehouse ... does
+not belong to company", akunmu nggak boleh buka company atau gudang itu.
+
+
 | Kolom | Artinya |
 |---|---|
 | Stock | stok di Gudang Barang Jadi |

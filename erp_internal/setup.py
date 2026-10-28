@@ -109,7 +109,7 @@ JENIS_CUTI = {
 # Projects: what a timesheet row is spent on. No billing or costing rates (internal work).
 JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")
 # DocType → role → rights added to ERPNext's own (a Custom DocPerm copy). A Karyawan (role Employee) creates and
-# writes timesheets in v16 but cannot submit them; ERPNext's Employee User Permission keeps them to their own.
+# writes timesheets in v16 but cannot submit them; the `proyek.cek_pemilik_timesheet` hook keeps them to their own.
 IZIN_TAMBAHAN = {"Timesheet": {"Employee": ("submit",)}}
 
 

@@ -42,5 +42,7 @@ di tampilan bahasa Inggris.
    - **From Time**: jam mulai, dan **Hrs**: berapa jam (misalnya `2`);
    - **Project** dan **Task**: proyek dan tugasnya.
 4. **Save**, lalu **Submit** di akhir hari. Setelah di-submit, jamnya masuk ke tugas dan proyek.
+   Kamu cuma bisa submit timesheet atas namamu sendiri. Kalau muncul "You can only submit your own timesheet",
+   cek kolom Employee. Manajer Proyek dan HR bisa submit milik orang lain.
 
 Salah isi setelah submit? Minta Manajer Proyek membatalkannya (**Cancel**) dan membetulkannya (**Amend**).

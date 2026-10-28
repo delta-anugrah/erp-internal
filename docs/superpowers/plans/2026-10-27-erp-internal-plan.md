@@ -1227,8 +1227,10 @@ def test_kurang_cuma_dari_perkiraan(self):
 - `test_order_selesai_diabaikan` closes one order with `update_status("Closed")` and sets another's status to
   Completed with `db_set` (a fully delivered order already has nothing open). New `test_urutan_dan_execute` and two
   extra `rumus` unit tests (`kurang` never negative and rounded up; the STATUS order).
-- `execute` refuses an empty company ("Select a company."). The report does not check the user's Company
-  permission: like the sidebars it is tidying, not a fence (design §8 item 2).
+- `execute` refuses an empty company ("Select a company."). Then it checks Company read and, with a `gudang`
+  filter, that the warehouse belongs to the company and is readable (731d843). The report reads Bin, Sales Order and
+  Work Order with `get_all`, so these checks are the fence. Tests: `test_perusahaan_tanpa_izin_ditolak`,
+  `test_gudang_perusahaan_lain_ditolak`.
 
 
 ### Task 14: Go-live wave 2, production
@@ -1342,7 +1344,7 @@ Settings:
   - `test_jenis_kegiatan`: all four Activity Types exist.
   - `test_gudang_tidak_baca_proyek`: as Gudang, `frappe.has_permission("Project", "read")` is false.
 - [ ] **Step 2: Run them.** Expected: FAIL (Activity Types missing). Not run: no site yet.
-- [x] **Step 3: Implement `_proyek()`** and run again. Expected: 3 tests OK. Implemented; not run: no site yet.
+- [x] **Step 3: Implement `_proyek()`** and run again. Expected: 5 tests OK (see the deviations). Implemented; not run: no site yet.
 - [x] **Step 4: Write `docs/panduan/proyek.md`** in plain Indonesian: projects, tasks, the daily timesheet, and what
   the Manajer Proyek checks each week.
 - [x] **Step 5: Commit** `feat(proyek): activity types and the project flow`.
@@ -1351,10 +1353,11 @@ Settings:
 - **A Karyawan cannot submit a Timesheet in stock v16** (role Employee: create, read, write). `setup.IZIN_TAMBAHAN`
   adds `submit` for Employee on Timesheet through Frappe's own `add_permission`/`update_permission_property`. That
   copies Timesheet's standard rules into Custom DocPerm on first use, so a later ERPNext change to Timesheet's
-  standard permissions is masked until someone resets them (Role Permissions Manager). A Karyawan's Employee User
-  Permission (`create_user_permission`) keeps them to their own timesheets. Cancel and amend stay with Projects User.
+  standard permissions is masked until someone resets them (Role Permissions Manager). The extra `submit` is guarded by
+  `erp_internal/proyek.py` `cek_pemilik_timesheet` (Timesheet `before_submit`, 4e815e4): without System Manager,
+  Projects Manager/User or HR Manager/User a user submits only a timesheet of their own Employee. Cancel and amend stay with Projects User.
 - An existing Activity Type with a rate or disabled gets rates 0 and enabled again.
-- New `test_idempoten` (Activity Type and Custom DocPerm counts after a second `pastikan_setup`): 4 tests, not 3.
+- New `test_idempoten` (Activity Type and Custom DocPerm counts after a second `pastikan_setup`): 4 tests, not 3; 5 with `test_timesheet_orang_lain_ditolak` (4e815e4).
 
 ### Task 17: Go-live wave 3, the office
 

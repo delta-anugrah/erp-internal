@@ -32,11 +32,11 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 - [x] Task 10: forecast math (`test_rumus.py`, now 13 unit tests incl. Task 13's, OK without a site; rerun under `bench run-tests` later)
 - [~] Task 11: Fill from History (written, tests not run; try the button after `bench build`)
 - [~] Task 12: production flow (written, tests not run; guide screenshots wait for the site)
-- [~] Task 13: Order Readiness report (written; rumus unit tests OK, integration tests not run)
+- [~] Task 13: Order Readiness report (written; rumus unit tests OK, integration tests incl. the 2 permission tests not run)
 - [ ] Task 14: go-live wave 2 (local dry run only)
 
 ## Part C: office
 - [~] Task 15: attendance (written, tests not run; HRMS app buttons to check on the site)
-- [~] Task 16: projects (written, tests not run)
+- [~] Task 16: projects (written incl. the own-timesheet guard `proyek.py`, tests not run)
 - [ ] Task 17: go-live wave 3 (local dry run only)
 - [~] `erp_internal/contoh.py` sample data (Revision 3 item 4; written, `test_contoh` not run, not yet run on `erp.localhost`)

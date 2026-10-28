@@ -2,6 +2,14 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+
+## 2026-10-28 (security fixes)
+- 731d843: Order Readiness checks Company read, and the Warehouse's company and read, before reading Bin, Sales
+  Order and Work Order (2 new tests).
+- 4e815e4: `erp_internal/proyek.py`, Timesheet `before_submit`: an Employee submits only their own timesheet
+  (`test_timesheet_orang_lain_ditolak`).
+- Tests not run: no site yet.
+
 ## 2026-10-28 (evening): Tasks 15, 16 and the sample data, no site yet
 - Task 15: `setup._kantor()` (HR Settings mobile check-in and geolocation on; shift "Kantor" 08:00-17:00 with auto
   attendance from `SHIFT_KANTOR`; per office company "Libur <abbr> <year>" for this year and next, Saturday and
@@ -9,7 +17,7 @@ Newest first. One entry per working session: what changed, test results as run, 
   leave types Cuti Tahunan 12, Sakit, Izin unpaid); `tests/test_absen.py` (5 tests); `buat_karyawan`,
   `penugasan_shift`, `jatah_cuti`; `docs/panduan/absen.md`. Tests not run: no site yet.
 - Task 16: `setup._proyek()` (Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; the
-  Employee role may submit Timesheets, `IZIN_TAMBAHAN`); `tests/test_proyek.py` (4 tests); `docs/panduan/proyek.md`.
+  Employee role may submit Timesheets, `IZIN_TAMBAHAN`); `tests/test_proyek.py` (5 tests, incl. the own-timesheet guard, 4e815e4); `docs/panduan/proyek.md`.
   Tests not run.
 - Revision 3 item 4: `erp_internal/contoh.py` `buat_contoh()` (both sample companies, 9 items with BOMs, lead
   times and stock, 3 customers, 2 suppliers, 6 months of Sales History, 4 open orders, 7 users, 5 employees on the
@@ -38,7 +46,7 @@ Newest first. One entry per working session: what changed, test results as run, 
   stock), `buat_bom`, `lama_produksi`, `docs/panduan/produksi.md`. v16 differences: the WO defaults live on
   Company, and the MRP report spreads a monthly forecast over daily rows (test sums them). Tests not run.
 - Task 13: `rumus.STATUS`, `hitung_kurang`, `hitung_jadwal`; Script Report `Order Readiness` (ref doctype Sales
-  History, JS colours and Indonesian statuses by context); `tests/test_order_readiness.py` (7 tests),
+  History, JS colours and Indonesian statuses by context); `tests/test_order_readiness.py` (9 tests, incl. 2 permission tests, 731d843),
   `test_tampilan.test_izin_order_readiness`. `tests/test_rumus.py`: 13 unit tests OK without a site. Checked:
   ruff, `compileall`, `node --check`, JSON, Frappe's own extractors find a row for every string, the spec's
   lead time (`get_own_lead_time` 870 / 200 + 1 = 5.35). Integration tests not run: no site yet.

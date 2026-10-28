@@ -70,7 +70,8 @@ Screenshots land in `tools/hasil/` (not committed).
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
   orders, rounded up), then MPS → MRP → Work Order; the Order Readiness report shows what is short and when to
-  start (`planning/rumus.py`, design §10). Staff guide: `docs/panduan/produksi.md`.
+  start (`planning/rumus.py`, design §10). It needs read permission on the chosen Company (and Warehouse);
+  other companies' stock is refused. Staff guide: `docs/panduan/produksi.md`.
 
 ## Office: attendance and projects
 
@@ -78,7 +79,8 @@ Screenshots land in `tools/hasil/` (not committed).
   attendance (`SHIFT_KANTOR`), Saturday and Sunday off in a yearly "Libur <abbr> <year>" list assigned to each
   office company, leave types Cuti Tahunan (12), Sakit, Izin. Staff guide: `docs/panduan/absen.md`.
 - Projects (`setup._proyek`): Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; a
-  Karyawan submits their own timesheets. Staff guide: `docs/panduan/proyek.md`.
+  Karyawan submits only their own timesheets (`erp_internal/proyek.py`); Projects and HR roles can
+  submit anyone's. Staff guide: `docs/panduan/proyek.md`.
 
 ## Sample data
 
