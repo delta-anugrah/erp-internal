@@ -28,6 +28,8 @@
 //   set_value    frappe.db.set_value on a status (no event) with ?poll=3: the view follows
 //   poll         /socket.io blocked, ?poll=3: a status change still shows
 //   live         realtime on, default 60 s poll: a change from another tab shows within 5 s
+//   strip        back to the floor from a Work Order form (sidebar link, browser back): host left edge = page body's
+//                left edge (no empty strip), no dialog
 //   hidden       page left / tab hidden: no get_data on a nudge; on return the change shows within 3 s
 //   id           user@example.com in Indonesian: "Lantai Produksi" and the status names (switched back after)
 //   hud          the info bar: company name, a ticking clock, 14 machines, status chips and KPIs equal to get_data(),
@@ -822,6 +824,40 @@ if (jalankan("live")) await kasus("live", async () => {
 	await ctx.close();
 });
 
+// Strip: coming back to the floor from a Work Order form (by the sidebar link and by the browser's back) leaves no
+// empty strip: the host's left edge equals the page body's, and the body starts at the rail, not at where a sidebar was.
+if (jalankan("strip")) await kasus("strip", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const kiri = () =>
+		p.evaluate(() => {
+			const w = document.querySelector('[data-page-route="production-floor"]');
+			const b = w.querySelector(".page-body").getBoundingClientRect();
+			const h = erp.lantai.aktif.host.getBoundingClientRect();
+			const rel = document.querySelector(".body-sidebar-container, .body-sidebar")?.getBoundingClientRect();
+			return { host: Math.round(h.left), body: Math.round(b.left), rel: rel ? Math.round(rel.right) : null };
+		});
+	const direkt = await kiri();
+	for (const cara of ["link", "back"]) {
+		await p.evaluate(() => frappe.set_route("Form", "Work Order", "new"));
+		await p.waitForFunction(() => window.cur_frm?.doctype === "Work Order", null, { timeout: 8000 });
+		await p.waitForTimeout(800);
+		if (cara === "link") {
+			await p.locator(".body-sidebar .sidebar-item-label", { hasText: "Production Floor" }).first().click();
+		} else {
+			await p.evaluate(() => history.back());
+		}
+		await p.waitForFunction(() => frappe.get_route_str() === "production-floor", null, { timeout: 8000 });
+		await p.waitForTimeout(1500);
+		const k = await kiri();
+		if (k.host !== k.body) gagal.push(`strip (${cara}): host left ${k.host} != page body left ${k.body}`);
+		if (k.host !== direkt.host) gagal.push(`strip (${cara}): host left ${k.host}, direct load had ${direkt.host}`);
+		if (await dialog(p)) gagal.push(`strip (${cara}): a message dialog is open`);
+	}
+	console.log(`strip: host left ${direkt.host} on a direct load, same after the sidebar link and after back`);
+	await ctx.close();
+});
+
 // Hidden: neither the Desk page left nor a hidden browser tab fetches on a nudge; back on screen, the view catches
 // up at once (not at the next 60 s poll).
 if (jalankan("hidden")) await kasus("hidden", async () => {
@@ -1456,4 +1492,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);

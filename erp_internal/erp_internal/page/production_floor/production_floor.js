@@ -82,7 +82,9 @@ frappe.pages["production-floor"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["production-floor"].on_page_show = function (wrapper) {
+	// Desk hides the sidebar and moves the page body only after the show: measure again once it has settled.
 	wrapper.fit?.();
+	for (const ms of [50, 400]) setTimeout(() => wrapper.fit?.(), ms);
 	frappe.route_options = {};
 	wrapper.ctl?.lanjut();
 };

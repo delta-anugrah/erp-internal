@@ -38,8 +38,8 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Tests: `bench --site erp-test.localhost run-tests --app erp_internal` 121 OK; `node tools/cek_layar.mjs` 3 users OK;
   `node tools/lantai.mjs` all cases OK (perf 59.8 fps, 0.41 % frames over 25 ms, max 36.3 ms, 0 long tasks, 10 draw
   calls, 14,394 triangles; adaptive: pixel ratio 1 after 2.4 s).
-- Open: after returning to the floor from another page Desk leaves an empty strip where the (hidden) sidebar was; the
-  page script sets `hide_sidebar` and measures its left edge then (`docs/TODO.md`).
+- Fix (`fix(lantai): no empty strip when returning to the floor`): `on_page_show` re-measures `wrapper.fit()` at 0, 50 and 400 ms
+  (Desk hides the sidebar after the show); `lantai.mjs strip` checks it via the sidebar link and browser back.
 - Next: Abel looks at the floor in his Chrome (smoothness), adds `erp.localhost` to `/etc/hosts`, restarts `bench start`;
   security review and docs sync of the whole feature; then review and merge.
 

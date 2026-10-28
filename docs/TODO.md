@@ -49,8 +49,7 @@ Last full run (2026-10-28, after Production Floor Task 7): `bench --site erp-tes
   - [ ] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian.
   - [ ] Manufacturing in the rail: "Production Floor" is the first link in the sidebar and the first shortcut on
         the home; it opens the floor.
-  - [ ] Known: after coming back to the floor from another page an empty strip shows where the sidebar was (the
-        page hides it and measures its left edge then). Say if it bothers you.
+  - [ ] Go to a Work Order and come back (sidebar link and browser back): the floor fills the screen, no empty strip.
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.

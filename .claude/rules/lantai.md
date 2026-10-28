@@ -36,6 +36,7 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - Fetch with plain `fetch`, never `frappe.call`: a failed request must not open a message dialog.
 - Record text (item names, models, company) goes in by `textContent` only; a company logo only from same-origin `/files/`.
 - Desk caches page scripts in the browser until `bench clear-cache`, so the page script stays small; logic is in the bundle.
+- The page hides Desk's sidebar, which Desk does after the page's show: `on_page_show` re-runs `wrapper.fit()` after 50 and 400 ms, or the host keeps the old sidebar's width as an empty strip (`strip` case).
 - A sidebar or build change needs `bench build --app erp_internal` and a restart of `bench start`.
 
 ## Accepted deviations from the design
