@@ -2,7 +2,7 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
-## 2026-10-28 (Production Floor, Tasks 1-5 of 7)
+## 2026-10-28 (Production Floor, Tasks 1-7 of 7)
 - Revision 1 (Abel, `dfcc7cf`, `e2bd3d7`): English route and endpoints, an info bar like BPT Live's, a liquid glass
   look. Tasks renumbered: 4 rename, 5 labels and panel, 6 info bar and glass, 7 navigation and docs.
 - Task 1 (`87f6a48`, `3850564`; its hooks/setup/id.csv hunks landed in `89d75b8`): `erp_internal/lantai.py`
@@ -25,7 +25,23 @@ Newest first. One entry per working session: what changed, test results as run, 
   `production_floor` + `doctype_subscribe("Workstation")`, 250 ms debounced full refetch, 60 s poll, `?poll=<s>` for
   tests, nothing fetched while the page or tab is hidden, catch-up on return). `lantai.mjs` cases label, pilih,
   status, wo, xss, set_value, poll, live, id, hidden: all OK; perf 60.0 fps, 0 dropped, max 20.0 ms, 10 draw calls.
-- Next: Task 6 (info bar, liquid glass), then Task 7 (navigation, docs, image). Abel: restart `bench start`.
+- Task 6 (`434f1d8`, `9664463`): `hud.js` (top bar with the company logo and name, live dot, 1 s clock, KPI cards,
+  collapsible machine table whose rows select, +/−/home camera bar) and `kaca.js` (liquid glass, light/dark);
+  `get_data()` gained `perusahaan`. Labels are glass without blur (14 moving blurred labels broke the dropped-frame
+  gate) and label, clock and bar text wait for the camera to rest (a text write during a drag stalls Chrome 50-100 ms);
+  without glass support the cards turn solid. `lantai.mjs` cases hud, hud-live, hud-xss, glass added.
+- Task 7: Production Floor is the first link of Manufacturing's sidebar and home (`tampilan.SIDEBAR`/`PINTASAN`/`NAMA_LINK`,
+  `test_production_floor_in_manufacturing`); `cek_layar.mjs` checks the link, the shortcut and the way back (it now
+  stays under `/desk/manufacturing/`, no more `/desk/accounts/`); `.claude/rules/lantai.md`, a section in
+  `docs/panduan/produksi.md` with `docs/panduan/gambar/produksi-1.png` (`panduan_gambar.mjs produksi-1`), README,
+  CLAUDE.md, the spec's two accepted deviations.
+- Tests: `bench --site erp-test.localhost run-tests --app erp_internal` 121 OK; `node tools/cek_layar.mjs` 3 users OK;
+  `node tools/lantai.mjs` all cases OK (perf 59.8 fps, 0.41 % frames over 25 ms, max 36.3 ms, 0 long tasks, 10 draw
+  calls, 14,394 triangles; adaptive: pixel ratio 1 after 2.4 s).
+- Open: after returning to the floor from another page Desk leaves an empty strip where the (hidden) sidebar was; the
+  page script sets `hide_sidebar` and measures its left edge then (`docs/TODO.md`).
+- Next: Abel looks at the floor in his Chrome (smoothness), adds `erp.localhost` to `/etc/hosts`, restarts `bench start`;
+  security review and docs sync of the whole feature; then review and merge.
 
 ## 2026-10-28 (Samuel's real master data: catalog and machines)
 - `erp_internal/master.py` `muat()` reads `erp_internal/data/katalog.json` (price list "POLA PLASTIK TAHUN 2026",

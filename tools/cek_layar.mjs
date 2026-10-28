@@ -175,6 +175,23 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 		const pesan = page.locator(".modal.show.msgprint-dialog, .modal.show .msgprint");
 		cek((await pesan.count()) === 0, `home ${modul}: a message dialog is open`);
 	}
+	// The Production Floor: a shortcut on Manufacturing's home and the first link of its sidebar; it opens the page
+	// and a Work Order form, then back, stays under /manufacturing/.
+	await page.evaluate(() => frappe.set_route("Workspaces", "Manufacturing"));
+	await page.waitForLoadState("networkidle");
+	await page.waitForTimeout(800);
+	const atas = await page.locator(".body-sidebar .sidebar-item-label", { hasText: "Production Floor" }).count();
+	cek(atas === 1, `Manufacturing sidebar: ${atas} Production Floor links`);
+	await page.locator(".layout-main-section .shortcut-widget-box", { hasText: "Production Floor" }).first().click();
+	await page.waitForLoadState("networkidle");
+	await page.waitForTimeout(1500);
+	cek(page.url().endsWith("/production-floor"), `floor shortcut opened ${page.url()}`);
+	await page.evaluate(() => frappe.set_route("List", "Work Order"));
+	await page.waitForTimeout(1000);
+	await page.evaluate(() => history.back());
+	await page.waitForTimeout(1500);
+	// The floor page hides the sidebar on purpose (full-bleed); coming back must still name Manufacturing.
+	cek(page.url().includes("/manufacturing/production-floor"), `floor after a Work Order list: ${page.url()}`);
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
 	await context.close();
 }

@@ -259,6 +259,16 @@ class TestTampilan(IntegrationTestCase):
 			self.assertEqual([i["link_to"] for i in items[1:]], link, shell)
 			self.assertNotIn("Dashboard", {i["link_type"] for i in items}, shell)
 
+	def test_production_floor_in_manufacturing(self):
+		# The floor page is the first link after Manufacturing's home, labelled by name (a Page is named by its
+		# route), and the first shortcut of the home.
+		items = [i for i in resolve_sidebar("Manufacturing", "Administrator").items if i["type"] == "Link"]
+		self.assertEqual(
+			(items[1]["link_to"], items[1]["label"], items[1]["link_type"]),
+			("production-floor", "Production Floor", "Page"),
+		)
+		self.assertEqual(pintasan_aktif("Manufacturing")[0]["link_to"], "production-floor")
+
 	def test_profil_modul(self):
 		for profil, boleh in MODUL_BOLEH.items():
 			blok = {b.module for b in frappe.get_doc("Module Profile", profil).block_modules}

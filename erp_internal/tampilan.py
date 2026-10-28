@@ -60,6 +60,7 @@ SIDEBAR = {
 	],
 	"Buying": ["Supplier", "Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice"],
 	"Manufacturing": [
+		"production-floor",
 		"Sales History",
 		"Sales Forecast",
 		"Master Production Schedule",
@@ -95,6 +96,9 @@ SIDEBAR = {
 		"HR Settings",
 	],
 }
+
+# A SIDEBAR link whose label is not its name (a Page is named by its route).
+NAMA_LINK = {"production-floor": "Production Floor"}
 
 # Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
 # erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the modules of that profile's
@@ -210,6 +214,7 @@ PINTASAN = {
 		_p("Purchase Invoice"),
 	),
 	"Manufacturing": (
+		_p("production-floor", "Production Floor", "Page"),
 		_p("Sales History"),
 		_p("Sales Forecast"),
 		_p("Master Production Schedule"),
@@ -616,7 +621,7 @@ def _tambahan(link_to: str) -> dict:
 	return {
 		"added": 1,
 		"type": "Link",
-		"label": link_to,
+		"label": NAMA_LINK.get(link_to, link_to),
 		"link_type": _jenis_link(link_to),
 		"link_to": link_to,
 		"hidden": 0,

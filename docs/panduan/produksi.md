@@ -11,7 +11,28 @@ Alurnya:
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
-> Gambar layar menyusul: diambil di `erp.localhost` setelah situs uji jadi (lihat `docs/TODO.md`).
+> Gambar layar lainnya menyusul (lihat `docs/TODO.md`).
+
+## Lantai produksi (Production Floor)
+
+Lihat 14 mesin injeksi sekaligus, sebagai gambar 3D, dan statusnya saat ini. Buka dari **Manufacturing → Production
+Floor** (pilihan paling atas).
+
+![Lantai produksi](gambar/produksi-1.png)
+
+- **Warna lampu mesin**: hijau = jalan (Production), merah berkedip = Problem, biru dan agak gelap = Maintenance,
+  mati dan lebih gelap = Off. Di atas tiap mesin ada nama dan Work Order yang sedang jalan.
+- **Lihat dari sudut lain**: tarik pakai mouse untuk memutar, scroll untuk zoom, klik kanan lalu tarik untuk
+  menggeser. Tombol **+**, **−** dan **rumah** (pojok kanan bawah) zoom dan mengembalikan tampilan awal.
+- **Bar atas**: nama perusahaan, jam, dan titik **Live** (hijau = langsung ikut berubah; kalau tertulis
+  **Updated jam:menit**, halamannya menyegarkan diri tiap menit). Kartu di bawahnya: jumlah mesin, yang jalan,
+  yang bermasalah, Work Order yang jalan, dan hasil produksi.
+- **Tabel mesin** (kiri bawah): klik satu baris, kamera terbang ke mesin itu. Panah di kanan atasnya melipat tabel.
+- **Klik satu mesin**: panel di kanan menunjukkan detailnya dan link ke Work Order-nya. Enam tombol status mengubah
+  status mesin itu (sama dengan mengubah **Status** di formulir Workstation-nya); **Open machine** membuka
+  formulirnya.
+- **Work Order di mesin mana?** Isi **Machine** di Work Order. Tanpa itu Work Order tidak muncul di lantai.
+- Kalau browser tidak bisa menampilkan 3D, halaman menampilkan tabel biasa dengan isi yang sama.
 
 ## Sekali per produk
 

@@ -120,3 +120,10 @@ smooth, jangan patah2 / laggy".
 - **Layout like BPT Live** (Abel's screenshot): top bar, a KPI card row, a collapsible machine table bottom left
   whose rows select a machine, and a +/−/home camera bar.
 - **Not now** (needs data Samuel hasn't sent): shift and shift target, OEE, today's downtime, cycle time.
+- **Accepted deviations (Task 6, Abel's budget kept):**
+  - The 14 moving labels are glass without backdrop blur (a fill, edge and shadow only): 14 blurred labels moving
+    with the camera broke the dropped-frame gate even at 3 px. The 5 fixed cards (info bar, KPI row, machine table,
+    side panel, camera bar) keep the 20 px blur.
+  - Label, clock and info bar text is written only once the camera rests (about 120 ms for labels, at most about 1 s
+    for the bar and clock), because a text write during a drag stalls Chrome's main thread 50-100 ms and drops
+    frames. While the camera moves the old text stays.

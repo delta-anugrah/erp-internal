@@ -30,6 +30,10 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
 - Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
   is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing.
+- Production Floor (page `production-floor`, `lantai.md`) is the first link of Manufacturing's sidebar after Home and
+  the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
+  title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
+  sidebar on purpose; coming back to it from a Work Order stays under `/desk/manufacturing/` (`cek_layar`).
 - Blocking a module hides navigation only; DocPerm still decides document access.
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.

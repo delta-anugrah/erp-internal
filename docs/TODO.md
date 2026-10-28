@@ -2,8 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-10-28, after Production Floor Task 3): `bench --site erp-test.localhost run-tests --app erp_internal`:
-13 unit + 118 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+Last full run (2026-10-28, after Production Floor Task 7): `bench --site erp-test.localhost run-tests --app erp_internal`:
+121 tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
@@ -30,9 +30,9 @@ Last full run (2026-10-28, after Production Floor Task 3): `bench --site erp-tes
       `Harga Pola 2026` against Samuel's list.
 - [ ] After each Production Floor task that runs `bench build`: restart `bench start`, then look at the floor in your
       own Chrome and say whether it feels smooth.
-- [ ] Production Floor after Task 5 (`/desk/production-floor`, signed in as `user@example.com`):
+- [ ] Production Floor (`/desk/production-floor`, signed in as `user@example.com`):
   - [ ] 14 machines in two rows: back 14 13 12 11 10 9 8, front 1 2 3 4 5 6 7.
-  - [ ] Orbit (drag), zoom (scroll), pan (right drag), then "Reset view": smooth, no stutter, no error dialog.
+  - [ ] Orbit (drag), zoom (scroll), pan (right drag), then the home button in the camera bar: smooth, no stutter, no error dialog.
   - [ ] They look like injection moulding machines; JSW, NISSEI and CHENDE in different colours.
   - [ ] Set a machine's status in its Workstation form (Production, Problem, Maintenance, Off), reload the floor:
         green lamp + mould moving, red blinking, blue + dimmed, unlit + darker. Put the status back.
@@ -42,7 +42,15 @@ Last full run (2026-10-28, after Production Floor Task 3): `bench --site erp-tes
   - [ ] Press one of the six status buttons in the panel: the machine changes. Put the status back.
   - [ ] Change a status in the Workstation form: the floor follows without a reload (or within 60 s without
         `/etc/hosts`).
-  - [ ] The info bar and glass look come in Task 6, not yet.
+  - [ ] Top bar: company logo or initials and name, "Live" dot, date and a ticking clock; KPI cards (machines,
+        running, problem, Work Orders running, output) match what you see.
+  - [ ] Machine table (bottom left): click a row, the camera flies to that machine and the panel opens; the arrow
+        folds it and it stays folded after a reload; +, − and home buttons work.
+  - [ ] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian.
+  - [ ] Manufacturing in the rail: "Production Floor" is the first link in the sidebar and the first shortcut on
+        the home; it opens the floor.
+  - [ ] Known: after coming back to the floor from another page an empty strip shows where the sidebar was (the
+        page hides it and measures its left edge then). Say if it bothers you.
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.

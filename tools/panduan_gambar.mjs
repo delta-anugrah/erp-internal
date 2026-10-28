@@ -2,6 +2,7 @@
 // sample data of `erp_internal.contoh.buat_contoh` with its users (`user@example.com`) and their password.
 //
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
+//   ERP_SANDI=<password> node tools/panduan_gambar.mjs produksi-1   # only the named pictures
 //
 // Each picture is taken as the sample User (the daily-work role the guides are for), at 1440x900. A screen with a sample record opens that
 // record; one without (no Purchase Order or Purchase Receipt in the sample data, no Material Transfer) opens a new
@@ -59,6 +60,15 @@ const USER = "user@example.com";
 
 // file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it]
 const GAMBAR_LIST = {
+	// The Production Floor: open from the Manufacturing home, wait until the 3D scene and the info bar have drawn.
+	"produksi-1": [
+		"Manufacturing",
+		(p) =>
+			p
+				.evaluate(() => frappe.set_route("production-floor"))
+				.then(() => p.waitForFunction(() => document.querySelector(".lantai-host")?.shadowRoot?.querySelector("canvas")))
+				.then(() => p.waitForTimeout(3500)),
+	],
 	"penjualan-1": ["Selling", (p) => buka(p, "Sales Order")],
 	"penjualan-2": ["Selling", (p) => buka(p, "Delivery Note")],
 	"penjualan-3": ["Selling", (p) => buka(p, "Sales Invoice")],
@@ -118,7 +128,9 @@ mkdirSync(GAMBAR, { recursive: true });
 const gagal = [];
 const browser = await chromium.launch();
 
+const PILIH = process.argv.slice(2);
 for (const [nama, [rumah, ke]] of Object.entries(GAMBAR_LIST)) {
+	if (PILIH.length && !PILIH.includes(nama)) continue;
 	const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 	const page = await context.newPage();
 	const galat = [];

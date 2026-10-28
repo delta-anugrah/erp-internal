@@ -71,7 +71,11 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 
 Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@example.com` of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
-(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs`. If
+(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`).
+`tools/lantai.mjs` checks the Production Floor page (`/desk/production-floor`, Manufacturing's first link) the same
+way: the 14 machines in floor order, status lamps, labels, the side panel and its status buttons, live updates, the
+info bar, the glass look in light and dark, a plain table without WebGL, and the smoothness budget (frame rate,
+dropped frames, long tasks, draw calls) in a visible browser; `.claude/rules/lantai.md` lists the cases. If
 `bench build` ran while `bench start` was up, restart `bench start` first: the web process keeps the old
 `assets.json` and the desk loads blank. If `bench start` stops at once with "Address already in use" on 11002 or
 13002, a Redis from an earlier run is still up: `lsof -nP -iTCP:11002 -iTCP:13002 -sTCP:LISTEN`, stop those
@@ -106,7 +110,7 @@ shortcuts to the same links as its sidebar, nothing else:
 | Stock | Item, Stock Entry, Warehouse, Stock Balance, Stock Ledger |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
-| Manufacturing | Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Order Readiness, BOM, Item Lead Time |
+| Manufacturing | Production Floor, Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Order Readiness, BOM, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings |
