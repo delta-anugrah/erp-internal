@@ -29,7 +29,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Developer only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on
-  1). `pengguna.py` limits it: only roles in `PERAN_BOLEH_ADMIN`, nothing that controls a Developer's or
+  1). `pengguna.py` limits it: only roles in `PERAN_BOLEH_ADMIN` (Guest, All and Desk User pass; Administrator never does, though Frappe lists it in `AUTOMATIC_ROLES`), nothing that controls a Developer's or
   Administrator's access (`FIELD_AKSES`, roles, password, rename). Frappe's `populate_role_profile_roles` drops any
   role ticked outside a user's Role Profiles by itself. An Admin-profile user never keeps the Employee role (the
   profile drops it); HR Manager covers their attendance.

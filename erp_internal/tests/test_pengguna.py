@@ -84,17 +84,30 @@ class TestPengguna(IntegrationTestCase):
 			self.assertNotIn("System Manager", peran(target), target)
 
 	def test_has_role_langsung_ditolak(self):
-		baris = {
-			"doctype": "Has Role",
-			"parenttype": "User",
-			"parentfield": "roles",
-			"parent": self.polos,
-			"role": "System Manager",
-		}
-		self.assertRaises(frappe.PermissionError, frappe.get_doc(baris).insert)
-		self.assertRaises(frappe.PermissionError, frappe.get_doc(dict(baris)).insert, ignore_permissions=True)
-		self.assertRaises(frappe.PermissionError, client_insert, dict(baris))
-		self.assertNotIn("System Manager", peran(self.polos))
+		for role in ("System Manager", "Administrator"):
+			baris = {
+				"doctype": "Has Role",
+				"parenttype": "User",
+				"parentfield": "roles",
+				"parent": self.polos,
+				"role": role,
+			}
+			self.assertRaises(frappe.PermissionError, frappe.get_doc(baris).insert)
+			self.assertRaises(
+				frappe.PermissionError, frappe.get_doc(dict(baris)).insert, ignore_permissions=True
+			)
+			self.assertRaises(frappe.PermissionError, client_insert, dict(baris))
+			self.assertNotIn(role, peran(self.polos))
+
+	def test_peran_administrator_ditolak(self):
+		# Security review 2026-10-28: Frappe lists Administrator among AUTOMATIC_ROLES; it must not pass as one.
+		doc = frappe.get_doc("User", self.polos)
+		doc.append("roles", {"role": "Administrator"})
+		self.assertRaises(frappe.PermissionError, doc.save)
+		doc = frappe.get_doc("User", self.polos).as_dict()
+		doc["roles"].append({"role": "Administrator"})
+		self.assertRaises(frappe.PermissionError, client_save, doc)
+		self.assertNotIn("Administrator", peran(self.polos))
 
 	def test_peran_di_luar_profil_ditolak(self):
 		doc = frappe.get_doc("User", self.polos)

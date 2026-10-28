@@ -15,9 +15,12 @@ holders are not limited. Every path is checked on the server:
 
 import frappe
 from frappe import _
-from frappe.permissions import AUTOMATIC_ROLES
+from frappe.permissions import ADMIN_ROLE, AUTOMATIC_ROLES
 
 from erp_internal.tampilan import PERAN_BOLEH_ADMIN
+
+# Guest, All and Desk User need no grant. Administrator is in Frappe's AUTOMATIC_ROLES too, so it is taken out.
+OTOMATIS = set(AUTOMATIC_ROLES) - {ADMIN_ROLE}
 
 
 def bebas(user: str | None = None) -> bool:
@@ -28,7 +31,7 @@ def bebas(user: str | None = None) -> bool:
 
 def terlarang(peran) -> set[str]:
 	"""The roles of `peran` an Admin may not hand out."""
-	return set(peran) - PERAN_BOLEH_ADMIN - set(AUTOMATIC_ROLES)
+	return set(peran) - PERAN_BOLEH_ADMIN - OTOMATIS
 
 
 def dilindungi(user: str) -> bool:
