@@ -108,7 +108,7 @@ part_sites() {
 			--mariadb-user-host-login-scope='%' \
 			--install-app erpnext --install-app hrms --install-app erp_internal
 	done
-	bench --site erp-test.localhost set-config -p allow_tests true
+	bench --site erp-test.localhost set-config -p allow_tests True
 }
 
 part_wizard() {
