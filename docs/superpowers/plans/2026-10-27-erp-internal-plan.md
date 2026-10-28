@@ -1136,7 +1136,7 @@ Report:
 - The JS formatter colours the status: Telat red, Mulai minggu ini orange, Terjadwal blue, Aman green, Isi lama
   produksi grey.
 
-- [ ] **Step 1: Write the failing unit tests for `rumus`.**
+- [x] **Step 1: Write the failing unit tests for `rumus`.**
 
 ```python
 H = date(2026, 11, 20)
@@ -1163,7 +1163,7 @@ def test_kurang_cuma_dari_perkiraan(self):
 	self.assertEqual(hitung_jadwal(100, 3, 0, None, 0, 0, date(2026, 11, 1), H)["tanggal_butuh"], H)
 ```
 
-- [ ] **Step 2: Write the failing integration tests** for `siap_order.data`. Each one builds its own items on
+- [x] **Step 2: Write the failing integration tests** for `siap_order.data`. Each one builds its own items on
   `_Uji Pabrik`.
   - `test_angka_per_kolom`: stock 100, an open order of 300 due in 5 days, a submitted forecast of 1000 for this
     month, 300 already ordered this month, a not-started Work Order of 50, safety 20, and Item Lead Time 200 per day
@@ -1178,14 +1178,41 @@ def test_kurang_cuma_dari_perkiraan(self):
     `posting_date` is used.
   - In `test_tampilan`, `test_izin_siap_order`: `frappe.get_doc("Report", "Siap Order").is_permitted()` is true as
     Produksi and Penjualan, false as Gudang.
-- [ ] **Step 3: Run them.** Expected: FAIL (ImportError, report missing).
-- [ ] **Step 4: Implement** the two `rumus` functions, then the report:
+- [ ] **Step 3: Run them.** Expected: FAIL (ImportError, report missing). Not run: no site yet (the unit tests
+  were run only after the code, below).
+- [x] **Step 4: Implement** the two `rumus` functions, then the report:
   - one grouped query each for stock, open orders (with the earliest date), orders this month, the newest forecast
     and Work Orders;
   - Item Lead Time rows read with the fields `get_own_lead_time` uses;
   - JSON by hand, then migrate.
-- [ ] **Step 5: Run them again.** Expected: OK. Then open the report on `erp.localhost` as Administrator.
-- [ ] **Step 6: Commit** `feat(perencanaan): Siap Order report, what is short and when to start`.
+- [ ] **Step 5: Run them again.** Expected: OK. Then open the report on `erp.localhost` as Administrator. Partly done
+  2026-10-28: `tests/test_rumus.py` (13 unit tests, both classes) OK with the bench's Python and no site (Task 10's
+  command). Integration tests and the report in the browser: not run, no site yet.
+- [x] **Step 6: Commit** `feat(planning): Order Readiness report, what is short and when to start`.
+
+**Task 13 deviations (2026-10-28, written without a site; Revision 2 names):**
+- Report `Order Readiness` in `erp_internal/planning/report/order_readiness/`, test
+  `tests/test_order_readiness.py`. English statuses (`rumus.STATUS` = Late, Start this week, Set lead time,
+  Scheduled, OK) and column labels (Item, Item Name, Stock, Open Orders, Forecast This Month, Ordered This Month,
+  In Production, Safety Stock, Short, Lead Time (days), Latest Start, Status); filter fieldnames as planned.
+- **`ref_doctype` is `Sales History`, not Work Order.** v16's `get_report_doc` also requires `report` permission on
+  the ref doctype, and Sales User has none on Work Order (Manufacturing User has none on Sales Order). Sales History
+  gives report permission to exactly the report's roles, and Gudang none. `test_izin_order_readiness` checks
+  `is_permitted()` and that permission, as Produksi, Penjualan and Gudang.
+- The statuses travel in English (they are the sort key); the JS formatter shows them through
+  `__(status, null, "Order Readiness")`, and `id.csv` rows carry that context (third column) so "OK" and "Late"
+  keep their usual meaning elsewhere. `test_bahasa` now keys rows by `source:context`, like Frappe.
+- `perkiraan` takes the newest submitted forecast (posting date, then creation) **per item** that has rows of that
+  item in the month, so a newer forecast covering other products does not zero this one.
+- `lama` is `get_own_lead_time(row, kurang, True)` rounded to 2 places; `kurang` and `lama` round at 6 places
+  before `ceil` (float noise). `hitung_jadwal` uses the open-order date only when `terdekat` is set.
+- `SIDEBAR` puts Order Readiness first in Manufacturing and also in Selling (Penjualan has no Manufacturing).
+- `test_order_selesai_diabaikan` closes one order with `update_status("Closed")` and sets another's status to
+  Completed with `db_set` (a fully delivered order already has nothing open). New `test_urutan_dan_execute` and two
+  extra `rumus` unit tests (`kurang` never negative and rounded up; the STATUS order).
+- `execute` refuses an empty company ("Select a company."). The report does not check the user's Company
+  permission: like the sidebars it is tidying, not a fence (design §8 item 2).
+
 
 ### Task 14: Go-live wave 2, production
 

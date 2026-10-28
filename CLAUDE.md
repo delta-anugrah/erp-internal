@@ -4,9 +4,10 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (stock, sales, purchasing, production with a monthly forecast and the Order Readiness report) and our office
 (attendance, projects). Plain ERPNext showing only the modules in use, nothing from BPT.
 
-Status 2026-10-28: Task 1 is partly done (the two sites and the wizard wait on Abel). Tasks 2-7 and 4b are
-written but their tests have not run (no site yet); Task 6's CSV headers and Task 7's compose boot, backup and
-restore drill wait for a site too. Next: Abel creates the sites, then the test run.
+Status 2026-10-28: Task 1 is partly done (the two sites and the wizard wait on Abel). Tasks 2-7, 4b and 9-13
+are written but their integration tests have not run (no site yet; Task 10/13's pure math passes without one);
+Task 6's CSV headers and Task 7's compose boot, backup and restore drill wait for a site too. Next: Abel creates
+the sites, then the test run.
 
 - Design: `docs/superpowers/specs/2026-10-27-erp-internal-design.md`
 - Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md`. Its "Revision 2" and "Revision 3" sections

@@ -1,5 +1,5 @@
 ---
-paths: ["erp_internal/tampilan.py", "erp_internal/setup.py", "erp_internal/tests/test_tampilan.py", "tools/cek_layar.mjs"]
+paths: ["erp_internal/tampilan.py", "erp_internal/setup.py", "erp_internal/tests/test_tampilan.py", "tools/cek_layar.mjs", "erp_internal/planning/**"]
 ---
 # Navigation in Frappe v16.53 (what `tampilan.py` changes)
 
@@ -16,6 +16,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
+- Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
+  and Order Readiness are reached through `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`.
 - Blocking a module hides navigation only; DocPerm still decides document access.
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.

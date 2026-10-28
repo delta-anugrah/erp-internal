@@ -91,3 +91,20 @@ Fill from History works only on a draft monthly Sales Forecast.,Isi dari Riwayat
 Select the items first.,Pilih barangnya dulu.
 Filled from the average of {0}.,Diisi dari rata-rata {0}.
 No history yet: {0}. Enter their numbers by hand.,Belum ada riwayat: {0}. Isi angkanya manual.
+Select a company.,Pilih perusahaannya.
+Item Group,Grup Barang
+Open Orders,Order Belum Dikirim
+Forecast This Month,Perkiraan Bulan Ini
+Ordered This Month,Sudah Dipesan Bulan Ini
+In Production,Sedang Diproduksi
+Safety Stock,Stok Pengaman
+Short,Kurang
+Lead Time (days),Lama Produksi (hari)
+Latest Start,Mulai Paling Lambat
+Status,Status
+Empty: the company's Gudang Barang Jadi.,Kosong: Gudang Barang Jadi perusahaan itu.
+Late,Telat,Order Readiness
+Start this week,Mulai minggu ini,Order Readiness
+Set lead time,Isi lama produksi,Order Readiness
+Scheduled,Terjadwal,Order Readiness
+OK,Aman,Order Readiness

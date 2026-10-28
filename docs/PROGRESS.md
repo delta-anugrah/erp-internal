@@ -17,6 +17,13 @@ Newest first. One entry per working session: what changed, test results as run, 
   default warehouses), `tests/test_alur_produksi.py` (2 tests: defaults, forecast → MPS → MRP → Work Order →
   stock), `buat_bom`, `lama_produksi`, `docs/panduan/produksi.md`. v16 differences: the WO defaults live on
   Company, and the MRP report spreads a monthly forecast over daily rows (test sums them). Tests not run.
+- Task 13: `rumus.STATUS`, `hitung_kurang`, `hitung_jadwal`; Script Report `Order Readiness` (ref doctype Sales
+  History, JS colours and Indonesian statuses by context); `tests/test_order_readiness.py` (7 tests),
+  `test_tampilan.test_izin_order_readiness`. `tests/test_rumus.py`: 13 unit tests OK without a site. Checked:
+  ruff, `compileall`, `node --check`, JSON, Frappe's own extractors find a row for every string, the spec's
+  lead time (`get_own_lead_time` 870 / 200 + 1 = 5.35). Integration tests not run: no site yet.
+- Next: Abel creates the sites; run every test (`/run-checks`), fix what fails, `bench build`, try Fill from
+  History and Order Readiness in the browser; then `contoh.py`.
 
 ## 2026-10-28: Tasks 5, 6, 7 written, no site yet
 - Task 5: `setup._alur_jual_beli()` (order-first selling and buying, no negative stock, FIFO, perpetual inventory

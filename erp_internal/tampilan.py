@@ -47,9 +47,11 @@ SIDEBAR = {
 		"Sales Invoice",
 		"Sales Order Analysis",
 		"Sales History",
+		"Order Readiness",
 	],
 	"Buying": ["Supplier", "Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice"],
 	"Manufacturing": [
+		"Order Readiness",
 		"Sales Forecast",
 		"Master Production Schedule",
 		"Material Requirements Planning Report",

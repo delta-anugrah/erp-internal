@@ -10,9 +10,14 @@ from erp_internal.bahasa import ganti
 from erp_internal.tests.utils import buat_pengguna
 
 
+def kunci(sumber: str, konteks: str | None) -> str:
+	"""Frappe's translation key: `source`, or `source:context` for a row with a context."""
+	return f"{sumber}:{konteks}" if konteks else sumber
+
+
 def baris_csv() -> dict[str, str]:
 	with open(frappe.get_app_path("erp_internal", "translations", "id.csv"), newline="") as f:
-		return {sumber: target for sumber, target, *_ in csv.reader(f)}
+		return {kunci(r[0], r[2] if len(r) > 2 else None): r[1] for r in csv.reader(f) if r}
 
 
 class TestBahasa(IntegrationTestCase):
@@ -40,7 +45,11 @@ class TestBahasa(IntegrationTestCase):
 
 	def test_semua_teks_kita_diterjemahkan(self):
 		# Navbar rows come from every app's Navbar Settings; only ours (the language switch) count here.
-		pesan = {m[1] for m in get_messages_for_app("erp_internal") if m[0] != "Navbar:"}
+		pesan = {
+			kunci(m[1], m[2] if len(m) > 2 else None)
+			for m in get_messages_for_app("erp_internal")
+			if m[0] != "Navbar:"
+		}
 		pesan |= {i["item_label"] for i in frappe.get_hooks("standard_navbar_items", app_name="erp_internal")}
 		self.assertEqual(sorted(pesan - set(baris_csv())), [])
 

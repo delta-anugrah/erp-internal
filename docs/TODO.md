@@ -4,7 +4,8 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 
 ## Waiting on Abel
 - [ ] After the sites exist: run Tasks 2-6's and 9-13's tests, re-check `docs/impor.md`'s headers against Download Template,
-      take the `docs/panduan/` screenshots, then Task 7 Steps 2-4 (compose boot, `cadangan.sh`, restore drill).
+      take the `docs/panduan/` screenshots (incl. `produksi.md`), try Fill from History and Order Readiness in
+      the browser, then Task 7 Steps 2-4 (compose boot, `cadangan.sh`, restore drill).
 - [ ] Create the two dev sites in your own terminal: `tools/setup_bench.sh sites wizard` (the permission check stops
       Claude from running `bench new-site`). Then `bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs`.
 
@@ -25,10 +26,10 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 
 ## Part B: production and forecast
 - [~] Task 9: Sales History (written, tests not run)
-- [x] Task 10: forecast math (6 unit tests OK without a site; rerun under `bench run-tests` later)
+- [x] Task 10: forecast math (`test_rumus.py`, now 13 unit tests incl. Task 13's, OK without a site; rerun under `bench run-tests` later)
 - [~] Task 11: Fill from History (written, tests not run; try the button after `bench build`)
 - [~] Task 12: production flow (written, tests not run; guide screenshots wait for the site)
-- [ ] Task 13: Order Readiness report
+- [~] Task 13: Order Readiness report (written; rumus unit tests OK, integration tests not run)
 - [ ] Task 14: go-live wave 2 (local dry run only)
 
 ## Part C: office

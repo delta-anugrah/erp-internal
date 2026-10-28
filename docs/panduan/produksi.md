@@ -1,6 +1,7 @@
 # Panduan Produksi
 
-Buat bagian Produksi (dan Penjualan untuk perkiraan dan Order Readiness). Alurnya:
+Buat bagian Produksi. Penjualan cuma memakai **Order Readiness** dan **Sales History**, lewat menu **Selling**.
+Alurnya:
 
 1. sekali per produk: **lama produksi** dan **resep (BOM)**;
 2. tiap bulan: **perkiraan penjualan → jadwal produksi → MRP → perintah produksi**;
@@ -58,7 +59,7 @@ Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, 
 
 ## Tiap Senin: Order Readiness (Siap Order)
 
-**Manufacturing → Order Readiness**. Satu baris per produk jadi, untuk bulan yang dipilih:
+**Manufacturing → Order Readiness** (Penjualan: **Selling → Order Readiness**). Satu baris per produk jadi, untuk bulan yang dipilih:
 
 | Kolom | Artinya |
 |---|---|

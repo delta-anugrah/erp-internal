@@ -20,7 +20,7 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
    5. `link`: `apps/erp_internal` → this repo, `pip install -e`, `sites/apps.txt`;
    6. `sites`: `erp.localhost` and `erp-test.localhost` (`allow_tests`) with erpnext, hrms and erp_internal;
    7. `wizard`: completes the setup wizard of `erp.localhost` without a browser, sets PT Contoh Plastik's Jenis to Pabrik and runs
-      `migrate`, which builds the factory warehouses, item groups and UOMs (`erp_internal/setup.py`).
+      `migrate`, which builds the factory warehouses, item groups, UOMs and production defaults (`erp_internal/setup.py`).
 3. `cd ~/Desktop/Projects/erp-internal-bench && bench start`, then open http://erp.localhost:8002 and sign in as
    Administrator.
 
@@ -64,7 +64,13 @@ Screenshots land in `tools/hasil/` (not committed).
   entries, and each factory gets PPN templates that are not the default (`setup._alur_jual_beli`). Staff guides:
   `docs/panduan/{penjualan,pembelian,gudang}.md`.
 - Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
-  by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`).
+  by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`). Sales History (monthly quantities per item):
+  `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
+- Production (`erp_internal/planning/`, module Planning): each factory's Work Orders default to its Gudang
+  Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
+  Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
+  orders, rounded up), then MPS → MRP → Work Order; the Order Readiness report shows what is short and when to
+  start (`planning/rumus.py`, design §10). Staff guide: `docs/panduan/produksi.md`.
 
 ## Server
 

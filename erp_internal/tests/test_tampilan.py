@@ -152,6 +152,17 @@ class TestTampilan(IntegrationTestCase):
 		)
 		so.insert()
 
+	def test_izin_order_readiness(self):
+		# Produksi and Penjualan open Order Readiness; Gudang does not.
+		laporan = frappe.get_doc("Report", "Order Readiness")
+		for bagian, boleh in (("Produksi", True), ("Penjualan", True), ("Gudang", False)):
+			frappe.set_user(buat_pengguna(surel(bagian, "laporan"), bagian, bagian, None))
+			try:
+				self.assertEqual(bool(laporan.is_permitted()), boleh, bagian)
+				self.assertEqual(frappe.has_permission(laporan.ref_doctype, "report"), boleh, bagian)
+			finally:
+				frappe.set_user("Administrator")
+
 	def test_halaman_apps(self):
 		from frappe.desk.doctype.desktop_settings.desktop_settings import APPS, get_desktop_page
 
