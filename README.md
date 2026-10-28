@@ -53,7 +53,7 @@ The Apps screen tiles are named ERP (ERPNext), HR (Frappe HR) and System (Frappe
 ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
 (ISC licence): `aplikasi-erp.svg` (factory), `aplikasi-hr.svg` (users), `aplikasi-sistem.svg` (settings). The
 rail's top slot inside an app shows that app's icon. That is `tampilan.merek_aplikasi` (`extend_bootinfo`, the boot
-copy of `app_data` only).
+copy of `app_data` only); a workspace saved from the desk keeps them (`erp_internal/ruang_kerja.py`).
 
 ## Language
 
@@ -85,6 +85,10 @@ Browser check of each role's screens (needs `bench start` and the sample users `
 - Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
   by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`). Sales History (monthly quantities per item):
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
+- Samuel's real master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
+  execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin}.json` (templates with only the listed
+  variants, packings, price list `Harga Pola 2026`, Workstations `Mesin 01`..`14`); rerun after a new file
+  (`docs/impor.md`, tested by `tests/test_master.py`).
 - Production (`erp_internal/planning/`, module Planning): the company's Work Orders default to its Gudang
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
@@ -104,7 +108,7 @@ shortcuts to the same links as its sidebar, nothing else:
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
 | Manufacturing | Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Order Readiness, BOM, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
-| HR (HR app) | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
+| HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings |
 
 A User sees only what their roles read (no Holiday List or Leave Allocation). A direct URL to another permitted

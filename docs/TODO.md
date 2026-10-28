@@ -3,7 +3,7 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
 Last full run (2026-10-28, after the short screens): `bench --site erp-test.localhost run-tests --app erp_internal`:
-13 unit + 95 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+13 unit + 99 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the

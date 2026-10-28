@@ -27,7 +27,7 @@ const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 // Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on.
 const KERJA = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance"];
 // Rail module → its home Workspace (tampilan.PINTASAN keys). Every home is shortcuts only, at most this many.
-const RUMAH = { Setup: "Home" };
+const RUMAH = { Setup: "Home", "Shift & Attendance": "HR" };
 const PINTASAN_MAKS = 10;
 const PROFIL = {
 	Developer: { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },

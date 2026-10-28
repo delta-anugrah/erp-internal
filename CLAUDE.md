@@ -6,7 +6,7 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
 Status 2026-10-28: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
-company and three roles (plan "Revision 4"): 13 unit + 95 integration tests OK, `cek_layar` 3 users OK (short homes, Samuel 2026-10-28), sample
+company and three roles (plan "Revision 4"): 13 unit + 99 integration tests OK, `cek_layar` 3 users OK (short homes, Samuel 2026-10-28), sample
 data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
 the plan). Open: Task 7's compose boot, backup and restore drill (Abel: needs the database root password), and the
 real go-live with Samuel.
@@ -28,6 +28,7 @@ real go-live with Samuel.
 | Bench ports | web 8002, socketio 9002, redis queue 11002, redis cache 13002. |
 | Sites | `erp.localhost` (dev; wizard: PT Contoh Plastik, CPL) and `erp-test.localhost` (`allow_tests`). |
 | `erp_internal/contoh.py` | DATA CONTOH for dev sites (`buat_contoh`): one company, users `developer@`, `admin@`, `user@example.com`, password `erp_sandi_contoh`; refused with `erp_produksi`. |
+| `erp_internal/master.py` | Samuel's real master data from `erp_internal/data/katalog.json` (Dinda House Ware price list) and `mesin.json` (14 machines): Item templates with only the listed variants, packings, price list `Harga Pola <year>`, Workstations `Mesin 01`..`14`. Idempotent; how to rerun: `docs/impor.md`. |
 
 Versions are pinned in `versi.json`: frappe v16.53.0, erpnext v16.52.1, hrms v16.52.0. Python 3.14, Node 24.
 
@@ -43,6 +44,7 @@ bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 bench --site erp.localhost set-config erp_sandi_contoh <password>   # the sample users' password (dev only)
 bench --site erp.localhost execute erp_internal.contoh.buat_contoh   # DATA CONTOH; refused with erp_produksi
+bench --site erp.localhost execute erp_internal.master.muat          # Samuel's catalog and machines; a second run writes nothing
 ERP_SANDI=<SAMPLE_PASSWORD> node tools/cek_layar.mjs   # each role's screens; restart bench start after a build
 # from the repo: the server image and its check (deploy/server/README.md is the runbook)
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji

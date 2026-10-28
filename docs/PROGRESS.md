@@ -2,6 +2,15 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (HR home title, workspace saves keep the tiles)
+- HR home: our own site Workspace "HR" (`tampilan.RUMAH_SENDIRI`, `_rumah_sendiri`), first in the Shift &
+  Attendance sidebar. Page title, breadcrumb and browser tab read "HR" ("SDM" in Indonesian). Route
+  `/desk/shift-and-attendance/hr`; the old home's route still opens. `test_rumah_hr`.
+- `erp_internal/ruang_kerja.py` + `hooks.override_whitelisted_methods`: Frappe's five workspace writes run, then our
+  tile layers on their `app_data`. Checked in the browser as user@ (private workspace saved and deleted: ERP and HR
+  with our icons both times). `test_ruang_kerja`.
+- Tests: `bench --site erp-test.localhost run-tests --app erp_internal`: 13 unit + 99 integration, OK.
+
 ## 2026-10-28 (short screens; sample users on @example.com)
 - Sample users are `developer@`, `admin@`, `user@example.com` (`contoh.surel`, tests, tools, docs). On
   `erp.localhost` the three were renamed with `rename_doc` (Employee links follow); no `@contoh.test` user is left.

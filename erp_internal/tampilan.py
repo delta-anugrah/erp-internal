@@ -243,7 +243,7 @@ PINTASAN = {
 		),
 		_p("Timesheet", "New Timesheet", doc_view="New"),
 	),
-	"Shift & Attendance": (
+	"HR": (
 		_p("Employee"),
 		_p("Employee Checkin"),
 		_p(
@@ -278,6 +278,11 @@ PINTASAN = {
 		_p("HR Settings", doc_view=""),
 	),
 }
+# Sidebar → our own Workspace that replaces its home. A standard Workspace keeps its app-owned title (the page
+# title, breadcrumb and browser tab) and Custom Workspace cannot change it, so "Shift & Attendance" gets a
+# site Workspace named and titled "HR" (id: SDM), with PINTASAN["HR"] (`_rumah_sendiri`). The base home stays
+# in place (its route still opens), hidden from the sidebar.
+RUMAH_SENDIRI = {"Shift & Attendance": "HR"}
 BLOK_TETAP = ()  # base Workspace blocks kept below the shortcuts: none (Samuel, 2026-10-28: homes kept short)
 KOLOM_PINTASAN = ("type", "link_to", "doc_view", "label", "stats_filter", "format", "color")
 
@@ -392,6 +397,7 @@ def terapkan() -> None:
 	"""Apply the tables above to the site. Idempotent."""
 	_halaman_apps()
 	_dok()
+	_rumah_sendiri()
 	_sidebar()
 	_profil_peran()
 	_profil_modul()
@@ -568,6 +574,13 @@ def _baris_sidebar(shell: str, modul: str, link: list[str]) -> list[dict]:
 			per_link.setdefault(r["link_to"], r)
 
 	baris, dipakai = [], set()
+	if shell in RUMAH_SENDIRI:
+		ws = RUMAH_SENDIRI[shell]
+		baris.append({**_tambahan(ws), "label": "Home", "link_type": "Workspace", "icon": "home"})
+		if beranda:
+			baris.append(_rujukan(beranda, 1))
+			dipakai.add(item_key(beranda))
+		beranda = None
 	for r in [beranda, *(per_link.get(t) or t for t in link)]:
 		if r is None:
 			continue
@@ -680,8 +693,8 @@ def _pintasan() -> None:
 	import json
 
 	for ws in PINTASAN:
-		if not frappe.db.exists("Workspace", ws):
-			continue
+		if ws in RUMAH_SENDIRI.values() or not frappe.db.exists("Workspace", ws):
+			continue  # our own Workspace is written whole by _rumah_sendiri
 		aktif = pintasan_aktif(ws)
 		dasar = json.loads(frappe.db.get_value("Workspace", ws, "content") or "[]")
 		konten = [
@@ -704,6 +717,47 @@ def _pintasan() -> None:
 			doc.workspace = ws
 		doc.content = json.dumps(konten)
 		doc.widgets = json.dumps(widget)
+		doc.save(ignore_permissions=True)
+
+
+def _rumah_sendiri() -> None:
+	"""Our own module home per RUMAH_SENDIRI: a public site Workspace in the module, PINTASAN as its content."""
+	import json
+
+	from frappe.desk.doctype.sidebar.sidebar import module_of_shell
+
+	for shell, ws in RUMAH_SENDIRI.items():
+		modul = module_of_shell(shell)
+		if not modul:
+			continue
+		aktif = pintasan_aktif(ws)
+		konten = [
+			{
+				"id": _id_blok(ws, p["label"]),
+				"type": "shortcut",
+				"data": {"shortcut_name": p["label"], "col": 3},
+			}
+			for p in aktif
+		]
+		baris = [{k: p[k] for k in KOLOM_PINTASAN if p.get(k)} for p in aktif]
+		nilai = {"title": ws, "label": ws, "module": modul, "public": 1, "is_hidden": 0, "type": "Workspace"}
+		nilai["icon"] = frappe.db.get_value("Workspace", shell, "icon") or "users"
+
+		if frappe.db.exists("Workspace", ws):
+			doc = frappe.get_doc("Workspace", ws)
+			lama = [{k: s.get(k) for k in KOLOM_PINTASAN if s.get(k)} for s in doc.shortcuts]
+			if (
+				all(doc.get(k) == v for k, v in nilai.items())
+				and json.loads(doc.content or "[]") == konten
+				and lama == baris
+			):
+				continue
+		else:
+			doc = frappe.new_doc("Workspace")
+		doc.update(nilai)
+		doc.content = json.dumps(konten)
+		doc.set("shortcuts", baris)
+		doc.flags.ignore_links = True
 		doc.save(ignore_permissions=True)
 
 

@@ -17,6 +17,7 @@ from erp_internal.tampilan import (
 	MODUL_BOLEH,
 	PINTASAN,
 	PROFIL_PERAN,
+	RUMAH_SENDIRI,
 	SEMBUNYI,
 	SIDEBAR,
 	USER,
@@ -103,6 +104,24 @@ def surel(profil: str, jenis: str = "izin") -> str:
 	return f"_uji.{jenis}.{profil.lower()}@example.com"
 
 
+def get_workspaces_pengguna(u: str) -> list[dict]:
+	"""The Workspace pages a user's desk boots with."""
+	from frappe.desk.desktop import get_workspaces
+
+	def bersih():
+		# get_workspaces is cached per request, not per user
+		if hasattr(frappe.local, "request_cache"):
+			frappe.local.request_cache.clear()
+
+	bersih()
+	frappe.set_user(u)
+	try:
+		return get_workspaces()["pages"]
+	finally:
+		frappe.set_user("Administrator")
+		bersih()
+
+
 def jejak_modified() -> dict:
 	"""The `modified` of every record `terapkan()` writes."""
 	return {
@@ -113,6 +132,7 @@ def jejak_modified() -> dict:
 			("Module Profile", {}),
 			("Role Profile", {}),
 			("Custom Workspace", {"workspace": ("in", list(PINTASAN))}),
+			("Workspace", {"name": ("in", list(RUMAH_SENDIRI.values()))}),
 			("Property Setter", {"doc_type": ("in", list(SEMBUNYI)), "property": "hidden"}),
 		)
 	}
@@ -268,7 +288,8 @@ class TestTampilan(IntegrationTestCase):
 			ws = items[0]["link_to"]
 			self.assertIn(ws, PINTASAN, shell)
 			doc = frappe.get_doc("Workspace", ws)
-			apply_customization(doc, get_customization(ws))
+			if ws not in RUMAH_SENDIRI.values():  # our own Workspace holds its content itself
+				apply_customization(doc, get_customization(ws))
 			blok = json.loads(doc.content)
 			self.assertEqual({b["type"] for b in blok}, {"shortcut"}, ws)
 			self.assertEqual(len(blok), len(link), ws)
@@ -276,6 +297,24 @@ class TestTampilan(IntegrationTestCase):
 				s.link_to for s in doc.shortcuts if s.label in {b["data"]["shortcut_name"] for b in blok}
 			}
 			self.assertEqual(tampil, set(link), ws)
+
+	def test_rumah_hr(self):
+		# The HR home is our own Workspace titled "HR" (page title, breadcrumb, tab), "SDM" in Indonesian, first
+		# in the Shift & Attendance sidebar; the base home stays (its route still opens), hidden there.
+		from frappe.desk.doctype.sidebar.sidebar import module_of_shell
+
+		for shell, ws in RUMAH_SENDIRI.items():
+			doc = frappe.get_doc("Workspace", ws)
+			self.assertEqual((doc.title, doc.public, doc.standard), (ws, 1, 0))
+			self.assertEqual(doc.module, module_of_shell(shell))
+			self.assertEqual([s.label for s in doc.shortcuts], [p["label"] for p in pintasan_aktif(ws)])
+			items = [i for i in resolve_sidebar(shell, "Administrator").items if i["type"] == "Link"]
+			self.assertEqual((items[0]["link_type"], items[0]["link_to"]), ("Workspace", ws))
+			self.assertNotIn(shell, [i["link_to"] for i in items])
+			self.assertTrue(frappe.db.exists("Workspace", shell))
+		self.assertEqual(frappe.translate.get_all_translations("id").get("HR"), "SDM")
+		pages = {p["name"] for p in get_workspaces_pengguna(pengguna_profil(USER, "rumah"))}
+		self.assertIn("HR", pages)
 
 	def test_rel_pendek(self):
 		# The rail: at most seven modules, no Accounts or Leaves icon; Settings for Admin only.
@@ -347,7 +386,8 @@ class TestTampilan(IntegrationTestCase):
 
 		for ws in PINTASAN:
 			doc = frappe.get_doc("Workspace", ws)
-			apply_customization(doc, get_customization(ws))
+			if ws not in RUMAH_SENDIRI.values():  # our own Workspace holds its content itself
+				apply_customization(doc, get_customization(ws))
 			blok = json.loads(doc.content)
 			aktif = pintasan_aktif(ws)
 			self.assertEqual(

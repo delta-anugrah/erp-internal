@@ -139,6 +139,17 @@ standard_navbar_items = [
 # mark and names on the tiles and the rail's top slot (tampilan.merek_aplikasi).
 extend_bootinfo = ["erp_internal.tampilan.saring_aplikasi", "erp_internal.tampilan.merek_aplikasi"]
 
+# Frappe's workspace writes answer with a fresh `app_data` that skips extend_bootinfo; ours run Frappe's and then
+# the same two layers on the reply (erp_internal/ruang_kerja.py).
+override_whitelisted_methods = {
+	f"frappe.desk.doctype.workspace.workspace.{m}": f"erp_internal.ruang_kerja.{m}"
+	for m in ("new_page", "update_workspace_settings", "delete_page", "set_workspace_module")
+} | {
+	"frappe.desk.page.workspace_restore.workspace_restore.restore_workspace_edits": (
+		"erp_internal.ruang_kerja.restore_workspace_edits"
+	)
+}
+
 after_install = "erp_internal.setup.pastikan_setup"
 after_migrate = "erp_internal.setup.pastikan_setup"
 

@@ -23,8 +23,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   (`MODUL_TANPA_IKON`) with a short sidebar and home, for a page Frappe opens in its own module. Admin-only
   shortcuts go last, so a User's home (which drops what they cannot read) has no gap. Stock Reconciliation
   (opening stock and stock count) is under Settings ("Opening Stock & Stock Count"). `_baris_sidebar` skips a
-  base Dashboard row named like a DocType (Project, Attendance). The HR home's page title stays the Workspace name
-  "Shift & Attendance": `Custom Workspace` has no title field.
+  base Dashboard row named like a DocType (Project, Attendance).
+- The HR home is our own site Workspace "HR" (`RUMAH_SENDIRI`, `_rumah_sendiri`: public, module Shift and
+  Attendance, `PINTASAN["HR"]` written into it), first in the Shift & Attendance sidebar; a standard Workspace keeps
+  its app's title and `Custom Workspace` has no title field. So the page title, breadcrumb and tab read "HR"
+  ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
 - Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
   is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing.
 - Blocking a module hides navigation only; DocPerm still decides document access.
@@ -52,8 +55,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `IKON_APLIKASI` (`public/images/aplikasi-*.svg`: Delta blue #1f4782 rounded square, white Lucide glyph, path data
   copied from lucide-static 1.47.0, ISC). The names are in `id.csv` and `test_layar_diterjemahkan`. The Delta logo
   stays on the navbar, login, splash and favicon only. Frappe's
-  `workspace_payload` (a workspace saved from the desk) sends a fresh `app_data` without our hooks: the old names
-  and logos, and hidden tiles, come back on that tab until a reload.
+  `workspace_payload` (the reply to a workspace saved from the desk) builds a fresh `app_data` without our hooks,
+  so `hooks.override_whitelisted_methods` routes Frappe's five workspace writes (`new_page`,
+  `update_workspace_settings`, `delete_page`, `set_workspace_module`, `restore_workspace_edits`) to
+  `erp_internal/ruang_kerja.py`: Frappe's function runs unchanged, then `saring_aplikasi` and `merek_aplikasi` on
+  the reply (`test_ruang_kerja`).
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen
