@@ -50,6 +50,9 @@ PENGATURAN_ALUR = {
 	"Buying Settings": {"po_required": "Yes", "pr_required": "No"},
 	"Stock Settings": {"allow_negative_stock": 0, "valuation_method": "FIFO"},
 }
+# DocTypes the Data Import tool may take although v16 ships them with `allow_import` off: the opening stock
+# is imported as a Stock Reconciliation (docs/impor.md, `test_impor_stok_awal`).
+IMPOR_BOLEH = ("Stock Reconciliation",)
 # Per factory company: stock moves post no journal entries (perpetual inventory off).
 PERUSAHAAN_PABRIK = {"enable_perpetual_inventory": 0}
 
@@ -117,6 +120,7 @@ def pastikan_setup() -> None:
 	"""Bring the site to the state this app expects. Idempotent; safe before the setup wizard."""
 	_pengaturan()
 	_field_jenis()
+	_impor_boleh()
 	if not frappe.is_setup_complete():
 		return
 	_grup_barang()
@@ -164,6 +168,14 @@ def _pengaturan() -> None:
 	if beda:
 		defaults.update(beda)
 		defaults.save(ignore_permissions=True)
+
+
+def _impor_boleh() -> None:
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	for dt in IMPOR_BOLEH:
+		if not frappe.get_meta(dt).allow_import:
+			make_property_setter(dt, None, "allow_import", 1, "Check", for_doctype=True)
 
 
 def _field_jenis() -> None:
