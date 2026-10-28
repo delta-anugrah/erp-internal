@@ -6,8 +6,6 @@ Barang tidak bisa diterima tanpa Purchase Order; sistem menolaknya.
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
-> Gambar layar menyusul: diambil di `erp.localhost` setelah situs uji jadi (lihat `docs/TODO.md`).
-
 ## 1. Lihat permintaan barang (Material Request)
 
 Produksi atau Gudang membuat **Material Request** kalau bahan mau habis. Buka **Buying → Material Request**,

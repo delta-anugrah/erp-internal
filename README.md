@@ -57,7 +57,7 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 
 Browser check of each bagian's screens (needs `bench start` and the sample users of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
-(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). If
+(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs`. If
 `bench build` ran while `bench start` was up, restart `bench start` first: the web process keeps the old
 `assets.json` and the desk loads blank. If `bench start` stops at once with "Address already in use" on 11002 or
 13002, a Redis from an earlier run is still up: `lsof -nP -iTCP:11002 -iTCP:13002 -sTCP:LISTEN`, stop those

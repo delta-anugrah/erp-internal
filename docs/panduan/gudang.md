@@ -14,8 +14,6 @@ Stok tidak boleh minus: kalau sistem bilang stok kurang, cek dulu barangnya, jan
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
-> Gambar layar menyusul: diambil di `erp.localhost` setelah situs uji jadi (lihat `docs/TODO.md`).
-
 ## Harian
 
 ### Terima barang dari pemasok

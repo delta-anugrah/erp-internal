@@ -6,8 +6,6 @@ Surat jalan dan faktur tidak bisa dibuat tanpa pesanan; sistem menolaknya.
 Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok kanan atas, pilih
 **Bahasa Indonesia**. Nama tombol di panduan ini ditulis seperti di tampilan bahasa Inggris.
 
-> Gambar layar menyusul: diambil di `erp.localhost` setelah situs uji jadi (lihat `docs/TODO.md`).
-
 ## 1. Catat pesanan pelanggan (Sales Order)
 
 1. Buka **Selling → Sales Order → + Add Sales Order**.
