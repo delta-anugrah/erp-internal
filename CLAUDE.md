@@ -29,6 +29,7 @@ real go-live with Samuel.
 | Sites | `erp.localhost` (dev; wizard: PT Contoh Plastik, CPL) and `erp-test.localhost` (`allow_tests`). |
 | `erp_internal/contoh.py` | DATA CONTOH for dev sites (`buat_contoh`): one company, users `developer@`, `admin@`, `user@example.com`, password `erp_sandi_contoh`; refused with `erp_produksi`. |
 | `erp_internal/master.py` | Samuel's real master data from `erp_internal/data/katalog.json` (Dinda House Ware price list) and `mesin.json` (14 machines): Item templates with only the listed variants, packings, price list `Harga Pola <year>`, Workstations `Mesin 01`..`14`. Idempotent; how to rerun: `docs/impor.md`. |
+| `erp_internal/lantai.py` | Server side of the Production Floor page: `data()` (numbered machines, status, running Work Order), `ubah_status()`, and `siarkan` (doc events on Workstation and Work Order, realtime event `erp_lantai` with the machine name only). `Work Order.erp_mesin` is the machine link (`setup.FIELD_WO_MESIN`, filtered to numbered machines). |
 
 Versions are pinned in `versi.json`: frappe v16.53.0, erpnext v16.52.1, hrms v16.52.0. Python 3.14, Node 24.
 
