@@ -14,6 +14,10 @@ tests, all OK. `node tools/cek_layar.mjs`: 7 bagian OK.
       data is there.
 - [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `karyawan@contoh.test` on a real phone. The sample
       password is `SAMPLE_PASSWORD` in `~/Desktop/Projects/erp-internal-bench/.env`.
+- [ ] Sign in as two or three sample users (`<bagian>@contoh.test`): each sees only its bagian's icons, full width.
+- [ ] As `penjualan@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid.
+- [ ] Decide: the PPN Masukan account under assets or liabilities (recommended: assets).
+- [ ] Decide: a person holding two bagian gets one combined Module Profile of their own (recommended: yes).
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
