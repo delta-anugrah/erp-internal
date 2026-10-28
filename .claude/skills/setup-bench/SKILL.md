@@ -26,3 +26,7 @@ bpt.localhost, cloud.localhost, onprem.localhost.
    (2 tests OK). The first run also completes the test site's wizard (ERPNext `before_tests`).
 7. `part_sites`/`part_wizard` start the bench's Redis as daemons when `bench start` isn't running. Before `bench
    start`, stop them: `redis-cli -p 13002 shutdown nosave; redis-cli -p 11002 shutdown nosave`.
+8. Optional, dev only: sample data. The developer sets the sample users' password in their own terminal
+   (`bench --site erp.localhost set-config erp_sandi_contoh <password>`; never print it), then
+   `bench --site erp.localhost execute erp_internal.contoh.buat_contoh`. A site with `erp_produksi` (the server)
+   refuses it.

@@ -2,6 +2,26 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (evening): Tasks 15, 16 and the sample data, no site yet
+- Task 15: `setup._kantor()` (HR Settings mobile check-in and geolocation on; shift "Kantor" 08:00-17:00 with auto
+  attendance from `SHIFT_KANTOR`; per office company "Libur <abbr> <year>" for this year and next, Saturday and
+  Sunday off, with a submitted company Holiday List Assignment, which v16 HRMS reads instead of the company default;
+  leave types Cuti Tahunan 12, Sakit, Izin unpaid); `tests/test_absen.py` (5 tests); `buat_karyawan`,
+  `penugasan_shift`, `jatah_cuti`; `docs/panduan/absen.md`. Tests not run: no site yet.
+- Task 16: `setup._proyek()` (Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; the
+  Employee role may submit Timesheets, `IZIN_TAMBAHAN`); `tests/test_proyek.py` (4 tests); `docs/panduan/proyek.md`.
+  Tests not run.
+- Revision 3 item 4: `erp_internal/contoh.py` `buat_contoh()` (both sample companies, 9 items with BOMs, lead
+  times and stock, 3 customers, 2 suppliers, 6 months of Sales History, 4 open orders, 7 users, 5 employees on the
+  shift with annual leave, one project with 3 tasks; tag DATA CONTOH; refused with `erp_produksi`, needs
+  `erp_sandi_contoh`); `tests/test_contoh.py` (5 tests). Not run on any site.
+- Checked without a site: `uvx ruff check`, `ruff format --check`, `py_compile`; imports with the bench's Python;
+  every fieldname and Select value against the v16 JSON (Shift Type, HR Settings, Leave Type, Holiday List,
+  Holiday List Assignment, Activity Type, Timesheet); `process_auto_attendance`, Employee Checkin, Leave
+  Application and Timesheet read in the source; the tests' date helpers for every weekday; Frappe's
+  `extract_messages_from_python_code`/`_javascript_code` find an `id.csv` row for every string of the app.
+- Next: Abel creates the sites; `/run-checks`; `buat_contoh` on `erp.localhost`; `cek_layar`.
+
 ## 2026-10-28 (later): Part B, Tasks 9-13, no site yet
 - Task 9: DocType `Sales History` (module `Planning`), unique per company, item and month (validate +
   `unik_riwayat` constraint); `tests/test_sales_history.py` (5 tests), `tests/data/riwayat.csv`, `docs/impor.md`

@@ -12,3 +12,4 @@ place in the last column and strike the row.
 | 5 | Attendance by phone (location) or fingerprint (brand)? Office hours, headcount | phone, 08:00-17:00 | `setup.SHIFT_KANTOR`, Task 15 |
 | 6 | Server provider and budget, domain, off-site backup bucket | local compose stack only | `deploy/server/.env`, Task 7/8 |
 | 7 | Who uses it, and in which bagian | one sample user per bagian | users at go-live |
+| 8 | Office days off and leave: Saturday off? Which leave types and how many days of annual leave? | Saturday and Sunday off; Cuti Tahunan 12, Sakit, Izin (unpaid); national holidays entered by HR from the SKB | `setup.LIBUR_MINGGUAN`, `setup.JENIS_CUTI`, Task 15/17 |

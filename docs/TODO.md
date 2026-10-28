@@ -3,9 +3,12 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 2 and 3 first).
 
 ## Waiting on Abel
-- [ ] After the sites exist: run Tasks 2-6's and 9-13's tests, re-check `docs/impor.md`'s headers against Download Template,
+- [ ] After the sites exist: run Tasks 2-6's, 9-13's, 15-16's and `test_contoh`'s tests, re-check `docs/impor.md`'s headers against Download Template,
       take the `docs/panduan/` screenshots (incl. `produksi.md`), try Fill from History and Order Readiness in
       the browser, then Task 7 Steps 2-4 (compose boot, `cadangan.sh`, restore drill).
+- [ ] Sample data on `erp.localhost`: `bench --site erp.localhost set-config erp_sandi_contoh <password>`, then
+      `bench --site erp.localhost execute erp_internal.contoh.buat_contoh`; then `ERP_SANDI=<password> node
+      tools/cek_layar.mjs`, and try the phone check-in (`/hrms`) and a timesheet as `karyawan@contoh.test`.
 - [ ] Create the two dev sites in your own terminal: `tools/setup_bench.sh sites wizard` (the permission check stops
       Claude from running `bench new-site`). Then `bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs`.
 
@@ -33,7 +36,7 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 - [ ] Task 14: go-live wave 2 (local dry run only)
 
 ## Part C: office
-- [ ] Task 15: attendance
-- [ ] Task 16: projects
+- [~] Task 15: attendance (written, tests not run; HRMS app buttons to check on the site)
+- [~] Task 16: projects (written, tests not run)
 - [ ] Task 17: go-live wave 3 (local dry run only)
-- [ ] `erp_internal/contoh.py` sample data (Revision 3 item 4)
+- [~] `erp_internal/contoh.py` sample data (Revision 3 item 4; written, `test_contoh` not run, not yet run on `erp.localhost`)

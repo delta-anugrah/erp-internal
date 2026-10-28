@@ -1,5 +1,5 @@
 ---
-paths: ["erp_internal/tampilan.py", "erp_internal/setup.py", "erp_internal/tests/test_tampilan.py", "tools/cek_layar.mjs", "erp_internal/planning/**"]
+paths: ["erp_internal/tampilan.py", "erp_internal/setup.py", "erp_internal/tests/test_tampilan.py", "tools/cek_layar.mjs", "erp_internal/contoh.py", "erp_internal/planning/**"]
 ---
 # Navigation in Frappe v16.53 (what `tampilan.py` changes)
 

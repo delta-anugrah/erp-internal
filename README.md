@@ -54,7 +54,7 @@ bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs   # one file
 ```
 
-Browser check of each bagian's screens (needs `bench start` and the sample users):
+Browser check of each bagian's screens (needs `bench start` and the sample users of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`.
 Screenshots land in `tools/hasil/` (not committed).
 
@@ -71,6 +71,27 @@ Screenshots land in `tools/hasil/` (not committed).
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
   orders, rounded up), then MPS → MRP → Work Order; the Order Readiness report shows what is short and when to
   start (`planning/rumus.py`, design §10). Staff guide: `docs/panduan/produksi.md`.
+
+## Office: attendance and projects
+
+- Attendance by phone with location on stock HRMS (`setup._kantor`): one shift "Kantor" 08:00-17:00 with auto
+  attendance (`SHIFT_KANTOR`), Saturday and Sunday off in a yearly "Libur <abbr> <year>" list assigned to each
+  office company, leave types Cuti Tahunan (12), Sakit, Izin. Staff guide: `docs/panduan/absen.md`.
+- Projects (`setup._proyek`): Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; a
+  Karyawan submits their own timesheets. Staff guide: `docs/panduan/proyek.md`.
+
+## Sample data
+
+`erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): both sample companies, products with BOMs,
+lead times and stock, customers, suppliers, 6 months of Sales History, open orders, office employees on the shift,
+one project, and one user per bagian (`<bagian>@contoh.test`):
+
+```bash
+bench --site erp.localhost set-config erp_sandi_contoh <password>
+bench --site erp.localhost execute erp_internal.contoh.buat_contoh
+```
+
+It is idempotent and refuses to run on a site with `erp_produksi` set.
 
 ## Server
 

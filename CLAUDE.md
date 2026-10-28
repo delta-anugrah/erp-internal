@@ -4,10 +4,10 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (stock, sales, purchasing, production with a monthly forecast and the Order Readiness report) and our office
 (attendance, projects). Plain ERPNext showing only the modules in use, nothing from BPT.
 
-Status 2026-10-28: Task 1 is partly done (the two sites and the wizard wait on Abel). Tasks 2-7, 4b and 9-13
-are written but their integration tests have not run (no site yet; Task 10/13's pure math passes without one);
-Task 6's CSV headers and Task 7's compose boot, backup and restore drill wait for a site too. Next: Abel creates
-the sites, then the test run.
+Status 2026-10-28: Task 1 is partly done (the two sites and the wizard wait on Abel). Tasks 2-7, 4b, 9-13, 15,
+16 and the sample data (`contoh.py`) are written but their integration tests have not run (no site yet; Task
+10/13's pure math passes without one); Task 6's CSV headers and Task 7's compose boot, backup and restore drill
+wait for a site too. Next: Abel creates the sites, then the test run and `buat_contoh`.
 
 - Design: `docs/superpowers/specs/2026-10-27-erp-internal-design.md`
 - Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md`. Its "Revision 2" and "Revision 3" sections
@@ -25,6 +25,7 @@ the sites, then the test run.
 | Docker `erp-mariadb` | MariaDB 11.8.9 on 127.0.0.1:3308, volume `erp-mariadb`, utf8mb4. |
 | Bench ports | web 8002, socketio 9002, redis queue 11002, redis cache 13002. |
 | Sites | `erp.localhost` (dev; wizard: PT Contoh Plastik, CPL) and `erp-test.localhost` (`allow_tests`). |
+| `erp_internal/contoh.py` | DATA CONTOH for dev sites (`buat_contoh`): users `<bagian>@contoh.test`, password `erp_sandi_contoh`; refused with `erp_produksi`. |
 
 Versions are pinned in `versi.json`: frappe v16.53.0, erpnext v16.52.1, hrms v16.52.0. Python 3.14, Node 24.
 
@@ -38,6 +39,8 @@ bench start                              # its own terminal tab; http://erp.loca
 bench --site erp.localhost migrate
 bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
+bench --site erp.localhost set-config erp_sandi_contoh <password>   # the sample users' password (dev only)
+bench --site erp.localhost execute erp_internal.contoh.buat_contoh   # DATA CONTOH; refused with erp_produksi
 node tools/cek_layar.mjs                  # each bagian's screens (ERP_SANDI; tools/package.json)
 # from the repo: the server image and its check (deploy/server/README.md is the runbook)
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
@@ -56,6 +59,8 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - UI is English by default; each user can switch to Indonesian (`erp_internal/translations/id.csv`). Our text is
   English source in `_()`/`__()`. Python identifiers are Indonesian; comments and docstrings English.
 - Locale: time zone Asia/Jakarta, currency IDR, date `dd-mm-yyyy`, number `#.###,##`.
+- Site config of ours: `erp_produksi` (set on the server: refuses `contoh.py`), `erp_sandi_contoh` (dev: the
+  sample users' password), `erp_mulai_absen` (first day of auto attendance; default the day the shift is made).
 - ruff with tabs, double quotes, 110 columns (`pyproject.toml`).
 - Tests: `frappe.tests` classes, all in `erp_internal/tests/`; fixtures as get-or-create helpers in
   `tests/utils.py`; date records relative to `today()`.

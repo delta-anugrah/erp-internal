@@ -158,6 +158,23 @@ image on its own server.
    - It also creates 3 customers, 2 suppliers, 6 months of Sales History and some open orders.
    - Last, one user per bagian, all sharing a password taken from site config `erp_sandi_contoh`.
    - It is needed for the local dry runs and the browser check.
+   - Status (2026-10-28): [x] `tests/test_contoh.py` written, [x] `contoh.py` written, [x] committed; [ ] tests
+     run (not run: no site yet), [ ] run on `erp.localhost`.
+   - Deviations (2026-10-28, written without a site):
+     - It also makes office employees with "Kantor" shift assignments and this year's Cuti Tahunan, and one project
+       with tasks (the first assigned to the Karyawan user), for Tasks 15-17's dry runs.
+     - "DATA CONTOH" is a Frappe tag (`_user_tags`) on every record it makes, plus the Item description and the
+       Project notes: lists can filter by it and the go-live can remove exactly those. `buat_contoh()` returns the
+       tagged count per DocType.
+     - Users are `<bagian lower case, no spaces>@contoh.test` (as `tools/cek_layar.mjs`), Role and Module Profile
+       of their bagian, a default Company permission (Kantor for HR, Karyawan and Manajer Proyek, else Pabrik). The
+       password is set on every run from `erp_sandi_contoh` (`update_password`, so no policy check); without that
+       config, or with `erp_produksi`, it refuses before writing anything.
+     - It reuses the get-or-create helpers of `tests/utils.py`. Opening stock is posted only where the item never
+       moved, and open orders are keyed by the customer's PO number (`CONTOH-SO-n`), so later sample transactions
+       survive a rerun.
+     - `test_contoh.py`: twice gives the same counts (and the expected numbers), the users sign in with the
+       password, the items carry the tag, refused with `erp_produksi`, refused without a password (5 tests).
 
 ## Global Constraints
 
@@ -1264,7 +1281,7 @@ Settings:
   offs, and national holidays are left for HR to enter. It is the company's default holiday list and the shift's.
 - `process_attendance_after` is site config `erp_mulai_absen`, or today when the shift is first created.
 
-- [ ] **Step 1: Write the failing tests** on an employee of `_Uji Kantor` with a "Kantor" shift assignment, on a
+- [x] **Step 1: Write the failing tests** on an employee of `_Uji Kantor` with a "Kantor" shift assignment, on a
   past working day.
   - `test_hadir_tepat_waktu`: check-ins at 08:05 (IN) and 17:10 (OUT), then `process_auto_attendance()`. Expected:
     Attendance "Present" with `late_entry` 0.
@@ -1272,15 +1289,41 @@ Settings:
   - `test_cuti_tahunan_maks_12`: with an allocation of 12, a 13-day Leave Application raises
     `frappe.ValidationError`.
   - `test_sabtu_bukan_alpa`: no "Absent" is marked on a Saturday.
-- [ ] **Step 2: Run them.** Expected: FAIL (shift "Kantor" missing).
-- [ ] **Step 3: Implement `_kantor()`.**
-- [ ] **Step 4: Run them again.** Expected: 4 tests OK.
-- [ ] **Step 5: Write `docs/panduan/absen.md`** in plain Indonesian:
+- [ ] **Step 2: Run them.** Expected: FAIL (shift "Kantor" missing). Not run: no site yet.
+- [x] **Step 3: Implement `_kantor()`.**
+- [ ] **Step 4: Run them again.** Expected: 4 tests OK. Not run: no site yet.
+- [x] **Step 5: Write `docs/panduan/absen.md`** in plain Indonesian:
   - open `https://erp.<domain>/hrms` on the phone → Add to Home Screen;
   - check in and check out, with location allowed;
   - apply for leave;
   - for HR: entering national holidays each year from the SKB.
-- [ ] **Step 6: Commit** `feat(absen): office shift with auto attendance, holidays, leave types`.
+- [x] **Step 6: Commit** `feat(absen): office shift with auto attendance, holidays, leave types`.
+
+**Task 15 deviations (2026-10-28, written without a site; HRMS v16.52 read in the source):**
+- **Holidays go through Holiday List Assignment.** v16 HRMS overrides `get_holiday_list_for_employee`
+  (`employee_holiday_list` hook, `hrms/utils/holiday_list.py`): an employee's holidays come from submitted
+  Holiday List Assignments (employee first, then company, each in force until the next starts), not from
+  `Company.default_holiday_list`. `setup.pastikan_libur(company, tahun)` makes "Libur <abbr> <year>" (weekly offs
+  from `LIBUR_MINGGUAN`, Saturday and Sunday, through Holiday List's own `get_weekly_off_dates`) and a submitted
+  company assignment from 1 January, for this year and next (`TAHUN_LIBUR`). An existing list is never touched (HR's
+  national holidays stay); an existing assignment for that company and start date is kept. `default_holiday_list`
+  is still set to this year's list (other ERPNext screens read it).
+- **The shift has no holiday list.** Shift Type has one `holiday_list`, but lists are per company and per year; a
+  blank one makes HRMS resolve the employee's list by date (`get_holiday_dates_between_range`), so a new year needs
+  no migrate-time switch. `test_pengaturan_absen` asserts it blank.
+- `SHIFT_KANTOR` also has `auto_update_last_sync: 1`: `process_auto_attendance` does nothing until
+  `last_sync_of_checkin` is set, and HRMS's hourly `update_last_sync_of_checkin` only moves it for shifts with that
+  flag. The tests set `process_attendance_after` and `last_sync_of_checkin` themselves (`db_set`), like HRMS's.
+- `process_attendance_after`: site config `erp_mulai_absen` when set (also on later migrates), else the day the
+  shift is created. A shift save that HRMS refuses (a new start time while check-ins wait) is logged, not raised, so
+  migrate goes on.
+- Geolocation tracking on means HRMS refuses a check-in without coordinates; the tests send Jakarta's.
+- `test_cuti_tahunan_maks_12` also checks that 12 working days are accepted (`total_leave_days` 12). New
+  `test_pengaturan_absen` (shift fields, HR Settings, lists, assignments, weekly offs, leave types): 5 tests, not 4.
+  `test_setup.test_idempoten` also counts Shift Type, Holiday List, Holiday List Assignment and Leave Type.
+- `tests/utils.py` gains `buat_karyawan`, `penugasan_shift`, `jatah_cuti` (get or create).
+- The guide names the HRMS app's buttons (Check In, Check Out, Request a Leave) as read in `hrms/frontend`; check
+  them on the site.
 
 ### Task 16: Projects
 
@@ -1292,17 +1335,26 @@ Settings:
 - Produces: `setup.JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")`, Activity Types with
   no billing or costing rates.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `test_alur_proyek`: a Manajer Proyek user creates a Project and a Task assigned to a Karyawan user. The Karyawan
     user creates and submits their own Timesheet: 2 hours, activity "Pengembangan", on that Task. The Task's
     `actual_time` is then 2.
   - `test_jenis_kegiatan`: all four Activity Types exist.
   - `test_gudang_tidak_baca_proyek`: as Gudang, `frappe.has_permission("Project", "read")` is false.
-- [ ] **Step 2: Run them.** Expected: FAIL (Activity Types missing).
-- [ ] **Step 3: Implement `_proyek()`** and run again. Expected: 3 tests OK.
-- [ ] **Step 4: Write `docs/panduan/proyek.md`** in plain Indonesian: projects, tasks, the daily timesheet, and what
+- [ ] **Step 2: Run them.** Expected: FAIL (Activity Types missing). Not run: no site yet.
+- [x] **Step 3: Implement `_proyek()`** and run again. Expected: 3 tests OK. Implemented; not run: no site yet.
+- [x] **Step 4: Write `docs/panduan/proyek.md`** in plain Indonesian: projects, tasks, the daily timesheet, and what
   the Manajer Proyek checks each week.
-- [ ] **Step 5: Commit** `feat(proyek): activity types and the project flow`.
+- [x] **Step 5: Commit** `feat(proyek): activity types and the project flow`.
+
+**Task 16 deviations (2026-10-28, written without a site):**
+- **A Karyawan cannot submit a Timesheet in stock v16** (role Employee: create, read, write). `setup.IZIN_TAMBAHAN`
+  adds `submit` for Employee on Timesheet through Frappe's own `add_permission`/`update_permission_property`. That
+  copies Timesheet's standard rules into Custom DocPerm on first use, so a later ERPNext change to Timesheet's
+  standard permissions is masked until someone resets them (Role Permissions Manager). A Karyawan's Employee User
+  Permission (`create_user_permission`) keeps them to their own timesheets. Cancel and amend stay with Projects User.
+- An existing Activity Type with a rate or disabled gets rates 0 and enabled again.
+- New `test_idempoten` (Activity Type and Custom DocPerm counts after a second `pastikan_setup`): 4 tests, not 3.
 
 ### Task 17: Go-live wave 3, the office
 

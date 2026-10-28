@@ -60,13 +60,15 @@ from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json
    ```
 
 8. **Jenis, then migrate.** The factory is a Pabrik; `migrate` then builds its warehouses, groups, UOMs, the order
-   flow and the PPN templates (`erp_internal/setup.py`):
+   flow and the PPN templates (`erp_internal/setup.py`). `erp_produksi` makes `erp_internal.contoh` refuse to
+   put sample data on this site:
 
    ```bash
    docker compose run --rm tools bash -c 'bench --site "$SITE" execute frappe.db.set_value \
        --args "[\"Company\", \"<name>\", \"erp_jenis\", \"Pabrik\"]" \
      && bench --site "$SITE" migrate \
      && bench --site "$SITE" set-config host_name "https://$SITE" \
+     && bench --site "$SITE" set-config -p erp_produksi 1 \
      && bench --site "$SITE" enable-scheduler'
    docker compose up -d
    curl -fsS https://erp.<domain>/api/method/ping   # {"message":"pong"}
