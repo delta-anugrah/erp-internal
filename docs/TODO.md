@@ -1,9 +1,9 @@
 # TODO
 
-Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 2 and 3 first).
+Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-10-28): `bench --site erp-test.localhost run-tests --app erp_internal`: 13 unit + 77 integration
-tests, all OK. `node tools/cek_layar.mjs`: 7 bagian OK.
+Last full run (2026-10-28, after Revision 4): `bench --site erp-test.localhost run-tests --app erp_internal`: 13
+unit + 89 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK.
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
@@ -13,12 +13,12 @@ tests, all OK. `node tools/cek_layar.mjs`: 7 bagian OK.
 - [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang;
       retake with `ERP_SANDI=<password> node tools/panduan_gambar.mjs`). `produksi.md`, `absen.md`, `proyek.md`
       reference no picture yet.
-- [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `karyawan@contoh.test` on a real phone. The sample
+- [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `user@contoh.test` on a real phone. The sample
       password is `SAMPLE_PASSWORD` in `~/Desktop/Projects/erp-internal-bench/.env`.
-- [ ] Sign in as two or three sample users (`<bagian>@contoh.test`): each sees only its bagian's icons, full width.
-- [ ] As `penjualan@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid.
+- [ ] Sign in as `user@` and `admin@contoh.test`: User has no Settings, Admin does; full width.
+- [ ] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused).
+- [ ] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid.
 - [ ] Decide: the PPN Masukan account under assets or liabilities (recommended: assets).
-- [ ] Decide: a person holding two bagian gets one combined Module Profile of their own (recommended: yes).
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
@@ -28,13 +28,15 @@ tests, all OK. `node tools/cek_layar.mjs`: 7 bagian OK.
 - [x] Task 2: site setup on every migrate (`test_setup` 7 OK)
 - [x] Task 3: only the used modules (`test_tampilan` 13 OK; Gudang gained Stock User, Apps screen tiles filtered)
 - [x] Task 4: English default, Indonesian switch (`test_bahasa` 6 OK)
-- [x] Task 4b: friendly screens (`cek_layar` 7 bagian OK, screenshots checked)
+- [x] Task 4b: friendly screens (`cek_layar` 3 users OK after Revision 4, screenshots checked)
 - [~] Task 5: sales and purchasing flow (`test_alur_jual_beli` 5 OK; guide screenshots still to take)
 - [x] Task 6: import guide (`test_impor` 4 OK; Stock Reconciliation import allowed by `setup.IMPOR_BOLEH`; headers
       equal the site's Download Template)
 - [~] Task 7: server image, compose, backups (image built and checked; compose boot, backup and restore drill
       waiting on Abel)
-- [~] Task 8: go-live wave 1 (local dry run done 2026-10-28; the real go-live waits on Samuel)
+- [~] Task 8: go-live wave 1 (local dry run done 2026-10-28; the real go-live waits on Samuel: PT Delta Anugrah,
+      tick `erp_aktif`, users as Admin or User)
+- [x] Revision 4: one company, three roles (`test_pengguna` 9 OK, `test_tampilan` 14 OK)
 
 ## Part B: production and forecast
 - [x] Task 9: Sales History (`test_sales_history` 5 OK, twice in a row)

@@ -19,7 +19,29 @@ image on its own server.
 **Spec:** `docs/superpowers/specs/2026-10-27-erp-internal-design.md`. Until Task 1 moves it, it is at
 `~/.claude/plans/2026-10-27-erp-internal-design.md`. Section numbers (§) below refer to the spec.
 
-## Revision 2 (Abel, 2026-10-27 23:00): read this first, it overrides the text below
+## Revision 4 (Mas Samuel, confirmed by Abel 2026-10-28): read this first, it overrides everything below
+
+Samuel's answers are in `docs/menunggu-samuel.md` ("Answers").
+
+1. **One company.** The legal name is Delta Anugrah: the go-live wizard makes "PT Delta Anugrah" (`DAN`). The
+   Pabrik/Kantor split (`Company.erp_jenis`) is gone: setup builds the factory and the office (warehouses,
+   production defaults, flows, PPN templates, holiday lists) for each company with the Check `erp_aktif` ("Run by
+   ERP Internal"), `setup.perusahaan()`. Task 8's "set Jenis" step is "tick `erp_aktif`"; Task 8 Step 2 (the office
+   company) is dropped. Sample data: one company, PT Contoh Plastik.
+2. **Three roles instead of seven bagian** (`tampilan.PROFIL_PERAN`): **User** (daily work in every used module),
+   **Admin** (manager roles, users and business settings under the Setup rail entry shown as "Settings"; role
+   `ERP Admin`), **Developer** (Admin plus System Manager: Build, System Settings). Module Profiles: Admin and User;
+   Developer has none. `erp_internal/pengguna.py` keeps an Admin from giving any role outside Admin and User (also to
+   itself) and from touching a Developer's or Administrator's account (User `before_validate`/`validate`/
+   `has_permission`, Has Role `before_insert`/`validate`); `tests/test_pengguna.py` tries the form save, a direct Has
+   Role insert, `frappe.client`, rename and password change. `proyek.PERAN_ATASAN`: Admin and Developer submit
+   anyone's timesheet, a User only their own. Sample users: `developer@`, `admin@`, `user@contoh.test`.
+3. **Invoices** stay on screen for recording only; the company is not PKP, the PPN templates are never default.
+4. Tests, `tools/cek_layar.mjs` (3 users) and `tools/panduan_gambar.mjs` (as `user@`) follow; the staff guides say
+   which role does what, and `docs/panduan/admin.md` covers users and settings. Wherever a task below says bagian,
+   Pabrik or Kantor, read Admin/User and the one company.
+
+## Revision 2 (Abel, 2026-10-27 23:00): it overrides the text below
 
 1. **The UI is English by default, and each user can switch to Indonesian.**
    - System Settings `language` is `en`, not `id`. Number, date, time zone and currency stay Indonesian.

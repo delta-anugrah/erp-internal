@@ -2,6 +2,31 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (Revision 4: one company, three roles)
+- Samuel's answers (Abel confirmed): one company (PT Delta Anugrah), roles Admin and User (plus Developer), no PKP.
+- Code: `Company.erp_aktif` replaces `erp_jenis`, every ticked company gets the factory and the office
+  (`setup.perusahaan()`); `tampilan.PROFIL_PERAN` is Developer, Admin, User, Admin's rail adds Setup ("Settings":
+  users, Company, business settings); new role `ERP Admin` with User rights (`setup.IZIN_TAMBAHAN`, now
+  (doctype, role, permlevel, rights)); new `erp_internal/pengguna.py` keeps an Admin to Admin and User roles and off
+  Developer accounts; `proyek.PERAN_ATASAN` is Admin and Developer; `contoh.py` one company, users `developer@`,
+  `admin@`, `user@contoh.test`; `tools/setup_bench.sh` ticks `erp_aktif`.
+- Reviewer (general-purpose agent with `.claude/agents/reviewer.md`): no privilege escalation found; fixed
+  `setup_bench.sh`, HR saving an Employee linked to a Developer (only access fields are refused now,
+  `pengguna.FIELD_AKSES`), a new User under a Developer's name (`cek_user_awal`), `buat_pengguna` clearing
+  `block_modules`; added tests for those paths, an unticked company and an Admin submitting someone's timesheet.
+- Dev sites: one-off script (not in the repo) on `erp.localhost` deleted PT Contoh Kantor and its sample records,
+  the seven `<bagian>@contoh.test` users, the seven old Role and Module Profiles and the `erp_jenis` field; on
+  `erp-test.localhost` only the field. Then `migrate` on both and `buat_contoh` twice on `erp.localhost` (same
+  counts both runs: Company 1, User 3, Employee 5, ...).
+- Tests: `bench --site erp-test.localhost run-tests --app erp_internal`: 13 unit + 89 integration, all OK.
+  `uvx ruff check erp_internal`, `uvx ruff format --check erp_internal`: clean. No JS/CSS changed, no build.
+- Browser: `node tools/cek_layar.mjs`: 3 users OK; `node tools/panduan_gambar.mjs`: 6 screenshots retaken as
+  `user@` (Purchase Order without a PPN template).
+- Docs: CLAUDE.md, README, `.claude/rules/tampilan.md`, guides (who does what; new `docs/panduan/admin.md`), plan
+  Revision 4, spec note, TODO, `menunggu-samuel.md`, `deploy/server/README.md` step 8.
+- Next: Abel's manual checks in TODO (Admin refused when giving Developer), Task 7 drill, go-live with PT Delta
+  Anugrah.
+
 
 ## 2026-10-28 (first run on the sites)
 - Tests: `bench --site erp-test.localhost migrate`, then `bench --site erp-test.localhost run-tests --app

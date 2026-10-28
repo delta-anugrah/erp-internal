@@ -38,6 +38,12 @@ Plain ERPNext, no 3D or animation (unlike BPT).
 
 ## 2. Who uses it
 
+> **Changed 2026-10-28 (Samuel; plan Revision 4):** one company (PT Delta Anugrah) holds the factory and the
+> office, marked by `Company.erp_aktif`, and three Role Profiles replace the seven bagian: User, Admin, Developer.
+> Everything below that names `erp_jenis`, Pabrik/Kantor companies or Module Profiles, a *bagian*, or PT Contoh
+> Kantor (CKT) is the original design, kept for history (§2, §8, §9, §12, §13). Current behaviour: CLAUDE.md and
+> `.claude/rules/tampilan.md`.
+
 One site with two companies (Abel, 2026-10-27):
 
 - **The plastic factory** (`Company.erp_jenis` = Pabrik): stock, sales, purchasing, production with the monthly
@@ -120,7 +126,7 @@ and holds System Manager.
    - Indonesian locale: language `id`, Asia/Jakarta, IDR, `dd-mm-yyyy`, `#.###,##`;
    - security defaults: sign-up off, error tracebacks off, OAuth dynamic client registration off, password policy
      score 2;
-   - the `Company.erp_jenis` field;
+   - the `Company.erp_aktif` check (was `erp_jenis` Pabrik/Kantor until Revision 4);
    - item groups and UOMs;
    - the factory's warehouses: Gudang Bahan Baku, Gudang Produksi, Gudang Barang Jadi, Gudang Reject (ERPNext's
      empty default warehouses are disabled);
@@ -229,7 +235,7 @@ These dates assume Samuel's answers (§12) arrive in the first week.
 ## 12. Open questions (only Samuel can answer)
 
 1. What are the legal names and abbreviations of both companies? (Task 8.) Until then, dev uses "PT Contoh
-   Plastik" (CPL) and "PT Contoh Kantor" (CKT).
+   Plastik" (CPL) and "PT Contoh Kantor" (CKT). Answered 2026-10-28: one company, PT Delta Anugrah (DAN).
 2. Where are past orders kept (Excel, a book, other software), and how many months back? The forecast needs at
    least 3 months. (Task 14.)
 3. Should the system issue invoices, and is the factory PKP (charges PPN)? (Tasks 5 and 8.) Default: invoices on,
@@ -238,7 +244,7 @@ These dates assume Samuel's answers (§12) arrive in the first week.
 5. Attendance by phone (location) or by fingerprint machine (which brand)? Office hours and headcount? (Task 15.)
    Default: phone, 08:00–17:00.
 6. Which server provider and budget, which domain, and which off-site backup bucket? (Tasks 7 and 8.)
-7. Who uses it: names and bagian per person. (Tasks 8, 14 and 17.)
+7. Who uses it: names and role (Admin or User) per person. (Tasks 8, 14 and 17.)
 
 ## 13. Left to the builder
 
