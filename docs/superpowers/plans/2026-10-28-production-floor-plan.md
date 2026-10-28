@@ -60,12 +60,12 @@ the browser checks.
    exists in its slot, leave a missing slot empty, and put a duplicate in the first free spot past row 2, without
    crashing. Test: Task 1 `test_data_nomor_ganjil`, Task 3 `lantai.mjs` case "13 machines".
 2. **HTML in record text** (an item or machine name like `<img src=x onerror=alert(1)>`). Expected: shown as plain
-   text. Test: Task 4 `lantai.mjs` case "xss".
+   text. Test: Task 5 `lantai.mjs` case "xss".
 3. **Realtime down** (socket.io can't resolve `erp.localhost` on macOS without `/etc/hosts`, or the socket drops).
-   Expected: a 60 s poll keeps the view current, and there is no error. Test: Task 4 `test_siaran_hanya_nama` plus
+   Expected: a 60 s poll keeps the view current, and there is no error. Test: Task 5 `test_siaran_hanya_nama` plus
    `lantai.mjs` case "poll".
 4. **Status written without events** (ERPNext's Job Card uses `frappe.db.set_value` on Workstation status).
-   Expected: the poll picks it up. Test: Task 4 `lantai.mjs` case "set_value".
+   Expected: the poll picks it up. Test: Task 5 `lantai.mjs` case "set_value".
 5. **No WebGL or a weak GPU.** Expected: without WebGL, a plain table of the machines; with a weak GPU, adaptive
    quality kicks in. Desk never freezes. Test: Task 3 `lantai.mjs` cases "no-webgl" and "adaptive".
 
@@ -213,7 +213,36 @@ the browser checks.
   (Read tool). It should read clearly as injection moulding machines, not boxes.
 - [ ] **Step 4:** Commit `feat(lantai): machines, status lights and motion within the frame budget`.
 
-### Task 4: Labels, selection, status from the scene, live updates
+### Task 4: English route and endpoints (Revision 1)
+
+Spec Revision 1, first bullet. A rename only: no behaviour changes, every existing test and `lantai.mjs` case
+still passes under the new names.
+
+**Files:**
+- Rename: `erp_internal/lantai.py` → `erp_internal/production_floor.py`, `tests/test_lantai.py` →
+  `tests/test_production_floor.py`, `page/lantai_produksi/` → `page/production_floor/` (Page name and route
+  `production-floor`, JSON `name`/`page_name` and `modified` bumped).
+- Modify: `hooks.py` (doc events), the page script, `lantai.bundle.js`/`lantai/*.js` where they name the method,
+  the route or the event, `tools/lantai.mjs`, `deploy/check_image.sh` if it names the page, `setup.py` (remove
+  the old Page `lantai-produksi` if it exists, idempotent), CLAUDE.md, `.claude/skills/run-checks`, docs that name
+  the old route or methods (PROGRESS/TODO history lines may stay as history).
+
+**Interfaces:**
+- `erp_internal.production_floor.get_data()` (was `lantai.data`), same return shape.
+- `erp_internal.production_floor.set_status(machine, status)` (was `ubah_status(mesin, status)`), POST only, same
+  checks and return.
+- Realtime event `production_floor` (was `erp_lantai`); payload `{"mesin": name}` unchanged.
+- Page `production-floor`; the old Page `lantai-produksi` is deleted on migrate.
+
+- [ ] **Step 1:** Rename, then grep the repo (outside `.git`, `node_modules`, `.superpowers`) for
+  `lantai-produksi`, `lantai_produksi`, `erp_internal.lantai`, `ubah_status`, `erp_lantai`: only history lines
+  in PROGRESS/TODO may remain.
+- [ ] **Step 2:** `bench --site erp.localhost migrate`, `bench build --app erp_internal`, the full suite and
+  `node tools/lantai.mjs` all pass; `/desk/lantai-produksi` no longer exists, `/desk/production-floor` does.
+- [ ] **Step 3:** Commit `refactor(lantai): English route and endpoints for the Production Floor`. Tell Abel to
+  restart `bench start`.
+
+### Task 5: Labels, selection, status from the scene, live updates
 
 **Files:**
 - Create: `erp_internal/public/js/lantai/label.js`, `erp_internal/public/js/lantai/panel.js`
@@ -228,12 +257,12 @@ the browser checks.
   - the side panel opens: details, Work Order (a link to the form), six status buttons, and "Open machine";
   - on a phone width (< 760 px) the panel is a bottom sheet.
 - **A status button:**
-  - POST `erp_internal.lantai.ubah_status`;
+  - POST `erp_internal.production_floor.set_status`;
   - the button shows a spinner and stays disabled until the call answers;
   - on success the scene eases to the new state;
   - on refusal an inline note appears in the panel, never a dialog.
 - **Live updates:**
-  - `frappe.realtime.doctype_subscribe("Workstation")` plus `frappe.realtime.on("erp_lantai")` trigger a refetch of
+  - `frappe.realtime.doctype_subscribe("Workstation")` plus `frappe.realtime.on("production_floor")` trigger a refetch of
     `data()`, debounced 250 ms;
   - a poll every 60 s while visible;
   - `perbarui()` diffs and touches only the machines that changed.
@@ -254,7 +283,44 @@ the browser checks.
   again.
 - [ ] **Step 3:** Commit `feat(lantai): labels, machine panel, status from the floor, live updates`.
 
-### Task 5: Navigation, docs and the image
+### Task 6: The info bar and the liquid glass look (Revision 1)
+
+Spec Revision 1, second to fourth bullets.
+
+**Files:**
+- Create: `erp_internal/public/js/lantai/hud.js`, `erp_internal/public/js/lantai/kaca.js` (the shared glass CSS)
+- Modify: `production_floor.py` (`get_data()` adds `perusahaan`), its tests, `lantai.bundle.js`, `label.js`,
+  `panel.js`, `erp_internal/translations/id.csv`, `tools/lantai.mjs`
+
+**Interfaces:**
+- `get_data()` adds `"perusahaan": {"nama": str, "logo": str | None}` from the default company; `logo` only when
+  the user may read Company, else None; `nama` falls back to the app title when there is no default company.
+- `hud.js` exports `buatHud(root) -> {perbarui(data), status(live: bool, waktu), buang()}`:
+  - top left, top right and the summary strip as in the spec; all text by `textContent`, the logo through an
+    `<img>` whose `src` is set only for a same-origin `/files/` or `/private/files/` path;
+  - one `setInterval` of 1 s for the clock (`Intl.DateTimeFormat` with `frappe.boot.lang`), cleared on `jeda()`
+    and `buang()`, restarted on `lanjut()`;
+  - counts come from the same `data()` the scene uses, recomputed on every `perbarui()`.
+- `kaca.js`: one CSS block for every card (HUD, labels, panel, reset button): translucent fill,
+  `backdrop-filter: blur(20px) saturate(180%)`, 1 px light edge, radius 16–20 px, soft shadow, light and dark
+  values from Desk's theme (`[data-theme]`), solid fallback under `@supports not (backdrop-filter: …)` and
+  `@media (prefers-reduced-transparency: reduce)`.
+- Phone width (< 760 px): the bar wraps into two compact rows and never covers the selected machine's panel.
+
+- [ ] **Step 1:** Tests: `test_data_perusahaan` (name and logo for a Manufacturing User; logo None for a user
+  without Company read). `lantai.mjs` cases:
+  - "hud": the company name, a clock that changes within 2 s, "14" machines, status chip counts equal to the
+    server's statuses, utilization = Production ÷ machines;
+  - "hud-live": block `/socket.io` and the dot reads "Updated …";
+  - "hud-xss": a company name `<img src=x onerror=window.kena=1>` shows as text, `window.kena` undefined;
+  - "glass": every card's computed `backdrop-filter` contains `blur`; text contrast ≥ 4.5:1 against the card in
+    light and dark;
+  - the "perf" case again with the bar on.
+- [ ] **Step 2:** See them fail, implement until they pass, plus the full suite. Look at screenshots in light,
+  dark and phone width (Read tool): clean, nothing overlapping, every figure readable.
+- [ ] **Step 3:** Commit `feat(lantai): info bar and liquid glass look`. Tell Abel to restart `bench start`.
+
+### Task 7: Navigation, docs and the image
 
 **Files:**
 - Modify:
@@ -262,7 +328,7 @@ the browser checks.
   - `erp_internal/tests/test_tampilan.py` and `tools/cek_layar.mjs` (the new link);
   - `docs/panduan/produksi.md` (a short "Production Floor" section with a screenshot via
     `tools/panduan_gambar.mjs`);
-  - README, `.claude/rules/tampilan.md`, a new `.claude/rules/lantai.md` (paths `erp_internal/lantai.py`,
+  - README, `.claude/rules/tampilan.md`, a new `.claude/rules/lantai.md` (paths `erp_internal/production_floor.py`,
     `public/js/lantai/**`; the lessons and the budget above), CLAUDE.md, `docs/PROGRESS.md`, `docs/TODO.md`.
 
 - [ ] **Step 1:** Add the link and update the tests. Run the full suite, `cek_layar.mjs` and `lantai.mjs`; all
@@ -279,5 +345,5 @@ the browser checks.
 
 - `/etc/hosts`: add `127.0.0.1 erp.localhost` (sudo). Without it, Node's socket.io can't resolve `*.localhost` on
   macOS and live updates fall back to the 60 s poll.
-- Restart `bench start` after Tasks 2 to 4 (each one builds).
+- Restart `bench start` after Tasks 2 to 6 (each one builds).
 - Look at the floor once in your own Chrome: does it feel smooth on your MacBook?
