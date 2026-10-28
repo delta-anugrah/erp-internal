@@ -1,4 +1,4 @@
-"""Office attendance on stock HRMS: the Kantor shift with auto attendance, weekly offs, leave types."""
+"""Attendance on stock HRMS: the Kantor shift with auto attendance, weekly offs, leave types."""
 
 from datetime import date, datetime, timedelta
 
@@ -30,13 +30,13 @@ class TestAbsen(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.hari_ini = getdate(today())
-		cls.kantor = buat_perusahaan("_Uji Kantor", "_UK", "Kantor")
+		cls.company = buat_perusahaan("_Uji Pabrik", "_UP")
 
 	def karyawan(self, nama: str, mulai: date) -> str:
-		"""An employee of the office on the Kantor shift from `mulai`, with holiday lists for those years."""
+		"""An employee on the Kantor shift from `mulai`, with holiday lists for those years."""
 		for tahun in {mulai.year, self.hari_ini.year}:
-			pastikan_libur(self.kantor, tahun)
-		emp = buat_karyawan(nama, self.kantor)
+			pastikan_libur(self.company, tahun)
+		emp = buat_karyawan(nama, self.company)
 		penugasan_shift(emp, SHIFT, mulai)
 		return emp
 
@@ -77,12 +77,12 @@ class TestAbsen(IntegrationTestCase):
 
 		tahun = self.hari_ini.year
 		for t in (tahun, tahun + 1):
-			daftar = nama_libur(self.kantor, t)
-			self.assertEqual(daftar, f"Libur _UK {t}")
+			daftar = nama_libur(self.company, t)
+			self.assertEqual(daftar, f"Libur _UP {t}")
 			self.assertTrue(
 				frappe.db.exists(
 					"Holiday List Assignment",
-					{"assigned_to": self.kantor, "holiday_list": daftar, "docstatus": 1},
+					{"assigned_to": self.company, "holiday_list": daftar, "docstatus": 1},
 				),
 				daftar,
 			)
@@ -94,8 +94,8 @@ class TestAbsen(IntegrationTestCase):
 				daftar,
 			)
 		self.assertEqual(
-			frappe.db.get_value("Company", self.kantor, "default_holiday_list"),
-			nama_libur(self.kantor, tahun),
+			frappe.db.get_value("Company", self.company, "default_holiday_list"),
+			nama_libur(self.company, tahun),
 		)
 
 		for nama, nilai in JENIS_CUTI.items():
@@ -133,7 +133,7 @@ class TestAbsen(IntegrationTestCase):
 		senin = self.hari_ini + timedelta(days=14 - self.hari_ini.weekday())
 		emp = self.karyawan("_Uji Cuti", self.hari_ini)
 		for d in (senin, senin + timedelta(days=16)):
-			pastikan_libur(self.kantor, d.year)
+			pastikan_libur(self.company, d.year)
 		jatah_cuti(emp, "Cuti Tahunan", 12, self.hari_ini, self.hari_ini + timedelta(days=120))
 
 		def cuti(sampai: date):
@@ -141,7 +141,7 @@ class TestAbsen(IntegrationTestCase):
 				{
 					"doctype": "Leave Application",
 					"employee": emp,
-					"company": self.kantor,
+					"company": self.company,
 					"leave_type": "Cuti Tahunan",
 					"from_date": senin,
 					"to_date": sampai,

@@ -27,15 +27,15 @@ PENGATURAN_SISTEM = {
 }
 GLOBAL_DEFAULTS = {"default_currency": "IDR", "country": "Indonesia"}
 
-# The company kind decides what setup builds for it: a Pabrik gets the factory warehouses, a Kantor none.
-JENIS = ("Pabrik", "Kantor")
-FIELD_JENIS = {
-	"fieldname": "erp_jenis",
-	"label": "Kind",
-	"fieldtype": "Select",
-	"options": "\n" + "\n".join(JENIS),
+# One company runs everything: the factory (stock, sales, purchasing, production) and the office (attendance,
+# projects). Setup builds both for each company with this box ticked; ERPNext's own test companies have it off.
+FIELD_AKTIF = {
+	"fieldname": "erp_aktif",
+	"label": "Run by ERP Internal",
+	"fieldtype": "Check",
+	"default": "0",
 	"insert_after": "abbr",
-	"description": "Pabrik: the factory (stock, sales, purchasing, production). Kantor: the office (attendance, projects).",
+	"description": "Setup builds this company's warehouses, production defaults, holiday lists and PPN templates.",
 }
 
 GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart")
@@ -53,10 +53,11 @@ PENGATURAN_ALUR = {
 # DocTypes the Data Import tool may take although v16 ships them with `allow_import` off: the opening stock
 # is imported as a Stock Reconciliation (docs/impor.md, `test_impor_stok_awal`).
 IMPOR_BOLEH = ("Stock Reconciliation",)
-# Per factory company: stock moves post no journal entries (perpetual inventory off).
-PERUSAHAAN_PABRIK = {"enable_perpetual_inventory": 0}
+# Per company: stock moves post no journal entries (perpetual inventory off).
+PENGATURAN_PERUSAHAAN = {"enable_perpetual_inventory": 0}
 
-# PPN: one sales and one purchase template per factory, never the default (Samuel decides PKP, Task 8).
+# PPN: one sales and one purchase template per company, never the default: the company is not PKP (Samuel,
+# 2026-10-28), so invoices only record sales and purchases.
 TARIF_PPN = 11
 PAJAK = {
 	"jual": ("PPN 11%", "PPN Keluaran"),
@@ -65,14 +66,14 @@ PAJAK = {
 TEMPLATE_PAJAK = {"jual": "Sales Taxes and Charges Template", "beli": "Purchase Taxes and Charges Template"}
 INDUK_PAJAK = "Duties and Taxes"  # the chart's group for tax accounts
 
-# Production. v16 keeps the Work Order's default warehouses on the Company, so each factory gets its own.
+# Production. v16 keeps the Work Order's default warehouses on the Company.
 GUDANG_PRODUKSI = {
 	"default_wip_warehouse": "Gudang Produksi",
 	"default_fg_warehouse": "Gudang Barang Jadi",
 	"default_scrap_warehouse": "Gudang Reject",
 }
 PENGATURAN_PRODUKSI = {"backflush_raw_materials_based_on": "BOM"}  # Manufacturing Settings
-# Item Group → the factory warehouse its items default to, per factory company.
+# Item Group → the warehouse its items default to, per company.
 GUDANG_GRUP = {
 	"Barang Jadi": "Gudang Barang Jadi",
 	"Bahan Baku": "Gudang Bahan Baku",
@@ -80,7 +81,7 @@ GUDANG_GRUP = {
 	"Kemasan": "Gudang Bahan Baku",
 }
 
-# The office. One shift for everyone, attendance by phone with location (Samuel's question 5; until he answers,
+# Attendance. One shift for everyone, attendance by phone with location (Samuel's question 5; until he answers,
 # 08:00-17:00). `auto_update_last_sync` lets HRMS's hourly job move the sync point, without which auto attendance
 # never runs. `process_attendance_after` is site config `erp_mulai_absen`, else the day the shift is created.
 SHIFT_KANTOR = {
@@ -99,7 +100,7 @@ SHIFT_KANTOR = {
 	"enable_early_exit_marking": 1,
 }
 PENGATURAN_HR = {"allow_employee_checkin_from_mobile_app": 1, "allow_geolocation_tracking": 1}
-# Per office company and year, a Holiday List "Libur <abbr> <year>" with these weekly offs, assigned to the
+# Per company and year, a Holiday List "Libur <abbr> <year>" with these weekly offs, assigned to the
 # company (v16 HRMS resolves holidays through Holiday List Assignment). HR adds the national holidays (SKB).
 LIBUR_MINGGUAN = ("Saturday", "Sunday")
 TAHUN_LIBUR = (0, 1)  # this year and next
@@ -111,26 +112,35 @@ JENIS_CUTI = {
 
 # Projects: what a timesheet row is spent on. No billing or costing rates (internal work).
 JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")
-# DocType → role → rights added to ERPNext's own (a Custom DocPerm copy). A Karyawan (role Employee) creates and
-# writes timesheets in v16 but cannot submit them; the `proyek.cek_pemilik_timesheet` hook keeps them to their own.
-# Produksi's Manufacturing User does not read Company in v16, yet every production and stock form reads its
-# company's defaults ("No permission for Company" on a new Stock Entry, seen by tools/cek_layar.mjs).
-IZIN_TAMBAHAN = {
-	"Timesheet": {"Employee": ("submit",)},
-	"Company": {"Manufacturing User": ("read",)},
-}
+# (DocType, role, permlevel, rights) added to ERPNext's own (a Custom DocPerm copy):
+# - Employee creates and writes timesheets in v16 but cannot submit them; `proyek.cek_pemilik_timesheet` keeps a
+#   User to their own.
+# - Manufacturing User does not read Company in v16, yet every production and stock form reads its company's
+#   defaults ("No permission for Company" on a new Stock Entry, seen by tools/cek_layar.mjs).
+# - The Admin role manages users (roles sit on permlevel 1) and reads the profiles it hands out; what it may give
+#   is limited by `pengguna.cek_user`. Projects Settings is System Manager's only in v16.
+IZIN_TAMBAHAN = (
+	("Timesheet", "Employee", 0, ("submit",)),
+	("Company", "Manufacturing User", 0, ("read",)),
+	("User", tampilan.PERAN_ADMIN, 0, ("read", "write", "create")),
+	("User", tampilan.PERAN_ADMIN, 1, ("read", "write")),
+	("Role Profile", tampilan.PERAN_ADMIN, 0, ("read",)),
+	("Module Profile", tampilan.PERAN_ADMIN, 0, ("read",)),
+	("Projects Settings", "Projects Manager", 0, ("read", "write")),
+)
 
 
 def pastikan_setup() -> None:
 	"""Bring the site to the state this app expects. Idempotent; safe before the setup wizard."""
 	_pengaturan()
-	_field_jenis()
+	_field_aktif()
 	_impor_boleh()
+	tampilan.pastikan_peran()  # the Admin role, before IZIN_TAMBAHAN names it
 	if not frappe.is_setup_complete():
 		return
 	_grup_barang()
 	_satuan()
-	for company in perusahaan("Pabrik"):
+	for company in perusahaan():
 		_gudang_pabrik(company)
 	_bawaan()
 	_alur_jual_beli()
@@ -140,9 +150,9 @@ def pastikan_setup() -> None:
 	tampilan.terapkan()
 
 
-def perusahaan(jenis: str) -> list[str]:
-	"""The companies of one kind (`Pabrik` or `Kantor`), by name."""
-	return frappe.get_all("Company", {"erp_jenis": jenis}, pluck="name", order_by="name asc")
+def perusahaan() -> list[str]:
+	"""The companies setup builds for (`erp_aktif` ticked; one on a real site), by name."""
+	return frappe.get_all("Company", {"erp_aktif": 1}, pluck="name", order_by="name asc")
 
 
 def gudang(company: str, nama: str) -> str:
@@ -183,9 +193,9 @@ def _impor_boleh() -> None:
 			make_property_setter(dt, None, "allow_import", 1, "Check", for_doctype=True)
 
 
-def _field_jenis() -> None:
+def _field_aktif() -> None:
 	# create_custom_fields saves only a field that is missing or differs.
-	create_custom_fields({"Company": [FIELD_JENIS]}, update=True)
+	create_custom_fields({"Company": [FIELD_AKTIF]}, update=True)
 
 
 def _grup_barang() -> None:
@@ -238,10 +248,10 @@ def _gudang_pabrik(company: str) -> None:
 
 
 def _bawaan() -> None:
-	"""Defaults so nobody picks twice: a factory's documents default to its Gudang Barang Jadi (v16 keeps the
+	"""Defaults so nobody picks twice: a company's documents default to its Gudang Barang Jadi (v16 keeps the
 	default warehouse on the Company, not in Stock Settings), and a user's only Company permission is their
 	default."""
-	for company in perusahaan("Pabrik"):
+	for company in perusahaan():
 		wh = gudang(company, "Gudang Barang Jadi")
 		if (
 			frappe.db.exists("Warehouse", wh)
@@ -269,8 +279,8 @@ def _alur_jual_beli() -> None:
 			doc.flags.ignore_mandatory = True
 			doc.save(ignore_permissions=True)
 
-	for company in perusahaan("Pabrik"):
-		for field, nilai in PERUSAHAAN_PABRIK.items():
+	for company in perusahaan():
+		for field, nilai in PENGATURAN_PERUSAHAAN.items():
 			if frappe.db.get_value("Company", company, field) != nilai:
 				frappe.db.set_value("Company", company, field, nilai)
 		# ERPNext caches the perpetual flag per request (erpnext.is_perpetual_inventory_enabled).
@@ -317,7 +327,7 @@ def _akun_pajak(company: str, nama: str) -> str | None:
 
 def _template_pajak(company: str, doctype: str, judul: str, akun: str) -> None:
 	"""Get or create a tax template with one On Net Total row at `TARIF_PPN`. A new template is not the
-	default; an existing one keeps its `is_default`, which the go-live sets by hand for a PKP factory."""
+	default; an existing one keeps its `is_default`, set by hand only if the company becomes PKP."""
 	baris = {"charge_type": "On Net Total", "account_head": akun, "description": judul, "rate": TARIF_PPN}
 	if doctype == TEMPLATE_PAJAK["beli"]:
 		baris.update({"category": "Total", "add_deduct_tax": "Add"})
@@ -337,7 +347,7 @@ def _template_pajak(company: str, doctype: str, judul: str, akun: str) -> None:
 
 
 def _produksi() -> None:
-	"""Work Orders default to the factory's warehouses, and items to their group's warehouse."""
+	"""Work Orders default to the company's warehouses, and items to their group's warehouse."""
 	doc = frappe.get_single("Manufacturing Settings")
 	beda = {k: v for k, v in PENGATURAN_PRODUKSI.items() if doc.get(k) != v}
 	if beda:
@@ -345,7 +355,7 @@ def _produksi() -> None:
 		doc.flags.ignore_mandatory = True
 		doc.save(ignore_permissions=True)
 
-	pabrik = perusahaan("Pabrik")
+	pabrik = perusahaan()
 	for company in pabrik:
 		for field, nama in GUDANG_PRODUKSI.items():
 			wh = gudang(company, nama)
@@ -374,7 +384,7 @@ def _produksi() -> None:
 
 
 def _kantor() -> None:
-	"""Attendance and leave for the office: HR Settings, the Kantor shift, holiday lists, leave types."""
+	"""Attendance and leave: HR Settings, the Kantor shift, holiday lists, leave types."""
 	doc = frappe.get_single("HR Settings")
 	beda = {k: v for k, v in PENGATURAN_HR.items() if doc.get(k) != v}
 	if beda:
@@ -385,7 +395,7 @@ def _kantor() -> None:
 	_shift()
 
 	tahun = getdate(today()).year
-	for company in perusahaan("Kantor"):
+	for company in perusahaan():
 		for tambah in TAHUN_LIBUR:
 			pastikan_libur(company, tahun + tambah)
 		daftar = nama_libur(company, tahun)
@@ -440,7 +450,7 @@ def _sama(kini, nilai) -> bool:
 
 
 def nama_libur(company: str, tahun: int) -> str:
-	"""The office company's Holiday List for `tahun`: `"Libur <abbr> <tahun>"`."""
+	"""The company's Holiday List for `tahun`: `"Libur <abbr> <tahun>"`."""
 	return f"Libur {frappe.get_cached_value('Company', company, 'abbr')} {tahun}"
 
 
@@ -496,13 +506,12 @@ def _proyek() -> None:
 
 	from frappe.permissions import add_permission, setup_custom_perms, update_permission_property
 
-	for doctype, per_peran in IZIN_TAMBAHAN.items():
-		for peran, hak in per_peran.items():
-			syarat = {"parent": doctype, "role": peran, "permlevel": 0, "if_owner": 0}
-			for h in hak:
-				if frappe.db.get_value("Custom DocPerm", syarat, h):
-					continue
-				setup_custom_perms(doctype)  # first time: copies ERPNext's rules, then ours are added
-				if not frappe.db.exists("Custom DocPerm", syarat):
-					add_permission(doctype, peran, 0)
-				update_permission_property(doctype, peran, 0, h, 1)
+	for doctype, peran, level, hak in IZIN_TAMBAHAN:
+		syarat = {"parent": doctype, "role": peran, "permlevel": level, "if_owner": 0}
+		for h in hak:
+			if frappe.db.get_value("Custom DocPerm", syarat, h):
+				continue
+			setup_custom_perms(doctype)  # first time: copies ERPNext's rules, then ours are added
+			if not frappe.db.exists("Custom DocPerm", syarat):
+				add_permission(doctype, peran, level)
+			update_permission_property(doctype, peran, level, h, 1)

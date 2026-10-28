@@ -35,7 +35,7 @@ class TestAlurProduksi(IntegrationTestCase):
 		super().setUpClass()
 		for k in (3, 2, 1, 0, -1):
 			tahun_fiskal(m(k))
-		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
 
 	def test_bawaan_produksi(self):
 		self.assertEqual(

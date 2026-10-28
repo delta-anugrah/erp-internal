@@ -42,8 +42,15 @@ Shift Assignment,Jadwal Shift
 Leave Application,Pengajuan Cuti
 Leave Allocation,Jatah Cuti
 Holiday List,Daftar Hari Libur
-Kind,Jenis
-"Pabrik: the factory (stock, sales, purchasing, production). Kantor: the office (attendance, projects).","Pabrik: pabrik (stok, penjualan, pembelian, produksi). Kantor: kantor (absensi, proyek)."
+Run by ERP Internal,Dijalankan ERP Internal
+"Setup builds this company's warehouses, production defaults, holiday lists and PPN templates.","Setup membuat gudang, bawaan produksi, daftar hari libur dan template PPN perusahaan ini."
+Settings,Pengaturan
+Users,Pengguna
+Stock Settings,Pengaturan Stok
+Selling Settings,Pengaturan Penjualan
+Buying Settings,Pengaturan Pembelian
+Only a Developer can change this account.,Hanya Developer yang bisa mengubah akun ini.
+You cannot give these roles: {0},Anda tidak bisa memberi peran ini: {0}
 Bahasa Indonesia,Bahasa Indonesia
 English,English
 Sign in to change the language.,Masuk dulu untuk mengganti bahasa.

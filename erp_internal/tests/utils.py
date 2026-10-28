@@ -17,8 +17,9 @@ def sebelum_tes() -> None:
 	frappe.db.commit()  # nosemgrep
 
 
-def buat_perusahaan(nama: str, abbr: str, jenis: str) -> str:
-	"""Get or create a company (Indonesia, IDR, chart "Standard") of kind `jenis`, then run the setup."""
+def buat_perusahaan(nama: str, abbr: str) -> str:
+	"""Get or create a company (Indonesia, IDR, chart "Standard") run by this app (`erp_aktif`), then run the
+	setup."""
 	from erp_internal.setup import pastikan_setup
 
 	if not frappe.db.exists("Company", nama):
@@ -33,8 +34,8 @@ def buat_perusahaan(nama: str, abbr: str, jenis: str) -> str:
 				"chart_of_accounts": "Standard",
 			}
 		).insert(ignore_permissions=True)
-	if frappe.db.get_value("Company", nama, "erp_jenis") != jenis:
-		frappe.db.set_value("Company", nama, "erp_jenis", jenis)
+	if not frappe.db.get_value("Company", nama, "erp_aktif"):
+		frappe.db.set_value("Company", nama, "erp_aktif", 1)
 	pastikan_setup()
 	return nama
 
@@ -80,6 +81,8 @@ def buat_pengguna(email: str, profil_peran: str | None, profil_modul: str | None
 		user.user_type = "System User"
 		user.set("role_profiles", [{"role_profile": p} for p in profil])
 		user.module_profile = profil_modul
+		if not profil_modul:
+			user.set("block_modules", [])  # Frappe copies a profile's blocks, never clears them
 		user.save(ignore_permissions=True)
 
 	if company and not frappe.db.exists(

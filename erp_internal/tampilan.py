@@ -18,26 +18,33 @@ import frappe
 
 APLIKASI = ("erpnext", "hrms")  # the apps whose docks and modules this file arranges
 
-# Dock entry (the module's sidebar name) → the bagian that see it. System Manager sees every kept one.
+# Three Role Profiles (Samuel, 2026-10-28): User does the daily work, Admin also runs the business (manager
+# rights, users, business settings), Developer also has System Manager (Build, System Settings).
+DEVELOPER, ADMIN, USER = "Developer", "Admin", "User"
+PERAN_ADMIN = "ERP Admin"  # our role: user management (setup.IZIN_TAMBAHAN), checked by pengguna.py
+
+# Dock entry (the module's sidebar name) → the profiles that see it. System Manager sees every kept one.
 # Order is the rail's order. Every other entry of the APLIKASI docks is hidden for everyone.
 IKON = {
-	"Stock": ("Gudang", "Penjualan", "Pembelian", "Produksi"),
-	"Selling": ("Penjualan",),
-	"Buying": ("Pembelian",),
-	"Manufacturing": ("Produksi",),
-	"Accounts": ("Penjualan", "Pembelian"),
-	"Projects": ("Manajer Proyek", "Karyawan"),
-	"Shift & Attendance": ("HR", "Karyawan"),
-	"Leaves": ("HR", "Karyawan"),
+	"Stock": (ADMIN, USER),
+	"Selling": (ADMIN, USER),
+	"Buying": (ADMIN, USER),
+	"Manufacturing": (ADMIN, USER),
+	"Accounts": (ADMIN, USER),
+	"Projects": (ADMIN, USER),
+	"Shift & Attendance": (ADMIN, USER),
+	"Leaves": (ADMIN, USER),
+	"Setup": (ADMIN,),
 }
 
 # A kept module shown under another name, on its rail button and its sidebar header.
-LABEL = {"Accounts": "Invoicing"}
+LABEL = {"Accounts": "Invoicing", "Setup": "Settings"}
 
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden.
 # Sales History and Order Readiness (module Planning, ours) sit in Selling and Manufacturing: Planning has no
-# rail entry of its own and stays blocked in every Module Profile, and Penjualan has no Manufacturing.
+# rail entry of its own and stays blocked in every Module Profile. Setup (shown as Settings) holds users and the
+# business settings; System Settings and Build stay with System Manager.
 SIDEBAR = {
 	"Stock": ["Item", "Warehouse", "Stock Entry", "Stock Reconciliation", "Stock Balance", "Stock Ledger"],
 	"Selling": [
@@ -70,35 +77,74 @@ SIDEBAR = {
 	"Projects": ["Project", "Task", "Timesheet"],
 	"Shift & Attendance": ["Employee", "Employee Checkin", "Attendance", "Shift Type", "Shift Assignment"],
 	"Leaves": ["Leave Application", "Leave Allocation", "Holiday List"],
+	"Setup": [
+		"User",
+		"Company",
+		"Stock Settings",
+		"Selling Settings",
+		"Buying Settings",
+		"Manufacturing Settings",
+		"Accounts Settings",
+		"Projects Settings",
+		"HR Settings",
+	],
 }
 
-# Module Profile (one per bagian, named like its Role Profile) → the Module Defs it allows. It blocks every
-# other Module Def of erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the
-# modules of that bagian's IKON entries (`test_profil_modul_ikut_ikon`).
-MODUL_BOLEH = {
-	"Gudang": ("Stock",),
-	"Penjualan": ("Stock", "Selling", "Accounts"),
-	"Pembelian": ("Stock", "Buying", "Accounts"),
-	"Produksi": ("Stock", "Manufacturing"),
-	"HR": ("Shift and Attendance", "Leaves"),
-	"Karyawan": ("Projects", "Shift and Attendance", "Leaves"),
-	"Manajer Proyek": ("Projects",),
-}
+# Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
+# erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the modules of that profile's
+# IKON entries (`test_profil_modul_ikut_ikon`). Developer has no Module Profile: it sees everything.
+_MODUL_KERJA = (
+	"Stock",
+	"Selling",
+	"Buying",
+	"Manufacturing",
+	"Accounts",
+	"Projects",
+	"Shift and Attendance",
+	"Leaves",
+)
+MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), USER: _MODUL_KERJA}
 
-# Role Profile → standard ERPNext/HRMS roles: the fewest that let each bagian create its own documents and
-# none of the others' (`test_izin_per_bagian`). Read from the v16 DocPerms: Stock Reconciliation needs
-# Stock Manager, Item needs Item Manager, Supplier needs Purchase Master Manager, Item Lead Time needs
-# Manufacturing Manager, Holiday List needs HR Manager. Gudang also needs Stock User: it is the stock role
-# that reads Company (every stock form reads its defaults) and the Stock Balance and Stock Ledger reports.
+# Role Profile → standard ERPNext/HRMS roles. Read from the v16 DocPerms (`test_izin_per_profil`):
+# - User: the *User roles, which create and submit the daily documents, and Employee for their own check-ins,
+#   leave and timesheets (ERPNext drops Employee from a user without an Employee record). Items, suppliers,
+#   stock reconciliations, BOMs and settings need a manager role, so they stay with Admin.
+# - Admin: every manager role of the used modules plus the User roles (Stock Manager alone reads neither Company
+#   nor Stock Balance), and PERAN_ADMIN for users. No Employee: HR Manager covers attendance.
+# - Developer: Admin plus System Manager.
+_PERAN_USER = (
+	"Stock User",
+	"Sales User",
+	"Purchase User",
+	"Manufacturing User",
+	"Accounts User",
+	"Projects User",
+)
+_PERAN_ADMIN = (
+	PERAN_ADMIN,
+	*_PERAN_USER,
+	"Stock Manager",
+	"Item Manager",
+	"Sales Manager",
+	"Sales Master Manager",
+	"Purchase Manager",
+	"Purchase Master Manager",
+	"Manufacturing Manager",
+	"Accounts Manager",
+	"Projects Manager",
+	"HR Manager",
+	"HR User",
+)
 PROFIL_PERAN = {
-	"Gudang": ("Stock Manager", "Stock User", "Item Manager"),
-	"Penjualan": ("Sales User", "Accounts User"),
-	"Pembelian": ("Purchase User", "Purchase Master Manager", "Accounts User"),
-	"Produksi": ("Manufacturing User", "Manufacturing Manager"),
-	"HR": ("HR Manager", "HR User"),
-	"Karyawan": ("Employee",),
-	"Manajer Proyek": ("Projects User", "Projects Manager"),
+	DEVELOPER: ("System Manager", *_PERAN_ADMIN),
+	ADMIN: _PERAN_ADMIN,
+	USER: (*_PERAN_USER, "Employee"),
 }
+# The roles an Admin may hand out (`pengguna.cek_user`): those of the Admin and User profiles, and the approver
+# roles HRMS adds itself when HR names someone a department's leave or expense approver.
+PERAN_BOLEH_ADMIN = frozenset(
+	(*PROFIL_PERAN[ADMIN], *PROFIL_PERAN[USER], "Leave Approver", "Expense Approver")
+)
 
 
 # Module home Workspace → its shortcuts, in order. They replace the page's charts and onboarding; its number
@@ -229,6 +275,13 @@ PINTASAN = {
 			"color": "Orange",
 		},
 	),
+	"Home": (
+		{"label": "Users", "type": "DocType", "link_to": "User", "doc_view": "List"},
+		{"label": "Company", "type": "DocType", "link_to": "Company", "doc_view": "List"},
+		{"label": "Stock Settings", "type": "DocType", "link_to": "Stock Settings"},
+		{"label": "Selling Settings", "type": "DocType", "link_to": "Selling Settings"},
+		{"label": "Buying Settings", "type": "DocType", "link_to": "Buying Settings"},
+	),
 }
 BLOK_TETAP = ("number_card", "card")  # base Workspace blocks kept below the shortcuts
 KOLOM_PINTASAN = ("type", "link_to", "doc_view", "label", "stats_filter", "format", "color")
@@ -354,8 +407,9 @@ def terapkan() -> None:
 def saring_aplikasi(bootinfo) -> None:
 	"""extend_bootinfo: take an app off this user's Apps screen when nothing of it is on their rail.
 
-	ERPNext puts its tile on every desk user's Apps screen, so HR saw "ERPNext" and clicking it opened
-	/desk/home, a module their Module Profile blocks ("No permission for Page"). Only the tile is hidden;
+	ERPNext puts its tile on every desk user's Apps screen, so a user with no ERPNext module saw "ERPNext"
+	and clicking it opened /desk/home, a module their Module Profile blocks ("No permission for Page"). Only
+	the tile is hidden;
 	the app's data and DocPerms are untouched. Boot must never fail, so any surprise leaves it as it was."""
 	try:
 		sidebars = bootinfo.get("module_sidebars") or {}
@@ -373,13 +427,12 @@ def saring_aplikasi(bootinfo) -> None:
 		frappe.log_error("erp_internal: saring_aplikasi")
 
 
-def peran_bagian(bagian: tuple[str, ...]) -> set[str]:
-	"""The roles of those Role Profiles, as stored on the site."""
-	return set(
-		frappe.get_all(
-			"Has Role", {"parenttype": "Role Profile", "parent": ("in", list(bagian))}, pluck="role"
+def pastikan_peran() -> None:
+	"""The PERAN_ADMIN role, with desk access. Safe before the setup wizard (Role Profiles link to it)."""
+	if not frappe.db.exists("Role", PERAN_ADMIN):
+		frappe.get_doc({"doctype": "Role", "role_name": PERAN_ADMIN, "desk_access": 1}).insert(
+			ignore_permissions=True
 		)
-	)
 
 
 def pintasan_aktif(workspace: str) -> list[dict]:

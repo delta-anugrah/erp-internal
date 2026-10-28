@@ -59,13 +59,14 @@ from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json
      \"fy_end_date\": \"2026-12-31\", \"setup_demo\": 0}}"'
    ```
 
-8. **Jenis, then migrate.** The factory is a Pabrik; `migrate` then builds its warehouses, groups, UOMs, the order
-   flow and the PPN templates (`erp_internal/setup.py`). `erp_produksi` makes `erp_internal.contoh` refuse to
+8. **Mark the company, then migrate.** One company (PT Delta Anugrah, `DAN`) runs the factory and the office; with
+   `erp_aktif` ticked, `migrate` builds its warehouses, groups, UOMs, the order flow, holiday lists and the PPN
+   templates, never the default (`erp_internal/setup.py`). `erp_produksi` makes `erp_internal.contoh` refuse to
    put sample data on this site:
 
    ```bash
    docker compose run --rm tools bash -c 'bench --site "$SITE" execute frappe.db.set_value \
-       --args "[\"Company\", \"<name>\", \"erp_jenis\", \"Pabrik\"]" \
+       --args "[\"Company\", \"<name>\", \"erp_aktif\", 1]" \
      && bench --site "$SITE" migrate \
      && bench --site "$SITE" set-config host_name "https://$SITE" \
      && bench --site "$SITE" set-config -p erp_produksi 1 \

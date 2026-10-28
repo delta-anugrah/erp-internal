@@ -2,16 +2,18 @@
 
 ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for Mas Samuel's plastic factory
 (stock, sales, purchasing, production with a monthly forecast and the Order Readiness report) and our office
-(attendance, projects). Plain ERPNext showing only the modules in use, nothing from BPT.
+(attendance, projects), all in ONE company (PT Delta Anugrah at go-live) with three roles: Developer, Admin, User
+(Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
-Status 2026-10-28: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites: 13 unit + 77
-integration tests OK, `cek_layar` 7 bagian OK, sample data on `erp.localhost`, local dry runs of the go-live
-tasks 8, 14 and 17 done (results in the plan). Open: Task 7's compose boot, backup and restore drill (Abel: needs
-the database root password), the guide screenshots, and the real go-live with Samuel.
+Status 2026-10-28: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
+company and three roles (plan "Revision 4"): 13 unit + 89 integration tests OK, `cek_layar` 3 users OK, sample
+data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
+the plan). Open: Task 7's compose boot, backup and restore drill (Abel: needs the database root password), and the
+real go-live with Samuel.
 
 - Design: `docs/superpowers/specs/2026-10-27-erp-internal-design.md`
-- Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md`. Its "Revision 2" and "Revision 3" sections
-  override the rest (English UI by default with an Indonesian switch, English DocType/report names, full width,
+- Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md`. Its "Revision 4" (one company, three roles),
+  "Revision 2" and "Revision 3" sections override the rest (English UI by default with an Indonesian switch, English DocType/report names, full width,
   friendly screens; everything built and dry-run locally first).
 - Open questions for Samuel and their defaults: `docs/menunggu-samuel.md`.
 
@@ -25,7 +27,7 @@ the database root password), the guide screenshots, and the real go-live with Sa
 | Docker `erp-mariadb` | MariaDB 11.8.9 on 127.0.0.1:3308, volume `erp-mariadb`, utf8mb4. |
 | Bench ports | web 8002, socketio 9002, redis queue 11002, redis cache 13002. |
 | Sites | `erp.localhost` (dev; wizard: PT Contoh Plastik, CPL) and `erp-test.localhost` (`allow_tests`). |
-| `erp_internal/contoh.py` | DATA CONTOH for dev sites (`buat_contoh`): users `<bagian>@contoh.test`, password `erp_sandi_contoh`; refused with `erp_produksi`. |
+| `erp_internal/contoh.py` | DATA CONTOH for dev sites (`buat_contoh`): one company, users `developer@`, `admin@`, `user@contoh.test`, password `erp_sandi_contoh`; refused with `erp_produksi`. |
 
 Versions are pinned in `versi.json`: frappe v16.53.0, erpnext v16.52.1, hrms v16.52.0. Python 3.14, Node 24.
 
@@ -41,7 +43,7 @@ bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 bench --site erp.localhost set-config erp_sandi_contoh <password>   # the sample users' password (dev only)
 bench --site erp.localhost execute erp_internal.contoh.buat_contoh   # DATA CONTOH; refused with erp_produksi
-ERP_SANDI=<SAMPLE_PASSWORD> node tools/cek_layar.mjs   # each bagian's screens; restart bench start after a build
+ERP_SANDI=<SAMPLE_PASSWORD> node tools/cek_layar.mjs   # each role's screens; restart bench start after a build
 # from the repo: the server image and its check (deploy/server/README.md is the runbook)
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
 ```
@@ -50,11 +52,16 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 
 ## Rules (the plan's Global Constraints, as revised)
 
+- One company: setup builds for each Company with `erp_aktif` ticked (`setup.perusahaan()`); a real site has one.
+- Three Role Profiles (`tampilan.PROFIL_PERAN`): User (daily work), Admin (manager roles, users, business
+  settings under the Settings rail entry; role `ERP Admin`), Developer (Admin plus System Manager). `pengguna.py`
+  keeps an Admin from handing out any role outside Admin and User or touching a Developer account (User
+  validate/has_permission, Has Role insert); `test_pengguna` tries every path.
 - A report that reads with `get_all` checks the caller's Company/Warehouse permission itself (Order Readiness).
 - `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with nothing on that user's rail; it
   must never fail boot. `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
-- `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Projects/HR/System Manager
-  roles submit someone else's timesheet; `setup.IZIN_TAMBAHAN` gives Employee `submit`.
+- `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Admin and Developer
+  (`PERAN_ATASAN`) submit someone else's timesheet; `setup.IZIN_TAMBAHAN` gives Employee `submit`.
 
 - Pinned tags only, never a develop branch. Change a pin on purpose, with the full test run.
 - Every customisation lives in `erp_internal` and is re-applied idempotently on `after_install`/`after_migrate`.

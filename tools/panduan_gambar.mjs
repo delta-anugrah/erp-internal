@@ -1,9 +1,9 @@
 // Screenshots for the staff guides (docs/panduan/*.md → docs/panduan/gambar/). Needs `bench start` and the
-// sample data of `erp_internal.contoh.buat_contoh` with its users (`<bagian>@contoh.test`) and their password.
+// sample data of `erp_internal.contoh.buat_contoh` with its users (`user@contoh.test`) and their password.
 //
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
 //
-// Each picture is taken as the bagian the guide is for, at 1440x900. A screen with a sample record opens that
+// Each picture is taken as the sample User (the daily-work role the guides are for), at 1440x900. A screen with a sample record opens that
 // record; one without (no Purchase Order or Purchase Receipt in the sample data, no Material Transfer) opens a new
 // form and fills it in the browser without saving, so nothing is written. Exit code 1 on an error dialog or a
 // console error.
@@ -55,31 +55,26 @@ const buka = (page, dt) =>
 
 const besok = () => new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
 
-// The rail module each bagian works in (erp_internal/tampilan.py), opened first so the form keeps its sidebar.
-const RUMAH = { penjualan: "Selling", pembelian: "Buying", gudang: "Stock" };
+const USER = "user@contoh.test";
 
-// file → [bagian user, how to reach the screen]
+// file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it]
 const GAMBAR_LIST = {
-	"penjualan-1": ["penjualan", (p) => buka(p, "Sales Order")],
-	"penjualan-2": ["penjualan", (p) => buka(p, "Delivery Note")],
-	"penjualan-3": ["penjualan", (p) => buka(p, "Sales Invoice")],
+	"penjualan-1": ["Selling", (p) => buka(p, "Sales Order")],
+	"penjualan-2": ["Selling", (p) => buka(p, "Delivery Note")],
+	"penjualan-3": ["Selling", (p) => buka(p, "Sales Invoice")],
 	"pembelian-2": [
-		"pembelian",
+		"Buying",
 		(p) =>
 			isi_baru(
 				p,
 				"Purchase Order",
-				{
-					supplier: "PT Contoh Biji Plastik",
-					schedule_date: besok(),
-					taxes_and_charges: "PPN Masukan 11% - CPL",
-				},
+				{ supplier: "PT Contoh Biji Plastik", schedule_date: besok() },
 				"items",
 				{ item_code: "CTH-BIJI-PP", qty: 500, rate: 21000, warehouse: "Gudang Bahan Baku - CPL" }
 			),
 	],
 	"pembelian-3": [
-		"pembelian",
+		"Buying",
 		(p) =>
 			isi_baru(
 				p,
@@ -90,7 +85,7 @@ const GAMBAR_LIST = {
 			),
 	],
 	"gudang-1": [
-		"gudang",
+		"Stock",
 		(p) =>
 			isi_baru(
 				p,
@@ -123,7 +118,7 @@ mkdirSync(GAMBAR, { recursive: true });
 const gagal = [];
 const browser = await chromium.launch();
 
-for (const [nama, [user, ke]] of Object.entries(GAMBAR_LIST)) {
+for (const [nama, [rumah, ke]] of Object.entries(GAMBAR_LIST)) {
 	const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 	const page = await context.newPage();
 	const galat = [];
@@ -131,17 +126,17 @@ for (const [nama, [user, ke]] of Object.entries(GAMBAR_LIST)) {
 	page.on("pageerror", (e) => galat.push(String(e)));
 
 	const masuk = await page.request.post(`${URL}/api/method/login`, {
-		form: { usr: `${user}@contoh.test`, pwd: SANDI },
+		form: { usr: USER, pwd: SANDI },
 	});
 	if (!masuk.ok()) {
-		gagal.push(`${nama}: login as ${user} failed (${masuk.status()})`);
+		gagal.push(`${nama}: login as ${USER} failed (${masuk.status()})`);
 		await context.close();
 		continue;
 	}
 	await page.goto(`${URL}/desk`);
 	await page.waitForLoadState("networkidle");
 	try {
-		await page.evaluate((ws) => frappe.set_route("Workspaces", ws), RUMAH[user]);
+		await page.evaluate((ws) => frappe.set_route("Workspaces", ws), rumah);
 		await page.waitForLoadState("networkidle");
 		await page.waitForTimeout(800);
 		await ke(page);

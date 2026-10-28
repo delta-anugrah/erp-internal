@@ -129,8 +129,8 @@ part_wizard() {
  "fy_start_date": "$year-01-01", "fy_end_date": "$year-12-31", "setup_demo": 0}}
 EOF
 	)"
-	# The factory company is a Pabrik; migrate then builds its warehouses, groups and UOMs (setup.py).
-	bench --site erp.localhost execute frappe.db.set_value --args "[\"Company\", \"$COMPANY\", \"erp_jenis\", \"Pabrik\"]"
+	# The one company is run by this app; migrate then builds its warehouses, holiday lists and the rest (setup.py).
+	bench --site erp.localhost execute frappe.db.set_value --args "[\"Company\", \"$COMPANY\", \"erp_aktif\", 1]"
 	bench --site erp.localhost migrate
 	bench --site erp.localhost clear-cache
 }

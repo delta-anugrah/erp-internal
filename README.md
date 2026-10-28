@@ -19,8 +19,8 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
    4. `apps`: erpnext and hrms at their pinned tags;
    5. `link`: `apps/erp_internal` → this repo, `pip install -e`, `sites/apps.txt`;
    6. `sites`: `erp.localhost` and `erp-test.localhost` (`allow_tests`) with erpnext, hrms and erp_internal;
-   7. `wizard`: completes the setup wizard of `erp.localhost` without a browser, sets PT Contoh Plastik's Jenis to Pabrik and runs
-      `migrate`, which builds the factory warehouses, item groups, UOMs and production defaults (`erp_internal/setup.py`).
+   7. `wizard`: completes the setup wizard of `erp.localhost` without a browser, ticks PT Contoh Plastik's `erp_aktif` (Run by ERP Internal) and runs
+      `migrate`, which builds its warehouses, item groups, UOMs, production defaults and holiday lists (`erp_internal/setup.py`).
 3. `cd ~/Desktop/Projects/erp-internal-bench && bench start`, then open http://erp.localhost:8002 and sign in as
    Administrator.
 
@@ -55,7 +55,7 @@ bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs   # one file
 ```
 
-Browser check of each bagian's screens (needs `bench start` and the sample users of `contoh.py`):
+Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@contoh.test` of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
 (the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs`. If
 `bench build` ran while `bench start` was up, restart `bench start` first: the web process keeps the old
@@ -66,32 +66,43 @@ Browser check of each bagian's screens (needs `bench start` and the sample users
 ## Factory flow and data import
 
 - Every Delivery Note and Purchase Receipt comes from an order, stock never goes negative, stock posts no journal
-  entries, and each factory gets PPN templates that are not the default (`setup._alur_jual_beli`). Staff guides:
+  entries, and the company gets PPN templates that are never the default (not PKP: invoices only record) (`setup._alur_jual_beli`). Staff guides:
   `docs/panduan/{penjualan,pembelian,gudang}.md`.
 - Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
   by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`). Sales History (monthly quantities per item):
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
-- Production (`erp_internal/planning/`, module Planning): each factory's Work Orders default to its Gudang
+- Production (`erp_internal/planning/`, module Planning): the company's Work Orders default to its Gudang
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
   orders, rounded up), then MPS → MRP → Work Order; the Order Readiness report shows what is short and when to
   start (`planning/rumus.py`, design §10). It needs read permission on the chosen Company (and Warehouse);
   other companies' stock is refused. Staff guide: `docs/panduan/produksi.md`.
 
+## Roles
+
+Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one company:
+
+- **User**: daily work in every used module (stock entries, orders, deliveries, receipts, invoices, work orders,
+  timesheets, own check-ins and leave). No settings, no users.
+- **Admin**: also the manager roles (items, suppliers, BOMs, stock reconciliation, HR), users and the business
+  settings (rail entry Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and User roles and
+  never change a Developer's account. Guide: `docs/panduan/admin.md`.
+- **Developer**: Admin plus System Manager (Build, System Settings).
+
 ## Office: attendance and projects
 
 - Attendance by phone with location on stock HRMS (`setup._kantor`): one shift "Kantor" 08:00-17:00 with auto
-  attendance (`SHIFT_KANTOR`), Saturday and Sunday off in a yearly "Libur <abbr> <year>" list assigned to each
-  office company, leave types Cuti Tahunan (12), Sakit, Izin. Staff guide: `docs/panduan/absen.md`.
+  attendance (`SHIFT_KANTOR`), Saturday and Sunday off in a yearly "Libur <abbr> <year>" list assigned to the
+  company, leave types Cuti Tahunan (12), Sakit, Izin. Staff guide: `docs/panduan/absen.md`.
 - Projects (`setup._proyek`): Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; a
-  Karyawan submits only their own timesheets (`erp_internal/proyek.py`); Projects and HR roles can
-  submit anyone's. Staff guide: `docs/panduan/proyek.md`.
+  User submits only their own timesheets (`erp_internal/proyek.py`); Admin and Developer can submit
+  anyone's. Staff guide: `docs/panduan/proyek.md`.
 
 ## Sample data
 
-`erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): both sample companies, products with BOMs,
-lead times and stock, customers, suppliers, 6 months of Sales History, open orders, office employees on the shift,
-one project, and one user per bagian (`<bagian>@contoh.test`):
+`erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): one sample company (PT Contoh Plastik), products
+with BOMs, lead times and stock, customers, suppliers, 6 months of Sales History, open orders, employees on the
+shift, one project, and one user per role (`developer@`, `admin@`, `user@contoh.test`):
 
 ```bash
 bench --site erp.localhost set-config erp_sandi_contoh <password>

@@ -28,7 +28,7 @@ class TestAlurJualBeli(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		tahun_fiskal(getdate(today()))
-		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
 		cls.jadi = gudang(cls.pabrik, "Gudang Barang Jadi")
 		cls.bahan = gudang(cls.pabrik, "Gudang Bahan Baku")
 		cls.ember = buat_barang("_UJI-EMBER", "Barang Jadi")

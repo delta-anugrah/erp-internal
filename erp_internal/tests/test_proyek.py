@@ -1,4 +1,4 @@
-"""Projects on stock ERPNext: the Activity Types and the project → task → timesheet flow per bagian."""
+"""Projects on stock ERPNext: the Activity Types and the project → task → timesheet flow, Admin to User."""
 
 from datetime import datetime, timedelta
 
@@ -8,6 +8,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import get_time, getdate, today
 
 from erp_internal.setup import JENIS_KEGIATAN, pastikan_setup
+from erp_internal.tampilan import ADMIN, USER
 from erp_internal.tests.utils import buat_karyawan, buat_pengguna, buat_perusahaan
 
 
@@ -15,7 +16,7 @@ class TestProyek(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.kantor = buat_perusahaan("_Uji Kantor", "_UK", "Kantor")
+		cls.company = buat_perusahaan("_Uji Pabrik", "_UP")
 
 	def test_jenis_kegiatan(self):
 		for nama in JENIS_KEGIATAN:
@@ -26,15 +27,15 @@ class TestProyek(IntegrationTestCase):
 			)
 
 	def test_alur_proyek(self):
-		manajer = buat_pengguna("_uji.manajer@contoh.test", "Manajer Proyek", "Manajer Proyek", self.kantor)
-		pekerja = buat_pengguna("_uji.pekerja@contoh.test", "Karyawan", "Karyawan", self.kantor)
-		emp = buat_karyawan("_Uji Pekerja", self.kantor, user=pekerja)
+		manajer = buat_pengguna("_uji.manajer@contoh.test", ADMIN, ADMIN, self.company)
+		pekerja = buat_pengguna("_uji.pekerja@contoh.test", USER, USER, self.company)
+		emp = buat_karyawan("_Uji Pekerja", self.company, user=pekerja)
 		self.addCleanup(frappe.set_user, "Administrator")
 
 		# The manager opens a project and gives one task to the employee.
 		frappe.set_user(manajer)
 		proyek = frappe.get_doc(
-			{"doctype": "Project", "project_name": "_Uji Proyek", "company": self.kantor}
+			{"doctype": "Project", "project_name": "_Uji Proyek", "company": self.company}
 		).insert()
 		tugas = frappe.get_doc({"doctype": "Task", "subject": "_Uji Tugas", "project": proyek.name}).insert()
 		tugaskan({"assign_to": [pekerja], "doctype": "Task", "name": tugas.name})
@@ -45,7 +46,7 @@ class TestProyek(IntegrationTestCase):
 		ts = frappe.get_doc(
 			{
 				"doctype": "Timesheet",
-				"company": self.kantor,
+				"company": self.company,
 				"employee": emp,
 				"time_logs": [
 					{
@@ -63,9 +64,29 @@ class TestProyek(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		self.assertEqual(frappe.db.get_value("Task", tugas.name, "actual_time"), 2)
 
-	def test_gudang_tidak_baca_proyek(self):
-		u = buat_pengguna("_uji.gudang.proyek@contoh.test", "Gudang", "Gudang", None)
-		self.assertFalse(frappe.has_permission("Project", "read", user=u))
+	def test_admin_ajukan_timesheet_orang_lain(self):
+		# Admin (and Developer) count as supervisors (proyek.PERAN_ATASAN).
+		lain = buat_karyawan("_Uji Orang Lain", self.company)
+		admin = buat_pengguna("_uji.proyek.admin@contoh.test", ADMIN, ADMIN, self.company)
+		frappe.set_user(admin)
+		self.addCleanup(frappe.set_user, "Administrator")
+		kemarin = getdate(today()) - timedelta(days=1)
+		ts = frappe.get_doc(
+			{
+				"doctype": "Timesheet",
+				"company": self.company,
+				"employee": lain,
+				"time_logs": [
+					{
+						"activity_type": "Rapat",
+						"from_time": datetime.combine(kemarin, get_time("13:00:00")),
+						"hours": 1,
+					}
+				],
+			}
+		).insert()
+		ts.submit()
+		self.assertEqual(ts.docstatus, 1)
 
 	def test_idempoten(self):
 		def hitung():
@@ -77,20 +98,20 @@ class TestProyek(IntegrationTestCase):
 		self.assertEqual(hitung(), sebelum)
 
 	def test_timesheet_orang_lain_ditolak(self):
-		# Security review 2026-10-28: Employee may submit, but only a timesheet booked to their own Employee.
-		# A Karyawan with ERPNext's own-Employee User Permission cannot even create one for someone else; one
+		# Security review 2026-10-28: a User may submit, but only a timesheet booked to their own Employee.
+		# A User with ERPNext's own-Employee User Permission cannot even create one for someone else; one
 		# without it (left off by hand) can, and `proyek.cek_pemilik_timesheet` refuses the submit.
-		lain = buat_karyawan("_Uji Orang Lain", self.kantor)
+		lain = buat_karyawan("_Uji Orang Lain", self.company)
 		self.addCleanup(frappe.set_user, "Administrator")
 		for nomor, izin_sendiri in ((2, True), (3, False)):
-			pekerja = buat_pengguna(f"_uji.pekerja{nomor}@contoh.test", "Karyawan", "Karyawan", self.kantor)
-			buat_karyawan(f"_Uji Pekerja {nomor}", self.kantor, user=pekerja, izin_sendiri=izin_sendiri)
+			pekerja = buat_pengguna(f"_uji.pekerja{nomor}@contoh.test", USER, USER, self.company)
+			buat_karyawan(f"_Uji Pekerja {nomor}", self.company, user=pekerja, izin_sendiri=izin_sendiri)
 			frappe.set_user(pekerja)
 			kemarin = getdate(today()) - timedelta(days=1)
 			ts = frappe.get_doc(
 				{
 					"doctype": "Timesheet",
-					"company": self.kantor,
+					"company": self.company,
 					"employee": lain,
 					"time_logs": [
 						{

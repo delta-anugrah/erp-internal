@@ -30,7 +30,7 @@ class TestSalesHistory(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
 		cls.barang = buat_barang(BARANG_UJI, "Barang Jadi")
 		for kode in BARANG_IMPOR:
 			buat_barang(kode, "Barang Jadi")

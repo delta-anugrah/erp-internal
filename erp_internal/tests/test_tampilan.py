@@ -1,4 +1,4 @@
-"""Only the modules in use (the dock, sidebars, Role and Module Profiles per bagian) and friendly screens
+"""Only the modules in use (the dock, sidebars, the three Role Profiles and their Module Profiles) and friendly screens
 (module home pages, shorter forms)."""
 
 import json
@@ -10,13 +10,16 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
 from erp_internal.tampilan import (
+	ADMIN,
 	APLIKASI,
+	DEVELOPER,
 	IKON,
 	MODUL_BOLEH,
 	PINTASAN,
 	PROFIL_PERAN,
 	SEMBUNYI,
 	SIDEBAR,
+	USER,
 	modul_aplikasi,
 	pintasan_aktif,
 	terapkan,
@@ -30,45 +33,74 @@ from erp_internal.tests.utils import (
 	daftar_harga,
 )
 
+# Role Profile → (DocTypes it must create, DocTypes it must not). Developer is checked on Build doctypes.
+_HARIAN = [
+	"Stock Entry",
+	"Material Request",
+	"Customer",
+	"Sales Order",
+	"Delivery Note",
+	"Sales Invoice",
+	"Payment Entry",
+	"Purchase Order",
+	"Purchase Receipt",
+	"Purchase Invoice",
+	"Work Order",
+	"Sales History",
+	"Sales Forecast",
+	"Timesheet",
+]
+_KELOLA = [
+	"Item",
+	"Supplier",
+	"Stock Reconciliation",
+	"Item Lead Time",
+	"Employee",
+	"Shift Type",
+	"Holiday List",
+	"Leave Allocation",
+	"User",
+]
+_BUILD = [
+	"DocType",
+	"Custom Field",
+	"Property Setter",
+	"Client Script",
+	"Role",
+	"Role Profile",
+	"Module Profile",
+	"User Permission",
+	"Data Import",
+]
 IZIN = {
-	"Gudang": (
-		["Item", "Stock Entry", "Stock Reconciliation", "Delivery Note", "Purchase Receipt"],
-		["Sales Order", "Purchase Order", "Work Order", "Employee", "Sales History"],
-	),
-	"Penjualan": (
-		["Customer", "Sales Order", "Delivery Note", "Sales Invoice", "Payment Entry", "Sales History"],
-		["Purchase Order", "Work Order", "Stock Reconciliation"],
-	),
-	"Pembelian": (
-		["Supplier", "Material Request", "Purchase Order", "Purchase Invoice"],
-		["Sales Order", "Work Order"],
-	),
-	"Produksi": (
-		[
-			"BOM",
-			"Item Lead Time",
-			"Sales Forecast",
-			"Master Production Schedule",
-			"Work Order",
-			"Stock Entry",
-			"Sales History",
-		],
-		["Sales Invoice", "Purchase Order"],
-	),
-	"HR": (
-		["Employee", "Shift Type", "Holiday List", "Attendance", "Leave Allocation"],
-		["Sales Order", "Stock Entry"],
-	),
-	"Karyawan": (
-		["Employee Checkin", "Leave Application", "Timesheet"],
-		["Employee", "Sales Order", "Stock Entry"],
-	),
-	"Manajer Proyek": (["Project", "Task", "Timesheet"], ["Sales Order", "Employee"]),
+	USER: ([*_HARIAN, "Employee Checkin", "Leave Application"], [*_KELOLA, *_BUILD, "Server Script"]),
+	ADMIN: ([*_HARIAN, *_KELOLA, "Project", "Master Production Schedule"], [*_BUILD, "Server Script"]),
+	DEVELOPER: ([*_KELOLA, *_BUILD], []),
 }
+# Business settings Admin changes; System Settings stays with System Manager (Developer).
+PENGATURAN_BISNIS = [
+	"Company",
+	"Stock Settings",
+	"Selling Settings",
+	"Buying Settings",
+	"Manufacturing Settings",
+	"Accounts Settings",
+	"Projects Settings",
+	"HR Settings",
+]
 
 
-def surel(bagian: str, jenis: str = "izin") -> str:
-	return f"_uji.{jenis}.{bagian.lower().replace(' ', '')}@contoh.test"
+def pengguna_profil(profil: str, jenis: str) -> str:
+	"""A test user of that Role Profile and its Module Profile (Developer has none), with the Employee record
+	the Employee role needs (ERPNext drops it from a user without one)."""
+	u = buat_pengguna(surel(profil, jenis), profil, profil if profil in MODUL_BOLEH else None, None)
+	if "Employee" in PROFIL_PERAN[profil]:
+		buat_karyawan(f"_Uji {jenis} {profil}", buat_perusahaan("_Uji Pabrik", "_UP"), user=u)
+	return u
+
+
+def surel(profil: str, jenis: str = "izin") -> str:
+	return f"_uji.{jenis}.{profil.lower()}@contoh.test"
 
 
 def jejak_modified() -> dict:
@@ -87,20 +119,31 @@ def jejak_modified() -> dict:
 
 
 class TestTampilan(IntegrationTestCase):
-	def test_izin_per_bagian(self):
-		for bagian, (boleh, tidak) in IZIN.items():
-			u = buat_pengguna(surel(bagian), bagian, None, None)
-			if "Employee" in PROFIL_PERAN[bagian]:
-				# ERPNext drops the Employee role from a user with no Employee record (validate_employee_role).
-				buat_karyawan(f"_Uji Izin {bagian}", buat_perusahaan("_Uji Kantor", "_UK", "Kantor"), user=u)
+	def test_izin_per_profil(self):
+		for profil, (boleh, tidak) in IZIN.items():
+			u = pengguna_profil(profil, "izin")
 			# Every form of theirs reads the company's defaults (cek_layar: "No permission for Company").
-			self.assertTrue(frappe.has_permission("Company", "read", user=u), f"{bagian} must read Company")
+			self.assertTrue(frappe.has_permission("Company", "read", user=u), f"{profil} must read Company")
 			for dt in boleh:
-				self.assertTrue(frappe.has_permission(dt, "create", user=u), f"{bagian} must create {dt}")
+				self.assertTrue(frappe.has_permission(dt, "create", user=u), f"{profil} must create {dt}")
 			for dt in tidak:
 				self.assertFalse(
-					frappe.has_permission(dt, "create", user=u), f"{bagian} must not create {dt}"
+					frappe.has_permission(dt, "create", user=u), f"{profil} must not create {dt}"
 				)
+
+	def test_pengaturan_bisnis(self):
+		# Admin writes the business settings, User none; only Developer (System Manager) System Settings.
+		for profil in PROFIL_PERAN:
+			u = pengguna_profil(profil, "atur")
+			for dt in PENGATURAN_BISNIS:
+				self.assertEqual(
+					frappe.has_permission(dt, "write", user=u), profil != USER, f"{profil} write {dt}"
+				)
+			self.assertEqual(
+				frappe.has_permission("System Settings", "write", user=u),
+				profil == DEVELOPER,
+				f"{profil} write System Settings",
+			)
 
 	def test_dok(self):
 		# Administrator's rail: the kept modules first, in IKON order; every other entry hidden.
@@ -111,28 +154,28 @@ class TestTampilan(IntegrationTestCase):
 			self.assertEqual(tampil, [k for k in IKON if k in dasar], app)
 			self.assertEqual({e["link_to"] for e in rail}, set(dasar), app)
 
-	def test_dok_per_bagian(self):
-		# A bagian user's rail shows only that bagian's modules (its Module Profile blocks the rest).
-		for bagian in MODUL_BOLEH:
-			u = buat_pengguna(surel(bagian, "dok"), bagian, bagian, None)
+	def test_dok_per_profil(self):
+		# A user's rail shows only their profile's modules (the Module Profile blocks the rest); Developer
+		# (System Manager) sees every kept one.
+		for profil in PROFIL_PERAN:
+			u = pengguna_profil(profil, "dok")
 			frappe.set_user(u)
 			try:
 				tampil = {e["link_to"] for app in APLIKASI for e in resolve_app_dock(app) if not e["hidden"]}
 			finally:
 				frappe.set_user("Administrator")
-			self.assertEqual(tampil, {k for k, siapa in IKON.items() if bagian in siapa}, bagian)
+			harap = set(IKON) if profil == DEVELOPER else {k for k, siapa in IKON.items() if profil in siapa}
+			self.assertEqual(tampil, harap, profil)
 
-	def test_layar_apps_per_bagian(self):
-		# An Apps screen tile shows only when its app has a module of that bagian (tampilan.saring_aplikasi):
-		# HR no longer sees ERPNext, whose tile opened a blocked module.
+	def test_layar_apps_per_profil(self):
+		# An Apps screen tile shows only when its app has a module of that profile (tampilan.saring_aplikasi),
+		# and never Frappe's own tile (Build, System Settings: System Manager only).
 		from frappe.boot import get_bootinfo
 
 		from erp_internal.tampilan import saring_aplikasi
 
-		for bagian in MODUL_BOLEH:
-			u = buat_pengguna(surel(bagian, "apps"), bagian, bagian, None)
-			if "Employee" in PROFIL_PERAN[bagian]:  # the Employee role needs an Employee record
-				buat_karyawan(f"_Uji Apps {bagian}", buat_perusahaan("_Uji Kantor", "_UK", "Kantor"), user=u)
+		for profil in MODUL_BOLEH:
+			u = pengguna_profil(profil, "apps")
 			frappe.set_user(u)
 			try:
 				boot = get_bootinfo()
@@ -144,12 +187,12 @@ class TestTampilan(IntegrationTestCase):
 				app
 				for app in APLIKASI
 				if any(
-					bagian in siapa
+					profil in siapa
 					for k, siapa in IKON.items()
 					if k in {r["link_to"] for r in get_app_dock(app)}
 				)
 			}
-			self.assertEqual(tampil, harap, bagian)
+			self.assertEqual(tampil, harap, profil)
 
 	def test_sidebar(self):
 		# Each kept sidebar opens on its module's home Workspace, then the SIDEBAR links in order.
@@ -164,17 +207,17 @@ class TestTampilan(IntegrationTestCase):
 			self.assertEqual(blok, set(modul_aplikasi()) - set(boleh), profil)
 
 	def test_profil_modul_ikut_ikon(self):
-		# Every module a bagian has an icon for is allowed by its Module Profile, and nothing else is.
+		# Every module a profile has an icon for is allowed by its Module Profile, and nothing else is.
 		from frappe.desk.doctype.sidebar.sidebar import module_of_shell
 
-		for bagian, boleh in MODUL_BOLEH.items():
-			ikon = {module_of_shell(k) for k, siapa in IKON.items() if bagian in siapa}
-			self.assertEqual(ikon, set(boleh), bagian)
+		for profil, boleh in MODUL_BOLEH.items():
+			ikon = {module_of_shell(k) for k, siapa in IKON.items() if profil in siapa}
+			self.assertEqual(ikon, set(boleh), profil)
 
-	def test_penjualan_tetap_bisa_buat_order(self):
+	def test_user_tetap_bisa_buat_order(self):
 		# a Module Profile must not break link fields on a kept form
-		pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
-		u = buat_pengguna("_uji.penjualan.pabrik@contoh.test", "Penjualan", "Penjualan", pabrik)
+		pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
+		u = buat_pengguna("_uji.user.pabrik@contoh.test", USER, USER, pabrik)
 		pelanggan = buat_pelanggan("_Uji Pelanggan")
 		barang = buat_barang("_UJI-EMBER", "Barang Jadi")
 		harga = daftar_harga("_Uji Harga Jual", jual=True)  # IDR: the test site's own lists are INR
@@ -195,13 +238,13 @@ class TestTampilan(IntegrationTestCase):
 		so.insert()
 
 	def test_izin_order_readiness(self):
-		# Produksi and Penjualan open Order Readiness; Gudang does not.
+		# User and Admin open Order Readiness; a user without a profile does not.
 		laporan = frappe.get_doc("Report", "Order Readiness")
-		for bagian, boleh in (("Produksi", True), ("Penjualan", True), ("Gudang", False)):
-			frappe.set_user(buat_pengguna(surel(bagian, "laporan"), bagian, bagian, None))
+		for profil, boleh in ((USER, True), (ADMIN, True), (None, False)):
+			frappe.set_user(buat_pengguna(surel(profil or "tanpa", "laporan"), profil, profil, None))
 			try:
-				self.assertEqual(bool(laporan.is_permitted()), boleh, bagian)
-				self.assertEqual(frappe.has_permission(laporan.ref_doctype, "report"), boleh, bagian)
+				self.assertEqual(bool(laporan.is_permitted()), boleh, profil)
+				self.assertEqual(frappe.has_permission(laporan.ref_doctype, "report"), boleh, profil)
 			finally:
 				frappe.set_user("Administrator")
 

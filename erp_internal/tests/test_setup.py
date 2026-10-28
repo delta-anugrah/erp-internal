@@ -1,7 +1,8 @@
-"""Site setup on every migrate: locale, company kind, item groups, UOMs and factory warehouses."""
+"""Site setup on every migrate: locale, the company marker, item groups, UOMs, warehouses and the office."""
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import getdate, today
 
 from erp_internal.setup import (
 	GRUP_BARANG,
@@ -9,6 +10,7 @@ from erp_internal.setup import (
 	PENGATURAN_SISTEM,
 	SATUAN,
 	gudang,
+	nama_libur,
 	pastikan_setup,
 	perusahaan,
 )
@@ -19,8 +21,7 @@ class TestSetup(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
-		cls.kantor = buat_perusahaan("_Uji Kantor", "_UK", "Kantor")
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
 
 	def test_pengaturan_indonesia(self):
 		for field, nilai in PENGATURAN_SISTEM.items():
@@ -37,14 +38,41 @@ class TestSetup(IntegrationTestCase):
 		self.assertEqual(set(aktif), set(GUDANG_PABRIK))
 		self.assertEqual(gudang(self.pabrik, "Gudang Barang Jadi"), "Gudang Barang Jadi - _UP")
 
-	def test_kantor_tanpa_gudang_pabrik(self):
-		self.assertFalse(frappe.db.exists("Warehouse", gudang(self.kantor, "Gudang Barang Jadi")))
+	def test_satu_perusahaan_dapat_semua(self):
+		# One company gets the factory and the office (Samuel, 2026-10-28): warehouses and production
+		# defaults, and this year's holiday list.
+		self.assertEqual(
+			frappe.db.get_value("Company", self.pabrik, "default_wip_warehouse"),
+			gudang(self.pabrik, "Gudang Produksi"),
+		)
+		self.assertEqual(
+			frappe.db.get_value("Company", self.pabrik, "default_holiday_list"),
+			nama_libur(self.pabrik, getdate(today()).year),
+		)
 
-	def test_grup_satuan_dan_jenis(self):
+	def test_grup_satuan_dan_penanda(self):
 		self.assertTrue(all(frappe.db.exists("Item Group", g) for g in GRUP_BARANG))
 		self.assertTrue(all(frappe.db.exists("UOM", s) for s in SATUAN))
-		self.assertIn(self.pabrik, perusahaan("Pabrik"))
-		self.assertNotIn(self.kantor, perusahaan("Pabrik"))
+		self.assertIn(self.pabrik, perusahaan())
+
+	def test_perusahaan_lain_dibiarkan(self):
+		# A company without erp_aktif (ERPNext's own test companies) gets nothing from setup.
+		if not frappe.db.exists("Company", "_Uji Lain"):
+			frappe.get_doc(
+				{
+					"doctype": "Company",
+					"company_name": "_Uji Lain",
+					"abbr": "_UL",
+					"country": "Indonesia",
+					"default_currency": "IDR",
+					"create_chart_of_accounts_based_on": "Standard Template",
+					"chart_of_accounts": "Standard",
+				}
+			).insert(ignore_permissions=True)
+		pastikan_setup()
+		self.assertNotIn("_Uji Lain", perusahaan())
+		self.assertFalse(frappe.db.exists("Warehouse", gudang("_Uji Lain", "Gudang Barang Jadi")))
+		self.assertFalse(frappe.db.get_value("Company", "_Uji Lain", "default_holiday_list"))
 
 	def test_idempoten(self):
 		def hitung():

@@ -12,6 +12,7 @@ from erp_internal.contoh import (
 	KARYAWAN,
 	PELANGGAN,
 	PEMASOK,
+	PERUSAHAAN,
 	RESEP,
 	TANDA,
 	buat_contoh,
@@ -39,7 +40,7 @@ class TestContoh(IntegrationTestCase):
 		self.assertEqual(buat_contoh(), ringkas)
 		self.assertEqual(hitung(), sebelum)
 
-		self.assertEqual(ringkas["Company"], 2)
+		self.assertEqual(ringkas["Company"], 1)
 		self.assertEqual(ringkas["Item"], len(BARANG))
 		self.assertEqual(ringkas["BOM"], len(RESEP))
 		self.assertEqual(ringkas["Customer"], len(PELANGGAN))
@@ -53,10 +54,24 @@ class TestContoh(IntegrationTestCase):
 
 	def test_pengguna_masuk_dengan_sandi(self):
 		buat_contoh()
-		for bagian in PROFIL_PERAN:
-			self.assertEqual(check_password(surel(bagian), SANDI), surel(bagian), bagian)
-			profil = frappe.get_all("User Role Profile", {"parent": surel(bagian)}, pluck="role_profile")
-			self.assertEqual(profil, [bagian])
+		for profil in PROFIL_PERAN:
+			self.assertEqual(check_password(surel(profil), SANDI), surel(profil), profil)
+			rp = frappe.get_all("User Role Profile", {"parent": surel(profil)}, pluck="role_profile")
+			self.assertEqual(rp, [profil])
+		self.assertEqual(
+			[surel(p) for p in PROFIL_PERAN],
+			["developer@contoh.test", "admin@contoh.test", "user@contoh.test"],
+		)
+
+	def test_satu_perusahaan(self):
+		# Factory and office records share the one company.
+		buat_contoh()
+		nama = PERUSAHAAN[0]
+		self.assertEqual(frappe.db.get_value("Company", nama, "erp_aktif"), 1)
+		for dt in ("Employee", "Project", "Sales Order", "BOM"):
+			self.assertEqual(
+				set(frappe.get_all(dt, {"_user_tags": ("like", f"%{TANDA}%")}, pluck="company")), {nama}, dt
+			)
 
 	def test_semua_bertanda(self):
 		buat_contoh()

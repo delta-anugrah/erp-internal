@@ -55,8 +55,20 @@ app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: t
 # The "Fill from History" button (planning/forecast.py).
 doctype_js = {"Sales Forecast": "public/js/sales_forecast.js"}
 
-# proyek.py: an employee submits only their own timesheet (IZIN_TAMBAHAN gives the Employee role submit)
-doc_events = {"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"}}
+# proyek.py: an employee submits only their own timesheet (IZIN_TAMBAHAN gives the Employee role submit).
+# pengguna.py: an Admin hands out only Admin and User roles and leaves Developer accounts alone.
+doc_events = {
+	"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"},
+	"User": {
+		"before_validate": "erp_internal.pengguna.cek_user_awal",
+		"validate": "erp_internal.pengguna.cek_user",
+	},
+	"Has Role": {
+		"before_insert": "erp_internal.pengguna.cek_peran",
+		"validate": "erp_internal.pengguna.cek_peran",
+	},
+}
+has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

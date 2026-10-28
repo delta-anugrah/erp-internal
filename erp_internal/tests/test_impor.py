@@ -43,7 +43,7 @@ class TestImpor(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		tahun_fiskal(getdate(today()))
-		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
 		for kode in BARANG_STOK:
 			buat_barang(kode, "Bahan Baku")
 		bersihkan()

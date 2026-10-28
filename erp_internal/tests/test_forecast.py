@@ -28,8 +28,8 @@ class TestForecast(IntegrationTestCase):
 		super().setUpClass()
 		for k in (3, 2, 1, -1):
 			tahun_fiskal(m(k))
-		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
-		cls.pabrik2 = buat_perusahaan("_Uji Pabrik 2", "_UP2", "Pabrik")
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
+		cls.pabrik2 = buat_perusahaan("_Uji Pabrik 2", "_UP2")
 		cls.pelanggan = buat_pelanggan("_Uji Pelanggan")
 		cls.hari_ini = getdate(today())
 
@@ -133,7 +133,7 @@ class TestForecast(IntegrationTestCase):
 	def test_izin(self):
 		a = self.barang("_UJI-FA5")
 		doc = buat_perkiraan(self.pabrik, [a], m(-1), 1)
-		u = buat_pengguna("_uji.gudang.perkiraan@contoh.test", "Gudang", "Gudang", self.pabrik)
+		u = buat_pengguna("_uji.tanpa.perkiraan@contoh.test", None, None, self.pabrik)  # no profile
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.assertRaises(frappe.PermissionError, isi_dari_riwayat, doc.name)

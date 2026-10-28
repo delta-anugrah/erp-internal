@@ -28,8 +28,8 @@ class TestOrderReadiness(IntegrationTestCase):
 		cls.awal = getdate(get_first_day(cls.hari_ini))
 		for d in (cls.awal, add_days(cls.hari_ini, -10)):
 			tahun_fiskal(getdate(d))
-		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
-		cls.pabrik2 = buat_perusahaan("_Uji Pabrik 2", "_UP2", "Pabrik")
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
+		cls.pabrik2 = buat_perusahaan("_Uji Pabrik 2", "_UP2")
 		cls.pelanggan = buat_pelanggan("_Uji Pelanggan")
 		cls.bahan = buat_barang("_UJI-SO-BAHAN", "Bahan Baku", satuan="Kg")
 
@@ -150,7 +150,7 @@ class TestOrderReadiness(IntegrationTestCase):
 
 	def test_perusahaan_tanpa_izin_ditolak(self):
 		# A user held to one company by User Permission cannot read another company's figures.
-		u = buat_pengguna("_uji.or.penjualan@contoh.test", "Penjualan", None, self.pabrik)
+		u = buat_pengguna("_uji.or.user@contoh.test", "User", None, self.pabrik)
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		with self.assertRaises(frappe.PermissionError):
