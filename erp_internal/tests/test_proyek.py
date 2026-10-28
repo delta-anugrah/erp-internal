@@ -27,8 +27,8 @@ class TestProyek(IntegrationTestCase):
 			)
 
 	def test_alur_proyek(self):
-		manajer = buat_pengguna("_uji.manajer@contoh.test", ADMIN, ADMIN, self.company)
-		pekerja = buat_pengguna("_uji.pekerja@contoh.test", USER, USER, self.company)
+		manajer = buat_pengguna("_uji.manajer@example.com", ADMIN, ADMIN, self.company)
+		pekerja = buat_pengguna("_uji.pekerja@example.com", USER, USER, self.company)
 		emp = buat_karyawan("_Uji Pekerja", self.company, user=pekerja)
 		self.addCleanup(frappe.set_user, "Administrator")
 
@@ -67,7 +67,7 @@ class TestProyek(IntegrationTestCase):
 	def test_admin_ajukan_timesheet_orang_lain(self):
 		# Admin (and Developer) count as supervisors (proyek.PERAN_ATASAN).
 		lain = buat_karyawan("_Uji Orang Lain", self.company)
-		admin = buat_pengguna("_uji.proyek.admin@contoh.test", ADMIN, ADMIN, self.company)
+		admin = buat_pengguna("_uji.proyek.admin@example.com", ADMIN, ADMIN, self.company)
 		frappe.set_user(admin)
 		self.addCleanup(frappe.set_user, "Administrator")
 		kemarin = getdate(today()) - timedelta(days=1)
@@ -104,7 +104,7 @@ class TestProyek(IntegrationTestCase):
 		lain = buat_karyawan("_Uji Orang Lain", self.company)
 		self.addCleanup(frappe.set_user, "Administrator")
 		for nomor, izin_sendiri in ((2, True), (3, False)):
-			pekerja = buat_pengguna(f"_uji.pekerja{nomor}@contoh.test", USER, USER, self.company)
+			pekerja = buat_pengguna(f"_uji.pekerja{nomor}@example.com", USER, USER, self.company)
 			buat_karyawan(f"_Uji Pekerja {nomor}", self.company, user=pekerja, izin_sendiri=izin_sendiri)
 			frappe.set_user(pekerja)
 			kemarin = getdate(today()) - timedelta(days=1)

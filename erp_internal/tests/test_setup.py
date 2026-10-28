@@ -127,7 +127,7 @@ class TestSetup(IntegrationTestCase):
 
 	def test_izin_perusahaan_jadi_bawaan(self):
 		# A user's only Company permission becomes their default, so nobody picks the company twice.
-		u = buat_pengguna("_uji.bawaan@contoh.test", None, None, None)
+		u = buat_pengguna("_uji.bawaan@example.com", None, None, None)
 		frappe.db.delete("User Permission", {"user": u})
 		izin = frappe.get_doc(
 			{

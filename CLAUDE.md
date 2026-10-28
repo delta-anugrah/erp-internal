@@ -27,7 +27,7 @@ real go-live with Samuel.
 | Docker `erp-mariadb` | MariaDB 11.8.9 on 127.0.0.1:3308, volume `erp-mariadb`, utf8mb4. |
 | Bench ports | web 8002, socketio 9002, redis queue 11002, redis cache 13002. |
 | Sites | `erp.localhost` (dev; wizard: PT Contoh Plastik, CPL) and `erp-test.localhost` (`allow_tests`). |
-| `erp_internal/contoh.py` | DATA CONTOH for dev sites (`buat_contoh`): one company, users `developer@`, `admin@`, `user@contoh.test`, password `erp_sandi_contoh`; refused with `erp_produksi`. |
+| `erp_internal/contoh.py` | DATA CONTOH for dev sites (`buat_contoh`): one company, users `developer@`, `admin@`, `user@example.com`, password `erp_sandi_contoh`; refused with `erp_produksi`. |
 
 Versions are pinned in `versi.json`: frappe v16.53.0, erpnext v16.52.1, hrms v16.52.0. Python 3.14, Node 24.
 

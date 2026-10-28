@@ -1,5 +1,5 @@
 // Browser check of the screens each role gets (plan Task 4b). Needs `bench start`, the sample users of
-// `erp_internal.contoh.buat_contoh` (one per Role Profile: developer@, admin@, user@contoh.test) and their
+// `erp_internal.contoh.buat_contoh` (one per Role Profile: developer@, admin@, user@example.com) and their
 // shared password.
 //
 //   cd tools && npm install && npx playwright install chromium
@@ -37,7 +37,7 @@ const PROFIL = {
 };
 const APLIKASI = ["erpnext", "hrms"]; // the apps whose rails tampilan.py arranges
 
-const surel = (profil) => `${profil.toLowerCase()}@contoh.test`;
+const surel = (profil) => `${profil.toLowerCase()}@example.com`;
 // frappe.router.shell_slug: lower case, "&" spelled out, spaces to dashes
 const slug = (shell) => shell.toLowerCase().replace(/&/g, " and ").trim().replace(/\s+/g, "-");
 

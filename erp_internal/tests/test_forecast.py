@@ -133,7 +133,7 @@ class TestForecast(IntegrationTestCase):
 	def test_izin(self):
 		a = self.barang("_UJI-FA5")
 		doc = buat_perkiraan(self.pabrik, [a], m(-1), 1)
-		u = buat_pengguna("_uji.tanpa.perkiraan@contoh.test", None, None, self.pabrik)  # no profile
+		u = buat_pengguna("_uji.tanpa.perkiraan@example.com", None, None, self.pabrik)  # no profile
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.assertRaises(frappe.PermissionError, isi_dari_riwayat, doc.name)

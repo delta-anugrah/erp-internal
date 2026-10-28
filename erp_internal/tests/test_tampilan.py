@@ -100,7 +100,7 @@ def pengguna_profil(profil: str, jenis: str) -> str:
 
 
 def surel(profil: str, jenis: str = "izin") -> str:
-	return f"_uji.{jenis}.{profil.lower()}@contoh.test"
+	return f"_uji.{jenis}.{profil.lower()}@example.com"
 
 
 def jejak_modified() -> dict:
@@ -248,7 +248,7 @@ class TestTampilan(IntegrationTestCase):
 	def test_user_tetap_bisa_buat_order(self):
 		# a Module Profile must not break link fields on a kept form
 		pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
-		u = buat_pengguna("_uji.user.pabrik@contoh.test", USER, USER, pabrik)
+		u = buat_pengguna("_uji.user.pabrik@example.com", USER, USER, pabrik)
 		pelanggan = buat_pelanggan("_Uji Pelanggan")
 		barang = buat_barang("_UJI-EMBER", "Barang Jadi")
 		harga = daftar_harga("_Uji Harga Jual", jual=True)  # IDR: the test site's own lists are INR

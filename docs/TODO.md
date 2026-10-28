@@ -13,9 +13,9 @@ unit + 89 integration tests, all OK. `node tools/cek_layar.mjs`: 3 users OK.
 - [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang;
       retake with `ERP_SANDI=<password> node tools/panduan_gambar.mjs`). `produksi.md`, `absen.md`, `proyek.md`
       reference no picture yet.
-- [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `user@contoh.test` on a real phone. The sample
+- [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `user@example.com` on a real phone. The sample
       password is `SAMPLE_PASSWORD` in `~/Desktop/Projects/erp-internal-bench/.env`.
-- [ ] Sign in as `user@` and `admin@contoh.test`: User has no Settings, Admin does; full width.
+- [ ] Sign in as `user@` and `admin@example.com`: User has no Settings, Admin does; full width.
 - [ ] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused).
 - [ ] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid.
 - [ ] Optional: the official vector logo from the designer. `delta-anugrah.svg` is our redraw of the 200 px JPEG;

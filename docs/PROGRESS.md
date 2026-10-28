@@ -30,13 +30,13 @@ Newest first. One entry per working session: what changed, test results as run, 
   users, Company, business settings); new role `ERP Admin` with User rights (`setup.IZIN_TAMBAHAN`, now
   (doctype, role, permlevel, rights)); new `erp_internal/pengguna.py` keeps an Admin to Admin and User roles and off
   Developer accounts; `proyek.PERAN_ATASAN` is Admin and Developer; `contoh.py` one company, users `developer@`,
-  `admin@`, `user@contoh.test`; `tools/setup_bench.sh` ticks `erp_aktif`.
+  `admin@`, `user@example.com`; `tools/setup_bench.sh` ticks `erp_aktif`.
 - Reviewer (general-purpose agent with `.claude/agents/reviewer.md`): no privilege escalation found; fixed
   `setup_bench.sh`, HR saving an Employee linked to a Developer (only access fields are refused now,
   `pengguna.FIELD_AKSES`), a new User under a Developer's name (`cek_user_awal`), `buat_pengguna` clearing
   `block_modules`; added tests for those paths, an unticked company and an Admin submitting someone's timesheet.
 - Dev sites: one-off script (not in the repo) on `erp.localhost` deleted PT Contoh Kantor and its sample records,
-  the seven `<bagian>@contoh.test` users, the seven old Role and Module Profiles and the `erp_jenis` field; on
+  the seven `<bagian>@example.com` users, the seven old Role and Module Profiles and the `erp_jenis` field; on
   `erp-test.localhost` only the field. Then `migrate` on both and `buat_contoh` twice on `erp.localhost` (same
   counts both runs: Company 1, User 3, Employee 5, ...).
 - Tests: `bench --site erp-test.localhost run-tests --app erp_internal`: 13 unit + 89 integration, all OK.

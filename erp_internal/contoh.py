@@ -137,8 +137,8 @@ def tandai(doctype: str, nama: str) -> str:
 
 
 def surel(profil: str) -> str:
-	"""The sample user of a Role Profile: `<profile, lower case>@contoh.test` (as `tools/cek_layar.mjs`)."""
-	return f"{profil.lower()}@contoh.test"
+	"""The sample user of a Role Profile: `<profile, lower case>@example.com` (as `tools/cek_layar.mjs`)."""
+	return f"{profil.lower()}@example.com"
 
 
 def _barang(company: str) -> None:

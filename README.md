@@ -67,7 +67,7 @@ bench --site erp-test.localhost run-tests --app erp_internal
 bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs   # one file
 ```
 
-Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@contoh.test` of `contoh.py`):
+Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@example.com` of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
 (the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs`. If
 `bench build` ran while `bench start` was up, restart `bench start` first: the web process keeps the old
@@ -114,7 +114,7 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
 
 `erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): one sample company (PT Contoh Plastik), products
 with BOMs, lead times and stock, customers, suppliers, 6 months of Sales History, open orders, employees on the
-shift, one project, and one user per role (`developer@`, `admin@`, `user@contoh.test`):
+shift, one project, and one user per role (`developer@`, `admin@`, `user@example.com`):
 
 ```bash
 bench --site erp.localhost set-config erp_sandi_contoh <password>

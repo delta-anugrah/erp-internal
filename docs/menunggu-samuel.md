@@ -11,7 +11,7 @@ place in the last column and strike the row.
 | 4 | Products, machines, capacity per day per product, materials per product, minimum stock | 5 sample products | Items, BOMs, Item Lead Time, Task 14 |
 | 5 | Attendance by phone (location) or fingerprint (brand)? Office hours, headcount | phone, 08:00-17:00 | `setup.SHIFT_KANTOR`, Task 15 |
 | 6 | Server provider and budget, domain, off-site backup bucket | local compose stack only | `deploy/server/.env`, Task 7/8 |
-| 7 | Who uses it, and as Admin or User | one sample user per role (`developer@`, `admin@`, `user@contoh.test`) | users at go-live |
+| 7 | Who uses it, and as Admin or User | one sample user per role (`developer@`, `admin@`, `user@example.com`) | users at go-live |
 | 8 | Office days off and leave: Saturday off? Which leave types and how many days of annual leave? | Saturday and Sunday off; Cuti Tahunan 12, Sakit, Izin (unpaid); national holidays entered by HR from the SKB | `setup.LIBUR_MINGGUAN`, `setup.JENIS_CUTI`, Task 15/17 |
 
 ## Answers (Mas Samuel, 2026-10-28)

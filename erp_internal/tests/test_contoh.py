@@ -60,7 +60,7 @@ class TestContoh(IntegrationTestCase):
 			self.assertEqual(rp, [profil])
 		self.assertEqual(
 			[surel(p) for p in PROFIL_PERAN],
-			["developer@contoh.test", "admin@contoh.test", "user@contoh.test"],
+			["developer@example.com", "admin@example.com", "user@example.com"],
 		)
 
 	def test_satu_perusahaan(self):

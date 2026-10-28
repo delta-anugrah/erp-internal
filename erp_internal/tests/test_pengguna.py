@@ -37,11 +37,11 @@ class TestPengguna(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.admin = buat_pengguna("_uji.peng.admin@contoh.test", ADMIN, ADMIN, None)
-		cls.dev = buat_pengguna("_uji.peng.dev@contoh.test", DEVELOPER, None, None)
-		cls.user = buat_pengguna("_uji.peng.user@contoh.test", USER, USER, None)
+		cls.admin = buat_pengguna("_uji.peng.admin@example.com", ADMIN, ADMIN, None)
+		cls.dev = buat_pengguna("_uji.peng.dev@example.com", DEVELOPER, None, None)
+		cls.user = buat_pengguna("_uji.peng.user@example.com", USER, USER, None)
 		# A user with roles set one by one, no Role Profile: the profile would drop any other role itself.
-		cls.polos = user_polos("_uji.peng.polos@contoh.test")
+		cls.polos = user_polos("_uji.peng.polos@example.com")
 
 	def setUp(self):
 		frappe.set_user(self.admin)
@@ -49,7 +49,7 @@ class TestPengguna(IntegrationTestCase):
 
 	def test_admin_kelola_user(self):
 		# Create a User, make them an Admin, disable them: all allowed.
-		baru = frappe.get_doc(user_baru("_uji.peng.baru@contoh.test", USER)).insert()
+		baru = frappe.get_doc(user_baru("_uji.peng.baru@example.com", USER)).insert()
 		self.assertIn("Stock User", peran(baru.name))
 		baru.set("role_profiles", [{"role_profile": ADMIN}])
 		baru.save()
@@ -60,8 +60,8 @@ class TestPengguna(IntegrationTestCase):
 
 	def test_profil_developer_ditolak(self):
 		with self.assertRaises(frappe.PermissionError):
-			frappe.get_doc(user_baru("_uji.peng.calon@contoh.test", DEVELOPER)).insert()
-		self.assertFalse(frappe.db.exists("User", "_uji.peng.calon@contoh.test"))
+			frappe.get_doc(user_baru("_uji.peng.calon@example.com", DEVELOPER)).insert()
+		self.assertFalse(frappe.db.exists("User", "_uji.peng.calon@example.com"))
 
 	def test_system_manager_lewat_form_ditolak(self):
 		# The form's save (frappe.client.save takes the same document) with System Manager ticked.
@@ -129,7 +129,7 @@ class TestPengguna(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, dev.save, ignore_permissions=True)  # the validate hook
 		self.assertRaises(frappe.PermissionError, change_password, self.dev, "_Uji-Sandi-Baru-2026!")
 		with self.assertRaisesRegex(frappe.ValidationError, "write permission"):
-			frappe.rename_doc("User", self.dev, "_uji.peng.lain@contoh.test")
+			frappe.rename_doc("User", self.dev, "_uji.peng.lain@example.com")
 		self.assertEqual(frappe.db.get_value("User", self.dev, "enabled"), 1)
 		self.assertIn("System Manager", peran(self.dev))
 
@@ -175,7 +175,7 @@ class TestPengguna(IntegrationTestCase):
 		self.assertIn("System Manager", peran(self.dev))
 
 	def test_developer_tidak_dibatasi(self):
-		target = user_polos("_uji.peng.naik@contoh.test")
+		target = user_polos("_uji.peng.naik@example.com")
 		frappe.set_user(self.dev)
 		doc = frappe.get_doc("User", target)
 		doc.append("roles", {"role": "System Manager"})

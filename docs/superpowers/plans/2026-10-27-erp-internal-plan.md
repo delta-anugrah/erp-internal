@@ -35,7 +35,7 @@ Samuel's answers are in `docs/menunggu-samuel.md` ("Answers").
    itself) and from touching a Developer's or Administrator's account (User `before_validate`/`validate`/
    `has_permission`, Has Role `before_insert`/`validate`); `tests/test_pengguna.py` tries the form save, a direct Has
    Role insert, `frappe.client`, rename and password change. `proyek.PERAN_ATASAN`: Admin and Developer submit
-   anyone's timesheet, a User only their own. Sample users: `developer@`, `admin@`, `user@contoh.test`.
+   anyone's timesheet, a User only their own. Sample users: `developer@`, `admin@`, `user@example.com`.
 3. **Invoices** stay on screen for recording only; the company is not PKP, the PPN templates are never default.
 4. Tests, `tools/cek_layar.mjs` (3 users) and `tools/panduan_gambar.mjs` (as `user@`) follow; the staff guides say
    which role does what, and `docs/panduan/admin.md` covers users and settings. Wherever a task below says bagian,
@@ -170,7 +170,7 @@ Samuel's answers are in `docs/menunggu-samuel.md` ("Answers").
    | 4 products, machines, capacity | 5 sample products with BOM and Item Lead Time | data at Task 14 |
    | 5 attendance method, hours | phone with location, 08:00–17:00 | `setup.SHIFT_KANTOR` |
    | 6 server, domain, backup | local compose stack, rclone remote of type local | `.env` on the server |
-   | 7 users per bagian | one sample user per bagian (`@contoh.test`) | users at go-live |
+   | 7 users per bagian | one sample user per bagian (`@example.com`) | users at go-live |
 
    Keep `docs/menunggu-samuel.md` up to date: each question, its default, and where the answer goes.
 4. **Sample data.** Add `erp_internal/contoh.py` with `buat_contoh()`, run by `bench --site erp.localhost execute
@@ -192,7 +192,7 @@ Samuel's answers are in `docs/menunggu-samuel.md` ("Answers").
      - "DATA CONTOH" is a Frappe tag (`_user_tags`) on every record it makes, plus the Item description and the
        Project notes: lists can filter by it and the go-live can remove exactly those. `buat_contoh()` returns the
        tagged count per DocType.
-     - Users are `<bagian lower case, no spaces>@contoh.test` (as `tools/cek_layar.mjs`), Role and Module Profile
+     - Users are `<bagian lower case, no spaces>@example.com` (as `tools/cek_layar.mjs`), Role and Module Profile
        of their bagian, a default Company permission (Kantor for HR, Karyawan and Manajer Proyek, else Pabrik). The
        password is set on every run from `erp_sandi_contoh` (`update_password`, so no policy check); without that
        config, or with `erp_produksi`, it refuses before writing anything.
@@ -518,7 +518,7 @@ IZIN = {
 
 def test_izin_per_bagian(self):
 	for bagian, (boleh, tidak) in IZIN.items():
-		u = buat_pengguna(f"_uji.{bagian.lower().replace(' ', '')}@contoh.test", bagian, None, None)
+		u = buat_pengguna(f"_uji.{bagian.lower().replace(' ', '')}@example.com", bagian, None, None)
 		for dt in boleh:
 			self.assertTrue(frappe.has_permission(dt, "create", user=u), f"{bagian} harus bisa buat {dt}")
 		for dt in tidak:
@@ -546,7 +546,7 @@ def test_profil_modul(self):
 def test_penjualan_tetap_bisa_buat_order(self):
 	# a Module Profile must not break link fields on a kept form
 	pabrik = buat_perusahaan("_Uji Pabrik", "_UP", "Pabrik")
-	u = buat_pengguna("_uji.penjualan.pabrik@contoh.test", "Penjualan", "Pabrik", pabrik)
+	u = buat_pengguna("_uji.penjualan.pabrik@example.com", "Penjualan", "Pabrik", pabrik)
 	frappe.set_user(u)
 	self.addCleanup(frappe.set_user, "Administrator")
 	so = frappe.get_doc({"doctype": "Sales Order", "company": pabrik, "customer": buat_pelanggan("_Uji Pelanggan"),
@@ -920,7 +920,7 @@ session's scratchpad, not in the repo; each check below passed unless it says ot
 - Step 6: `bench --site erp.localhost backup`: database 1.2 MiB, `gunzip -t` OK, 911 tables. `cadangan.sh`, the
   off-site copy and the restore drill: not run (compose stack needs `new-site`, Task 7).
 - Step 7 (training): not applicable to a dry run.
-- Step 8: as `penjualan@contoh.test`, Sales Order (2 Karton of CTH-GAYUNG = 96 Pcs) → Delivery Note → Sales
+- Step 8: as `penjualan@example.com`, Sales Order (2 Karton of CTH-GAYUNG = 96 Pcs) → Delivery Note → Sales
   Invoice Rp 528.000 → Payment Entry: SO Completed, SI Paid. Records tagged DATA CONTOH.
 
 ---
@@ -1331,7 +1331,7 @@ Manual, with Samuel. It needs his answers to questions 2 and 4 and the factory's
 - [ ] **Step 5: Accept.** Siap Order lists every finished product with a status, and five products checked by hand
   agree. Write the date in CLAUDE.md.
 
-**Task 14 local dry run, 2026-10-28 on `erp.localhost` with DATA CONTOH** (as `produksi@contoh.test` where a person
+**Task 14 local dry run, 2026-10-28 on `erp.localhost` with DATA CONTOH** (as `produksi@example.com` where a person
 would act):
 - Step 1: Sales History of the 3 months before October (07-09 2026) equals `contoh.py`'s numbers month by month.
 - Step 2: each of the 5 finished products has an Item Lead Time and a default BOM; safety stock 0.
@@ -1487,13 +1487,13 @@ Manual, with Samuel. It needs his answers to questions 5 and 7.
   `dd-mm-yyyy`) through Data Import on the worker: Success, 2 = 2. Removed afterwards.
 - Step 2: HR, Karyawan and Manajer Proyek users have their Role and Module Profile, a default PT Contoh Kantor
   permission and a linked Employee (the plan's single "Kantor" Module Profile became one per bagian in Task 3);
-  all 5 employees have the Kantor shift and Cuti Tahunan 12; `hr@contoh.test` adds a holiday to "Libur CKT 2026"
+  all 5 employees have the Kantor shift and Cuti Tahunan 12; `hr@example.com` adds a holiday to "Libur CKT 2026"
   (rolled back).
-- Step 3: `karyawan@contoh.test` checks in with coordinates (Employee Checkin, shift Kantor; rolled back);
+- Step 3: `karyawan@example.com` checks in with coordinates (Employee Checkin, shift Kantor; rolled back);
   `/hrms` answers 200 and `hrms.api.get_current_employee_info` returns Citra Wulandari. No phone was used.
 - Step 4: a dry-run employee on the shift from Monday, Monday 08:05-17:10 and Tuesday 08:25-17:05 check-ins, the
   shift's auto attendance run with `process_attendance_after` moved to Monday (put back to 2026-10-28 after):
   Monday Present, Tuesday Present and late; no other employee got an Attendance. Removed afterwards.
-- Step 5: `karyawan@contoh.test` submits a 3-hour timesheet on their assigned task of "Katalog Produk Online"
+- Step 5: `karyawan@example.com` submits a 3-hour timesheet on their assigned task of "Katalog Produk Online"
   (3 tasks); tagged DATA CONTOH.
 - Step 6: not applicable (needs a real week).

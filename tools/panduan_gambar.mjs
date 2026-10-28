@@ -1,5 +1,5 @@
 // Screenshots for the staff guides (docs/panduan/*.md → docs/panduan/gambar/). Needs `bench start` and the
-// sample data of `erp_internal.contoh.buat_contoh` with its users (`user@contoh.test`) and their password.
+// sample data of `erp_internal.contoh.buat_contoh` with its users (`user@example.com`) and their password.
 //
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
 //
@@ -55,7 +55,7 @@ const buka = (page, dt) =>
 
 const besok = () => new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
 
-const USER = "user@contoh.test";
+const USER = "user@example.com";
 
 // file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it]
 const GAMBAR_LIST = {
