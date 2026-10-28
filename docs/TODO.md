@@ -10,8 +10,9 @@ tests, all OK. `node tools/cek_layar.mjs`: 7 bagian OK.
       database root password, so it is yours to run (`deploy/server/README.md`).
 - [ ] Look at the screens in Indonesian once (switch the language in the user menu) and click Fill from History and
       Order Readiness in the browser: their server side ran in the dry runs, the buttons were not clicked.
-- [ ] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, incl. `produksi.md`), now that the sample
-      data is there.
+- [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang;
+      retake with `ERP_SANDI=<password> node tools/panduan_gambar.mjs`). `produksi.md`, `absen.md`, `proyek.md`
+      reference no picture yet.
 - [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `karyawan@contoh.test` on a real phone. The sample
       password is `SAMPLE_PASSWORD` in `~/Desktop/Projects/erp-internal-bench/.env`.
 - [ ] Sign in as two or three sample users (`<bagian>@contoh.test`): each sees only its bagian's icons, full width.
