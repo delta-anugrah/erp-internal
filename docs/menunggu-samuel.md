@@ -25,3 +25,4 @@ place in the last column and strike the row.
 | 5 | Fingerprint, but HR is not a priority now | attendance waits; phone check-in stays built |
 | 6 | Roles: admin and user only | done: Role Profiles User, Admin, Developer (plan Revision 4) |
 | 7 | "host" (meaning still to confirm) | server, Task 7/8 |
+| 4 (2026-10-28 17:40) | Machines often switch products; material price changes per purchase batch; minimum stock is what he wants the software to work out; reject is internal only (bad or broken pieces), never from customers | machine per Work Order (`erp_mesin`), so switching is fine; material cost follows each purchase through stock valuation, so only grams per pcs and PP/HDPE are needed; minimum stock to be suggested from the sales history (Excel, row 2); reject goes to Gudang Reject at production, no customer-return flow |
