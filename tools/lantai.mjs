@@ -93,6 +93,19 @@ if (!gagal.length) {
 		await page.evaluate(() => frappe.set_route("lantai-produksi"));
 		await page.waitForTimeout(700);
 	}
+	// While the page is hidden the loop must stand still; back on the page it must draw again.
+	const total = () => page.evaluate(() => erp.lantai.aktif.info().total);
+	await page.evaluate(() => frappe.set_route("Workspaces", "Manufacturing"));
+	await page.waitForTimeout(500);
+	const a1 = await total();
+	await page.waitForTimeout(1000);
+	cek((await total()) === a1, "frames kept drawing while the page was hidden");
+	await page.evaluate(() => frappe.set_route("lantai-produksi"));
+	await page.waitForTimeout(500);
+	const a2 = await total();
+	await page.waitForTimeout(500);
+	cek((await total()) > a2, "frames did not advance after returning to the page");
+
 	const akhir = await page.evaluate(() => ({
 		konteks: erp.lantai.aktif.info().konteks,
 		hitung: window.__konteks,
@@ -101,6 +114,27 @@ if (!gagal.length) {
 	cek(akhir.konteks === 1, `info().konteks after 5 round trips: ${akhir.konteks}`);
 	cek(akhir.hitung === 1, `WebGL contexts created by the browser: ${akhir.hitung}`);
 	cek(akhir.kanvas === 1, `canvases after 5 round trips: ${akhir.kanvas}`);
+}
+// Race: leave before the bundle has loaded (fresh load, route away in the same tick): the scene mounts paused.
+{
+	const p2 = await context.newPage();
+	await p2.goto(`${URL}/desk`);
+	await p2.waitForFunction(() => window.frappe?.boot && frappe.set_route);
+	await p2.evaluate(() => {
+		frappe.set_route("lantai-produksi");
+		frappe.set_route("Workspaces", "Manufacturing");
+	});
+	try {
+		await p2.waitForFunction(() => window.erp?.lantai?.aktif, null, { timeout: 20000 });
+		await p2.waitForTimeout(500);
+		const t = () => p2.evaluate(() => erp.lantai.aktif.info().total);
+		const b1 = await t();
+		await p2.waitForTimeout(1000);
+		cek((await t()) === b1, "the scene draws although the page was left before it mounted");
+	} catch {
+		gagal.push("race check: the page was never mounted (route away too early to test)");
+	}
+	await p2.close();
 }
 cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ").slice(0, 400)}`);
 

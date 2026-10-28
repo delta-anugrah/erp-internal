@@ -89,6 +89,7 @@ export function buatAdegan(root) {
 	let kotor = true;
 	let jalan = false;
 	let frame = 0;
+	let total = 0; // frames drawn since mount, never reset: tools compare it to see whether the loop runs
 	let mulaiFps = performance.now();
 	let fps = 0;
 	const tandaiKotor = () => {
@@ -117,6 +118,7 @@ export function buatAdegan(root) {
 		}
 		renderer.render(scene, kamera);
 		frame += 1;
+		total += 1;
 		const sekarang = performance.now();
 		if (sekarang - mulaiFps >= 1000) {
 			fps = (frame * 1000) / (sekarang - mulaiFps);
@@ -168,6 +170,7 @@ export function buatAdegan(root) {
 				memory: { ...renderer.info.memory },
 				fps,
 				frame,
+				total,
 				konteks,
 				// Slot markers projected to screen pixels, for tools/lantai.mjs.
 				penanda: penanda.children.map((m) => {
