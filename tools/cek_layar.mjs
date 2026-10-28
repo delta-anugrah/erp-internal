@@ -64,7 +64,9 @@ for (const [bagian, harap] of Object.entries(BAGIAN)) {
 
 	const langkah = [
 		["desk", () => page.goto(`${URL}/desk`)],
-		["rumah", () => page.goto(`${URL}/desk/${slug(harap.rumah)}`)],
+		// The module home as the rail opens it: its Workspace (a URL spells "Shift & Attendance" with
+		// the "&", which only the router's workspace table knows).
+		["rumah", () => page.evaluate((ws) => frappe.set_route("Workspaces", ws), harap.rumah)],
 		["form", () => page.evaluate((dt) => frappe.new_doc(dt), harap.form)],
 	];
 	for (const [nama, buka] of langkah) {
@@ -77,13 +79,20 @@ for (const [bagian, harap] of Object.entries(BAGIAN)) {
 			await page.evaluate(() => document.body.classList.contains("full-width")),
 			`${nama}: not full width`
 		);
-		cek((await page.locator(".modal.show").count()) === 0, `${nama}: a dialog is open`);
+		// An error or message dialog (frappe.msgprint); a Quick Entry dialog of a new form is fine.
+		const pesan = page.locator(".modal.show.msgprint-dialog, .modal.show .msgprint");
+		cek(
+			(await pesan.count()) === 0,
+			`${nama}: a message dialog is open: ${(await pesan.allInnerTexts()).join(" ").slice(0, 200)}`
+		);
 
 		if (nama === "desk") {
-			// The rail: every docked app's resolved entries that are shown and lead to a sidebar.
+			// The rail of the apps this user opens from the Apps screen (Frappe's own app is not one of
+			// them): the resolved entries that are shown and lead to a sidebar.
 			const rail = await page.evaluate(() =>
-				Object.values(frappe.boot.dock || {})
-					.flat()
+				Object.entries(frappe.boot.dock || {})
+					.filter(([app]) => (frappe.boot.apps_data?.apps || []).some((a) => a.name === app))
+					.flatMap(([, entries]) => entries)
 					.filter((e) => !e.hidden && e.link_type === "Sidebar")
 					.filter((e) => (frappe.boot.module_sidebars || {})[e.link_to])
 					.map((e) => e.link_to)
