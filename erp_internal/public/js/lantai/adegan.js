@@ -26,8 +26,36 @@ export function posisi(nomor) {
 // One WebGL context for the whole session: the renderer is created once per mount and `konteks` counts creations.
 let konteks = 0;
 
+// Thrown by `buatAdegan` when the browser gives no WebGL context; the caller shows the plain table instead.
+export class TanpaWebGL extends Error {}
+
+// Adaptive quality: a rolling mean frame time above BATAS_LAMBAT ms for LAMA_LAMBAT ms drops the pixel ratio to 1
+// (and the machines stop their platens) for the rest of the session.
+const BATAS_LAMBAT = 22;
+const LAMA_LAMBAT = 2000;
+const JENDELA = 30; // frames in the rolling mean
+const MIN_FRAME = 5; // frames before the mean counts (a very slow machine must not wait for JENDELA)
+
+// The WebGL context, asked for on our own canvas so a missing one is a null to check, not an exception three logs.
+function buatRenderer() {
+	const kanvas = document.createElement("canvas");
+	const atribut = { antialias: true, powerPreference: "high-performance", alpha: false, stencil: false };
+	let gl = null;
+	try {
+		gl = kanvas.getContext("webgl2", atribut) || kanvas.getContext("webgl", atribut);
+	} catch {
+		gl = null;
+	}
+	if (!gl) throw new TanpaWebGL("no WebGL context");
+	try {
+		return new THREE.WebGLRenderer({ canvas: kanvas, context: gl, antialias: true });
+	} catch (e) {
+		throw new TanpaWebGL(String(e));
+	}
+}
+
 export function buatAdegan(root) {
-	const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+	const renderer = buatRenderer();
 	konteks += 1;
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 	root.appendChild(renderer.domElement);
@@ -35,13 +63,14 @@ export function buatAdegan(root) {
 	const scene = new THREE.Scene();
 	scene.background = new THREE.Color(0xdfe3e8);
 	const kamera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
-	kamera.position.set(0, 22, 32);
+	kamera.position.set(0, 19, 27);
 	const kontrol = new OrbitControls(kamera, renderer.domElement);
 	kontrol.enableDamping = true;
 	kontrol.target.set(0, 0, 0);
 	kontrol.maxPolarAngle = Math.PI / 2 - 0.05;
-	kontrol.minDistance = 8;
+	kontrol.minDistance = 6;
 	kontrol.maxDistance = 70;
+	kontrol.saveState(); // the reset button's default view
 
 	// No shadow maps: a soft blob under each machine stands in for a shadow.
 	scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa3ad, 1.1));
@@ -51,7 +80,7 @@ export function buatAdegan(root) {
 
 	const lantai = new THREE.Mesh(
 		new THREE.PlaneGeometry(LEBAR, DALAM),
-		new THREE.MeshStandardMaterial({ color: 0xf2f4f6, roughness: 0.95 })
+		new THREE.MeshLambertMaterial({ color: 0xf2f4f6 })
 	);
 	lantai.rotation.x = -Math.PI / 2;
 	scene.add(lantai);
@@ -86,6 +115,14 @@ export function buatAdegan(root) {
 
 	const jam = new THREE.Clock();
 	const penyegar = []; // label refreshers, run when the camera moved or `tandaiKotor()` was called
+	const tiap = []; // per-frame updates, each called with dt (seconds)
+	const saatTurun = []; // called once when adaptive quality drops
+	const waktuFrame = new Float32Array(JENDELA);
+	let isiFrame = 0;
+	let jumlahFrame = 0;
+	let akhirFrame = 0;
+	let lambatSejak = 0;
+	let rendah = false;
 	let kotor = true;
 	let jalan = false;
 	let frame = 0;
@@ -109,9 +146,34 @@ export function buatAdegan(root) {
 	pengamat.observe(root);
 	ukuran();
 
+	function turunkan() {
+		rendah = true;
+		renderer.setPixelRatio(1);
+		ukuran();
+		for (const f of saatTurun) f();
+	}
+
+	// Real time between frames into the rolling mean; slow for LAMA_LAMBAT straight → lower quality once.
+	function ukurFrame(sekarang) {
+		if (akhirFrame) {
+			const ft = sekarang - akhirFrame;
+			jumlahFrame += ft - waktuFrame[isiFrame % JENDELA];
+			waktuFrame[isiFrame % JENDELA] = ft;
+			isiFrame += 1;
+			if (!rendah && isiFrame >= MIN_FRAME) {
+				if (jumlahFrame / Math.min(isiFrame, JENDELA) <= BATAS_LAMBAT) lambatSejak = 0;
+				else if (!lambatSejak) lambatSejak = sekarang;
+				else if (sekarang - lambatSejak >= LAMA_LAMBAT) turunkan();
+			}
+		}
+		akhirFrame = sekarang;
+	}
+
 	function putar() {
 		const dt = Math.min(jam.getDelta(), 0.1);
+		ukurFrame(performance.now());
 		kontrol.update(dt);
+		for (const f of tiap) f(dt);
 		if (kotor) {
 			for (const s of penyegar) s();
 			kotor = false;
@@ -133,6 +195,9 @@ export function buatAdegan(root) {
 		if (jalan || document.hidden || ditahan) return;
 		jalan = true;
 		jam.getDelta();
+		// A pause is not a slow frame: start the rolling mean afresh.
+		waktuFrame.fill(0);
+		isiFrame = jumlahFrame = akhirFrame = lambatSejak = 0;
 		renderer.setAnimationLoop(putar);
 	};
 	const jeda = () => {
@@ -147,7 +212,17 @@ export function buatAdegan(root) {
 		kamera,
 		penanda,
 		penyegar,
+		tiap,
+		saatTurun,
 		tandaiKotor,
+		reset() {
+			// Damping keeps the last drag's spin; without damping one update applies and clears it, then reset.
+			kontrol.enableDamping = false;
+			kontrol.update();
+			kontrol.reset();
+			kontrol.enableDamping = true;
+			tandaiKotor();
+		},
 		lanjut: () => {
 			ditahan = false;
 			lanjut();
@@ -155,10 +230,6 @@ export function buatAdegan(root) {
 		jeda: () => {
 			ditahan = true;
 			jeda();
-		},
-		perbarui() {
-			// Machines arrive in a later task; the empty floor has nothing to update.
-			tandaiKotor();
 		},
 		info() {
 			kamera.updateMatrixWorld();
@@ -172,10 +243,17 @@ export function buatAdegan(root) {
 				frame,
 				total,
 				konteks,
+				kualitas: { rendah, rasio: renderer.getPixelRatio() },
+				kamera: kamera.position.toArray(),
 				// Slot markers projected to screen pixels, for tools/lantai.mjs.
 				penanda: penanda.children.map((m) => {
 					v.copy(m.position).project(kamera);
-					return { nomor: m.userData.nomor, x: ((v.x + 1) / 2) * lebar, y: ((1 - v.y) / 2) * tinggi };
+					return {
+						nomor: m.userData.nomor,
+						x: ((v.x + 1) / 2) * lebar,
+						y: ((1 - v.y) / 2) * tinggi,
+						tampak: m.visible,
+					};
 				}),
 			};
 		},

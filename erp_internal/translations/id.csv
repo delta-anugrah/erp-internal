@@ -138,3 +138,6 @@ Machine,Mesin
 "Unknown machine status: {0}","Status mesin tidak dikenal: {0}"
 "{0} is not a numbered machine.","{0} bukan mesin bernomor."
 Production Floor,Lantai Produksi
+No.,No.
+Reset view,Atur Ulang Tampilan
+"The machine list could not be loaded.","Daftar mesin tidak dapat dimuat."
