@@ -194,6 +194,37 @@ class TestTampilan(IntegrationTestCase):
 			}
 			self.assertEqual(tampil, harap, profil)
 
+	def test_merek_aplikasi(self):
+		# Every app tile and rail top slot shows the Delta Anugrah mark and our name (tampilan.merek_aplikasi),
+		# whatever the profile; the apps' own hooks keep their logos.
+		from frappe.boot import get_bootinfo
+
+		from erp_internal.setup import LOGO
+		from erp_internal.tampilan import NAMA_APLIKASI, merek_aplikasi, saring_aplikasi
+
+		for profil in PROFIL_PERAN:
+			u = pengguna_profil(profil, "merek")
+			frappe.set_user(u)
+			try:
+				boot = get_bootinfo()
+				saring_aplikasi(boot)
+				merek_aplikasi(boot)
+			finally:
+				frappe.set_user("Administrator")
+			apps = {a["app_name"]: a for a in boot.app_data}
+			for app, nama in NAMA_APLIKASI.items():
+				self.assertEqual(apps[app]["app_title"], nama, profil)
+			self.assertEqual({a["app_logo_url"] for a in boot.app_data}, {LOGO}, profil)
+			tampil = {a["app_title"] for a in boot.app_data if a.get("on_apps_screen")}
+			self.assertNotIn("ERPNext", tampil)
+			self.assertEqual("System" in tampil, profil == DEVELOPER, profil)
+		self.assertEqual(frappe.get_hooks("app_logo_url", app_name="erpnext")[0][:16], "/assets/erpnext/")
+
+	def test_merek_aplikasi_tak_pernah_gagal(self):
+		from erp_internal.tampilan import merek_aplikasi
+
+		merek_aplikasi(frappe._dict(app_data=[None]))  # a broken entry is logged, boot goes on
+
 	def test_sidebar(self):
 		# Each kept sidebar opens on its module's home Workspace, then the SIDEBAR links in order.
 		for shell, link in SIDEBAR.items():

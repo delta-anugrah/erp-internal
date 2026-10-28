@@ -45,9 +45,13 @@ tests make their own IDR companies and price lists) and then our setup. That fir
 
 The site shows PT Delta Anugrah's mark and the name "Delta Anugrah" on the login page, the top left of the Apps
 screen, the loading splash and the browser tab. Setup sets it on every migrate (`setup.MEREK`, System Settings
-`app_name`); the files are `erp_internal/public/images/` (`delta-anugrah.png` transparent, `favicon-32.png`,
-`favicon-192.png`, the original `delta-anugrah.jpeg`). Inside a module the rail's top slot still shows ERPNext's or
-HR's own logo: Frappe draws each app's mark there.
+`app_name`). The files are `erp_internal/public/images/`: `delta-anugrah.svg` (the vector, redrawn by hand from the
+original 200 px `delta-anugrah.jpeg`, kept beside it), and rendered from the SVG `delta-anugrah.png` (512 px,
+transparent), `favicon-32.png` and `favicon-192.png`. Settings point at the SVG; the favicon stays PNG.
+
+The Apps screen tiles and each module's rail top slot show the same mark, and the tiles are named Operations
+(ERPNext), HR (Frappe HR) and System (Frappe, Developer only); Indonesian: Operasional, SDM, Sistem. That is
+`tampilan.merek_aplikasi` (`extend_bootinfo`, the boot copy of `app_data` only).
 
 ## Language
 

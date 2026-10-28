@@ -29,8 +29,10 @@ PENGATURAN_SISTEM = {
 GLOBAL_DEFAULTS = {"default_currency": "IDR", "country": "Indonesia"}
 
 # The brand: PT Delta Anugrah's mark on the login page, the Apps screen, the loading splash and the browser
-# tab. The files sit in `public/images/` (served as-is, no build); the original JPEG stays beside them.
-LOGO = "/assets/erp_internal/images/delta-anugrah.png"
+# tab. The files sit in `public/images/` (served as-is, no build): `delta-anugrah.svg` is the vector, redrawn
+# from the original JPEG kept beside it; the PNGs are rendered from the SVG (the favicon stays PNG). The Apps
+# screen tiles and the rail's top slot use it too (`tampilan.merek_aplikasi`).
+LOGO = "/assets/erp_internal/images/delta-anugrah.svg"
 MEREK = {
 	"Website Settings": {
 		"app_name": "Delta Anugrah",

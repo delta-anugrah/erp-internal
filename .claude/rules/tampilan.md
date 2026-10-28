@@ -36,8 +36,13 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Branding (`setup.MEREK`, `_pengaturan`): Website Settings `app_name`, `app_logo`, `splash_image`, `favicon` and
   Navbar Settings `app_logo` point at `/assets/erp_internal/images/` (public files, served through the
   `sites/assets` symlink, no build); System Settings `app_name` is "Delta Anugrah". Login uses `get_app_logo`
-  (Website Settings first), the Apps screen top left Navbar Settings. The rail's top slot and the Apps tiles are
-  each app's own logo (`app_data[].app_logo_url`), left alone so ERPNext and HR stay told apart.
+  (Website Settings first), the Apps screen top left Navbar Settings. `setup.LOGO` is `delta-anugrah.svg`, hand-drawn
+  from the original JPEG; the PNGs (512 px logo, favicons) are rendered from it, the favicon stays PNG.
+- App tiles and the rail's top slot: `tampilan.merek_aplikasi` (second `extend_bootinfo`, after `saring_aplikasi`)
+  sets every `app_data[].app_logo_url` to `setup.LOGO` and `app_title` from `NAMA_APLIKASI` (erpnext Operations,
+  hrms HR, frappe System); the names are in `id.csv` and `test_layar_diterjemahkan`. Frappe's
+  `workspace_payload` (a workspace saved from the desk) sends a fresh `app_data` without our hooks: the old names
+  and logos, and hidden tiles, come back on that tab until a reload.
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen

@@ -427,6 +427,26 @@ def saring_aplikasi(bootinfo) -> None:
 		frappe.log_error("erp_internal: saring_aplikasi")
 
 
+# App → the name its Apps screen tile and rail header show (Samuel, 2026-10-28). Every app shows the Delta
+# Anugrah mark (`setup.LOGO`) instead of its own logo. Frappe's tile ("System") shows for Developer only.
+NAMA_APLIKASI = {"erpnext": "Operations", "hrms": "HR", "frappe": "System"}
+
+
+def merek_aplikasi(bootinfo) -> None:
+	"""extend_bootinfo: our mark and NAMA_APLIKASI on each app's tile and rail top slot (`app_data`).
+
+	Only the boot copy changes; the apps' hooks stay theirs. Boot must never fail."""
+	try:
+		from erp_internal.setup import LOGO
+
+		for app in bootinfo.get("app_data") or []:
+			app["app_logo_url"] = LOGO
+			if app.get("app_name") in NAMA_APLIKASI:
+				app["app_title"] = NAMA_APLIKASI[app["app_name"]]
+	except Exception:
+		frappe.log_error("erp_internal: merek_aplikasi")
+
+
 def pastikan_peran() -> None:
 	"""The PERAN_ADMIN role, with desk access. Safe before the setup wizard (Role Profiles link to it)."""
 	if not frappe.db.exists("Role", PERAN_ADMIN):

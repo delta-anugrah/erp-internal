@@ -16,6 +16,7 @@ import { chromium } from "playwright";
 
 const URL = (process.env.ERP_URL || "http://erp.localhost:8002").replace(/\/$/, "");
 const SANDI = process.env.ERP_SANDI;
+const MARK = "/assets/erp_internal/images/delta-anugrah.svg";
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
 // Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on.
@@ -112,7 +113,19 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			const lebih = rail.filter((m) => !harap.modul.includes(m));
 			const kurang = harap.modul.filter((m) => !rail.includes(m));
 			cek(!lebih.length && !kurang.length, `rail extra [${lebih}] missing [${kurang}]`);
-			cek(tile.includes("frappe") === harap.build, `Framework (Build) tile ${harap.build ? "missing" : "shown"}`);
+			cek(tile.includes("frappe") === harap.build, `System (Build) tile ${harap.build ? "missing" : "shown"}`);
+			// Our mark and names on every tile (tampilan.merek_aplikasi), never an app's own.
+			const ubin = await page.locator(".icons .icon-title").allInnerTexts();
+			cek(
+				ubin.length && ubin.every((t) => ["Operations", "HR", "System"].includes(t.trim())),
+				`tile names: [${ubin}]`
+			);
+			const logo = await page.locator(".icons img.app-icon").evaluateAll((l) => l.map((i) => i.src));
+			cek(logo.length && logo.every((s) => s.endsWith(MARK)), `tile logos: [${logo}]`);
+		}
+		if (nama === "rumah") {
+			const atas = await page.locator(".dock-logo .header-logo img").first().getAttribute("src");
+			cek(atas?.endsWith(MARK), `rail top logo: ${atas}`);
 		}
 	}
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);

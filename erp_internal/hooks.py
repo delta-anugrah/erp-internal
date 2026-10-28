@@ -135,8 +135,9 @@ standard_navbar_items = [
 
 # before_install = "erp_internal.install.before_install"
 # Site setup, re-applied on every install and migrate (erp_internal/setup.py).
-# Hide an Apps screen tile whose app has nothing on this user's rail (tampilan.saring_aplikasi).
-extend_bootinfo = "erp_internal.tampilan.saring_aplikasi"
+# Hide an Apps screen tile whose app has nothing on this user's rail (tampilan.saring_aplikasi), then put our
+# mark and names on the tiles and the rail's top slot (tampilan.merek_aplikasi).
+extend_bootinfo = ["erp_internal.tampilan.saring_aplikasi", "erp_internal.tampilan.merek_aplikasi"]
 
 after_install = "erp_internal.setup.pastikan_setup"
 after_migrate = "erp_internal.setup.pastikan_setup"
