@@ -351,6 +351,28 @@ def terapkan() -> None:
 	_sembunyi()
 
 
+def saring_aplikasi(bootinfo) -> None:
+	"""extend_bootinfo: take an app off this user's Apps screen when nothing of it is on their rail.
+
+	ERPNext puts its tile on every desk user's Apps screen, so HR saw "ERPNext" and clicking it opened
+	/desk/home, a module their Module Profile blocks ("No permission for Page"). Only the tile is hidden;
+	the app's data and DocPerms are untouched. Boot must never fail, so any surprise leaves it as it was."""
+	try:
+		sidebars = bootinfo.get("module_sidebars") or {}
+		dock = bootinfo.get("dock") or {}
+		for app in bootinfo.get("app_data") or []:
+			if not app.get("on_apps_screen"):
+				continue
+			entri = dock.get(app.get("app_name")) or app.get("dock") or []
+			if not any(
+				not e.get("hidden") and e.get("link_type") == "Sidebar" and e.get("link_to") in sidebars
+				for e in entri
+			):
+				app["on_apps_screen"] = False
+	except Exception:
+		frappe.log_error("erp_internal: saring_aplikasi")
+
+
 def peran_bagian(bagian: tuple[str, ...]) -> set[str]:
 	"""The roles of those Role Profiles, as stored on the site."""
 	return set(

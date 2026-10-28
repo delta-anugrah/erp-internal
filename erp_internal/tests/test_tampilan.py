@@ -122,6 +122,35 @@ class TestTampilan(IntegrationTestCase):
 				frappe.set_user("Administrator")
 			self.assertEqual(tampil, {k for k, siapa in IKON.items() if bagian in siapa}, bagian)
 
+	def test_layar_apps_per_bagian(self):
+		# An Apps screen tile shows only when its app has a module of that bagian (tampilan.saring_aplikasi):
+		# HR no longer sees ERPNext, whose tile opened a blocked module.
+		from frappe.boot import get_bootinfo
+
+		from erp_internal.tampilan import saring_aplikasi
+
+		for bagian in MODUL_BOLEH:
+			u = buat_pengguna(surel(bagian, "apps"), bagian, bagian, None)
+			if "Employee" in PROFIL_PERAN[bagian]:  # the Employee role needs an Employee record
+				buat_karyawan(f"_Uji Apps {bagian}", buat_perusahaan("_Uji Kantor", "_UK", "Kantor"), user=u)
+			frappe.set_user(u)
+			try:
+				boot = get_bootinfo()
+				saring_aplikasi(boot)
+			finally:
+				frappe.set_user("Administrator")
+			tampil = {a["app_name"] for a in boot.app_data if a.get("on_apps_screen")}
+			harap = {
+				app
+				for app in APLIKASI
+				if any(
+					bagian in siapa
+					for k, siapa in IKON.items()
+					if k in {r["link_to"] for r in get_app_dock(app)}
+				)
+			}
+			self.assertEqual(tampil, harap, bagian)
+
 	def test_sidebar(self):
 		# Each kept sidebar opens on its module's home Workspace, then the SIDEBAR links in order.
 		for shell, link in SIDEBAR.items():

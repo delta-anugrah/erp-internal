@@ -87,16 +87,23 @@ for (const [bagian, harap] of Object.entries(BAGIAN)) {
 		);
 
 		if (nama === "desk") {
-			// The rail of the apps this user opens from the Apps screen (Frappe's own app is not one of
-			// them): the resolved entries that are shown and lead to a sidebar.
-			const rail = await page.evaluate(() =>
-				Object.entries(frappe.boot.dock || {})
-					.filter(([app]) => (frappe.boot.apps_data?.apps || []).some((a) => a.name === app))
-					.flatMap(([, entries]) => entries)
-					.filter((e) => !e.hidden && e.link_type === "Sidebar")
-					.filter((e) => (frappe.boot.module_sidebars || {})[e.link_to])
-					.map((e) => e.link_to)
-			);
+			// The rail of each app tile on this user's Apps screen: the resolved entries that are shown
+			// and lead to a sidebar. A tile with none would open a blocked module.
+			const { rail, kosong } = await page.evaluate(() => {
+				const sidebars = frappe.boot.module_sidebars || {};
+				const tile = (frappe.boot.app_data || []).filter((a) => a.on_apps_screen);
+				const per_app = tile.map((a) => [
+					a.app_name,
+					(frappe.boot.dock?.[a.app_name] || a.dock || [])
+						.filter((e) => !e.hidden && e.link_type === "Sidebar" && sidebars[e.link_to])
+						.map((e) => e.link_to),
+				]);
+				return {
+					rail: per_app.flatMap(([, m]) => m),
+					kosong: per_app.filter(([, m]) => !m.length).map(([app]) => app),
+				};
+			});
+			cek(!kosong.length, `Apps screen tiles with nothing behind them: [${kosong}]`);
 			const lebih = rail.filter((m) => !harap.modul.includes(m));
 			const kurang = harap.modul.filter((m) => !rail.includes(m));
 			cek(!lebih.length && !kurang.length, `rail extra [${lebih}] missing [${kurang}]`);
