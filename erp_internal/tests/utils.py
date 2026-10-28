@@ -70,10 +70,17 @@ def buat_pengguna(email: str, profil_peran: str | None, profil_modul: str | None
 	else:
 		user = frappe.new_doc("User")
 		user.update({"email": email, "first_name": email.split("@")[0], "send_welcome_email": 0})
-	user.user_type = "System User"
-	user.set("role_profiles", [{"role_profile": profil_peran}] if profil_peran else [])
-	user.module_profile = profil_modul
-	user.save(ignore_permissions=True)
+	profil = [profil_peran] if profil_peran else []
+	if (
+		user.is_new()
+		or user.user_type != "System User"
+		or [r.role_profile for r in user.role_profiles] != profil
+		or (user.module_profile or None) != profil_modul
+	):
+		user.user_type = "System User"
+		user.set("role_profiles", [{"role_profile": p} for p in profil])
+		user.module_profile = profil_modul
+		user.save(ignore_permissions=True)
 
 	if company and not frappe.db.exists(
 		"User Permission", {"user": email, "allow": "Company", "for_value": company}
