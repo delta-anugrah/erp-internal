@@ -1043,7 +1043,7 @@ Settings:
 - Item Group defaults per Pabrik company: Barang Jadi → Gudang Barang Jadi; Bahan Baku, Bahan Penolong and Kemasan →
   Gudang Bahan Baku.
 
-- [ ] **Step 1: Write the failing chain test** `test_forecast_sampai_barang_jadi`:
+- [x] **Step 1: Write the failing chain test** `test_forecast_sampai_barang_jadi`:
   1. Fixtures: `_UJI-EMBER` (Barang Jadi) with BOM 0.25 Kg `_UJI-BIJI-PP` + 1 `_UJI-KEMASAN`, and Item Lead Time
      500 per day with 1 buffer day. Riwayat of 3000 in each of the last 3 months. Stock of the raw materials is
      enough for 3000.
@@ -1055,16 +1055,39 @@ Settings:
      Gudang Barang Jadi - _UP.
   6. After material transfer and `make_stock_entry(wo, "Manufacture", 3000)`, the finished-goods Bin grows by 3000
      and the PP Bin shrinks by 750.
-- [ ] **Step 2: Run it.** Expected: FAIL (the Work Order's warehouses are empty or wrong).
-- [ ] **Step 3: Implement `_produksi()`.**
-- [ ] **Step 4: Run it again.** Expected: OK. If ERPNext's MRP API differs from this description, stop and report
+- [ ] **Step 2: Run it.** Expected: FAIL (the Work Order's warehouses are empty or wrong). Not run: no site yet.
+- [x] **Step 3: Implement `_produksi()`.**
+- [ ] **Step 4: Run it again.** Expected: OK. Not run: no site yet. If ERPNext's MRP API differs from this description, stop and report
   the difference; don't patch ERPNext.
-- [ ] **Step 5: Write `docs/panduan/produksi.md`** in plain Indonesian:
+- [x] **Step 5: Write `docs/panduan/produksi.md`** in plain Indonesian:
   - filling Item Lead Time and BOM;
   - each month: Perkiraan Penjualan → Isi dari Riwayat → check → submit → Jadwal Produksi Induk → MRP → Perintah
     Produksi;
   - every Monday: Siap Order.
-- [ ] **Step 6: Commit** `feat(produksi): manufacturing defaults and the forecast-to-stock chain test`.
+- [x] **Step 6: Commit** `feat(produksi): manufacturing defaults and the forecast-to-stock chain test`.
+
+**Task 12 deviations (2026-10-28, read from the v16 source; the MRP API differs from the description):**
+- **Manufacturing Settings has no default WIP/FG/scrap warehouse in v16.** `WorkOrder.set_default_warehouse`
+  reads `Company.default_wip_warehouse` and `default_fg_warehouse` (FG after the BOM's target warehouse), so
+  `GUDANG_PRODUKSI` sets the three Company fields (`db.set_value`) for **every** Pabrik company, not the first
+  one's in Manufacturing Settings. Manufacturing Settings keeps only `backflush_raw_materials_based_on` "BOM"
+  (`PENGATURAN_PRODUKSI`). `GUDANG_GRUP` writes `Item Group.item_group_defaults` rows per factory.
+- **The MRP report has no single row of 3000.** v16's `get_sales_forecast_data` turns a Monthly forecast row
+  into one row per day of its month (`convert_to_daily_bucket_data`, qty / days), so the test asserts that the
+  finished good's rows add up to 3000 (`assertAlmostEqual`, 3 places). Not patched (stop-and-report rule):
+  people read the MRP per day; Order Readiness gives the monthly view.
+- MRP filters: `from_date`/`to_date` are the MPS's own (the report's MPS filter sets them from
+  `get_mps_details`), `warehouse` is the company's root warehouse (the MPS's `parent_warehouse`, which
+  `get_mps_data` matches), plus the JS defaults (`type_of_material` All, `add_safety_stock` 1, bucket view off).
+  `execute` takes a `frappe._dict`.
+- The chain test uses its own items (`_UJI-PRD-EMBER`, `_UJI-PRD-BIJI-PP`, `_UJI-PRD-KEMASAN`) so other test
+  classes' stock of `_UJI-EMBER` cannot change the MRP numbers. It also asserts the Work Order ends Completed.
+  New `test_bawaan_produksi` checks the Company, Manufacturing Settings and Item Group defaults.
+- `buat_bom(kode, bahan, jumlah=1, company="_Uji Pabrik")`: BOMs belong to a company, so it is a keyword.
+  `lama_produksi` writes `capacity_per_day`, `buffer_time`, `purchase_time` (Item Lead Time is named by item).
+- `docs/panduan/produksi.md` also explains the Order Readiness columns and statuses (Task 13). Button names
+  (Start, Finish, Make Purchase / Work Order) are to be checked on the site.
+
 
 ### Task 13: The Siap Order report
 

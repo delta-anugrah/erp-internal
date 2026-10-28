@@ -27,7 +27,7 @@ Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`
 - [~] Task 9: Sales History (written, tests not run)
 - [x] Task 10: forecast math (6 unit tests OK without a site; rerun under `bench run-tests` later)
 - [~] Task 11: Fill from History (written, tests not run; try the button after `bench build`)
-- [ ] Task 12: production flow
+- [~] Task 12: production flow (written, tests not run; guide screenshots wait for the site)
 - [ ] Task 13: Order Readiness report
 - [ ] Task 14: go-live wave 2 (local dry run only)
 

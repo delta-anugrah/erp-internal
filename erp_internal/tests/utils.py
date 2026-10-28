@@ -297,3 +297,51 @@ def buat_perkiraan(company: str, items: list[str], dari: date, periode: int, tan
 			"selected_items": [{"item_code": k} for k in items],
 		}
 	).insert(ignore_permissions=True)
+
+
+def buat_bom(kode: str, bahan: dict[str, float], jumlah: float = 1, company: str = "_Uji Pabrik") -> str:
+	"""Get or create the default submitted BOM of `kode`: `bahan` maps each material to its quantity (in its
+	stock UOM) for `jumlah` units. An existing default BOM is returned as it is."""
+	ada = frappe.db.get_value("BOM", {"item": kode, "is_default": 1, "docstatus": 1, "company": company})
+	if ada:
+		return ada
+	bom = frappe.get_doc(
+		{
+			"doctype": "BOM",
+			"item": kode,
+			"company": company,
+			"currency": "IDR",
+			"quantity": jumlah,
+			"is_active": 1,
+			"is_default": 1,
+			"rm_cost_as_per": "Valuation Rate",
+			"items": [
+				{
+					"item_code": b,
+					"qty": q,
+					"uom": frappe.db.get_value("Item", b, "stock_uom"),
+					"rate": 1000,
+				}
+				for b, q in bahan.items()
+			],
+		}
+	).insert(ignore_permissions=True)
+	bom.submit()
+	return bom.name
+
+
+def lama_produksi(kode: str, per_hari: float, cadangan: float = 0, beli_hari: float = 0) -> str:
+	"""Get or create the Item Lead Time of `kode`: `per_hari` units a day, `cadangan` buffer days and
+	`beli_hari` purchase days."""
+	nilai = {"capacity_per_day": per_hari, "buffer_time": cadangan, "purchase_time": beli_hari}
+	if frappe.db.exists("Item Lead Time", kode):
+		doc = frappe.get_doc("Item Lead Time", kode)
+		if any(doc.get(k) != v for k, v in nilai.items()):
+			doc.update(nilai)
+			doc.save(ignore_permissions=True)
+		return doc.name
+	return (
+		frappe.get_doc({"doctype": "Item Lead Time", "item_code": kode, **nilai})
+		.insert(ignore_permissions=True)
+		.name
+	)

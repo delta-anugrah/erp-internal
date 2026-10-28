@@ -13,6 +13,10 @@ Newest first. One entry per working session: what changed, test results as run, 
   (`public/js/sales_forecast.js`, `doctype_js`), `tests/test_forecast.py` (9 tests), `buat_order`,
   `buat_perkiraan`, `akar_gudang`. Checked: ruff, `py_compile`, `node --check`, import with the bench's Python,
   translation scan. Tests and the button not run: no site yet.
+- Task 12: `setup._produksi()` (Company default WIP/FG/scrap warehouses per factory, backflush by BOM, Item Group
+  default warehouses), `tests/test_alur_produksi.py` (2 tests: defaults, forecast → MPS → MRP → Work Order →
+  stock), `buat_bom`, `lama_produksi`, `docs/panduan/produksi.md`. v16 differences: the WO defaults live on
+  Company, and the MRP report spreads a monthly forecast over daily rows (test sums them). Tests not run.
 
 ## 2026-10-28: Tasks 5, 6, 7 written, no site yet
 - Task 5: `setup._alur_jual_beli()` (order-first selling and buying, no negative stock, FIFO, perpetual inventory

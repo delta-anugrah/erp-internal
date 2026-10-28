@@ -59,6 +59,21 @@ PAJAK = {
 TEMPLATE_PAJAK = {"jual": "Sales Taxes and Charges Template", "beli": "Purchase Taxes and Charges Template"}
 INDUK_PAJAK = "Duties and Taxes"  # the chart's group for tax accounts
 
+# Production. v16 keeps the Work Order's default warehouses on the Company, so each factory gets its own.
+GUDANG_PRODUKSI = {
+	"default_wip_warehouse": "Gudang Produksi",
+	"default_fg_warehouse": "Gudang Barang Jadi",
+	"default_scrap_warehouse": "Gudang Reject",
+}
+PENGATURAN_PRODUKSI = {"backflush_raw_materials_based_on": "BOM"}  # Manufacturing Settings
+# Item Group → the factory warehouse its items default to, per factory company.
+GUDANG_GRUP = {
+	"Barang Jadi": "Gudang Barang Jadi",
+	"Bahan Baku": "Gudang Bahan Baku",
+	"Bahan Penolong": "Gudang Bahan Baku",
+	"Kemasan": "Gudang Bahan Baku",
+}
+
 
 def pastikan_setup() -> None:
 	"""Bring the site to the state this app expects. Idempotent; safe before the setup wizard."""
@@ -72,6 +87,7 @@ def pastikan_setup() -> None:
 		_gudang_pabrik(company)
 	_bawaan()
 	_alur_jual_beli()
+	_produksi()
 	tampilan.terapkan()
 
 
@@ -261,3 +277,40 @@ def _template_pajak(company: str, doctype: str, judul: str, akun: str) -> None:
 	if kini != [(baris["charge_type"], akun, TARIF_PPN)]:
 		doc.set("taxes", [baris])
 		doc.save(ignore_permissions=True)
+
+
+def _produksi() -> None:
+	"""Work Orders default to the factory's warehouses, and items to their group's warehouse."""
+	doc = frappe.get_single("Manufacturing Settings")
+	beda = {k: v for k, v in PENGATURAN_PRODUKSI.items() if doc.get(k) != v}
+	if beda:
+		doc.update(beda)
+		doc.flags.ignore_mandatory = True
+		doc.save(ignore_permissions=True)
+
+	pabrik = perusahaan("Pabrik")
+	for company in pabrik:
+		for field, nama in GUDANG_PRODUKSI.items():
+			wh = gudang(company, nama)
+			if frappe.db.exists("Warehouse", wh) and frappe.db.get_value("Company", company, field) != wh:
+				# db.set_value: Company's own save rebuilds its default accounts.
+				frappe.db.set_value("Company", company, field, wh)
+
+	for grup, nama in GUDANG_GRUP.items():
+		if not frappe.db.exists("Item Group", grup):
+			continue
+		doc = frappe.get_doc("Item Group", grup)
+		ubah = False
+		for company in pabrik:
+			wh = gudang(company, nama)
+			if not frappe.db.exists("Warehouse", wh):
+				continue
+			baris = next((d for d in doc.item_group_defaults if d.company == company), None)
+			if baris is None:
+				doc.append("item_group_defaults", {"company": company, "default_warehouse": wh})
+				ubah = True
+			elif baris.default_warehouse != wh:
+				baris.default_warehouse = wh
+				ubah = True
+		if ubah:
+			doc.save(ignore_permissions=True)
