@@ -2,7 +2,9 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
-## 2026-10-28 (Production Floor, Tasks 1-3 of 5)
+## 2026-10-28 (Production Floor, Tasks 1-5 of 7)
+- Revision 1 (Abel, `dfcc7cf`, `e2bd3d7`): English route and endpoints, an info bar like BPT Live's, a liquid glass
+  look. Tasks renumbered: 4 rename, 5 labels and panel, 6 info bar and glass, 7 navigation and docs.
 - Task 1 (`87f6a48`, `3850564`; its hooks/setup/id.csv hunks landed in `89d75b8`): `erp_internal/lantai.py`
   `data()`, POST `ubah_status` (refuses an unnumbered machine before saving), `siarkan` (event `erp_lantai`, name
   only); `Work Order.erp_mesin` (Link Workstation, `link_filters` erp_nomor > 0). `test_lantai` 11 OK.
@@ -14,8 +16,16 @@ Newest first. One entry per working session: what changed, test results as run, 
   p95 ≤ 18.5 ms sat on Chrome's rAF noise floor (an empty canvas measures 18.6).
 - Tests: `run-tests --app erp_internal` 118 OK; `node tools/lantai.mjs` all cases OK twice (60.0 fps, 0 dropped,
   max 21.2 ms).
-- Next: Task 4 (labels, panel, status from the floor, live updates), then Task 5 (navigation, docs, image).
-  Abel: restart `bench start` (builds ran).
+- Task 4 (`2b85bf9`): English public names. `erp_internal/production_floor.py` `get_data()`, POST
+  `set_status(machine, status)`, event `production_floor`; page `production-floor`; the old Page `lantai-produksi` is
+  deleted on migrate (names above are the pre-rename ones). `test_production_floor` 11 OK, suite 118 OK.
+- Task 5 (`09da58b`, `f0578e4`): `public/js/lantai/label.js` (labels by textContent, text written once the camera
+  rests 120 ms) and `panel.js` (details, Work Order link, six status buttons posting `set_status`, inline refusal
+  note, bottom sheet under 760 px); a 700 ms camera flight to the clicked machine; live updates (realtime
+  `production_floor` + `doctype_subscribe("Workstation")`, 250 ms debounced full refetch, 60 s poll, `?poll=<s>` for
+  tests, nothing fetched while the page or tab is hidden, catch-up on return). `lantai.mjs` cases label, pilih,
+  status, wo, xss, set_value, poll, live, id, hidden: all OK; perf 60.0 fps, 0 dropped, max 20.0 ms, 10 draw calls.
+- Next: Task 6 (info bar, liquid glass), then Task 7 (navigation, docs, image). Abel: restart `bench start`.
 
 ## 2026-10-28 (Samuel's real master data: catalog and machines)
 - `erp_internal/master.py` `muat()` reads `erp_internal/data/katalog.json` (price list "POLA PLASTIK TAHUN 2026",
@@ -232,5 +242,3 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Task 1 (`421bf7c`): MariaDB `erp-mariadb` on 3308, bench at `~/Desktop/Projects/erp-internal-bench` on the pinned
   v16 tags, app scaffolded and linked, `tools/setup_bench.sh`, setup-bench skill. Sites not created yet: `bench
   new-site` was refused by the permission check, so Abel runs `tools/setup_bench.sh sites wizard`. Tests not run.
-- Production Floor Task 4: English route and endpoints (page `production-floor`, `erp_internal.production_floor.get_data`/
-  `set_status(machine, status)`, event `production_floor`); the old Page `lantai-produksi` is deleted on migrate.

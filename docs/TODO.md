@@ -30,14 +30,19 @@ Last full run (2026-10-28, after Production Floor Task 3): `bench --site erp-tes
       `Harga Pola 2026` against Samuel's list.
 - [ ] After each Production Floor task that runs `bench build`: restart `bench start`, then look at the floor in your
       own Chrome and say whether it feels smooth.
-- [ ] Production Floor after Task 3 (`/desk/production-floor`, signed in as `user@example.com`):
+- [ ] Production Floor after Task 5 (`/desk/production-floor`, signed in as `user@example.com`):
   - [ ] 14 machines in two rows: back 14 13 12 11 10 9 8, front 1 2 3 4 5 6 7.
   - [ ] Orbit (drag), zoom (scroll), pan (right drag), then "Reset view": smooth, no stutter, no error dialog.
   - [ ] They look like injection moulding machines; JSW, NISSEI and CHENDE in different colours.
   - [ ] Set a machine's status in its Workstation form (Production, Problem, Maintenance, Off), reload the floor:
         green lamp + mould moving, red blinking, blue + dimmed, unlit + darker. Put the status back.
   - [ ] Go to another page and come back 5 times: still smooth, the laptop fan stays quiet.
-  - [ ] Labels over the machines, clicking a machine and changing status from the floor come in Task 4, not yet.
+  - [ ] Labels like "03 · NISSEI 260T" show a status chip, and the Work Order item and progress when one runs.
+  - [ ] Click a machine: the camera flies to it and a side panel opens (a bottom sheet on a narrow window).
+  - [ ] Press one of the six status buttons in the panel: the machine changes. Put the status back.
+  - [ ] Change a status in the Workstation form: the floor follows without a reload (or within 60 s without
+        `/etc/hosts`).
+  - [ ] The info bar and glass look come in Task 6, not yet.
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
