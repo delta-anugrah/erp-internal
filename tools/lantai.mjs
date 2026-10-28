@@ -136,6 +136,35 @@ if (!gagal.length) {
 	}
 	await p2.close();
 }
+// Background tab: the page loads while the browser tab is hidden; once the tab shows, the scene must draw.
+{
+	const p3 = await context.newPage();
+	await p3.addInitScript(() => {
+		let fals = true;
+		Object.defineProperty(document, "hidden", { configurable: true, get: () => fals });
+		window.__tampilkan = () => {
+			fals = false;
+			document.dispatchEvent(new Event("visibilitychange"));
+		};
+	});
+	await p3.goto(`${URL}/desk/lantai-produksi`);
+	try {
+		await p3.waitForFunction(() => window.erp?.lantai?.aktif, null, { timeout: 20000 });
+		await p3.waitForTimeout(500);
+		const t = () => p3.evaluate(() => erp.lantai.aktif.info().total);
+		const c1 = await t();
+		await p3.waitForTimeout(500);
+		cek((await t()) === c1, "the scene draws in a hidden browser tab");
+		await p3.evaluate(() => window.__tampilkan());
+		await p3.waitForTimeout(700);
+		const c2 = await t();
+		await p3.waitForTimeout(500);
+		cek((await t()) > c2, "the scene stays frozen after the browser tab became visible");
+	} catch {
+		gagal.push("background tab check: the page was never mounted");
+	}
+	await p3.close();
+}
 cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ").slice(0, 400)}`);
 
 await browser.close();

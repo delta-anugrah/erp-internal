@@ -24,8 +24,9 @@ frappe.pages["lantai-produksi"].on_page_load = function (wrapper) {
 	frappe.require("lantai.bundle.js").then(() => {
 		wrapper.ctl = erp.lantai.pasang(host);
 		wrapper.fit();
-		// The user may have left before the bundle arrived: do not start drawing on a hidden page.
-		if (wrapper.offsetParent === null || document.hidden) wrapper.ctl.jeda();
+		// The user may have left before the bundle arrived: do not start drawing on a page Desk has hidden.
+		// (A background browser tab is the scene's own business: it resumes on visibilitychange.)
+		if (wrapper.offsetParent === null) wrapper.ctl.jeda();
 	});
 };
 
