@@ -8,7 +8,8 @@ From `~/Desktop/Projects/erp-internal-bench` (sites must exist: `tools/setup_ben
 2. `bench --site erp-test.localhost run-tests --app erp_internal` - all must pass; report the count.
 3. `cd ~/Desktop/Projects/erp-internal && ruff check erp_internal && ruff format --check erp_internal`
 4. If JS changed: `bench build --app erp_internal`.
-5. If screens changed: `node tools/cek_layar.mjs` (Task 4b) and look at `tools/hasil/`.
+5. If screens changed: `node tools/cek_layar.mjs` (Task 4b) and look at `tools/hasil/`; if the Production Floor
+   page changed, also `node tools/lantai.mjs`.
 6. `git log --format=%B origin/main..HEAD | grep -ci co-authored` must print 0.
 7. Run the `docs-sync` agent with the changed files; update `docs/TODO.md` and `docs/PROGRESS.md`.
 

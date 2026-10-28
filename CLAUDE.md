@@ -6,7 +6,7 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
 Status 2026-10-28: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
-company and three roles (plan "Revision 4"): 13 unit + 107 integration tests OK, `cek_layar` 3 users OK (short homes, Samuel 2026-10-28), sample
+company and three roles (plan "Revision 4"): 13 unit + 118 integration tests OK (incl. `test_lantai`), `cek_layar` 3 users OK (short homes, Samuel 2026-10-28), sample
 data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
 the plan). Open: Task 7's compose boot, backup and restore drill (Abel: needs the database root password), and the
 real go-live with Samuel.
@@ -48,6 +48,7 @@ bench --site erp.localhost set-config erp_sandi_contoh <password>   # the sample
 bench --site erp.localhost execute erp_internal.contoh.buat_contoh   # DATA CONTOH; refused with erp_produksi
 bench --site erp.localhost execute erp_internal.master.muat          # Samuel's catalog and machines; a second run writes nothing
 ERP_SANDI=<SAMPLE_PASSWORD> node tools/cek_layar.mjs   # each role's screens; restart bench start after a build
+ERP_SANDI=<SAMPLE_PASSWORD> node tools/lantai.mjs     # Production Floor page; perf and adaptive open a visible browser
 # from the repo: the server image and its check (deploy/server/README.md is the runbook)
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
 ```

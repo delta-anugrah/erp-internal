@@ -2,6 +2,21 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (Production Floor, Tasks 1-3 of 5)
+- Task 1 (`87f6a48`, `3850564`; its hooks/setup/id.csv hunks landed in `89d75b8`): `erp_internal/lantai.py`
+  `data()`, POST `ubah_status` (refuses an unnumbered machine before saving), `siarkan` (event `erp_lantai`, name
+  only); `Work Order.erp_mesin` (Link Workstation, `link_filters` erp_nomor > 0). `test_lantai` 11 OK.
+- Task 2 (`6741a41`..`b7a666a`): page `lantai-produksi`, `lantai.bundle.js` (three 0.160.0 from the root
+  `package.json`), `public/js/lantai/adegan.js`; pauses on page hide, on a hidden tab, and when left before it mounts.
+- Task 3 (`fa3d01e`, `0c22390`): `public/js/lantai/mesin.js`, 14 instanced machines (10 draw calls, 14,394
+  triangles), status lamps and platen motion per the spec, adaptive quality, a plain table without WebGL or bundle.
+  Perf gate reworked (spec and plan amended): ≥ 57 fps, ≤ 1 % frames over 25 ms, max ≤ 50 ms, 0 long tasks; the old
+  p95 ≤ 18.5 ms sat on Chrome's rAF noise floor (an empty canvas measures 18.6).
+- Tests: `run-tests --app erp_internal` 118 OK; `node tools/lantai.mjs` all cases OK twice (60.0 fps, 0 dropped,
+  max 21.2 ms).
+- Next: Task 4 (labels, panel, status from the floor, live updates), then Task 5 (navigation, docs, image).
+  Abel: restart `bench start` (builds ran).
+
 ## 2026-10-28 (Samuel's real master data: catalog and machines)
 - `erp_internal/master.py` `muat()` reads `erp_internal/data/katalog.json` (price list "POLA PLASTIK TAHUN 2026",
   Dinda House Ware, 20 products) and `data/mesin.json` (14 machines), idempotent (`docs/impor.md`).

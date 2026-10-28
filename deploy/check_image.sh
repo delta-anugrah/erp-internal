@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks a built erp-internal image before it is pushed: the apps, their versions against versi.json, erp_internal
-# installed, Python 3.14, Node 24, the bundle Desk loads, the socket.io deps, PDFs, and no credentials baked in.
+# installed, Python 3.14, Node 24, the bundles Desk and the Production Floor page load, the socket.io deps, PDFs, and no credentials baked in.
 # Adapted from bpt's deploy/check_image.sh.
 #
 #   deploy/check_image.sh ghcr.io/delta-anugrah/erp-internal:v0.1.0
@@ -34,7 +34,7 @@ docker run --rm -e HARAP="$HARAP" --entrypoint bash "$IMAGE" -c '
 	env/bin/python --version | grep -q "^Python 3\.14\." || gagal "python: $(env/bin/python --version)"
 	node -v | grep -q "^v24\." || gagal "node: $(node -v)"
 
-	# assets/ is what the entrypoint links sites/assets to; the bundle hooks.py loads must be there.
+	# assets/ is what the entrypoint links sites/assets to; the bundles Desk and the Production Floor page load must be there.
 	env/bin/python - <<-PY || gagal "bundles"
 		import json, os, sys
 		peta = json.load(open("assets/assets.json"))
