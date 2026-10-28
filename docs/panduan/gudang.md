@@ -1,6 +1,7 @@
 # Panduan Gudang
 
-Buat bagian Gudang. Pabrik punya empat gudang:
+Untuk **User** yang pegang stok. Stok opname (Stock Reconciliation) cuma bisa **Admin**. Pabrik punya empat
+gudang:
 
 | Gudang | Isinya |
 |---|---|
@@ -21,7 +22,7 @@ Buka Purchase Order-nya: **Create → Purchase Receipt**, isi jumlah yang datang
 (`docs/panduan/pembelian.md`, langkah 3).
 
 ### Kirim barang ke pelanggan
-Penjualan membuat Delivery Note dari pesanan. Gudang menyiapkan barang sesuai surat jalan, lalu memastikan
+Delivery Note dibuat dari pesanan (`docs/panduan/penjualan.md`). Yang pegang gudang menyiapkan barang sesuai surat jalan, lalu memastikan
 Delivery Note sudah di-**Submit** sebelum truk berangkat.
 
 ### Pindah barang antar gudang
@@ -35,7 +36,7 @@ Delivery Note sudah di-**Submit** sebelum truk berangkat.
 - Stok sekarang per gudang: **Stock → Stock Balance**.
 - Riwayat keluar masuk satu barang: **Stock → Stock Ledger**, saring **Item**.
 
-## Bulanan: stok opname
+## Bulanan: stok opname (Admin)
 
 1. Hitung fisik.
 2. **Stock → Stock Reconciliation → + Add Stock Reconciliation**, **Purpose** `Stock Reconciliation`.

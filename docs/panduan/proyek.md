@@ -1,6 +1,6 @@
 # Panduan Proyek
 
-Buat Manajer Proyek dan karyawan kantor. Alurnya: **proyek → tugas → timesheet harian**. Dari timesheet kelihatan
+Untuk **Admin** (proyek dan tugas) dan semua **User** (timesheet). Alurnya: **proyek → tugas → timesheet harian**. Dari timesheet kelihatan
 berapa jam yang sudah dipakai tiap tugas.
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
@@ -8,11 +8,11 @@ di tampilan bahasa Inggris.
 
 > Gambar layar menyusul: diambil di `erp.localhost` setelah situs uji jadi (lihat `docs/TODO.md`).
 
-## Untuk Manajer Proyek
+## Untuk Admin
 
 ### Buat proyek
 1. **Projects → Project → + Add Project**.
-2. Isi **Project Name**, **Company** (perusahaan kantor), dan perkiraan mulai dan selesai (**Expected Start Date**,
+2. Isi **Project Name**, **Company**, dan perkiraan mulai dan selesai (**Expected Start Date**,
    **Expected End Date**).
 3. **Save**.
 
@@ -29,7 +29,7 @@ di tampilan bahasa Inggris.
 3. **Projects → Timesheet**, filter minggu ini: apakah semua orang mengisi tiap hari kerja. Yang kosong, tanyakan.
 4. Tugas yang selesai: buka, ubah **Status** jadi **Completed**, **Save**.
 
-## Untuk karyawan
+## Untuk User
 
 ### Lihat tugas kamu
 **Projects** → kotak **My Open Tasks**: tugas yang diberikan ke kamu dan belum selesai.
@@ -43,6 +43,6 @@ di tampilan bahasa Inggris.
    - **Project** dan **Task**: proyek dan tugasnya.
 4. **Save**, lalu **Submit** di akhir hari. Setelah di-submit, jamnya masuk ke tugas dan proyek.
    Kamu cuma bisa submit timesheet atas namamu sendiri. Kalau muncul "You can only submit your own timesheet",
-   cek kolom Employee. Manajer Proyek dan HR bisa submit milik orang lain.
+   cek kolom Employee. Admin bisa submit milik orang lain.
 
-Salah isi setelah submit? Minta Manajer Proyek membatalkannya (**Cancel**) dan membetulkannya (**Amend**).
+Salah isi setelah submit? Minta Admin membatalkannya (**Cancel**) dan membetulkannya (**Amend**).

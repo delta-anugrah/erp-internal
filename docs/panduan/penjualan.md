@@ -1,6 +1,6 @@
 # Panduan Penjualan
 
-Buat bagian Penjualan. Urutannya selalu: **Sales Order → Delivery Note → Sales Invoice → Payment Entry**.
+Untuk **User** dan **Admin**. Urutannya selalu: **Sales Order → Delivery Note → Sales Invoice → Payment Entry**.
 Surat jalan dan faktur tidak bisa dibuat tanpa pesanan; sistem menolaknya.
 
 Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok kanan atas, pilih
@@ -23,14 +23,14 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 3. Gudang asalnya otomatis **Gudang Barang Jadi**. **Save**, lalu **Submit**: stok langsung berkurang.
 4. Cetak surat jalan: **Print**.
 
-Stok tidak cukup? Sistem menolak Submit. Hubungi Gudang; stok tidak boleh minus.
+Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minus.
 
 ![Delivery Note](gambar/penjualan-2.png)
 
 ## 3. Tagih pelanggan (Sales Invoice)
 
 1. Di Delivery Note yang sudah Submit: **Create → Sales Invoice**.
-2. Kalau faktur kena PPN: di **Sales Taxes and Charges Template** pilih `PPN 11% - <singkatan perusahaan>`.
+2. Faktur cuma untuk mencatat (perusahaan tidak PKP): **Sales Taxes and Charges Template** dibiarkan kosong.
 3. **Save**, cek totalnya, lalu **Submit**. Cetak dengan **Print**.
 
 ![Sales Invoice](gambar/penjualan-3.png)

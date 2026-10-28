@@ -1,6 +1,7 @@
 # Panduan Pembelian
 
-Buat bagian Pembelian. Urutannya: **Material Request → Purchase Order → Purchase Receipt → Purchase Invoice**.
+Untuk **User** dan **Admin**; pemasok baru (Supplier) dibuat Admin. Urutannya: **Material Request → Purchase
+Order → Purchase Receipt → Purchase Invoice**.
 Barang tidak bisa diterima tanpa Purchase Order; sistem menolaknya.
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
@@ -8,7 +9,7 @@ di tampilan bahasa Inggris.
 
 ## 1. Lihat permintaan barang (Material Request)
 
-Produksi atau Gudang membuat **Material Request** kalau bahan mau habis. Buka **Buying → Material Request**,
+Yang pegang produksi atau gudang membuat **Material Request** kalau bahan mau habis. Buka **Buying → Material Request**,
 saring yang statusnya **Pending**.
 
 ## 2. Pesan ke pemasok (Purchase Order)
@@ -16,7 +17,7 @@ saring yang statusnya **Pending**.
 1. Dari Material Request: **Create → Purchase Order**. Atau langsung **Buying → Purchase Order → + Add Purchase Order**.
 2. Isi **Supplier** dan **Required By** (tanggal barang harus datang).
 3. Di **Items**: barang, **Quantity**, **Rate**. Gudang tujuan bahan baku: **Gudang Bahan Baku**.
-4. Pemasok kena PPN: **Purchase Taxes and Charges Template** pilih `PPN Masukan 11% - <singkatan perusahaan>`.
+4. **Purchase Taxes and Charges Template** dibiarkan kosong: perusahaan tidak PKP.
 5. **Save**, lalu **Submit**. Kirim ke pemasok: **Print** atau **Email**.
 
 ![Purchase Order](gambar/pembelian-2.png)

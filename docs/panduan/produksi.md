@@ -1,6 +1,7 @@
 # Panduan Produksi
 
-Buat bagian Produksi. Penjualan cuma memakai **Order Readiness** dan **Sales History**, lewat menu **Selling**.
+Untuk **User** dan **Admin**; lama produksi (Item Lead Time) diisi **Admin**. **Order Readiness** dan
+**Sales History** juga ada di menu **Selling**.
 Alurnya:
 
 1. sekali per produk: **lama produksi** dan **resep (BOM)**;
@@ -32,9 +33,9 @@ Tanpa lama produksi, Order Readiness menulis **Set lead time** dan tidak memberi
 
 ### 1. Perkiraan penjualan (Sales Forecast)
 1. **Manufacturing → Sales Forecast → + Add Sales Forecast**.
-2. **Company** pabrik, **Frequency** `Monthly`, **From Date** tanggal 1 bulan depan, **Number of Periods** misalnya
+2. **Company**, **Frequency** `Monthly`, **From Date** tanggal 1 bulan depan, **Number of Periods** misalnya
    `1` (atau `3` untuk tiga bulan).
-3. **Parent Warehouse**: gudang induk pabrik (yang di atas empat gudang).
+3. **Parent Warehouse**: gudang induk perusahaan (yang di atas empat gudang).
 4. Pilih produknya di **Items** (kotak pilih banyak), **Save**.
 5. Klik **Fill from History**. Tiap produk diisi rata-rata 3 bulan penuh terakhir (riwayat penjualan + pesanan
    yang sudah di-submit), dibulatkan ke atas. Pesannya menyebut bulan yang dipakai.
@@ -47,7 +48,7 @@ terbuka di tab Sales Orders (**Get Sales Orders**) lalu **Get Actual Demand**. *
 
 ### 3. MRP
 **Manufacturing → MRP** (Material Requirements Planning Report). Isi **MPS** dengan jadwal tadi (tanggalnya terisi
-sendiri) dan **Warehouse** gudang induk pabrik. Laporan menunjukkan berapa yang harus dibuat dan bahan yang harus
+sendiri) dan **Warehouse** gudang induk perusahaan. Laporan menunjukkan berapa yang harus dibuat dan bahan yang harus
 dibeli, per hari. Centang baris yang mau dibuat, klik **Make Purchase / Work Order**.
 
 ### 4. Perintah produksi (Work Order)
@@ -59,7 +60,7 @@ Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, 
 
 ## Tiap Senin: Order Readiness (Siap Order)
 
-**Manufacturing → Order Readiness** (Penjualan: **Selling → Order Readiness**). Satu baris per produk jadi, untuk bulan yang dipilih:
+**Manufacturing → Order Readiness** (atau **Selling → Order Readiness**). Satu baris per produk jadi, untuk bulan yang dipilih:
 
 Pilih Company dan (kalau perlu) Warehouse milik company itu. Kalau muncul izin ditolak atau "Warehouse ... does
 not belong to company", akunmu nggak boleh buka company atau gudang itu.

@@ -1,6 +1,6 @@
 # Panduan Absen dan Cuti
 
-Buat semua karyawan kantor. Absen lewat HP, pakai lokasi. Jam kantor **08:00-17:00** (sampai Mas Samuel
+Untuk semua karyawan (**User**); bagian "Untuk Admin (HR)" dikerjakan **Admin**. Absen lewat HP, pakai lokasi. Jam kantor **08:00-17:00** (sampai Mas Samuel
 menentukan lain), Sabtu dan Minggu libur.
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
@@ -41,14 +41,14 @@ Yang perlu diingat:
 
 Sisa jatah cuti kurang? Sistem menolak pengajuannya (contoh: minta 13 hari padahal jatahnya 12).
 
-## Untuk HR
+## Untuk Admin (HR)
 
 ### Tiap awal tahun: hari libur nasional
-Sistem sudah membuat daftar libur tiap tahun, isinya baru Sabtu dan Minggu: **Libur CKT 2026**, **Libur CKT
-2027**, dan seterusnya (CKT = singkatan perusahaan kantor). Libur nasional dan cuti bersama diisi HR sendiri dari
+Sistem sudah membuat daftar libur tiap tahun, isinya baru Sabtu dan Minggu: **Libur DAN 2026**, **Libur DAN
+2027**, dan seterusnya (DAN = singkatan perusahaan). Libur nasional dan cuti bersama diisi HR sendiri dari
 **SKB 3 Menteri** tahun itu:
 
-1. **Leaves → Holiday List**, buka **Libur CKT <tahun>**.
+1. **Leaves → Holiday List**, buka **Libur DAN <tahun>**.
 2. Di tabel **Holidays**, tambah satu baris per tanggal libur: **Date** dan **Description** (misalnya "Idul Fitri").
 3. **Save**.
 
@@ -57,7 +57,7 @@ cuti bersama sering tidak ada di sana.
 
 ### Karyawan baru
 1. **Shift & Attendance → Employee → + Add Employee**, isi nama, jenis kelamin, tanggal lahir, tanggal masuk,
-   perusahaan kantor, dan **User ID**-nya.
+   perusahaan, dan **User ID**-nya.
 2. **Shift Assignment → + Add Shift Assignment**: karyawannya, **Shift Type** `Kantor`, **Start Date** hari
    pertamanya. **Submit**.
 3. **Leaves → Leave Allocation**: **Cuti Tahunan** 12 hari, 1 Januari sampai 31 Desember. **Submit**.
