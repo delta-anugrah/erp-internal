@@ -13,3 +13,15 @@ place in the last column and strike the row.
 | 6 | Server provider and budget, domain, off-site backup bucket | local compose stack only | `deploy/server/.env`, Task 7/8 |
 | 7 | Who uses it, and in which bagian | one sample user per bagian | users at go-live |
 | 8 | Office days off and leave: Saturday off? Which leave types and how many days of annual leave? | Saturday and Sunday off; Cuti Tahunan 12, Sakit, Izin (unpaid); national holidays entered by HR from the SKB | `setup.LIBUR_MINGGUAN`, `setup.JENIS_CUTI`, Task 15/17 |
+
+## Answers (Mas Samuel, 2026-10-28)
+
+| # | Answer | What it changes |
+|---|---|---|
+| 1 | Delta Anugrah | the company name at go-live; one company or two (factory and office) still to confirm |
+| 2 | Excel, a year or more; he will send it | Sales History import (`docs/impor.md`) |
+| 3 | No invoices for now, only recording; invoices may stay for recording | PPN not needed (not PKP); invoices optional |
+| 4 | All of it exists; he will send the data | Items, BOMs, Item Lead Time at go-live |
+| 5 | Fingerprint, but HR is not a priority now | attendance waits; phone check-in stays built |
+| 6 | Roles: admin and user only | replaces the seven bagian at go-live |
+| 7 | "host" (meaning still to confirm) | server, Task 7/8 |
