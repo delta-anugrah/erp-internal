@@ -93,6 +93,8 @@ class TestTampilan(IntegrationTestCase):
 			if "Employee" in PROFIL_PERAN[bagian]:
 				# ERPNext drops the Employee role from a user with no Employee record (validate_employee_role).
 				buat_karyawan(f"_Uji Izin {bagian}", buat_perusahaan("_Uji Kantor", "_UK", "Kantor"), user=u)
+			# Every form of theirs reads the company's defaults (cek_layar: "No permission for Company").
+			self.assertTrue(frappe.has_permission("Company", "read", user=u), f"{bagian} must read Company")
 			for dt in boleh:
 				self.assertTrue(frappe.has_permission(dt, "create", user=u), f"{bagian} must create {dt}")
 			for dt in tidak:

@@ -113,7 +113,12 @@ JENIS_CUTI = {
 JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")
 # DocType → role → rights added to ERPNext's own (a Custom DocPerm copy). A Karyawan (role Employee) creates and
 # writes timesheets in v16 but cannot submit them; the `proyek.cek_pemilik_timesheet` hook keeps them to their own.
-IZIN_TAMBAHAN = {"Timesheet": {"Employee": ("submit",)}}
+# Produksi's Manufacturing User does not read Company in v16, yet every production and stock form reads its
+# company's defaults ("No permission for Company" on a new Stock Entry, seen by tools/cek_layar.mjs).
+IZIN_TAMBAHAN = {
+	"Timesheet": {"Employee": ("submit",)},
+	"Company": {"Manufacturing User": ("read",)},
+}
 
 
 def pastikan_setup() -> None:

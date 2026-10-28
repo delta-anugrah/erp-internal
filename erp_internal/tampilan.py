@@ -88,9 +88,10 @@ MODUL_BOLEH = {
 # Role Profile → standard ERPNext/HRMS roles: the fewest that let each bagian create its own documents and
 # none of the others' (`test_izin_per_bagian`). Read from the v16 DocPerms: Stock Reconciliation needs
 # Stock Manager, Item needs Item Manager, Supplier needs Purchase Master Manager, Item Lead Time needs
-# Manufacturing Manager, Holiday List needs HR Manager.
+# Manufacturing Manager, Holiday List needs HR Manager. Gudang also needs Stock User: it is the stock role
+# that reads Company (every stock form reads its defaults) and the Stock Balance and Stock Ledger reports.
 PROFIL_PERAN = {
-	"Gudang": ("Stock Manager", "Item Manager"),
+	"Gudang": ("Stock Manager", "Stock User", "Item Manager"),
 	"Penjualan": ("Sales User", "Accounts User"),
 	"Pembelian": ("Purchase User", "Purchase Master Manager", "Accounts User"),
 	"Produksi": ("Manufacturing User", "Manufacturing Manager"),
