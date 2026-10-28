@@ -7,7 +7,7 @@ Last full run (2026-10-28, after the short screens): `bench --site erp-test.loca
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
-      database root password, so it is yours to run (`deploy/server/README.md`).
+      database root password, so it is yours to run (`deploy/server/README.md`). Can wait for the DigitalOcean go-live.
 - [ ] Look at the screens in Indonesian once (switch the language in the user menu) and click Fill from History and
       Order Readiness in the browser: their server side ran in the dry runs, the buttons were not clicked.
 - [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang;
@@ -20,7 +20,16 @@ Last full run (2026-10-28, after the short screens): `bench --site erp-test.loca
 - [ ] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid.
 - [ ] Optional: the official vector logo from the designer. `delta-anugrah.svg` is our redraw of the 200 px JPEG;
       replace it under the same name and rerender the PNGs (no code change).
-- [ ] Decide: the PPN Masukan account under assets or liabilities (recommended: assets).
+- [ ] Add `127.0.0.1 erp.localhost` to `/etc/hosts` (sudo): Node's socket.io can't resolve `*.localhost` on macOS,
+      so live updates (Production Floor) fall back to a 60 s poll without it.
+- [ ] Review and approve PR #1 (`feat/lokal` → `main`) and the Production Floor plan
+      (`docs/superpowers/plans/2026-10-28-production-floor-plan.md`).
+- [ ] In the browser: the Delta Anugrah logo and the ERP/HR tiles, the HR home titled "HR", the sidebar arrow folds
+      and opens (and stays after a reload), the avatar shows a pointer.
+- [ ] As `admin@`: open a few catalog items (e.g. Gayung Lumba-Lumba) and check variants, UOMs and the prices in
+      `Harga Pola 2026` against Samuel's list.
+- [ ] After each Production Floor task that runs `bench build`: restart `bench start`, then look at the floor in your
+      own Chrome and say whether it feels smooth.
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
