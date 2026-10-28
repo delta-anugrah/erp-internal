@@ -65,8 +65,8 @@ class TestAbsen(IntegrationTestCase):
 			if field == "name":
 				continue
 			kini = shift.get(field)
-			if field.endswith("_time"):
-				self.assertEqual(get_time(kini), get_time(nilai), field)
+			if field in ("start_time", "end_time"):  # begin_check_in_before_shift_start_time is minutes
+				self.assertEqual(get_time(str(kini)), get_time(nilai), field)  # the DB gives a timedelta
 			else:
 				self.assertEqual(kini, nilai, field)
 		# Lists are per company and year, so the shift takes them from the employee's company by date.
