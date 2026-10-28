@@ -35,11 +35,15 @@ Newest first. One entry per working session: what changed, test results as run, 
   stays under `/desk/manufacturing/`, no more `/desk/accounts/`); `.claude/rules/lantai.md`, a section in
   `docs/panduan/produksi.md` with `docs/panduan/gambar/produksi-1.png` (`panduan_gambar.mjs produksi-1`), README,
   CLAUDE.md, the spec's two accepted deviations.
-- Tests: `bench --site erp-test.localhost run-tests --app erp_internal` 121 OK; `node tools/cek_layar.mjs` 3 users OK;
+- Image: `docker build -f deploy/Containerfile -t erp-internal:uji .` exit 0, `deploy/check_image.sh erp-internal:uji` OK
+  (lantai.bundle.js included).
+- Tests: `bench --site erp-test.localhost run-tests --app erp_internal` 122 OK; `node tools/cek_layar.mjs` 3 users OK;
   `node tools/lantai.mjs` all cases OK (perf 59.8 fps, 0.41 % frames over 25 ms, max 36.3 ms, 0 long tasks, 10 draw
   calls, 14,394 triangles; adaptive: pixel ratio 1 after 2.4 s).
-- Fix (`fix(lantai): no empty strip when returning to the floor`): `on_page_show` re-measures `wrapper.fit()` at 0, 50 and 400 ms
-  (Desk hides the sidebar after the show); `lantai.mjs strip` checks it via the sidebar link and browser back.
+- Fix rounds: no empty strip when returning to the floor (a `ResizeObserver` on the page body and sidebar calls
+  `fit()`; `lantai.mjs strip` delays the sidebar hide 1.2 s and fails without the observer); review fixes: the
+  nudge has an empty payload and skips non-machine Workstations, `set_status` answers a missing and a forbidden
+  machine alike, the company name needs read on that Company, page roles Manufacturing User only.
 - Next: Abel looks at the floor in his Chrome (smoothness), adds `erp.localhost` to `/etc/hosts`, restarts `bench start`;
   security review and docs sync of the whole feature; then review and merge.
 

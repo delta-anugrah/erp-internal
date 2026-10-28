@@ -137,6 +137,7 @@ Made In,Buatan
 Machine,Mesin
 "Unknown machine status: {0}","Status mesin tidak dikenal: {0}"
 "{0} is not a numbered machine.","{0} bukan mesin bernomor."
+Not permitted,Tidak diizinkan
 Production Floor,Lantai Produksi
 No.,No.
 Reset view,Atur Ulang Tampilan

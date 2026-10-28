@@ -1,8 +1,8 @@
 """Server side of the Production Floor page: the machines (Workstations numbered 1-14) with their status and
 running Work Order, a status change from the page, and a realtime nudge when either changes.
 
-The nudge carries the machine's name only. The page then asks `get_data()` again, so what it shows is always what
-that user may read.
+The nudge carries nothing (an empty payload) and only for a numbered machine. The page then asks `get_data()`
+again, so what it shows is always what that user may read.
 """
 
 import frappe
@@ -34,8 +34,12 @@ def get_data() -> dict:
 @frappe.whitelist(methods=["POST"])
 def set_status(machine: str, status: str) -> dict:
 	"""Set a machine's status (one of the Workstation's own options) and return its row as `get_data()` does."""
+	# A missing name and a forbidden one answer the same: no way to probe which Workstations exist.
+	if not frappe.db.exists("Workstation", machine) or not frappe.has_permission(
+		"Workstation", "write", doc=machine
+	):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 	doc = frappe.get_doc("Workstation", machine)
-	doc.check_permission("write")
 	if not (doc.get("erp_nomor") or 0) > 0:
 		frappe.throw(_("{0} is not a numbered machine.").format(machine), frappe.ValidationError)
 	if status not in _pilihan_status():
@@ -47,9 +51,11 @@ def set_status(machine: str, status: str) -> dict:
 
 
 def siarkan(doc, method=None) -> None:
-	"""Workstation and Work Order doc event: tell open Production Floor pages which machine changed."""
-	mesin = doc.name if doc.doctype == "Workstation" else doc.get("erp_mesin")
-	frappe.publish_realtime(EVENT, {"mesin": mesin or None}, doctype="Workstation", after_commit=True)
+	"""Workstation and Work Order doc event: nudge open Production Floor pages (empty payload; they refetch).
+	A Workstation that is not a numbered machine is not on the floor, so it sends nothing."""
+	if doc.doctype == "Workstation" and not (doc.get("erp_nomor") or 0) > 0:
+		return
+	frappe.publish_realtime(EVENT, {}, doctype="Workstation", after_commit=True)
 
 
 def _perusahaan_default() -> str | None:
@@ -60,15 +66,16 @@ def _perusahaan_default() -> str | None:
 
 
 def _perusahaan() -> dict:
-	"""`{"nama", "logo"}` of the default company. The logo only for a user who may read that Company; without a
-	default company the name is the site's app name."""
+	"""`{"nama", "logo"}` of the default company, both only for a user who may read that very Company; anyone else
+	(and a site with no default company) gets the site's app name and no logo."""
 	nama = _perusahaan_default()
-	if not nama or not frappe.db.exists("Company", nama):
+	if (
+		not nama
+		or not frappe.db.exists("Company", nama)
+		or not frappe.has_permission("Company", "read", doc=nama)
+	):
 		return {"nama": frappe.get_system_settings("app_name") or "ERP Internal", "logo": None}
-	logo = None
-	if frappe.has_permission("Company", "read", doc=nama):
-		logo = frappe.db.get_value("Company", nama, "company_logo") or None
-	return {"nama": nama, "logo": logo}
+	return {"nama": nama, "logo": frappe.db.get_value("Company", nama, "company_logo") or None}
 
 
 def _pilihan_status() -> list[str]:

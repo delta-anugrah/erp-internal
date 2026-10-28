@@ -156,10 +156,13 @@ class TestLantai(IntegrationTestCase):
 		buat_mesin("A", 1)
 		frappe.set_user(self.operator)
 		self.assertEqual(get_data()["perusahaan"], {"nama": self.pabrik, "logo": LOGO})
-		# Reads the machines but not Company: the name, never the logo.
+		# Reads the machines but not that Company: neither its name nor its logo, the app name instead.
 		frappe.set_user(self.pelihat)
 		self.assertFalse(frappe.has_permission("Company", "read"))
-		self.assertEqual(get_data()["perusahaan"], {"nama": self.pabrik, "logo": None})
+		self.assertEqual(
+			get_data()["perusahaan"],
+			{"nama": frappe.get_system_settings("app_name") or "ERP Internal", "logo": None},
+		)
 
 	def test_data_perusahaan_tanpa_default(self):
 		buat_mesin("A", 1)
@@ -191,6 +194,19 @@ class TestLantai(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, set_status, mesin, "Problem")
 		self.assertEqual(frappe.db.get_value("Workstation", mesin, "status"), "Idle")
 
+	def test_set_status_tak_ada_sama_dengan_dilarang(self):
+		# A missing machine and a forbidden one answer alike, so names cannot be probed.
+		mesin = buat_mesin("A", 1, "Idle")
+		frappe.set_user(self.tamu)
+		with self.assertRaises(frappe.PermissionError) as ada:
+			set_status(mesin, "Problem")
+		with self.assertRaises(frappe.PermissionError) as hilang:
+			set_status(PREFIKS + "tidak ada", "Problem")
+		self.assertEqual(str(ada.exception), str(hilang.exception))
+		frappe.set_user(self.operator)
+		with self.assertRaises(frappe.PermissionError):
+			set_status(PREFIKS + "tidak ada", "Problem")
+
 	def test_set_status_tanpa_nomor(self):
 		mesin = buat_mesin("A", 0, "Idle")
 		frappe.set_user(self.operator)
@@ -203,14 +219,15 @@ class TestLantai(IntegrationTestCase):
 		frappe.set_user(self.operator)
 		self.assertEqual(set_status(mesin, "Production")["wo"]["name"], wo.name)
 
-	def test_siaran_hanya_nama(self):
+	def test_siaran_kosong(self):
+		# The nudge has an empty payload (the page refetches), and a Workstation that is no numbered machine sends none.
 		mesin = buat_mesin("A", 1)
 		with patch("frappe.publish_realtime") as siar:
 			doc = frappe.get_doc("Workstation", mesin)
 			doc.status = "Off"
 			doc.save()
 			self.assertIn(
-				call("production_floor", {"mesin": mesin}, doctype="Workstation", after_commit=True),
+				call("production_floor", {}, doctype="Workstation", after_commit=True),
 				siar.call_args_list,
 			)
 			siar.reset_mock()
@@ -218,8 +235,14 @@ class TestLantai(IntegrationTestCase):
 			lantai = [c for c in siar.call_args_list if c.args[0] == "production_floor"]
 			self.assertTrue(lantai)
 			for c in lantai:
-				self.assertEqual(c.args, ("production_floor", {"mesin": mesin}))
+				self.assertEqual(c.args, ("production_floor", {}))
 				self.assertEqual(c.kwargs, {"doctype": "Workstation", "after_commit": True})
+			siar.reset_mock()
+			luar = buat_mesin("B", 0)
+			doc = frappe.get_doc("Workstation", luar)
+			doc.status = "Off"
+			doc.save()
+			self.assertEqual([c for c in siar.call_args_list if c.args[0] == "production_floor"], [])
 
 	def test_idempoten(self):
 		def jumlah():

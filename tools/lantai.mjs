@@ -834,10 +834,16 @@ if (jalankan("strip")) await kasus("strip", async () => {
 			const w = document.querySelector('[data-page-route="production-floor"]');
 			const b = w.querySelector(".page-body").getBoundingClientRect();
 			const h = erp.lantai.aktif.host.getBoundingClientRect();
-			const rel = document.querySelector(".body-sidebar-container, .body-sidebar")?.getBoundingClientRect();
-			return { host: Math.round(h.left), body: Math.round(b.left), rel: rel ? Math.round(rel.right) : null };
+			return { host: Math.round(h.left), body: Math.round(b.left) };
 		});
 	const direkt = await kiri();
+	// Late layout: Desk hides the sidebar 1.2 s after the page shows (a slow machine); the host must follow, not
+	// rely on a fixed delay.
+	await p.evaluate(() => {
+		const sb = frappe.app.sidebar;
+		const orig = sb.apply_page_visibility.bind(sb);
+		sb.apply_page_visibility = () => setTimeout(orig, 1200);
+	});
 	for (const cara of ["link", "back"]) {
 		await p.evaluate(() => frappe.set_route("Form", "Work Order", "new"));
 		await p.waitForFunction(() => window.cur_frm?.doctype === "Work Order", null, { timeout: 8000 });
@@ -848,13 +854,13 @@ if (jalankan("strip")) await kasus("strip", async () => {
 			await p.evaluate(() => history.back());
 		}
 		await p.waitForFunction(() => frappe.get_route_str() === "production-floor", null, { timeout: 8000 });
-		await p.waitForTimeout(1500);
+		await p.waitForTimeout(3000);
 		const k = await kiri();
 		if (k.host !== k.body) gagal.push(`strip (${cara}): host left ${k.host} != page body left ${k.body}`);
 		if (k.host !== direkt.host) gagal.push(`strip (${cara}): host left ${k.host}, direct load had ${direkt.host}`);
 		if (await dialog(p)) gagal.push(`strip (${cara}): a message dialog is open`);
 	}
-	console.log(`strip: host left ${direkt.host} on a direct load, same after the sidebar link and after back`);
+	console.log(`strip: host left ${direkt.host} on a direct load, same after the sidebar link and after back, with the sidebar hidden 1.2 s late`);
 	await ctx.close();
 });
 

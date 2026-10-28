@@ -60,6 +60,11 @@ frappe.pages["production-floor"].on_page_load = function (wrapper) {
 	Object.assign(host.style, { position: "fixed", right: "0", bottom: "0" });
 	wrapper.fit();
 	$(window).on("resize", () => wrapper.fit());
+	// Desk hides the sidebar and moves the page body whenever it likes after the show: follow the layout itself.
+	const sisi = new ResizeObserver(() => wrapper.fit());
+	sisi.observe(page.body[0]);
+	const bilah = document.querySelector(".body-sidebar");
+	if (bilah) sisi.observe(bilah);
 	$(wrapper).on("hide", () => wrapper.ctl?.jeda());
 
 	frappe.route_options = {}; // not null: Frappe's sidebar reads route_options.sidebar on every route change
@@ -82,9 +87,7 @@ frappe.pages["production-floor"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["production-floor"].on_page_show = function (wrapper) {
-	// Desk hides the sidebar and moves the page body only after the show: measure again once it has settled.
 	wrapper.fit?.();
-	for (const ms of [50, 400]) setTimeout(() => wrapper.fit?.(), ms);
 	frappe.route_options = {};
 	wrapper.ctl?.lanjut();
 };

@@ -36,7 +36,8 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - Fetch with plain `fetch`, never `frappe.call`: a failed request must not open a message dialog.
 - Record text (item names, models, company) goes in by `textContent` only; a company logo only from same-origin `/files/`.
 - Desk caches page scripts in the browser until `bench clear-cache`, so the page script stays small; logic is in the bundle.
-- The page hides Desk's sidebar, which Desk does after the page's show: `on_page_show` re-runs `wrapper.fit()` after 50 and 400 ms, or the host keeps the old sidebar's width as an empty strip (`strip` case).
+- The page hides Desk's sidebar, which Desk does at its own pace after the page's show: a `ResizeObserver` on the page body and the sidebar calls `wrapper.fit()` whenever the layout moves (no timers: Desk's timing varies), or the host keeps the old sidebar's width as an empty strip (`strip` case, which delays the hide by 1.2 s).
+- Only Manufacturing User opens the page (Administrator too): it is the role that reads Workstation, so another role would get an empty floor. The nudge `production_floor` has an empty payload and is not sent for a Workstation that is no numbered machine; `set_status` answers a missing and a forbidden machine alike; the company name and logo only for a user who may read that Company.
 - A sidebar or build change needs `bench build --app erp_internal` and a restart of `bench start`.
 
 ## Accepted deviations from the design
@@ -47,7 +48,7 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 ## Running `tools/lantai.mjs`
 
 ```bash
-ERP_SANDI=<SAMPLE_PASSWORD from the bench .env> node tools/lantai.mjs            # all cases, about 4.5 min
+ERP_SANDI=<SAMPLE_PASSWORD from the bench .env> node tools/lantai.mjs            # all cases, roughly 4-5 min
 ERP_SANDI=... node tools/lantai.mjs perf hud glass                               # only some cases
 ```
 

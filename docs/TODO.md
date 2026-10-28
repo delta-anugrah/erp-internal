@@ -3,16 +3,16 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
 Last full run (2026-10-28, after Production Floor Task 7): `bench --site erp-test.localhost run-tests --app erp_internal`:
-121 tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+122 tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
       database root password, so it is yours to run (`deploy/server/README.md`). Can wait for the DigitalOcean go-live.
 - [ ] Look at the screens in Indonesian once (switch the language in the user menu) and click Fill from History and
       Order Readiness in the browser: their server side ran in the dry runs, the buttons were not clicked.
-- [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang;
-      retake with `ERP_SANDI=<password> node tools/panduan_gambar.mjs`). `produksi.md`, `absen.md`, `proyek.md`
-      reference no picture yet.
+- [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang, plus `produksi-1`;
+      retake with `ERP_SANDI=<password> node tools/panduan_gambar.mjs`). `absen.md` and `proyek.md`
+      reference no picture yet; `produksi.md` has `produksi-1.png` (the Production Floor).
 - [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `user@example.com` on a real phone. The sample
       password is `SAMPLE_PASSWORD` in `~/Desktop/Projects/erp-internal-bench/.env`.
 - [ ] Sign in as `user@` and `admin@example.com`: User has no Settings, Admin does; full width.

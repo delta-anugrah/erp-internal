@@ -138,7 +138,7 @@ the browser checks.
 **Interfaces:**
 - Page `lantai-produksi`:
   - title `__("Production Floor")` (id "Lantai Produksi");
-  - roles System Manager, Manufacturing User and Manufacturing Manager;
+  - roles Manufacturing User only (Task 7 ruling: it is the role that reads Workstation; Administrator passes);
   - full-bleed under the navbar and rail;
   - `page_head` hidden.
 - Page script:
@@ -234,12 +234,12 @@ still passes under the new names.
 - Realtime event `production_floor` (was `erp_lantai`); payload `{"mesin": name}` unchanged.
 - Page `production-floor`; the old Page `lantai-produksi` is deleted on migrate.
 
-- [ ] **Step 1:** Rename, then grep the repo (outside `.git`, `node_modules`, `.superpowers`) for
+- [x] **Step 1:** Rename, then grep the repo (outside `.git`, `node_modules`, `.superpowers`) for
   `lantai-produksi`, `lantai_produksi`, `erp_internal.lantai`, `ubah_status`, `erp_lantai`: only history lines
   in PROGRESS/TODO may remain.
-- [ ] **Step 2:** `bench --site erp.localhost migrate`, `bench build --app erp_internal`, the full suite and
+- [x] **Step 2:** `bench --site erp.localhost migrate`, `bench build --app erp_internal`, the full suite and
   `node tools/lantai.mjs` all pass; `/desk/lantai-produksi` no longer exists, `/desk/production-floor` does.
-- [ ] **Step 3:** Commit `refactor(lantai): English route and endpoints for the Production Floor`. Tell Abel to
+- [x] **Step 3:** Commit `refactor(lantai): English route and endpoints for the Production Floor`. Tell Abel to
   restart `bench start`.
 
 ### Task 5: Labels, selection, status from the scene, live updates
@@ -267,7 +267,7 @@ still passes under the new names.
   - a poll every 60 s while visible;
   - `perbarui()` diffs and touches only the machines that changed.
 
-- [ ] **Step 1:** Extend `lantai.mjs` with these cases:
+- [x] **Step 1:** Extend `lantai.mjs` with these cases:
   - "label": machine 3's label reads "03 · <brand> <tonnage>T";
   - "pilih": a click on machine 3 opens its panel;
   - "status": clicking Problem changes the server status (read via `frappe.client.get_value`) and the chip; restore
@@ -279,9 +279,9 @@ still passes under the new names.
     `?poll=3` debug option, the view follows;
   - "poll": block `/socket.io` requests and the view still follows a change;
   - "id": switch language to id and see "Lantai Produksi" and the translated status names.
-- [ ] **Step 2:** Run and see these cases fail. Implement until they pass, plus the full suite and the perf case
+- [x] **Step 2:** Run and see these cases fail. Implement until they pass, plus the full suite and the perf case
   again.
-- [ ] **Step 3:** Commit `feat(lantai): labels, machine panel, status from the floor, live updates`.
+- [x] **Step 3:** Commit `feat(lantai): labels, machine panel, status from the floor, live updates`.
 
 ### Task 6: The info bar and the liquid glass look (Revision 1)
 
@@ -314,7 +314,7 @@ Read the layout only; nothing is copied from BPT. The per-status chips sit in th
   `@media (prefers-reduced-transparency: reduce)`.
 - Phone width (< 760 px): the bar wraps into two compact rows and never covers the selected machine's panel.
 
-- [ ] **Step 1:** Tests: `test_data_perusahaan` (name and logo for a Manufacturing User; logo None for a user
+- [x] **Step 1:** Tests: `test_data_perusahaan` (name and logo for a Manufacturing User; logo None for a user
   without Company read). `lantai.mjs` cases:
   - "hud": the company name, a clock that changes within 2 s, "14" machines, status chip counts equal to the
     server's statuses, utilization = Production ÷ machines;
@@ -323,30 +323,34 @@ Read the layout only; nothing is copied from BPT. The per-status chips sit in th
   - "glass": every card's computed `backdrop-filter` contains `blur`; text contrast ≥ 4.5:1 against the card in
     light and dark;
   - the "perf" case again with the bar on.
-- [ ] **Step 2:** See them fail, implement until they pass, plus the full suite. Look at screenshots in light,
+- [x] **Step 2:** See them fail, implement until they pass, plus the full suite. Look at screenshots in light,
   dark and phone width (Read tool): clean, nothing overlapping, every figure readable.
-- [ ] **Step 3:** Commit `feat(lantai): info bar and liquid glass look`. Tell Abel to restart `bench start`.
+- [x] **Step 3:** Commit `feat(lantai): info bar and liquid glass look`. Tell Abel to restart `bench start`.
+
+**Deviations:** labels are glass without backdrop blur (14 moving blurred labels broke the frame gate); label, clock and bar text is written only once the camera rests; the KPI card row and the machine table (status chips in its header) are separate cards; the host's light/dark comes from `data-tema`, set from Desk's `data-theme`.
 
 ### Task 7: Navigation, docs and the image
 
 **Files:**
 - Modify:
-  - `erp_internal/tampilan.py` (Manufacturing sidebar and `PINTASAN`: Production Floor second, after Home);
+  - `erp_internal/tampilan.py` (Manufacturing sidebar and `PINTASAN`: Production Floor after Home);
   - `erp_internal/tests/test_tampilan.py` and `tools/cek_layar.mjs` (the new link);
   - `docs/panduan/produksi.md` (a short "Production Floor" section with a screenshot via
     `tools/panduan_gambar.mjs`);
   - README, `.claude/rules/tampilan.md`, a new `.claude/rules/lantai.md` (paths `erp_internal/production_floor.py`,
     `public/js/lantai/**`; the lessons and the budget above), CLAUDE.md, `docs/PROGRESS.md`, `docs/TODO.md`.
 
-- [ ] **Step 1:** Add the link and update the tests. Run the full suite, `cek_layar.mjs` and `lantai.mjs`; all
+- [x] **Step 1:** Add the link and update the tests. Run the full suite, `cek_layar.mjs` and `lantai.mjs`; all
   pass.
-- [ ] **Step 2:** Build the image locally (`docker build -f deploy/Containerfile -t erp-internal:uji .`) and run
+- [x] **Step 2:** Build the image locally (`docker build -f deploy/Containerfile -t erp-internal:uji .`) and run
   `deploy/check_image.sh erp-internal:uji`. It passes, `lantai.bundle.js` included. If the build is too slow on the
   Mac, write "not run" and why.
-- [ ] **Step 3:** Run the repo's reviewer agent (security: the whitelisted methods, the realtime payload, XSS) and
+- [x] **Step 3:** Run the repo's reviewer agent (security: the whitelisted methods, the realtime payload, XSS) and
   docs-sync, and fix what they find.
 - [ ] **Step 4:** Commit `docs(lantai): Production Floor in the guides, rules and README`, then push to
   `feat/lokal`.
+
+**Deviations:** Production Floor is the first link after Home, not second; the page's roles are Manufacturing User only (Task 7 review); the strip after returning to the floor is fixed with a `ResizeObserver` in the page script (`lantai.mjs strip`); Step 3 ran as the controller's security review and docs sync; push waits for Abel.
 
 ## Needed from Abel
 
