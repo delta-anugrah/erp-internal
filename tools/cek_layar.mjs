@@ -125,7 +125,33 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 				`tiles: ${JSON.stringify(ubin)}`
 			);
 		}
+		if (nama === "desk") {
+			// The avatar at the top right opens the user menu, so it shows a pointer (public/css/erp_internal.css).
+			const kursor = await page.locator(".desktop-avatar .avatar").first().evaluate((e) => getComputedStyle(e).cursor);
+			cek(kursor === "pointer", `avatar cursor: ${kursor}`);
+		}
 		if (nama === "rumah") {
+			// The sidebar folds and opens with its edge arrow (visible: public/css/erp_internal.css), and the
+			// choice survives a reload the way Frappe keeps it.
+			const lebar = () => page.evaluate(() => Math.round(document.querySelector(".body-sidebar").getBoundingClientRect().width));
+			const panah = page.locator(".sidebar-collapse-arrow");
+			cek(await panah.isVisible(), "sidebar arrow not visible");
+			const buka = await lebar();
+			await panah.click();
+			await page.waitForTimeout(700);
+			const tutup = await lebar();
+			await page.reload();
+			await page.waitForLoadState("networkidle");
+			await page.waitForTimeout(1000);
+			const setelah_muat = await lebar();
+			await page.locator(".sidebar-collapse-arrow").click();
+			await page.waitForTimeout(700);
+			const buka_lagi = await lebar();
+			cek(
+				buka > 100 && tutup < buka && setelah_muat === tutup && buka_lagi === buka,
+				`sidebar fold: open ${buka}, folded ${tutup}, after reload ${setelah_muat}, reopened ${buka_lagi}`
+			);
+			await page.screenshot({ path: join(HASIL, `${slug(profil)}-sidebar.png`) });
 			// The rail's top slot shows the icon of the app the module belongs to.
 			const atas = await page.locator(".dock-logo .header-logo img").first().getAttribute("src");
 			cek(Object.values(IKON_TILE).some((i) => atas?.endsWith(i)), `rail top logo: ${atas}`);

@@ -60,6 +60,12 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `update_workspace_settings`, `delete_page`, `set_workspace_module`, `restore_workspace_edits`) to
   `erp_internal/ruang_kerja.py`: Frappe's function runs unchanged, then `saring_aplikasi` and `merek_aplikasi` on
   the reply (`test_ruang_kerja`).
+- Our CSS is one plain file, `public/css/erp_internal.css` (`hooks.app_include_css`, served as-is: no build, no
+  `bench start` restart, only `clear-cache` after a hooks change). It gives the Apps screen avatar a pointer and
+  keeps the sidebar's fold arrow visible on a desktop. Frappe v16.53 folds the module sidebar with that arrow
+  (or the 8 px edge), but shows the arrow only on hover. Beside the pinned dock a folded sidebar slides shut and
+  the dock stays as the rail; the choice is kept in localStorage `desk-sidebar-collapsed`. `cek_layar` folds,
+  reloads and reopens it for each user.
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen

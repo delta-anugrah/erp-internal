@@ -34,7 +34,7 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/erp_internal/css/erp_internal.css"
+app_include_css = "/assets/erp_internal/css/erp_internal.css"  # public/css: avatar cursor, sidebar fold arrow
 app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: the language switch
 
 # include js, css files in header of web template

@@ -2,6 +2,13 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-28 (avatar pointer, sidebar fold arrow)
+- The sidebar toggle was there but hidden: Frappe v16.53 shows the fold arrow only while the pointer is on
+  the panel's 8 px edge (BPT's older Frappe has a "Collapse" button instead). `public/css/erp_internal.css`
+  (`app_include_css`, a plain file: no build, no restart) keeps the arrow visible on a desktop and gives the
+  Apps screen avatar a pointer. `cek_layar` checks the avatar cursor and, per user, folds the sidebar, reloads
+  (still folded) and reopens it: 3 users OK.
+
 ## 2026-10-28 (HR home title, workspace saves keep the tiles)
 - HR home: our own site Workspace "HR" (`tampilan.RUMAH_SENDIRI`, `_rumah_sendiri`), first in the Shift &
   Attendance sidebar. Page title, breadcrumb and browser tab read "HR" ("SDM" in Indonesian). Route

@@ -1,0 +1,19 @@
+/* Desk styles of erp_internal (hooks.py app_include_css). A plain file served from public/ as-is: no bundle,
+   so a change needs no `bench build` and no restart of `bench start`. */
+
+/* The profile avatar at the top right of the Apps screen opens the user menu: show it as clickable, like the
+   dock's own avatar button. */
+.desktop-avatar,
+.desktop-avatar .avatar {
+	cursor: pointer;
+}
+
+/* The module sidebar folds and opens with the arrow on its edge (Frappe's Sidebar.toggle_width; the state is
+   kept in localStorage "desk-sidebar-collapsed"). Frappe v16.53 shows that arrow only while the pointer is on
+   the panel's 8 px edge, so nobody found it. Keep it visible on a desktop; a phone uses Frappe's drawer. */
+@media (min-width: 768px) {
+	.body-sidebar-container .sidebar-collapse-arrow {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
