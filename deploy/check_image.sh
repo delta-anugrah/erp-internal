@@ -38,7 +38,7 @@ docker run --rm -e HARAP="$HARAP" --entrypoint bash "$IMAGE" -c '
 	env/bin/python - <<-PY || gagal "bundles"
 		import json, os, sys
 		peta = json.load(open("assets/assets.json"))
-		for kunci in ("erp_internal.bundle.js",):
+		for kunci in ("erp_internal.bundle.js", "lantai.bundle.js"):
 		    berkas = peta.get(kunci)
 		    if not berkas or not os.path.exists(berkas.replace("/assets/", "assets/", 1)):
 		        sys.exit(f"{kunci}: {berkas}")
