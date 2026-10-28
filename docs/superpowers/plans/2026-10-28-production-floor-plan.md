@@ -47,7 +47,8 @@ the browser checks.
   default camera).
 - Status → look table: copy it from the spec.
 - Smoothness budget (spec):
-  - p95 frame ≤ 18.5 ms, max ≤ 50 ms, 0 long tasks after a 2 s warm-up;
+  - after a 2 s warm-up: ≥ 57 fps, intervals over 25 ms ≤ 1 % of frames, max ≤ 50 ms, 0 long tasks (p95 is printed,
+    not asserted: rAF intervals on a 60 Hz display give p95 ≈ 18.6 ms even for an empty canvas);
   - ≤ 60 draw calls, ≤ 150k triangles;
   - adaptive quality above 22 ms average for 2 s.
 - After `bench build` the running `bench start` serves stale asset names. Abel must restart it, and every task that
@@ -202,9 +203,9 @@ the browser checks.
     there is no dialog;
   - "no-webgl": launch with `--disable-webgl` and see the table, 14 rows;
   - "perf": headed Chromium (`headless: false`). Orbit the camera by script for 10 s, fire two status changes,
-    and drop the first 2 s. Assert p95 ≤ 18.5 ms, max ≤ 50 ms, 0 `longtask` entries,
-    `info().render.calls ≤ 60` and `triangles ≤ 150000`. After 20 status changes, `memory.geometries` and
-    `memory.textures` have not grown.
+    and drop the first 2 s. Assert ≥ 57 fps, intervals > 25 ms ≤ 1 %, max ≤ 50 ms, 0 `longtask` entries,
+    `info().render.calls ≤ 60` and `triangles ≤ 150000`. After 20 status changes, `memory.geometries`,
+    `memory.textures` and the shader program count have not grown.
   - "adaptive": throttle with CDP `Emulation.setCPUThrottlingRate` 6. Pixel ratio becomes 1 within 4 s and the
     page stays responsive (a click on the reset button resolves in under 300 ms).
 - [ ] **Step 2:** Run and see these cases fail.

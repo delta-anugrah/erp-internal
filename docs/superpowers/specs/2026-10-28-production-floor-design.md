@@ -59,9 +59,12 @@ smooth, jangan patah2 / laggy".
 
 - These figures are measured in headed Chrome at 1440×900 on Abel's MacBook (Apple Silicon), after a 2-second
   warm-up, while the camera orbits and two status changes arrive:
-  - 60 fps;
-  - frame time p95 ≤ 18.5 ms and max ≤ 50 ms;
+  - at least 57 fps (frames over measured seconds);
+  - dropped frames (intervals over 25 ms) at most 1 % of frames, and max frame interval ≤ 50 ms;
   - no long task (over 50 ms).
+
+  Not p95 frame time: on a 60 Hz display the p95 of requestAnimationFrame intervals sits at about 18.6 ms even for
+  an empty WebGL canvas (Chrome's frame-clock jitter), so it is printed for information only.
 - **Budget:**
   - at most 60 draw calls and 150k triangles;
   - no new geometry, material or texture after load, except when a label's text changes;

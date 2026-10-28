@@ -239,6 +239,7 @@ export function buatAdegan(root) {
 			return {
 				render: { ...renderer.info.render },
 				memory: { ...renderer.info.memory },
+				programs: renderer.info.programs ? renderer.info.programs.length : 0, // compiled shader programs
 				fps,
 				frame,
 				total,
