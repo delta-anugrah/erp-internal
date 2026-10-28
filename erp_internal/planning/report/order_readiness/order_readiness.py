@@ -36,6 +36,15 @@ def execute(filters=None):
 	filters = frappe._dict(filters or {})
 	if not filters.company:
 		frappe.throw(_("Select a company."))
+	# The report reads Bin, Sales Order and Work Order with frappe.get_all (no User Permissions), so the
+	# company and warehouse filters are the only fence: check both against the caller's permissions.
+	frappe.has_permission("Company", "read", doc=filters.company, throw=True)
+	if filters.gudang:
+		if frappe.db.get_value("Warehouse", filters.gudang, "company") != filters.company:
+			frappe.throw(
+				_("Warehouse {0} does not belong to company {1}.").format(filters.gudang, filters.company)
+			)
+		frappe.has_permission("Warehouse", "read", doc=filters.gudang, throw=True)
 	rows = data(
 		filters.company,
 		getdate(filters.bulan or get_first_day(today())),

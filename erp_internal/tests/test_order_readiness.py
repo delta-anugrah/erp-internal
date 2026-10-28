@@ -5,11 +5,13 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, get_first_day, getdate, today
 
 from erp_internal.planning.report.order_readiness.order_readiness import data, execute
+from erp_internal.setup import gudang
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
 	buat_order,
 	buat_pelanggan,
+	buat_pengguna,
 	buat_perkiraan,
 	buat_perusahaan,
 	lama_produksi,
@@ -140,3 +142,16 @@ class TestOrderReadiness(IntegrationTestCase):
 		self.assertTrue(
 			all(frappe.db.get_value("Item", r["item_code"], "item_group") == "Barang Jadi" for r in rows)
 		)
+
+	def test_gudang_perusahaan_lain_ditolak(self):
+		# Security review 2026-10-28: the warehouse filter must belong to the chosen company.
+		with self.assertRaises(frappe.ValidationError):
+			execute({"company": self.pabrik, "gudang": gudang(self.pabrik2, "Gudang Barang Jadi")})
+
+	def test_perusahaan_tanpa_izin_ditolak(self):
+		# A user held to one company by User Permission cannot read another company's figures.
+		u = buat_pengguna("_uji.or.penjualan@contoh.test", "Penjualan", None, self.pabrik)
+		frappe.set_user(u)
+		self.addCleanup(frappe.set_user, "Administrator")
+		with self.assertRaises(frappe.PermissionError):
+			execute({"company": self.pabrik2})
