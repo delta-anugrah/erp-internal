@@ -185,9 +185,13 @@ export function buatHidup(adegan, mesin) {
 
 	function jatuhkan(i, s) {
 		dunia(s, DI_MESIN.asal, v);
-		asal.set([v.x, v.y, v.z], i * 3);
+		asal[i * 3] = v.x;
+		asal[i * 3 + 1] = v.y;
+		asal[i * 3 + 2] = v.z;
 		dunia(s, [DI_MESIN.tong[0], TONG_ATAS, DI_MESIN.tong[2]], v);
-		tujuan.set([v.x, v.y, v.z], i * 3);
+		tujuan[i * 3] = v.x;
+		tujuan[i * 3 + 1] = v.y;
+		tujuan[i * 3 + 2] = v.z;
 		umur[i] = 0;
 		jatuh += 1;
 	}

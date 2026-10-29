@@ -49,11 +49,11 @@ export const ZONA = {
 
 // The forklift's closed loop: raw material, the aisle z = 0, finished goods, the door. `henti` is the pause in ms.
 export const JALUR = [
-	{ x: -22, z: -3, henti: 2500 }, // bahan
-	{ x: -22, z: 0, henti: 0 },
+	{ x: -20.6, z: -3, henti: 2500 }, // bahan: beside the lettering plate, not on it
+	{ x: -20.6, z: 0, henti: 0 },
 	{ x: 21, z: 0, henti: 0 }, // along the aisle
-	{ x: 24, z: -7, henti: 2500 }, // jadi
+	{ x: 28.3, z: -7, henti: 2500 }, // jadi: beside the lettering plate, not on it
 	{ x: 31.5, z: -1, henti: 3000 }, // the door, by the truck
 	{ x: 21, z: 0, henti: 0 }, // back along the aisle
-	{ x: -22, z: 0, henti: 0 },
+	{ x: -20.6, z: 0, henti: 0 },
 ];

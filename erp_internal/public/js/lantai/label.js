@@ -17,7 +17,7 @@
 // Label and chip layout. The card look (fill, light edge, radius, shadow) is `.kartu` from kaca.js, but without the
 // backdrop blur and with a denser fill: fourteen labels move with the camera and each blurred backdrop is redrawn
 // every frame. Measured in tools/lantai.mjs perf: blur 8 px and 3 px on the labels still dropped up to 1.5 % of
-// frames during an orbit; without it 0-0.2 %. The five fixed cards keep the full blur.
+// frames during an orbit; without it 0-0.2 %. The fixed cards (table, attention, detail, and so on) keep the full blur.
 export const GAYA_LABEL = `
 .label-lapis{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .label{position:absolute;left:0;top:0;will-change:transform}
@@ -195,10 +195,15 @@ export function buatLabel(root, adegan, mesin, { halangan = () => [] } = {}) {
 	function ukurSemua() {
 		for (const l of per.values()) {
 			if (!l.ukur) continue;
-			l.ukur = false;
 			const awal = l.el.classList.contains("ringkas");
 			const isi = l.el.firstChild;
 			l.el.classList.remove("ringkas");
+			if (!isi.offsetWidth) {
+				// hidden page: nothing to measure yet, keep l.ukur so a later pass tries again
+				l.el.classList.toggle("ringkas", awal);
+				continue;
+			}
+			l.ukur = false;
 			l.lp = isi.offsetWidth;
 			l.tp = isi.offsetHeight;
 			l.el.classList.add("ringkas");

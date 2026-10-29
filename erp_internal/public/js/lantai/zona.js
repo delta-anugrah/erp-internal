@@ -293,7 +293,8 @@ export function buatZona(adegan) {
 			const lebar = ctx.measureText(teks).width + 44;
 			ctx.fillStyle = rgba(t.pelat, t.alfa);
 			ctx.beginPath();
-			ctx.roundRect(x + (SEL_L - lebar) / 2, y + 8, lebar, SEL_T - 16, 20);
+			if (ctx.roundRect) ctx.roundRect(x + (SEL_L - lebar) / 2, y + 8, lebar, SEL_T - 16, 20);
+			else ctx.rect(x + (SEL_L - lebar) / 2, y + 8, lebar, SEL_T - 16);
 			ctx.fill();
 			ctx.fillStyle = css(t.huruf);
 			ctx.fillText(teks, x + SEL_L / 2, y + SEL_T / 2 + 3);

@@ -1883,7 +1883,7 @@ if (jalankan("perf")) {
 				max: nyata[nyata.length - 1],
 				median: nyata[Math.floor(nyata.length / 2)],
 				lambat: sisa.filter(([, , d]) => d > 25).map(([t, , d]) => `${(t / 1000).toFixed(2)}s:${d.toFixed(1)}`),
-				panjang: window.__lt,
+				panjang: window.__lt.filter((s) => parseFloat(s) >= 2), // after the 2 s warm-up, like the frames
 				render: info.render,
 				memory: info.memory,
 				kualitas: info.kualitas,
@@ -2007,6 +2007,7 @@ if (jalankan("adaptive")) {
 		}
 		await p.waitForTimeout(800);
 		const info = await p.evaluate(() => erp.lantai.aktif.info());
+		cek(info.pabrik?.turun === true, `adaptive: the window glow did not dim (${info.pabrik?.turun})`);
 		cek(info.mesin.every((m) => m.amp < 0.5), `adaptive: platens kept cycling after quality dropped (${info.mesin.map((m) => m.amp.toFixed(2)).join(" ")})`);
 		// The life layer stops with it: the forklift stands still and no part falls for 2 s.
 		cek(info.hidup?.aktif === false, `adaptive: the life layer is still active after the drop (${JSON.stringify(info.hidup?.aktif)})`);
@@ -2056,4 +2057,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, zona, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, perhatian, dekor-gelap, memuat, hidup, glass, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, label-rapi, pabrik, zona, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, perhatian, dekor-gelap, memuat, hidup, glass, perf, adaptive"})`);
