@@ -17,8 +17,8 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 ## Smoothness budget (Abel: "the animation must feel smooth"; measured by `lantai.mjs perf`, headed, 1440x900 @2x)
 
 - >= 57 fps over a 10 s scripted orbit with two status changes (first 2 s dropped).
-- Frame intervals > 25 ms: at most 1 %. Longest frame <= 50 ms. 0 long tasks.
-- <= 100 draw calls, <= 250k triangles (Revision 2; the scene with the building is about 20 calls and 21k triangles, the building's share is `info().pabrik`, the zones' `info().zona`). 20 status changes grow no geometry, texture or program.
+- Frame intervals > 25 ms: at most 1 %. Longest frame <= 50 ms. 0 long tasks, counted after the 2 s warm-up like the frames. One ~65 ms native stall at the start of the first drag is known and excluded by the warm-up.
+- <= 100 draw calls, <= 250k triangles (Revision 2; the scene with the building is measured 35 calls and 37,428 triangles (Task 5 run), the building's share is `info().pabrik`, the zones' `info().zona`). 20 status changes grow no geometry, texture or program.
 - Not p95: Chrome's rAF clock sits at 18.6 ms even for an empty canvas, so a p95 gate only measures that noise.
 - Adaptive quality (mean frame over 22 ms for 2 s: pixel ratio 1, still platens) and the home button answering within
   300 ms under 6x CPU throttle (`adaptive`).

@@ -64,7 +64,9 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
         running, problem, Work Orders running, output) match what you see.
   - [ ] Machine table (top left, under the bar), with the "Needs attention" card under it: click a row, the camera flies to that machine and the panel opens; the arrow
         folds it and it stays folded after a reload; +, − and home buttons work.
-  - [ ] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian.
+  - [ ] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian. The building, truck and floor lettering turn dark too.
+  - [ ] Labels shrink to a chip where they would overlap and never sit under a card.
+  - [ ] A loading card shows until the floor is ready.
   - [ ] Manufacturing in the rail: "Production Floor" is the first link in the sidebar and the first shortcut on
         the home; it opens the floor.
   - [ ] Go to a Work Order and come back (sidebar link and browser back): the floor fills the screen, no empty strip.
@@ -79,7 +81,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
       a dryer or mould rack), forklift and operator figures, floor markings, light from the windows. Keep the
       smoothness budget (`.claude/rules/lantai.md`); plan it first (spec revision, then tasks).
 - [ ] Abel: look at the fuller floor (light and dark, a phone width) and say if the left column, the attention card and
-      the loading screen are right.
+      the loading screen are right. Also: the default view fits the 14 machines; Raw Material sits under the left column and Reject, grinder, door and truck are off-screen. Say whether the default view should show the whole building.
 - Note: the logo exists in the repo (`erp_internal/public/images/delta-anugrah.svg`). The Production Floor's top bar shows the default Company's logo, so the dev site shows initials (its default company is the sample PT Contoh Plastik); at go-live PT Delta Anugrah is the company and gets the logo.
 
 ## Waiting on Mas Samuel

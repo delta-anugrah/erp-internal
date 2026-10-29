@@ -122,7 +122,7 @@ shortcuts to the same links as its sidebar, nothing else:
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |
 
-The sidebar folds into the rail and opens again with the round arrow at its bottom edge; the browser
+The sidebar folds into the rail and opens again with the round arrow at the panel's bottom edge (when the panel is folded, in the dock above the profile avatar); the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible).
 
 A User sees only what their roles read (no Holiday List or Leave Allocation). A direct URL to another permitted

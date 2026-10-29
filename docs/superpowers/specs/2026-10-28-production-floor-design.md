@@ -66,7 +66,7 @@ smooth, jangan patah2 / laggy".
   Not p95 frame time: on a 60 Hz display the p95 of requestAnimationFrame intervals sits at about 18.6 ms even for
   an empty WebGL canvas (Chrome's frame-clock jitter), so it is printed for information only.
 - **Budget:**
-  - at most 60 draw calls and 150k triangles;
+  - at most 60 draw calls and 150k triangles (superseded by Revision 2);
   - no new geometry, material or texture after load, except when a label's text changes;
   - nothing allocated per frame.
 - **Adaptive quality:** if the average frame time stays above 22 ms for 2 s, drop the pixel ratio to 1 and stop the
@@ -117,7 +117,7 @@ smooth, jangan patah2 / laggy".
   `prefers-reduced-transparency`, the cards turn solid. Every figure stays readable (contrast ≥ 4.5:1).
 - The smoothness budget still holds with the info bar and glass on; the clock writes text once a second, never
   per frame.
-- **Layout like BPT Live** (Abel's screenshot): top bar, a KPI card row, a collapsible machine table bottom left
+- **Layout like BPT Live** (Abel's screenshot): top bar, a KPI card row, a collapsible machine table bottom left (superseded by Revision 2)
   whose rows select a machine, and a +/−/home camera bar.
 - **Not now** (needs data Samuel hasn't sent): shift and shift target, OEE, today's downtime, cycle time.
 - **Accepted deviations (Task 6, Abel's budget kept):**

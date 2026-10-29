@@ -107,6 +107,8 @@ still holds). Earlier plan: `docs/superpowers/plans/2026-10-28-production-floor-
   gate.
 - [ ] **Step 5:** Commit `feat(lantai): labels declutter, step aside for cards, default view in the free area`.
 
+**Deviations:** `aturRuang` runs without saveState; the fit scale is 0.4 to 1; the panel shifts with the fit.
+
 ### Task 2: The floor plan module, the building and the outside
 
 **Files:**
@@ -165,6 +167,8 @@ still holds). Earlier plan: `docs/superpowers/plans/2026-10-28-production-floor-
   Expected: all OK; perf within the gate at ≤ 100 calls and ≤ 250k triangles.
 - [ ] **Step 7:** Commit `feat(lantai): floor plan module, the factory building, outside and status rings`.
 
+**Deviations:** the QC zone moved to x -28..-21, z 7.5..11 (the zone decor was built early, in this task); Work Order QTY fix; the camera got a LONGGAR margin.
+
 ### Task 3: Zones and their props
 
 **Files:**
@@ -202,6 +206,8 @@ still holds). Earlier plan: `docs/superpowers/plans/2026-10-28-production-floor-
 - [ ] **Step 4:** Run `node tools/lantai.mjs zona perf id` and `run-tests --app erp_internal`. Expected: OK
   (`test_bahasa` passes with the new rows).
 - [ ] **Step 5:** Commit `feat(lantai): raw material, finished goods, reject, mould and QC zones`.
+
+**Deviations:** shared shape helpers moved into `bentuk.js`; the office is called "QC Office".
 
 ### Task 4: The simulated life layer
 
@@ -243,6 +249,8 @@ still holds). Earlier plan: `docs/superpowers/plans/2026-10-28-production-floor-
   on.
 - [ ] **Step 5:** Commit `feat(lantai): operators, parts and a forklift (simulated)`.
 
+**Deviations:** the figures are static (they do not animate); the perf gate counts long tasks after the 2 s warm-up (one ~65 ms native stall at the first drag is known and excluded).
+
 ### Task 5: The attention card, dark decor, docs and image
 
 **Files:**
@@ -281,3 +289,5 @@ still holds). Earlier plan: `docs/superpowers/plans/2026-10-28-production-floor-
 - [ ] **Step 5:** Update the docs listed above, with test lines only from real runs.
 - [ ] **Step 6:** Commit `feat(lantai): attention card, dark decor, docs for the fuller floor`. Do not push: the
   push waits for Abel's ok.
+
+**Deviations:** the table sits top left with the attention card under it (a left column); a loading screen was added; the logo is a note only (the dev site shows initials).
