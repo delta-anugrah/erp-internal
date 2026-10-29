@@ -4,7 +4,7 @@ paths: ["erp_internal/production_floor.py", "erp_internal/public/js/lantai.bundl
 # Production Floor (`/desk/production-floor`)
 
 Server: `production_floor.py` (`get_data`, POST `set_status`, realtime `production_floor`). Client: the page script
-(small, only the plain table and `erp.lantai.ambil`) and `lantai.bundle.js` with `lantai/{denah,adegan,mesin,pabrik,zona,bentuk,label,panel,hud,kaca}.js`.
+(small, only the plain table and `erp.lantai.ambil`) and `lantai.bundle.js` with `lantai/{denah,adegan,mesin,pabrik,zona,hidup,bentuk,label,panel,hud,kaca}.js`.
 The full description is in CLAUDE.md's "Where things are"; the design and its two revisions in
 `docs/superpowers/specs/2026-10-28-production-floor-design.md`.
 
@@ -77,6 +77,13 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   to spare, so the building shows around them; `label-rapi` still asserts no label is hidden or overlapping.
 - Status rings (`mesin.js`): one `InstancedMesh` ring per machine on the floor, colour = the lit andon segment (Off: grey), Problem pulses with its
   lamp. `mesin.info()` has `cincin` (hex) and `fase` (0..1 of the mould cycle, also in `daftar()` states, for the life layer).
+
+## The simulated life layer (`hidup.js`)
+
+- `buatHidup(adegan, mesin) -> {perbarui(daftar), tick, henti, info, buang}`. The bundle calls `perbarui(mesin.daftar())` after every `tata`, registers `tick` in `adegan.tiap` and `henti` in `adegan.saatTurun`.
+- Operator (Production, Setup), technician with yellow helmet (Maintenance, Problem), nobody at Idle/Off; one `InstancedMesh` each for body, head and helmet, re-laid only on `perbarui`. A machine in Production drops a part when its `fase` wraps (a pool of 28, one slot per machine) into its bin; the bin fills 1/48 per part and empties at full (about 4 minutes). The forklift walks `JALUR` at 1.6 m/s and waits `henti` ms at a stop (time counted from `dt`, which is clamped to 0.1 s, so a hidden page never makes it jump).
+- `henti()` is final: nothing moves or falls any more. 7 draw calls. `info().hidup` has `operator, teknisi, jatuh, forklift{x,z,henti,laju}, aktif, orang[], tong[]` (figures and bins only for drawn machines).
+- The HUD says `__("Forklift, operators and parts are simulated")` under the KPI row (`.simulasi`, in `hud.kotak()`). Nothing simulated may read as data.
 
 ## Accepted deviations from the design
 

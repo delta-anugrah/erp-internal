@@ -6,6 +6,7 @@ import { Raycaster, Vector2, Vector3 } from "three";
 import { buatAdegan, TanpaWebGL } from "./lantai/adegan.js";
 import { buatHud, GAYA_HUD } from "./lantai/hud.js";
 import { GAYA_KACA } from "./lantai/kaca.js";
+import { buatHidup } from "./lantai/hidup.js";
 import { buatLabel, GAYA_LABEL } from "./lantai/label.js";
 import { buatMesin } from "./lantai/mesin.js";
 import { buatPabrik } from "./lantai/pabrik.js";
@@ -240,6 +241,9 @@ erp.lantai.pasang = function (host) {
 	const mesin = buatMesin(adegan);
 	adegan.tiap.push(mesin.tick);
 	adegan.saatTurun.push(mesin.diam);
+	const hidup = buatHidup(adegan, mesin);
+	adegan.tiap.push(hidup.tick);
+	adegan.saatTurun.push(hidup.henti);
 	// Rectangles of every visible fixed card (HUD and side panel), host-relative px, rebuilt only when a card moved
 	// or resized (never per frame): labels step aside for them and the default view centres in the free area.
 	let halanganKini = [];
@@ -403,6 +407,7 @@ erp.lantai.pasang = function (host) {
 			data = d && Array.isArray(d.mesin) ? d : { ...d, mesin: [] };
 			setNota(data.mesin.length ? null : __("No numbered machines yet (set Machine No. on a Workstation)."));
 			mesin.tata(data.mesin);
+			hidup.perbarui(mesin.daftar());
 			label.perbarui(data.mesin);
 			if (adegan.sejakGerak() >= DIAM_HUD) {
 				hudTunda = null;
@@ -461,6 +466,7 @@ erp.lantai.pasang = function (host) {
 			nota.remove();
 			panel.buang();
 			label.buang();
+			hidup.buang();
 			mesin.buang();
 			zona.buang();
 			pabrik.buang();
@@ -482,6 +488,7 @@ erp.lantai.pasang = function (host) {
 				mesin: mesinInfo,
 				pabrik: pabrik.info(),
 				zona: zona.info(),
+				hidup: hidup.info(),
 				label: label.info(),
 				halangan: halanganKini,
 				hud: hud.info(),

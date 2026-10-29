@@ -17,6 +17,8 @@ export const GAYA_HUD = `
 
 .atas{position:absolute;top:12px;left:12px;right:12px;display:flex;flex-direction:column;align-items:flex-end;
 	gap:10px;pointer-events:none}
+.simulasi{align-self:flex-end;box-sizing:border-box;max-width:100%;padding:2px 10px;border-radius:999px;font-size:11px;
+	line-height:16px;color:var(--kaca-redup);background:var(--kaca-padat);pointer-events:none}
 .bar{align-self:stretch;min-height:60px;box-sizing:border-box;padding:10px 14px;
 	display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap}
 .identitas{display:flex;align-items:center;gap:12px;min-width:0}
@@ -104,6 +106,7 @@ export const GAYA_HUD = `
 	.sel .nilai small{font-size:11px}
 	.sel .ket{display:none}
 	.tabel{left:8px;right:auto;bottom:8px;width:calc(100% - 70px);max-height:calc(100% - var(--atas,150px) - 16px)}
+	.simulasi{margin-top:-6px;padding:0 8px;font-size:9.5px;line-height:10px}
 	.kamera{right:8px;bottom:8px}
 	:host([data-panel]) .kamera{right:8px}
 }
@@ -222,6 +225,10 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 		el(j, "span", "pendek").textContent = pendek || judul;
 		sel[kunci] = { el: s, nilai: el(s, "div", "nilai angka"), ket: el(s, "div", "ket angka") };
 	}
+
+	// The life layer is simulated: say so, small and muted.
+	const simulasi = el(atas, "div", "simulasi");
+	simulasi.textContent = __("Forklift, operators and parts are simulated");
 
 	// Machine table with the status legend in its header.
 	const tabel = el(hud, "section", "tabel kartu");
@@ -445,7 +452,7 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 		if (!host) return;
 		const asal = host.getBoundingClientRect();
 		const hasil = [];
-		for (const k of [bar, kpi, tabel, ...kartuLain]) {
+		for (const k of [bar, kpi, simulasi, tabel, ...kartuLain]) {
 			if (k.hidden) continue;
 			const r = k.getBoundingClientRect();
 			if (r.width > 0 && r.height > 0)
@@ -470,7 +477,7 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 		saatKotak?.();
 	}
 	const pengamatKotak = new ResizeObserver(ukurKotak);
-	for (const k of [atas, bar, kpi, tabel]) pengamatKotak.observe(k);
+	for (const k of [atas, bar, kpi, simulasi, tabel]) pengamatKotak.observe(k);
 	if (host) pengamatKotak.observe(host);
 
 	let liveKini = null;

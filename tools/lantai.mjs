@@ -49,6 +49,11 @@
 //                remembered; at 390 px two compact rows, the table collapsed, the bottom sheet on top
 //   hud-live     the dot reads Live with realtime, "Updated HH:MM" with /socket.io blocked
 //   hud-xss      a company name of <img onerror> shows as text; only a same-origin /files/ logo becomes an image
+//   hidup        Mesin 01 Production, 02 Problem, 03 Off (restored after): an operator at 01, a technician at 02, nobody at
+//                03; parts fall within 2 cycles; the forklift moves within 3 s; the "simulated" note is in the HUD
+//                (13-machines, adaptive and hidden also check the life layer: figures and bins follow the drawn
+//                machines; after the quality drop no part falls and the forklift stands still; hidden: it stands still
+//                and returns without a jump)
 //   glass        every fixed card's backdrop-filter blurs; every text >= 4.5:1 on its card, light and dark; with
 //                prefers-reduced-transparency (CDP) every card and label is opaque with no backdrop-filter
 // ERP_BENCH (default ~/Desktop/Projects/erp-internal-bench) and ERP_SITE (erp.localhost) are for bench execute.
@@ -384,6 +389,11 @@ if (jalankan("13-machines")) {
 		cek(tanda[5] === true, "13 machines: slot 5's marker is not showing (slot not empty)");
 		cek(Object.entries(tanda).every(([n, t]) => (Number(n) === 5) === t), `13 machines: marker visibility ${JSON.stringify(tanda)}`);
 		cek((await dialog(p)) === 0, "13 machines: a message dialog is open");
+		const hid = info.hidup;
+		const gambar = new Set(info.mesin.map((m) => m.nama));
+		cek(hid?.tong?.length === 13, `13 machines: ${hid?.tong?.length} bins`);
+		cek(hid?.tong?.every((t) => gambar.has(t.nama)) && !hid.tong.some((t) => t.nama === "Mesin 05"), "13 machines: a bin for a machine that is not drawn");
+		cek(hid?.orang?.length <= 13 && hid.orang.every((o) => gambar.has(o.nama)), `13 machines: ${hid?.orang?.length} figures, one for a machine not drawn`);
 		await p.screenshot({ path: join(HASIL, "lantai-13.png") });
 
 		// Duplicate number 3 and an unknown number 99: both in the spare row, the real 03 stays in its slot.
@@ -392,16 +402,19 @@ if (jalankan("13-machines")) {
 			d.mesin.push({ ...d.mesin[0], name: "Uji Ganda", nomor: 3 }, { ...d.mesin[0], name: "Uji 99", nomor: 99 });
 			erp.lantai.aktif.perbarui(d);
 			const m = erp.lantai.aktif.info().mesin;
+			const h = erp.lantai.aktif.info().hidup;
 			erp.lantai.aktif.perbarui({ mesin: [] });
 			erp.lantai.aktif.perbarui({ mesin: null });
 			await erp.lantai.aktif.muat();
-			return { m, sesudah: erp.lantai.aktif.info().mesin.length };
+			return { m, h, sesudah: erp.lantai.aktif.info().mesin.length };
 		});
 		const per = Object.fromEntries(dup.m.map((m) => [m.nama, m]));
 		cek(per["Mesin 03"]?.slot === 3, `duplicate: Mesin 03 left its slot (${JSON.stringify(per["Mesin 03"])})`);
 		for (const n of ["Uji Ganda", "Uji 99"])
 			cek(per[n] && per[n].slot === null && per[n].z > 5, `duplicate: ${n} not in the spare row (${JSON.stringify(per[n])})`);
 		cek(per["Uji Ganda"]?.x !== per["Uji 99"]?.x, "duplicate: two spare machines share a spot");
+		cek(dup.h?.tong?.length === 15, `duplicate: ${dup.h?.tong?.length} bins for 15 drawn machines`);
+		cek(dup.h?.orang?.every((o) => o.z > -9 && o.z < 12), "duplicate: a figure stands outside the building");
 		cek(dup.sesudah === 13, `after the duplicate check the floor shows ${dup.sesudah} machines`);
 		cek(!p.__galat.length, `13 machines: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
 	} finally {
@@ -1011,14 +1024,25 @@ if (jalankan("hidden")) await kasus("hidden", async () => {
 			document.dispatchEvent(new Event("visibilitychange"));
 		});
 		await p.waitForTimeout(300);
+		const garpu = () => p.evaluate(() => erp.lantai.aktif.info().hidup?.forklift ?? null);
+		const g1 = await garpu();
 		ambil = 0;
 		await api(p, "erp_internal.production_floor.set_status", { machine: NAMA, status: "Off" });
 		await p.waitForTimeout(2000);
 		cek(ambil === 0, `hidden: ${ambil} get_data request(s) while the tab was hidden`);
+		const g2 = await garpu();
+		cek(g1 && g2 && g1.x === g2.x && g1.z === g2.z, `hidden: the forklift moved while hidden (${JSON.stringify(g1)} -> ${JSON.stringify(g2)})`);
 		await p.evaluate(() => {
 			delete document.hidden;
 			document.dispatchEvent(new Event("visibilitychange"));
 		});
+		// The first frames back: at most one step (dt is clamped to 0.1 s), not the 2 s that passed.
+		const g3 = await p.evaluate(async () => {
+			await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+			return erp.lantai.aktif.info().hidup?.forklift ?? null;
+		});
+		const sauh = g2 && g3 ? Math.hypot(g3.x - g2.x, g3.z - g2.z) : Infinity;
+		cek(sauh <= (g3?.laju ?? 0) * 0.1 + 0.1, `hidden: the forklift jumped ${sauh.toFixed?.(2)} m on return`);
 		cek(await lihatStatus("Off"), "hidden: the tab shown again did not catch up within 3 s");
 		cek((await dialog(p)) === 0, "hidden: a message dialog is open");
 	} finally {
@@ -1471,6 +1495,46 @@ if (jalankan("hud-xss")) await kasus("hud-xss", async () => {
 
 // Glass: every fixed card blurs what is behind it (the moving labels do not, see label.js), and every text keeps 4.5:1 against its card over the floor, light and
 // dark. The backdrop is taken as the scene's background colour (the floor under the cards is close to it).
+// --- hidup: the simulated life layer (operators, technicians, parts, the forklift) and its note -------------------------
+if (jalankan("hidup")) await kasus("hidup", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const RENCANA = { "Mesin 01": "Production", "Mesin 02": "Problem", "Mesin 03": "Off" };
+	const asli = await catatStatus(p, Object.keys(RENCANA));
+	try {
+		for (const [machine, status] of Object.entries(RENCANA)) await api(p, "erp_internal.production_floor.set_status", { machine, status });
+		await p.evaluate(() => erp.lantai.aktif.muat());
+		const siap = await tunggu(p, (r) => Object.entries(r).every(([n, s]) => erp.lantai.aktif.info().mesin.find((m) => m.nama === n)?.status === s), RENCANA, 6000);
+		cek(siap, "hidup: the three statuses did not show");
+		await p.waitForTimeout(600);
+		const h = await p.evaluate(() => erp.lantai.aktif.info().hidup);
+		cek(h?.aktif === true, `hidup: info().hidup ${JSON.stringify(h)?.slice(0, 200)}`);
+		if (!h) return;
+		cek(h.operator >= 1 && h.teknisi >= 1, `hidup: ${h.operator} operator(s), ${h.teknisi} technician(s)`);
+		const di = (n) => h.orang.filter((o) => o.nama === n).map((o) => o.jenis);
+		cek(di("Mesin 01").join() === "operator", `hidup: Mesin 01 (Production) has ${di("Mesin 01")}`);
+		cek(di("Mesin 02").join() === "teknisi", `hidup: Mesin 02 (Problem) has ${di("Mesin 02")}`);
+		cek(di("Mesin 03").length === 0, `hidup: Mesin 03 (Off) has ${di("Mesin 03")}`);
+		cek(h.orang.length === h.operator + h.teknisi, "hidup: the figure list and the counts disagree");
+		cek(h.calls > 0 && h.calls <= 12 && h.tris < 60000, `hidup: calls ${h.calls}, triangles ${h.tris}`);
+		// Parts fall once per mould cycle (5 s): within 2 cycles plus a margin.
+		const dulu = h.jatuh;
+		cek(await tunggu(p, (n) => erp.lantai.aktif.info().hidup.jatuh > n, dulu, 12000), `hidup: no part fell within 2 cycles (${dulu})`);
+		cek((await p.evaluate(() => erp.lantai.aktif.info().hidup.tong.length)) === (await p.evaluate(() => erp.lantai.aktif.info().mesin.length)), "hidup: bins and machines differ");
+		// The forklift is driving.
+		const f0 = h.forklift;
+		cek(await tunggu(p, (f) => Math.hypot(erp.lantai.aktif.info().hidup.forklift.x - f.x, erp.lantai.aktif.info().hidup.forklift.z - f.z) > 0.05, f0, 3000), `hidup: the forklift did not move within 3 s (${JSON.stringify(f0)})`);
+		// The note says it is simulated, in the HUD.
+		const nota = await p.evaluate(() => erp.lantai.aktif.host.shadowRoot.querySelector(".hud .simulasi")?.textContent ?? null);
+		cek(nota === "Forklift, operators and parts are simulated", `hidup: the note reads ${JSON.stringify(nota)}`);
+		await p.screenshot({ path: join(HASIL, "lantai-hidup.png") });
+		cek((await dialog(p)) === 0, "hidup: a message dialog is open");
+		cek(!p.__galat.length, `hidup: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	} finally {
+		await pulihkanStatus(p, asli);
+		await ctx.close();
+	}
+});
 if (jalankan("glass")) await kasus("glass", async () => {
 	const ctx = await konteksMasuk(browser, { deviceScaleFactor: 2 });
 	const p = await bukaLantai(ctx);
@@ -1787,6 +1851,13 @@ if (jalankan("adaptive")) {
 		await p.waitForTimeout(800);
 		const info = await p.evaluate(() => erp.lantai.aktif.info());
 		cek(info.mesin.every((m) => m.amp < 0.5), `adaptive: platens kept cycling after quality dropped (${info.mesin.map((m) => m.amp.toFixed(2)).join(" ")})`);
+		// The life layer stops with it: the forklift stands still and no part falls for 2 s.
+		cek(info.hidup?.aktif === false, `adaptive: the life layer is still active after the drop (${JSON.stringify(info.hidup?.aktif)})`);
+		const h2 = await p.evaluate(() => erp.lantai.aktif.info().hidup);
+		await p.waitForTimeout(2000);
+		const h3 = await p.evaluate(() => erp.lantai.aktif.info().hidup);
+		cek(h2 && h3 && h2.forklift.x === h3.forklift.x && h2.forklift.z === h3.forklift.z, "adaptive: the forklift kept driving after the drop");
+		cek(h2 && h3 && h2.jatuh === h3.jatuh, `adaptive: parts kept falling after the drop (${h2?.jatuh} -> ${h3?.jatuh})`);
 		// Move the camera, then a raw click on the reset button: the view is back within 300 ms.
 		await p.mouse.move(700, 450);
 		await p.mouse.down();
@@ -1828,4 +1899,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, zona, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, zona, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, hidup, glass, perf, adaptive"})`);
