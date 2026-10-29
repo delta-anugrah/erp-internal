@@ -37,6 +37,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
   sidebar on purpose; coming back to it from a Work Order stays under `/desk/manufacturing/` (`cek_layar`).
+- Sidebar icons (Abel, 2026-10-29): `IKON_LINK` (link → lucide icon name, `/assets/frappe/icons/lucide/icons.svg`) gives
+  every shown link an icon on every sidebar. `_baris_sidebar` sets it as the row's override only where it differs from
+  the base row's icon (Frappe stores no override equal to the base, so an equal one would rewrite the sidebar on every
+  migrate: `_jejak_sidebar` compares icons too). Add a link to `SIDEBAR` with an icon here; `test_ikon_sidebar` fails
+  on a link without one.
 - Blocking a module hides navigation only; DocPerm still decides document access.
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.

@@ -105,6 +105,43 @@ SIDEBAR = {
 # A SIDEBAR link whose label is not its name (a Page is named by its route).
 NAMA_LINK = {"production-floor": "Production Floor"}
 
+# A SIDEBAR link → its icon (Frappe's lucide set, `/assets/frappe/icons/lucide/icons.svg`), set on every sidebar
+# that shows it. Our own links and the ERPNext ones whose sidebar row has none, so no link shows the plain list
+# icon (Abel, 2026-10-29). A link whose base icon already fits (Work Order's factory, BOM's tree) is left out.
+IKON_LINK = {
+	"production-floor": "gauge",
+	"Sales History": "history",
+	"Sales Forecast": "trending-up",
+	"Master Production Schedule": "calendar-range",
+	"Material Requirements Planning Report": "calculator",
+	"Production Entry": "notebook-pen",
+	"Order Readiness": "calendar-clock",
+	"Plan vs Actual": "target",
+	"Machine Capacity": "cog",
+	"Item Lead Time": "hourglass",
+	"Item": "package",
+	"Stock Balance": "boxes",
+	"Stock Ledger": "book-open",
+	"Payment Entry": "banknote",
+	"Employee": "id-card",
+	"Attendance": "user-check",
+	"Leave Application": "clipboard-pen",
+	"Leave Allocation": "clipboard-check",
+	"Shift Type": "sun-moon",
+	"Shift Assignment": "calendar-days",
+	"Holiday List": "calendar-x",
+	"Timesheet": "clock",
+	"Reject Reason": "ban",
+	"Stock Reconciliation": "scale",
+	"Stock Settings": "settings",
+	"Selling Settings": "settings",
+	"Buying Settings": "settings",
+	"Manufacturing Settings": "settings",
+	"Accounts Settings": "settings",
+	"Projects Settings": "settings",
+	"HR Settings": "settings",
+}
+
 # Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
 # erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the modules of that profile's
 # IKON entries plus MODUL_TANPA_IKON (`test_profil_modul_ikut_ikon`). Developer has no Module Profile: it sees
@@ -607,6 +644,12 @@ def _baris_sidebar(shell: str, modul: str, link: list[str]) -> list[dict]:
 		if item_key(r) not in dipakai:
 			baris.append(_rujukan(r, 1))
 			dipakai.add(item_key(r))
+	# The icon as an override, only where it differs from the base row's (Frappe stores no override equal to it).
+	ikon_dasar = {r.get("link_to"): r.get("icon") for r in dasar if r.get("link_to")}
+	for r in baris:
+		ikon = IKON_LINK.get(r.get("link_to"))
+		if not r["hidden"] and ikon and ikon != ikon_dasar.get(r["link_to"]):
+			r["icon"] = ikon
 	return baris
 
 
@@ -658,6 +701,7 @@ def _jejak_sidebar(rows) -> list[tuple]:
 			int(r.get("child") or 0),
 			r.get("label") if added else None,
 			r.get("link_type") if added else None,
+			r.get("icon") or None,
 		)
 
 	return [jejak(r) for r in rows]

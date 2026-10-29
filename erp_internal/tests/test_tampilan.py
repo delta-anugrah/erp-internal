@@ -14,6 +14,7 @@ from erp_internal.tampilan import (
 	APLIKASI,
 	DEVELOPER,
 	IKON,
+	IKON_LINK,
 	MODUL_BOLEH,
 	PINTASAN,
 	PROFIL_PERAN,
@@ -258,6 +259,17 @@ class TestTampilan(IntegrationTestCase):
 			self.assertEqual(items[0]["link_type"], "Workspace", shell)
 			self.assertEqual([i["link_to"] for i in items[1:]], link, shell)
 			self.assertNotIn("Dashboard", {i["link_type"] for i in items}, shell)
+
+	def test_ikon_sidebar(self):
+		# Every shown link has an icon, ours (IKON_LINK) where the base row had none (Abel, 2026-10-29).
+		for shell in SIDEBAR:
+			for i in resolve_sidebar(shell, "Administrator").items:
+				if i["type"] == "Link":
+					self.assertTrue(i.get("icon"), f"{shell}: {i['link_to']} has no icon")
+			items = {i["link_to"]: i for i in resolve_sidebar(shell, "Administrator").items if i["type"] == "Link"}
+			for link, ikon in IKON_LINK.items():
+				if link in items:
+					self.assertEqual(items[link]["icon"], ikon, f"{shell}: {link}")
 
 	def test_production_floor_in_manufacturing(self):
 		# The floor page is the first link after Manufacturing's home, labelled by name (a Page is named by its
