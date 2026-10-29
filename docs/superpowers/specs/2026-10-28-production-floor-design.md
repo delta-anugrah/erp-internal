@@ -32,9 +32,9 @@ smooth, jangan patah2 / laggy".
 
   | Status | Andon lamp | Motion |
   |---|---|---|
-  | Production | green, steady | the moving platen cycles (mould opens and closes) |
+  | Production | green, steady; floor ring breathes slowly, screen lit | the moving platen cycles (mould opens and closes) |
   | Setup | yellow, slow pulse | still |
-  | Idle (also empty) | yellow, steady | still |
+  | Idle (also empty) | yellow, steady; screen dark | still, body slightly dimmed |
   | Problem | red, pulse about 1 Hz | still |
   | Maintenance | blue, steady | still, body dimmed |
   | Off | unlit | still, body dimmed more |

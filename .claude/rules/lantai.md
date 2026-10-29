@@ -89,6 +89,10 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   to spare, so the building shows around them; `label-rapi` still asserts no label is hidden or overlapping.
 - Status rings (`mesin.js`): one `InstancedMesh` ring per machine on the floor, colour = the lit andon segment (Off: grey), Problem pulses with its
   lamp. `mesin.info()` has `cincin` (hex) and `fase` (0..1 of the mould cycle, also in `daftar()` states, for the life layer).
+- **Production reads apart from Idle** (Abel, 2026-10-29; `GAYA` in `mesin.js`): Production's ring breathes slowly on its own (`nadi` 0.4 Hz,
+  brightness 45-100 %, phase per machine) while its lamp stays steady, and its control screen is lit (`layar` 1.3); Idle has a still ring, a dark
+  screen (0.2) and a dimmer body (`redup` 0.78). Every status sets a screen brightness (`info().mesin[].terang`; `layar` there is the bundle's
+  screen point). The breathing only rewrites the 14 ring colours, so `perf` stays at 60 fps with 0 dropped frames (`lantai.mjs states` checks it).
 
 ## The simulated life layer (`hidup.js`)
 

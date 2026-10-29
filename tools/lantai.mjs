@@ -8,7 +8,7 @@
 // front row on screen). Screenshot in tools/hasil/ (gitignored). Exit code 1 on any failure.
 //
 // Then, with the machines (pass case names to run only some: `node tools/lantai.mjs states perf`):
-//   states       six statuses set through set_status on Mesin 01-06; lamps, pulse, dimming and motion read back
+//   states       six statuses set through set_status on Mesin 01-06; lamps, pulse, dimming, screen, ring breath and motion read back
 //                from info().mesin (statuses restored after)
 //   13-machines  Mesin 05's erp_nomor set to 0 for the run (bench execute; restored after): 13 machines, slot 5
 //                empty, no dialog; a duplicate and an unknown number land in the spare row
@@ -308,14 +308,14 @@ if (jalankan("states")) {
 		"Mesin 05": "Maintenance",
 		"Mesin 06": "Setup",
 	};
-	// Lit segment, its steady colour, pulse Hz, body brightness, platen motion.
+	// Lit segment, its steady colour, pulse Hz, body brightness, platen motion, screen brightness, ring breath Hz.
 	const HARAP = {
-		Production: ["hijau", "#22d36b", 0, 1, true],
-		Off: [null, null, 0, 0.38, false],
-		Idle: ["kuning", "#ffc21a", 0, 1, false],
-		Problem: ["merah", null, 1, 1, false],
-		Maintenance: ["biru", "#3d8bff", 0, 0.6, false],
-		Setup: ["kuning", null, 0.45, 1, false],
+		Production: ["hijau", "#22d36b", 0, 1, true, 1.3, 0.4],
+		Off: [null, null, 0, 0.38, false, 0.06, 0],
+		Idle: ["kuning", "#ffc21a", 0, 0.78, false, 0.2, 0],
+		Problem: ["merah", null, 1, 1, false, 0.7, 0],
+		Maintenance: ["biru", "#3d8bff", 0, 0.6, false, 0.3, 0],
+		Setup: ["kuning", null, 0.45, 1, false, 0.7, 0],
 	};
 	const asli = await catatStatus(p, Object.keys(RENCANA));
 	try {
@@ -326,7 +326,7 @@ if (jalankan("states")) {
 		await p.evaluate(() => erp.lantai.aktif.muat());
 		// Wait for the easing itself: every steady lamp at its colour and every body at its brightness (a fixed delay
 		// flaked when a slow frame stretched the easing), with a timeout; the checks below then report what is left.
-		const sasaran = Object.fromEntries(Object.entries(RENCANA).map(([n, s]) => [n, { warna: HARAP[s][1], redup: HARAP[s][3] }]));
+		const sasaran = Object.fromEntries(Object.entries(RENCANA).map(([n, s]) => [n, { warna: HARAP[s][1], redup: HARAP[s][3], terang: HARAP[s][5] }]));
 		await p
 			.waitForFunction(
 				(sasaran) => {
@@ -338,7 +338,7 @@ if (jalankan("states")) {
 					const info = erp.lantai.aktif.info();
 					return Object.entries(sasaran).every(([nama, t]) => {
 						const m = info.mesin.find((x) => x.nama === nama);
-						if (!m || Math.abs(m.redup - t.redup) >= 0.01) return false;
+						if (!m || Math.abs(m.redup - t.redup) >= 0.01 || Math.abs(m.terang - t.terang) >= 0.01) return false;
 						if (t.warna && jarak(m.warna, t.warna) > 6) return false;
 						return m.gerak ? m.amp > 0.9 || info.kualitas.rendah : m.amp === 0;
 					});
@@ -351,7 +351,7 @@ if (jalankan("states")) {
 		const per = Object.fromEntries(info.mesin.map((m) => [m.nama, m]));
 		for (const [mesin, status] of Object.entries(RENCANA)) {
 			const m = per[mesin];
-			const [lampu, warna, denyut, redup, gerak] = HARAP[status];
+			const [lampu, warna, denyut, redup, gerak, terang, nadi] = HARAP[status];
 			if (!cek(m, `${mesin} not drawn`)) continue;
 			cek(m.status === status, `${mesin} status ${m.status}, wanted ${status}`);
 			cek(m.lampu === lampu, `${mesin} (${status}) lamp ${m.lampu}, wanted ${lampu}`);
@@ -359,6 +359,8 @@ if (jalankan("states")) {
 			cek(m.denyut === denyut, `${mesin} (${status}) pulse ${m.denyut} Hz, wanted ${denyut}`);
 			cek(Math.abs(m.redup - redup) < 0.01, `${mesin} (${status}) body ${m.redup}, wanted ${redup}`);
 			cek(m.gerak === gerak, `${mesin} (${status}) motion ${m.gerak}, wanted ${gerak}`);
+			cek(Math.abs(m.terang - terang) < 0.01, `${mesin} (${status}) screen ${m.terang}, wanted ${terang}`);
+			cek(m.nadi === nadi, `${mesin} (${status}) ring breath ${m.nadi} Hz, wanted ${nadi}`);
 			if (!gerak) cek(m.amp === 0, `${mesin} (${status}) platen still moving (amp ${m.amp})`);
 			else if (!info.kualitas.rendah) cek(m.amp > 0.9, `${mesin} (Production) platen not cycling (amp ${m.amp})`);
 		}
@@ -369,6 +371,17 @@ if (jalankan("states")) {
 			await p.waitForTimeout(110);
 		}
 		cek(warnaMerah.size >= 3, `Problem lamp does not pulse: ${[...warnaMerah].join(" ")}`);
+		// Production's ring breathes (brightness swings) while its lamp stays steady; Idle's ring is still.
+		const terangCincin = (h) => Math.max(...[1, 3, 5].map((j) => parseInt(h.slice(j, j + 2), 16)));
+		const napas = { "Mesin 01": [], "Mesin 03": [] };
+		for (let i = 0; i < 14; i++) {
+			const ms = await p.evaluate(() => erp.lantai.aktif.info().mesin.filter((m) => m.nama === "Mesin 01" || m.nama === "Mesin 03"));
+			for (const m of ms) napas[m.nama].push(terangCincin(m.cincin));
+			await p.waitForTimeout(100);
+		}
+		const ayun = (a) => Math.max(...a) - Math.min(...a);
+		cek(ayun(napas["Mesin 01"]) >= 40, `Production ring does not breathe: ${napas["Mesin 01"].join(" ")}`);
+		cek(ayun(napas["Mesin 03"]) <= 3, `Idle ring is not still: ${napas["Mesin 03"].join(" ")}`);
 		cek((await dialog(p)) === 0, "states: a message dialog is open");
 		await p.screenshot({ path: join(HASIL, "lantai-status.png") });
 	} finally {

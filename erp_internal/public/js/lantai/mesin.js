@@ -18,16 +18,20 @@ const SEGMEN = ["merah", "kuning", "hijau", "biru"];
 const WARNA_SEGMEN = [0xff3b30, 0xffc21a, 0x22d36b, 0x3d8bff];
 const REDUP_SEGMEN = 0.16; // an unlit segment's share of its colour
 
-// Status → look (the spec's table). `lampu` is the lit segment (-1 = none), `denyut` the pulse in Hz, `redup` the
-// body brightness, `gerak` whether the moving platen cycles.
+// Status → look (the spec's table). `lampu` is the lit segment (-1 = none), `denyut` the pulse in Hz (lamp and
+// ring), `nadi` a slow breath of the floor ring alone in Hz, `redup` the body brightness, `layar` the control
+// screen's brightness, `gerak` whether the moving platen cycles. Production (lit screen, breathing green ring) and
+// Idle (dim body, dark screen, still yellow ring) must read apart at a glance (Abel, 2026-10-29).
 const GAYA = {
-	Production: { lampu: 2, denyut: 0, redup: 1, gerak: true },
-	Setup: { lampu: 1, denyut: 0.45, redup: 1, gerak: false },
-	Idle: { lampu: 1, denyut: 0, redup: 1, gerak: false },
-	Problem: { lampu: 0, denyut: 1, redup: 1, gerak: false },
-	Maintenance: { lampu: 3, denyut: 0, redup: 0.6, gerak: false },
-	Off: { lampu: -1, denyut: 0, redup: 0.38, gerak: false },
+	Production: { lampu: 2, denyut: 0, nadi: 0.4, redup: 1, layar: 1.3, gerak: true },
+	Setup: { lampu: 1, denyut: 0.45, nadi: 0, redup: 1, layar: 0.7, gerak: false },
+	Idle: { lampu: 1, denyut: 0, nadi: 0, redup: 0.78, layar: 0.2, gerak: false },
+	Problem: { lampu: 0, denyut: 1, nadi: 0, redup: 1, layar: 0.7, gerak: false },
+	Maintenance: { lampu: 3, denyut: 0, nadi: 0, redup: 0.6, layar: 0.3, gerak: false },
+	Off: { lampu: -1, denyut: 0, nadi: 0, redup: 0.38, layar: 0.06, gerak: false },
 };
+// The breathing ring's brightness swings between this share and full.
+const NADI_BAWAH = 0.45;
 const gaya = (status) => GAYA[status] || GAYA.Idle;
 // The floor ring's colour when no segment is lit (Off): a dim grey.
 const CINCIN_MATI = [0.3, 0.32, 0.35];
@@ -178,7 +182,7 @@ export function buatMesin(adegan) {
 		warna.setScalar(s.redup);
 		mesh.logam.setColorAt(i, warna);
 		mesh.pelat.setColorAt(i, warna);
-		warna.setRGB(0.55, 0.82, 1).multiplyScalar(s.redup < 0.5 ? 0.06 : s.redup);
+		warna.setRGB(0.55, 0.82, 1).multiplyScalar(s.layar);
 		mesh.layar.setColorAt(i, warna);
 	}
 
@@ -266,6 +270,7 @@ export function buatMesin(adegan) {
 					merek: new THREE.Color(),
 					kini: new Float32Array(SEGMEN.length * 3),
 					redup: 1,
+					layar: 1,
 					amp: 0,
 					fase0: 0,
 					fase: 0, // where the mould is in its cycle, 0..1 (the platen's, whether or not it moves)
@@ -275,6 +280,7 @@ export function buatMesin(adegan) {
 				};
 				const awal = gaya(row?.status);
 				s.redup = awal.redup;
+				s.layar = awal.layar;
 				for (let k = 0; k < SEGMEN.length; k++) {
 					const f = k === awal.lampu ? 1 : REDUP_SEGMEN;
 					s.kini.set([warnaSegmen[k].r * f, warnaSegmen[k].g * f, warnaSegmen[k].b * f], k * 3);
@@ -323,9 +329,11 @@ export function buatMesin(adegan) {
 		for (let i = 0; i < keadaan.length; i++) {
 			const s = keadaan[i];
 			const g = gaya(s.status);
-			if (s.redup !== g.redup) {
+			if (s.redup !== g.redup || s.layar !== g.layar) {
 				s.redup += (g.redup - s.redup) * k;
 				if (Math.abs(g.redup - s.redup) < 0.002) s.redup = g.redup;
+				s.layar += (g.layar - s.layar) * k;
+				if (Math.abs(g.layar - s.layar) < 0.002) s.layar = g.layar;
 				warnaiTubuh(i, s);
 				ubahTubuh = true;
 			}
@@ -344,11 +352,14 @@ export function buatMesin(adegan) {
 				mesh.lampu.setColorAt(i * SEGMEN.length + j, warna);
 				ubahLampu = true;
 			}
-			// The floor ring follows the lit lamp segment, pulsing with it (Off: dim grey).
+			// The floor ring follows the lit lamp segment, pulsing with it or breathing on its own (Off: dim grey).
 			const w = g.lampu >= 0 ? warnaSegmen[g.lampu] : null;
-			const tr = w ? w.r * nyala : CINCIN_MATI[0];
-			const tg = w ? w.g * nyala : CINCIN_MATI[1];
-			const tb = w ? w.b * nyala : CINCIN_MATI[2];
+			const napas = g.nadi
+				? NADI_BAWAH + (1 - NADI_BAWAH) * (0.5 + 0.5 * Math.sin(2 * Math.PI * g.nadi * waktu + s.fase0 * 6.283))
+				: 1;
+			const tr = w ? w.r * nyala * napas : CINCIN_MATI[0];
+			const tg = w ? w.g * nyala * napas : CINCIN_MATI[1];
+			const tb = w ? w.b * nyala * napas : CINCIN_MATI[2];
 			const c = s.cin;
 			if (Math.abs(tr - c[0]) + Math.abs(tg - c[1]) + Math.abs(tb - c[2]) >= 0.003) {
 				c[0] += (tr - c[0]) * k;
@@ -410,7 +421,9 @@ export function buatMesin(adegan) {
 					lampu: j >= 0 ? SEGMEN[j] : null,
 					warna: j >= 0 ? `#${warna.setRGB(s.kini[j * 3], s.kini[j * 3 + 1], s.kini[j * 3 + 2]).getHexString()}` : null,
 					denyut: g.denyut,
+					nadi: g.nadi,
 					redup: s.redup,
+					terang: s.layar, // the control screen's brightness (`layar` is the bundle's screen point)
 					gerak: g.gerak,
 					amp: s.amp,
 					fase: s.fase,
