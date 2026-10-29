@@ -9,15 +9,16 @@ Refused on a production site (site config `erp_produksi`). Every record made her
 `tests/utils.py`, the same ones the tests use.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 import frappe
 from frappe import _
 from frappe.desk.doctype.tag.tag import DocTags
-from frappe.utils import add_days, add_months, get_first_day, getdate, today
+from frappe.utils import add_days, add_months, flt, get_datetime, get_first_day, getdate, today
 from frappe.utils.password import update_password
 
 from erp_internal import setup
+from erp_internal.planning.kapasitas import buat_bom_kapasitas
 from erp_internal.tampilan import ADMIN, DEVELOPER, MODUL_BOLEH, PROFIL_PERAN, USER
 from erp_internal.tests import utils
 
@@ -81,6 +82,39 @@ ORDER = (
 	("CONTOH-SO-4", "Toko Contoh Sejahtera", "CTH-GAYUNG", 1500, None, 21),
 )
 
+# Machine Capacity rows: (product, machine number, cycle seconds, cavities, part g, runner g, resin,
+# masterbatch or None, masterbatch percent). Mesin 02 is the older, slower machine.
+KAPASITAS = (
+	("CTH-EMBER-10L", 1, 45, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-EMBER-10L", 2, 55, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-BASKOM-40", 1, 40, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-BASKOM-40", 2, 48, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-GAYUNG", 1, 20, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
+	("CTH-GAYUNG", 2, 24, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
+	("CTH-TOPLES-1L", 1, 30, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
+	("CTH-TOPLES-1L", 2, 36, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
+	("CTH-KURSI", 1, 70, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
+	("CTH-KURSI", 2, 85, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
+)
+# Open Work Orders (product, machine number) that take the sample output, and how many pieces each plans.
+ORDER_PRODUKSI = (("CTH-EMBER-10L", 1), ("CTH-GAYUNG", 1), ("CTH-BASKOM-40", 2), ("CTH-KURSI", 2))
+QTY_ORDER_PRODUKSI = 50000
+HARI_PRODUKSI = 7  # days of Production Entries, ending yesterday
+# Resin and masterbatch received the day before the first entry (kg): the entries are back-dated and need stock.
+TERIMA_BAHAN = {"CTH-BIJI-PP": 20000, "CTH-BIJI-HDPE": 12000, "CTH-PEWARNA": 800}
+CATATAN_TERIMA = f"{TANDA}: bahan baku untuk hasil produksi contoh"
+YIELD_HARIAN = (0.86, 0.92, 0.89, 0.95, 0.84, 0.9, 0.93)  # share of the machine's shift output actually made
+# Reject reasons by day (share of good pieces); a day lacks the reasons that are 0.
+ALASAN_HARIAN = (
+	{"Short Shot": 0.03, "Flashing": 0.01},
+	{"Flashing": 0.02},
+	{"Short Shot": 0.02, "Belang / Warna": 0.015},
+	{"Bubble": 0.01},
+	{"Short Shot": 0.04, "Flashing": 0.02, "Pecah / Retak": 0.01},
+	{"Sink Mark": 0.015, "Flashing": 0.01},
+	{"Short Shot": 0.02},
+)
+
 # Employees: (first name, last name, gender, the Role Profile whose sample user they are, or None).
 KARYAWAN = (
 	("Ayu", "Lestari", "Female", ADMIN),
@@ -110,6 +144,10 @@ DIBUAT = (
 	"Leave Allocation",
 	"Project",
 	"Task",
+	"Machine Capacity",
+	"Work Order",
+	"Production Entry",
+	"Stock Entry",
 )
 
 
@@ -125,6 +163,7 @@ def buat_contoh() -> dict[str, int]:
 	company = tandai("Company", utils.buat_perusahaan(*PERUSAHAAN))
 	_barang(company)
 	_jual_beli(company, hari_ini)
+	_produksi(company, hari_ini)
 	pengguna = _pengguna(company, sandi)
 	_kantor(company, pengguna, hari_ini)
 	return {dt: frappe.db.count(dt, {"_user_tags": ("like", f"%{TANDA}%")}) for dt in DIBUAT}
@@ -291,3 +330,153 @@ def _kantor(company: str, pengguna: dict[str, str], hari_ini: date) -> None:
 		from frappe.desk.form.assign_to import add as tugaskan
 
 		tugaskan({"assign_to": [karyawan], "doctype": "Task", "name": pertama})
+
+
+def _mesin(nomor: int) -> str:
+	"""The numbered machine `Mesin NN` (made by master.py when it ran; made here otherwise)."""
+	nama = f"Mesin {nomor:02d}"
+	if not frappe.db.exists("Workstation", nama):
+		frappe.get_doc({"doctype": "Workstation", "workstation_name": nama, "erp_nomor": nomor}).insert(
+			ignore_permissions=True
+		)
+	return nama
+
+
+def _produksi(company: str, hari_ini: date) -> None:
+	"""Capacity rows and their BOMs, open Work Orders, and seven days of Production Entries with rejects
+	ending yesterday. The material is received dated before the first entry so every back-dated stock
+	entry has stock on its date."""
+	kapasitas = {}
+	for kode, no, siklus, rongga, bagian, runner, bahan, mb, persen in KAPASITAS:
+		mesin = _mesin(no)
+		nilai = {"cycle_time": siklus, "cavities": rongga, "part_weight": bagian, "runner_weight": runner}
+		nilai |= {"material": bahan, "masterbatch": mb, "masterbatch_percent": persen}
+		baris = utils.buat_kapasitas(kode, mesin, **nilai)
+		tandai("Machine Capacity", baris)
+		buat_bom_kapasitas(baris, company)
+		for bom in frappe.get_all("BOM", {"erp_kapasitas": baris}, pluck="name"):
+			tandai("BOM", bom)
+		kapasitas[kode, mesin] = frappe.db.get_value("Machine Capacity", baris, "pcs_per_hour")
+
+	_terima_bahan(company, add_days(hari_ini, -HARI_PRODUKSI - 1))
+	for kode, no in ORDER_PRODUKSI:
+		mesin = _mesin(no)
+		wo = _order(company, kode, mesin, add_days(hari_ini, -HARI_PRODUKSI - 1))
+		for i in range(HARI_PRODUKSI):
+			hari = add_days(hari_ini, i - HARI_PRODUKSI)
+			_hasil(wo, hari, i, kapasitas[kode, mesin])
+
+
+def _terima_bahan(company: str, tanggal: date) -> None:
+	"""Material Receipts of the sample resin and masterbatch into Gudang Bahan Baku, dated before the first
+	entry. A Stock Reconciliation inside the window (the opening stock of an earlier run) resets the stock
+	to its own figure, so a second receipt follows right after the latest one."""
+	wh = setup.gudang(company, "Gudang Bahan Baku")
+	saat = [(tanggal, "00:01:00")]
+	reco = frappe.get_all(
+		"Stock Ledger Entry",
+		{
+			"voucher_type": "Stock Reconciliation",
+			"is_cancelled": 0,
+			"warehouse": wh,
+			"item_code": ("in", list(TERIMA_BAHAN)),
+			"posting_date": (">=", tanggal),
+		},
+		["posting_date", "posting_time"],
+		order_by="posting_date desc, posting_time desc",
+		limit=1,
+	)
+	if reco:
+		sesudah = get_datetime(f"{reco[0].posting_date} {reco[0].posting_time}").replace(
+			microsecond=0
+		) + timedelta(seconds=1)
+		saat.append((sesudah.date(), sesudah.strftime("%H:%M:%S")))
+	for hari, jam in saat:
+		catatan = f"{CATATAN_TERIMA} ({hari} {jam})"
+		ada = frappe.db.get_value("Stock Entry", {"remarks": catatan, "company": company, "docstatus": 1})
+		if not ada:
+			utils.tahun_fiskal(hari)
+			se = frappe.get_doc(
+				{
+					"doctype": "Stock Entry",
+					"stock_entry_type": "Material Receipt",
+					"company": company,
+					"set_posting_time": 1,
+					"posting_date": hari,
+					"posting_time": jam,
+					"remarks": catatan,
+					"items": [
+						{
+							"item_code": kode,
+							"qty": qty,
+							"t_warehouse": wh,
+							"basic_rate": BARANG[kode][4],
+						}
+						for kode, qty in TERIMA_BAHAN.items()
+					],
+				}
+			).insert(ignore_permissions=True)
+			se.submit()
+			ada = se.name
+		tandai("Stock Entry", ada)
+
+
+def _order(company: str, kode: str, mesin: str, mulai: date) -> str:
+	"""The open sample Work Order of `kode` on `mesin` (BOM: the one made for that machine), found by tag."""
+	ada = frappe.db.get_value(
+		"Work Order",
+		{
+			"production_item": kode,
+			"erp_mesin": mesin,
+			"company": company,
+			"docstatus": 1,
+			"_user_tags": ("like", f"%{TANDA}%"),
+		},
+	)
+	if not ada:
+		bom = frappe.db.get_value(
+			"BOM",
+			{
+				"item": kode,
+				"erp_mesin": mesin,
+				"docstatus": 1,
+				"is_active": 1,
+				"erp_kapasitas": ("is", "set"),
+			},
+			"name",
+			order_by="creation desc, name desc",
+		)
+		wo = frappe.get_doc(
+			{
+				"doctype": "Work Order",
+				"production_item": kode,
+				"bom_no": bom,
+				"qty": QTY_ORDER_PRODUKSI,
+				"company": company,
+				"erp_mesin": mesin,
+				"skip_transfer": 1,
+				"planned_start_date": mulai,
+			}
+		).insert(ignore_permissions=True)
+		wo.submit()
+		ada = wo.name
+	return tandai("Work Order", ada)
+
+
+def _hasil(wo: str, hari: date, urutan: int, per_jam: float) -> None:
+	"""One Shift 1 Production Entry of the order on `hari`, unless it exists (found by order, day and shift)."""
+	ada = frappe.db.get_value(
+		"Production Entry",
+		{"work_order": wo, "posting_date": hari, "shift": "Shift 1", "docstatus": ("<", 2)},
+	)
+	if not ada:
+		bagus = round(flt(per_jam) * setup.jam_shift("Shift 1") * YIELD_HARIAN[urutan % len(YIELD_HARIAN)])
+		reject = {
+			alasan: max(1, round(bagus * porsi))
+			for alasan, porsi in ALASAN_HARIAN[urutan % len(ALASAN_HARIAN)].items()
+		}
+		ada = utils.buat_hasil(wo, bagus, reject, posting_date=hari).name
+	tandai("Production Entry", ada)
+	for fk in ("manufacture_entry", "reject_entry"):
+		if se := frappe.db.get_value("Production Entry", ada, fk):
+			tandai("Stock Entry", se)

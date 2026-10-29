@@ -2,6 +2,20 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (Plan vs Actual, Task 6 of 6)
+- Task 6: `contoh.py` now also makes 10 Machine Capacity rows (5 products on Mesin 01 and 02) with their BOMs
+  (`buat_bom_kapasitas`), 4 open Work Orders and 28 Production Entries (7 days ending yesterday, Shift 1, rejects by
+  day), all tagged DATA CONTOH. The entries are back-dated, so the resin and masterbatch come in by Material Receipt
+  dated the day before the first entry, and by a second receipt one second after any older opening-stock Stock
+  Reconciliation inside the window (a reconciliation resets the stock to its figure and would starve the later days).
+  `DIBUAT` gained Machine Capacity, Work Order, Production Entry and Stock Entry.
+- `tools/cek_layar.mjs`: `PINTASAN_MAKS` 10 to 12 (the plan added Production Entry, Plan vs Actual and Machine
+  Capacity to Manufacturing's home and Reject Reason to Setup's: 12 and 11 shortcuts). Say so if you prefer trimming.
+- ruff: fixed an import order and formatting in four files of the plan (`uvx ruff check erp_internal`, `format --check`).
+- Tests as run: full run 196 (13 unit + 183 integration) OK; `cek_layar` 3 users OK; `buat_contoh` twice on
+  `erp.localhost`, identical counts (Production Entry 28, Machine Capacity 10, Work Order 5 incl. one older).
+- Next: Abel's browser checks in `docs/TODO.md`; Samuel's answers in `docs/menunggu-samuel.md` row 4b.
+
 ## 2026-10-29 (Plan vs Actual, Task 5 of 6)
 - Task 5: Script Report Plan vs Actual (module Planning, `ref_doctype` Production Entry; Manufacturing User/Manager,
   System Manager), in Manufacturing's sidebar and home after Order Readiness. Cells (machine, day, Work Order, shift)

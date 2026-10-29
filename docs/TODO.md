@@ -2,8 +2,9 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-10-29, after Plan vs Actual Task 1): `bench --site erp-test.localhost run-tests --app erp_internal`:
-128 tests, all OK (151 after Plan vs Actual Task 3, 165 after Task 4). `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+Last full run (2026-10-29, after Plan vs Actual Task 6): `bench --site erp-test.localhost run-tests --app erp_internal`:
+196 tests (13 unit + 183 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
+`PINTASAN_MAKS` raised 10 to 12: Manufacturing has 12, Setup 11).
 
 ## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)
 - [x] Task 1: Machine Capacity and the lookup (`kapasitas.py`, `test_kapasitas`)
@@ -11,7 +12,13 @@ Last full run (2026-10-29, after Plan vs Actual Task 1): `bench --site erp-test.
 - [x] Task 3: Excel import of capacity (`impor_kapasitas.py`, `test_impor_kapasitas`)
 - [x] Task 4: Production Entry (stock entries, cancel; `test_hasil_produksi`)
 - [x] Task 5: Plan vs Actual report (`planning/report/plan_vs_actual/`, `test_plan_vs_actual`)
-- [ ] Task 6: Docs and final checks
+- [x] Task 6: sample capacity, BOMs and production entries in `contoh.py` (`test_contoh` 7 OK), docs, full run
+- [ ] Abel, in the browser on `erp.localhost` (the sample data is there): Machine Capacity list, "Import from Excel"
+      with `erp_internal/tests/data/kapasitas.xlsx` (Preview, then Apply; check the BOMs it makes).
+- [ ] Abel: open a Work Order and use its button to record output (good qty, rejects, shift); check the stock entries
+      and the order's produced qty.
+- [ ] Abel: open Plan vs Actual in both target modes (a Work Order's planned days, and Machine Capacity when the order
+      has no plan) and group it by Machine, Day, Item, Work Order and Shift; then again in Indonesian.
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the

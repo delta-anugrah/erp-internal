@@ -4,11 +4,13 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import getdate, today
 from frappe.utils.password import check_password
 
 from erp_internal.contoh import (
 	BARANG,
 	DIBUAT,
+	KAPASITAS,
 	KARYAWAN,
 	PELANGGAN,
 	PEMASOK,
@@ -42,7 +44,8 @@ class TestContoh(IntegrationTestCase):
 
 		self.assertEqual(ringkas["Company"], 1)
 		self.assertEqual(ringkas["Item"], len(BARANG))
-		self.assertEqual(ringkas["BOM"], len(RESEP))
+		self.assertEqual(ringkas["BOM"], len(RESEP) + len(KAPASITAS))
+		self.assertEqual(ringkas["Machine Capacity"], len(KAPASITAS))
 		self.assertEqual(ringkas["Customer"], len(PELANGGAN))
 		self.assertEqual(ringkas["Supplier"], len(PEMASOK))
 		self.assertEqual(ringkas["Sales History"], 6 * len(RESEP))
@@ -51,6 +54,32 @@ class TestContoh(IntegrationTestCase):
 		self.assertEqual(ringkas["Shift Assignment"], len(KARYAWAN))
 		self.assertEqual(ringkas["Project"], 1)
 		self.assertEqual(ringkas["User"], len(PROFIL_PERAN))
+
+	def test_produksi_contoh(self):
+		# Seven days of output with rejects, ending yesterday, on the machines of the capacity rows.
+		buat_contoh()
+		sebelum = (
+			frappe.db.count("Production Entry", {"docstatus": 1}),
+			frappe.db.count("Machine Capacity"),
+		)
+		self.assertGreater(sebelum[0], 0)
+		self.assertGreater(sebelum[1], 0)
+		hari = frappe.get_all(
+			"Production Entry", {"docstatus": 1, "_user_tags": ("like", f"%{TANDA}%")}, pluck="posting_date"
+		)
+		self.assertEqual(len(set(hari)), 7)
+		self.assertLess(max(hari), getdate(today()))
+		self.assertTrue(
+			frappe.db.count(
+				"Production Entry Reject",
+				{"parent": ("in", frappe.get_all("Production Entry", pluck="name"))},
+			)
+		)
+		buat_contoh()
+		self.assertEqual(
+			(frappe.db.count("Production Entry", {"docstatus": 1}), frappe.db.count("Machine Capacity")),
+			sebelum,
+		)
 
 	def test_pengguna_masuk_dengan_sandi(self):
 		buat_contoh()

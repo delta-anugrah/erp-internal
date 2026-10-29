@@ -75,4 +75,4 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen
   (`app_data[].on_apps_screen`), failing on a tile with nothing behind it. It also opens every home on the user's
-  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (10).
+  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (12).

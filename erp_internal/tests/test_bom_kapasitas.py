@@ -101,7 +101,9 @@ class TestBomKapasitas(IntegrationTestCase):
 		for n in lama[1:]:
 			self.assertEqual(frappe.db.get_value("BOM", n, "is_active"), 0)
 		for n in h["dibuat"]:
-			self.assertEqual(frappe.db.get_value("Item", frappe.db.get_value("BOM", n, "item"), "default_bom"), n)
+			self.assertEqual(
+				frappe.db.get_value("Item", frappe.db.get_value("BOM", n, "item"), "default_bom"), n
+			)
 		self.assertEqual(frappe.db.get_value("BOM", lama[0], "is_active"), 1)
 		self.assertTrue(all(frappe.db.get_value("BOM", n, "is_default") for n in h["dibuat"]))
 		wo.delete()

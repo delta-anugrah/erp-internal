@@ -10,8 +10,10 @@ from erp_internal.planning.report.plan_vs_actual.plan_vs_actual import (
 	bagi_shift,
 	data,
 	execute,
-	kolom as susun_kolom,
 	target_harian,
+)
+from erp_internal.planning.report.plan_vs_actual.plan_vs_actual import (
+	kolom as susun_kolom,
 )
 from erp_internal.tests.utils import (
 	buat_barang,
@@ -221,7 +223,9 @@ class TestPlanVsActual(IntegrationTestCase):
 		aneh = 'Gores & "x" / y'
 		for nama in (aneh, "Cacat A", "Cacat-A"):
 			if not frappe.db.exists("Reject Reason", nama):
-				frappe.get_doc({"doctype": "Reject Reason", "reason_name": nama}).insert(ignore_permissions=True)
+				frappe.get_doc({"doctype": "Reject Reason", "reason_name": nama}).insert(
+					ignore_permissions=True
+				)
 		wo = self.order()
 		self.hasil(wo, -2, 5, {aneh: 1, "Cacat A": 2, "Cacat-A": 4})
 		kolom, rows, _pesan, _grafik = execute(self.f())

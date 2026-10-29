@@ -127,7 +127,9 @@ def kolom(group_by: str, rows: list[dict]) -> list[dict]:
 		for n in r:
 			if n.startswith("r_"):
 				ada[n] = r["_alasan"][n]
-	return kolom + [k(frappe.utils.escape_html(label), n, precision=0, width=100) for n, label in sorted(ada.items())]
+	return kolom + [
+		k(frappe.utils.escape_html(label), n, precision=0, width=100) for n, label in sorted(ada.items())
+	]
 
 
 def grafik(group_by: str, rows: list[dict]) -> dict:
