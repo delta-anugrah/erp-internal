@@ -61,6 +61,7 @@ ERP_SANDI=<SAMPLE_PASSWORD> node tools/lantai.mjs     # Production Floor page; p
 node --test tools/denah.test.mjs                         # the Production Floor's floor plan (pure, no browser)
 # from the repo: the server image and its check (deploy/server/README.md is the runbook)
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
+# on the server, in ~/erp: make env SITE=… ERP_IMAGE=… RCLONE_REMOTE=…, then make setup (deploy/server/Makefile)
 ```
 
 Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).

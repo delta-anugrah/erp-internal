@@ -99,7 +99,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [x] Order Readiness: leave template items out (`has_variants` 0; `test_template_tidak_ikut`).
 - [x] Desk sidebar: the collapsed sidebar's expand button is tiny and covered (now a 32 px button in the dock; `cek_layar` checks it).
 - [x] Fitting icons for our sidebar links (`tampilan.IKON_LINK`, every shown link of every sidebar; `test_ikon_sidebar`).
-- [ ] Makefile for the server setup (`make setup`, steps in order, stop on error, no secrets).
+- [x] Makefile for the server setup (`deploy/server/Makefile`: `make env`, `make setup`; dry run on a Mac with fakes). A real run waits for the server.
 - [ ] Ask Abel: "Production floor di desk" (default: a tile on the Apps home).
 
 ## Waiting on Mas Samuel

@@ -8,6 +8,7 @@ shared with BPT or the sawit server.
 |---|---|
 | `docker-compose.yml` | The stack: configurator, backend, queue, scheduler, websocket, frontend (`127.0.0.1:8080`), MariaDB 11.8.9, two Redis; `tools` (profile `setup`) for one-off bench commands. |
 | `.env.example` | The shape of `.env` (chmod 600, made on the server, never in git): `ERP_IMAGE`, `SITE`, `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD`, `RCLONE_REMOTE`. |
+| `Makefile` | The first install as `make` targets (below): one per step, `make setup` runs them in order and stops on the first error; every step skips what is done; no secret in the file. |
 | `cadangan.sh` | Nightly backup: `bench backup --with-files --compress`, the newest set to `./cadangan` and `$RCLONE_REMOTE`, sets older than 14 days deleted on both. Exits non-zero on any failure. |
 
 The image comes from `.github/workflows/image.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
@@ -16,6 +17,24 @@ from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json
 `latest`.
 
 ## First install
+
+**With make** (same steps, from step 5 on; steps 1-4 stay by hand, `cek` and `pull` check them). As `deploy` in
+`~/erp` with this folder's files copied in:
+
+```bash
+make env SITE=erp.<domain> ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z RCLONE_REMOTE=<remote>:<bucket>/erp
+make setup COMPANY="PT Delta Anugrah" ABBR=DAN     # cek env cek-env pull db site wizard aktif up ping cron
+make cadangan                                     # then a restore drill (below)
+```
+
+`make help` lists the targets; `make -n setup` prints every command without running it. `env` writes `.env` once
+(passwords from `openssl rand`, never shown) and never touches an existing one; `site` and `wizard` skip a site
+that exists or a finished wizard; `cron` adds its line once. `ping` checks the stack on `127.0.0.1:8080`; the public
+`https://` check needs the proxy of step 3. Dry run 2026-10-29 on a Mac with a fake `docker`/`bench`/`crontab`:
+every step ran, a second run skipped, a `:latest` image and a mode-644 `.env` were refused, `make setup` stopped at
+the first failing step.
+
+By hand:
 
 1. **Server.** Ubuntu LTS, 4 GB RAM or more, Docker Engine with the compose plugin, `rclone`, a non-root user
    `deploy` in the `docker` group. Time zone: `sudo timedatectl set-timezone Asia/Jakarta` (the cron line below is
