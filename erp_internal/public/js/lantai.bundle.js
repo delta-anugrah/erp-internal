@@ -266,6 +266,22 @@ erp.lantai.pasang = function (host) {
 		diam: () => adegan.sejakGerak() >= DIAM_HUD,
 	});
 
+	// The loading screen: a glass card over the whole floor from mount until the first answer (data or failure) and the
+	// first rendered frame are in and the cards are filled. A failed first load gives way to the inline note below.
+	const memuat = document.createElement("div");
+	memuat.className = "memuat";
+	memuat.setAttribute("role", "status");
+	const kartuMemuat = memuat.appendChild(document.createElement("div"));
+	kartuMemuat.className = "kartu";
+	kartuMemuat.appendChild(document.createElement("i")).className = "putar";
+	kartuMemuat.appendChild(document.createElement("span")).textContent = __("Loading production floor…");
+	root.querySelector(".hud").appendChild(memuat);
+	let jawabanAda = false; // the first fetch has answered, well or not
+	let bingkaiAda = 0; // frames ticked; the first one is drawn once a second tick has come
+	adegan.tiap.push(() => {
+		if (bingkaiAda < 2) bingkaiAda += 1;
+	});
+
 	// An inline note on the floor for a failed first load or an empty floor: a glass card, text only, no dialog.
 	const nota = document.createElement("div");
 	nota.className = "catatan-lantai kartu";
@@ -383,10 +399,12 @@ erp.lantai.pasang = function (host) {
 		if (adegan.sejakGerak() < DIAM_HUD) return;
 		if (notaAda) tulisNota();
 		panel.tick();
-		if (!hudTunda) return;
-		const d = hudTunda;
-		hudTunda = null;
-		hud.perbarui(d);
+		if (hudTunda) {
+			const d = hudTunda;
+			hudTunda = null;
+			hud.perbarui(d);
+		}
+		if (memuat.isConnected && jawabanAda && bingkaiAda >= 2) memuat.remove();
 	});
 
 	const titik = { x: 0, y: 0, depan: true };
@@ -397,7 +415,10 @@ erp.lantai.pasang = function (host) {
 			if (adegan.sejakGerak() >= DIAM_HUD) hud.status(adaLive(), ambilan.terakhir); // else the next clock tick
 		},
 		// A failed fetch keeps what is shown; only a floor that never loaded says so.
-		() => !data.mesin.length && setNota(__("The machine list could not be loaded."))
+		() => {
+			jawabanAda = true;
+			if (!data.mesin.length) setNota(__("The machine list could not be loaded."));
+		}
 	);
 	const ctl = {
 		host,
@@ -405,6 +426,7 @@ erp.lantai.pasang = function (host) {
 		// New data: the scene, labels and panel each touch only what changed.
 		perbarui(d) {
 			data = d && Array.isArray(d.mesin) ? d : { ...d, mesin: [] };
+			jawabanAda = true;
 			setNota(data.mesin.length ? null : __("No numbered machines yet (set Machine No. on a Workstation)."));
 			mesin.tata(data.mesin);
 			hidup.perbarui(mesin.daftar());
@@ -464,6 +486,7 @@ erp.lantai.pasang = function (host) {
 			pengamatTema.disconnect();
 			hud.buang();
 			nota.remove();
+			memuat.remove();
 			panel.buang();
 			label.buang();
 			hidup.buang();

@@ -21,10 +21,14 @@ const C = {
 	gelap: 0x363b42,
 	jalur: 0xf4f4f0,
 };
+// `padat` tints the merged solids (walls, roof cap, columns, truck, lane dashes): their vertex colours stay the light
+// ones and the material's colour multiplies them, so a theme change creates nothing.
 const TEMA = {
-	light: { tanah: 0xcdd8c4, aspal: 0x8c949c, beton: 0xc6cbd0, kaca: 0xbfe0ff },
-	dark: { tanah: 0x232a26, aspal: 0x3a4048, beton: 0x3a4149, kaca: 0xffd98a },
+	light: { tanah: 0xcdd8c4, aspal: 0x8c949c, beton: 0xc6cbd0, kaca: 0xbfe0ff, padat: 0xffffff },
+	dark: { tanah: 0x232a26, aspal: 0x3a4048, beton: 0x3a4149, kaca: 0xffd98a, padat: 0x6b727b },
 };
+// A vertex colour as the screen shows it under a tint, "#rrggbb" (the shader multiplies the two in linear space).
+const tampak = (hex, tint) => `#${new THREE.Color(hex).multiply(new THREE.Color(tint)).getHexString()}`;
 function dindingDanTiang() {
 	const g = [];
 	const { x0, x1, z0, z1 } = SLAB;
@@ -130,7 +134,8 @@ export function buatPabrik(adegan) {
 	for (let x = -90; x < 90; x += 4) padat.push(balok(x, NAIK + 0.02, 17.4, x + 2, NAIK + 0.05, 17.55, C.jalur));
 	const padatGeo = urus(mergeGeometries(padat.map(terbuang)));
 	for (const p of padat) p.dispose();
-	const padatMesh = new THREE.Mesh(padatGeo, mat(new THREE.MeshLambertMaterial({ vertexColors: true })));
+	const bahanPadat = mat(new THREE.MeshLambertMaterial({ vertexColors: true }));
+	const padatMesh = new THREE.Mesh(padatGeo, bahanPadat);
 	catat(padatMesh, padatGeo);
 	grup.add(padatMesh);
 
@@ -186,6 +191,7 @@ export function buatPabrik(adegan) {
 
 	// --- theme and adaptive quality ----------------------------------------------------------------------------------------
 	let t = TEMA.light;
+	let namaTema = "light";
 	let turun = false;
 	const warnaKaca = () => bahanKaca.color.setHex(t.kaca).multiplyScalar(turun ? 0.4 : 1);
 	adegan.saatTurun.push(() => {
@@ -194,11 +200,13 @@ export function buatPabrik(adegan) {
 		adegan.tandaiKotor();
 	});
 	return {
-		// "light" or "dark": the ground, road, apron and window glow follow Desk's theme.
+		// "light" or "dark": the walls, roof cap, truck, ground, road, apron and window glow follow Desk's theme.
 		tema(nama) {
 			const baru = nama === "dark" ? TEMA.dark : TEMA.light;
 			if (baru === t) return;
 			t = baru;
+			namaTema = nama === "dark" ? "dark" : "light";
+			bahanPadat.color.setHex(t.padat);
 			bahanTanah.color.setHex(t.tanah);
 			bahanAspal.color.setHex(t.aspal);
 			bahanBeton.color.setHex(t.beton);
@@ -206,7 +214,17 @@ export function buatPabrik(adegan) {
 			adegan.tandaiKotor();
 		},
 		// The building's own share of the draw calls and triangles (the zones report theirs).
-		info: () => ({ calls, tris: Math.round(tris), kaca: `#${bahanKaca.color.getHexString()}`, turun }),
+		info: () => ({
+			calls,
+			tris: Math.round(tris),
+			kaca: `#${bahanKaca.color.getHexString()}`,
+			turun,
+			tema: namaTema,
+			// The wall, roof cap and trailer as the screen shows them (vertex colour x theme tint).
+			dinding: tampak(C.tembok, t.padat),
+			atap: tampak(C.atap, t.padat),
+			truk: tampak(0xe9edf1, t.padat),
+		}),
 		buang() {
 			adegan.scene.remove(grup);
 			for (const g of geometri) g.dispose();

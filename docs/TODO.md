@@ -62,7 +62,7 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
         `/etc/hosts`).
   - [ ] Top bar: company logo or initials and name, "Live" dot, date and a ticking clock; KPI cards (machines,
         running, problem, Work Orders running, output) match what you see.
-  - [ ] Machine table (bottom left): click a row, the camera flies to that machine and the panel opens; the arrow
+  - [ ] Machine table (top left, under the bar), with the "Needs attention" card under it: click a row, the camera flies to that machine and the panel opens; the arrow
         folds it and it stays folded after a reload; +, − and home buttons work.
   - [ ] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian.
   - [ ] Manufacturing in the rail: "Production Floor" is the first link in the sidebar and the first shortcut on
@@ -71,13 +71,16 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
 
 ## Production Floor, next round (Abel, 2026-10-28 22:32)
 Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec Revision 2).
-- [ ] Labels overlap from the default camera (08/09, 05/06): spread or stack them so none covers another.
-- [ ] Zoomed in, the KPI cards cover the back row's labels: hide or fade a label under a card, or keep labels out
+- [x] Labels overlap from the default camera (08/09, 05/06): spread or stack them so none covers another.
+- [x] Zoomed in, the KPI cards cover the back row's labels: hide or fade a label under a card, or keep labels out
       of the cards' area.
-- [ ] The floor looks too empty and plain next to BPT Live. Make it richer and livelier: a factory building around
+- [x] The floor looks too empty and plain next to BPT Live. Make it richer and livelier: a factory building around
       the floor (walls, roof edge, doors), material and product areas (resin bags by the hoppers, product crates,
       a dryer or mould rack), forklift and operator figures, floor markings, light from the windows. Keep the
       smoothness budget (`.claude/rules/lantai.md`); plan it first (spec revision, then tasks).
+- [ ] Abel: look at the fuller floor (light and dark, a phone width) and say if the left column, the attention card and
+      the loading screen are right.
+- Note: the logo exists in the repo (`erp_internal/public/images/delta-anugrah.svg`). The Production Floor's top bar shows the default Company's logo, so the dev site shows initials (its default company is the sample PT Contoh Plastik); at go-live PT Delta Anugrah is the company and gets the logo.
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.

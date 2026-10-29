@@ -54,6 +54,13 @@
 //                (13-machines, adaptive and hidden also check the life layer: figures and bins follow the drawn
 //                machines; after the quality drop no part falls and the forklift stands still; hidden: it stands still
 //                and returns without a jump)
+//   perhatian    02 Problem, 03 Idle, 04 Maintenance (the rest Production): the attention card reads 02, 04, 03; a click
+//                selects 04; all Production says "All machines running"; it sits under the machine table, top left
+//                (statuses restored after)
+//   dekor-gelap  dark theme: info().pabrik and info().zona report the dark palette (walls, roof cap, truck, props darker
+//                than light), the floor lettering keeps >= 3:1 against its zone in both themes
+//   memuat       the loading screen is up before the first data, gone after data and the first frame; a failed first
+//                load gives way to the note
 //   glass        every fixed card's backdrop-filter blurs; every text >= 4.5:1 on its card, light and dark; with
 //                prefers-reduced-transparency (CDP) every card and label is opaque with no backdrop-filter
 // ERP_BENCH (default ~/Desktop/Projects/erp-internal-bench) and ERP_SITE (erp.localhost) are for bench execute.
@@ -914,6 +921,7 @@ if (jalankan("notes")) await kasus("notes", async () => {
 	let n = await catatan(q);
 	cek(n?.teks === GAGAL, `notes: failed load says ${JSON.stringify(n?.teks)}`);
 	cek(n?.kartu && n.lebar > 100 && n.tinggi > 10, "notes: the failure note is not a visible glass card");
+	cek(await q.evaluate(() => { const m = erp.lantai.aktif.host.shadowRoot.querySelector(".memuat"); return !m || m.hidden; }), "notes: the loading screen is still up after a failed first load");
 	cek((await dialog(q)) === 0, "notes: a dialog opened on a failed load");
 	// An empty floor.
 	await q.unroute(POLA);
@@ -928,6 +936,135 @@ if (jalankan("notes")) await kasus("notes", async () => {
 	cek(await tunggu(q, () => erp.lantai.aktif.host.shadowRoot.querySelector(".catatan-lantai")?.hidden === true && erp.lantai.aktif.info().mesin.length > 0, null, 8000), "notes: the note did not clear after a good fetch");
 	cek((await dialog(q)) === 0, "notes: a dialog is open");
 	cek(!q.__galat.length, `notes: page errors: ${q.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	await ctx.close();
+});
+
+// --- perhatian: the attention card (machines that are not producing, worst first) ---------------------------------
+if (jalankan("perhatian")) await kasus("perhatian", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const d0 = await api(p, "erp_internal.production_floor.get_data", {}, false);
+	const semua = d0.mesin.map((m) => m.name);
+	const asli = await catatStatus(p, semua);
+	const baris = () =>
+		p.evaluate(() => {
+			const r = erp.lantai.aktif.host.shadowRoot;
+			const k = r.querySelector(".perhatian");
+			const asal = erp.lantai.aktif.host.getBoundingClientRect();
+			const kotak = (e) => { const b = e.getBoundingClientRect(); return { x: b.left - asal.left, y: b.top - asal.top, kanan: b.right - asal.left, bawah: b.bottom - asal.top }; };
+			return {
+				ada: !!k,
+				tampak: !!k && !k.hidden && k.getClientRects().length > 0,
+				kosong: r.querySelector(".perhatian .kosong")?.hidden === false ? r.querySelector(".perhatian .kosong").textContent : null,
+				baris: [...r.querySelectorAll(".perhatian li[data-mesin]")].filter((l) => !l.hidden).map((l) => ({ nama: l.dataset.mesin, teks: l.textContent, status: l.querySelector(".chip")?.dataset.status })),
+				kotak: k ? kotak(k) : null,
+				tabel: kotak(r.querySelector(".tabel")),
+				bar: kotak(r.querySelector(".bar")),
+				kpi: kotak(r.querySelector(".kpi")),
+				halangan: erp.lantai.aktif.info().halangan,
+			};
+		});
+	try {
+		for (const n of semua) await api(p, "erp_internal.production_floor.set_status", { machine: n, status: "Production" });
+		const nama = (nomor) => d0.mesin.find((m) => m.nomor === nomor).name;
+		await api(p, "erp_internal.production_floor.set_status", { machine: nama(2), status: "Problem" });
+		await api(p, "erp_internal.production_floor.set_status", { machine: nama(3), status: "Idle" });
+		await api(p, "erp_internal.production_floor.set_status", { machine: nama(4), status: "Maintenance" });
+		await p.evaluate(() => erp.lantai.aktif.muat());
+		cek(await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelectorAll(".perhatian li[data-mesin]").length === 3, null, 8000), "perhatian: the card did not list the three machines");
+		let b = await baris();
+		cek(b.tampak, "perhatian: the attention card is not visible");
+		cek(b.baris.map((r) => r.nama).join() === [2, 4, 3].map(nama).join(), `perhatian: order ${b.baris.map((r) => r.nama).join(",")}, wanted 02, 04, 03`);
+		cek(b.baris.map((r) => r.status).join() === "Problem,Maintenance,Idle", `perhatian: chips ${b.baris.map((r) => r.status)}`);
+		// Top left, under the machine table, which sits right under the top bar (not at the bottom any more).
+		cek(b.tabel.x < 40 && b.tabel.y >= b.bar.bawah - 1 && b.tabel.y < 200, `perhatian: the machine table is not top left under the bar ${JSON.stringify([b.tabel, b.bar])}`);
+		cek(b.kotak && b.kotak.x < 40 && b.kotak.y >= b.tabel.bawah - 1 && b.kotak.y - b.tabel.bawah < 30, `perhatian: the card is not directly under the table ${JSON.stringify([b.kotak, b.tabel])}`);
+		cek(b.halangan.some((h) => b.kotak && Math.abs(h.x0 - b.kotak.x) <= 2 && Math.abs(h.y0 - b.kotak.y) <= 2 && h.y1 - h.y0 > 20), "perhatian: info().halangan does not list the attention card");
+		// A click selects the machine like a table row.
+		await p.evaluate((n) => erp.lantai.aktif.host.shadowRoot.querySelector(`.perhatian li[data-mesin="${n}"]`).click(), nama(4));
+		cek(await tunggu(p, (n) => erp.lantai.aktif.info().pilih === n, nama(4), 3000), "perhatian: a click on the 04 row did not select Mesin 04");
+		await p.evaluate(() => erp.lantai.aktif.pilih(null));
+		// All running.
+		for (const n of [2, 3, 4]) await api(p, "erp_internal.production_floor.set_status", { machine: nama(n), status: "Production" });
+		await p.evaluate(() => erp.lantai.aktif.muat());
+		cek(await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelectorAll(".perhatian li[data-mesin]:not([hidden])").length === 0, null, 8000), "perhatian: rows are left with every machine in Production");
+		b = await baris();
+		cek(b.kosong === "All machines running", `perhatian: the empty text is ${JSON.stringify(b.kosong)}`);
+		cek((await dialog(p)) === 0, "perhatian: a dialog is open");
+		cek(!galatNyata(p.__galat).length, `perhatian: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	} finally {
+		await pulihkanStatus(p, asli);
+	}
+	await ctx.close();
+});
+
+// --- dekor-gelap: the building and the zones have a dark palette; the floor lettering stays readable --------------------
+if (jalankan("dekor-gelap")) await kasus("dekor-gelap", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const baca = async (tema) => {
+		await p.evaluate((t) => document.documentElement.setAttribute("data-theme", t), tema);
+		await p.waitForTimeout(700);
+		return p.evaluate(() => ({ pabrik: erp.lantai.aktif.info().pabrik, zona: erp.lantai.aktif.info().zona }));
+	};
+	const terang = (hex) => {
+		const [R, G, B] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((s) => (s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4));
+		return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+	};
+	try {
+		const terangTema = await baca("light");
+		const gelap = await baca("dark");
+		cek(terangTema.pabrik?.tema === "light" && terangTema.zona?.tema === "light", `dekor-gelap: light themes ${terangTema.pabrik?.tema}/${terangTema.zona?.tema}`);
+		cek(gelap.pabrik?.tema === "dark" && gelap.zona?.tema === "dark", `dekor-gelap: dark themes ${gelap.pabrik?.tema}/${gelap.zona?.tema}`);
+		for (const k of ["dinding", "atap", "truk"]) {
+			const a = terangTema.pabrik?.[k];
+			const g = gelap.pabrik?.[k];
+			cek(a && g && terang(g) < terang(a) * 0.6 && terang(g) < 0.25, `dekor-gelap: pabrik ${k} light ${a} dark ${g} (dark must be clearly darker, relative luminance < 0.25)`);
+		}
+		const a = terangTema.zona?.alat;
+		const g = gelap.zona?.alat;
+		cek(a && g && terang(g) < terang(a) * 0.8, `dekor-gelap: zona props light ${a} dark ${g}`);
+		for (const [nm, i] of [["light", terangTema], ["dark", gelap]]) {
+			const kon = i.zona?.kontras || {};
+			cek(Object.keys(kon).length === 6, `dekor-gelap: ${nm} contrast for ${Object.keys(kon).length} zones`);
+			for (const [z, r] of Object.entries(kon)) cek(r >= 3, `dekor-gelap: ${nm} lettering of ${z} has ${Number(r).toFixed(2)}:1 against its zone (need 3:1)`);
+		}
+		await p.waitForTimeout(500);
+		await p.screenshot({ path: join(HASIL, "lantai-gelap.png") });
+		cek((await dialog(p)) === 0, "dekor-gelap: a dialog is open");
+	} finally {
+		await p.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+	}
+	await ctx.close();
+});
+
+// --- memuat: the loading screen ---------------------------------------------------------------------------------------------
+if (jalankan("memuat")) await kasus("memuat", async () => {
+	const ctx = await konteksMasuk(browser);
+	const POLA = "**/api/method/erp_internal.production_floor.get_data";
+	let lepas;
+	const tahan = new Promise((f) => (lepas = f));
+	await ctx.route(POLA, async (r) => {
+		await tahan;
+		await r.continue();
+	});
+	const p = await ctx.newPage();
+	p.__galat = [];
+	p.on("pageerror", (e) => p.__galat.push(String(e)));
+	await p.goto(`${URL}/desk/production-floor`, { waitUntil: "domcontentloaded", timeout: 60000 });
+	await p.waitForFunction(() => window.erp?.lantai?.aktif, null, { timeout: 20000 });
+	await p.waitForTimeout(800); // frames run, data does not come
+	const m = await p.evaluate(() => {
+		const e = erp.lantai.aktif.host.shadowRoot.querySelector(".memuat");
+		return e && !e.hidden ? { teks: e.textContent, kartu: !!e.querySelector(".kartu") || e.classList.contains("kartu"), anim: getComputedStyle(e.querySelector(".putar")).animationName } : null;
+	});
+	cek(m && m.teks.includes("Loading production floor"), `memuat: before the data the screen reads ${JSON.stringify(m?.teks)}`);
+	cek(m?.kartu, "memuat: the loading screen is not glass");
+	cek(m && m.anim !== "none", `memuat: no animation (${m?.anim})`);
+	lepas();
+	cek(await tunggu(p, () => { const e = erp.lantai.aktif.host.shadowRoot.querySelector(".memuat"); return (!e || e.hidden) && erp.lantai.aktif.info().mesin.length > 0; }, null, 8000), "memuat: the loading screen is still up after the data came");
+	cek((await dialog(p)) === 0, "memuat: a dialog is open");
+	cek(!galatNyata(p.__galat).length, `memuat: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
 	await ctx.close();
 });
 
@@ -1491,6 +1628,26 @@ if (jalankan("hud-xss")) await kasus("hud-xss", async () => {
 		if (!boleh) cek(h.inisial === "IS", `hud-xss: initials ${JSON.stringify(h.inisial)} for a refused logo`);
 		await ctx.close();
 	}
+	// A Work Order item name is data too: in the attention card it shows as text.
+	{
+		const ctx = await konteksMasuk(browser);
+		await ctx.route("**/api/method/erp_internal.production_floor.get_data*", async (r) => {
+			const asli = await r.fetch();
+			const j = await asli.json();
+			j.message.mesin[0].status = "Problem";
+			j.message.mesin[0].wo = { name: "WO-X", item_code: "X", item_name: RACUN, qty: 10, produced_qty: 1, status: "In Process" };
+			await r.fulfill({ response: asli, json: j });
+		});
+		const p = await bukaLantai(ctx);
+		await p.waitForTimeout(900);
+		const k = await p.evaluate((n) => {
+			const l = erp.lantai.aktif.host.shadowRoot.querySelector(`.perhatian li[data-mesin="${n}"]`);
+			return l ? { teks: l.textContent, img: l.querySelectorAll("img").length } : null;
+		}, (await p.evaluate(() => erp.lantai.aktif.info().mesin[0].nama)));
+		cek(k && k.teks.includes(RACUN) && k.img === 0, `hud-xss: the attention card shows ${JSON.stringify(k)}`);
+		cek((await p.evaluate(() => window.kena)) === undefined, "hud-xss: script ran from the attention card");
+		await ctx.close();
+	}
 });
 
 // Glass: every fixed card blurs what is behind it (the moving labels do not, see label.js), and every text keeps 4.5:1 against its card over the floor, light and
@@ -1899,4 +2056,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, zona, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, hidup, glass, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, zona, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, perhatian, dekor-gelap, memuat, hidup, glass, perf, adaptive"})`);

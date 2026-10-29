@@ -26,6 +26,8 @@ const TEMA = {
 	light: { latar: 0xdfe3e8, lantai: 0xf2f4f6, penanda: 0x8a94a0 },
 	dark: { latar: 0x1e232a, lantai: 0x2b313a, penanda: 0x6b7480 },
 };
+// The floor colour per theme, for the zones' contrast figures (zona.js).
+export const WARNA_LANTAI = { light: TEMA.light.lantai, dark: TEMA.dark.lantai };
 const JARAK_TERBANG = 12; // camera distance from the machine after the flight
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 

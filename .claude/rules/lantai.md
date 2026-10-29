@@ -28,7 +28,7 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - **A text write during a camera drag stalls Chrome's main thread 50-100 ms.** No script, layout or paint shows in the
   trace. So label, clock and info bar text is written only once the camera rests (`label.js` 120 ms, bar at most ~1 s).
   Scene, lamps and panel update at once. Do not "fix" this by writing text in the render loop.
-- **Blur is expensive per moving layer.** The 5 fixed cards (bar, KPI row, table, panel, camera bar) keep a 20 px
+- **Blur is expensive per moving layer.** The 6 fixed cards (bar, KPI row, machine table, attention card, panel, camera bar) keep a 20 px
   backdrop blur; the 14 moving labels are glass without blur (even 3 px broke the dropped-frame gate). Without
   `backdrop-filter` or with `prefers-reduced-transparency` every card turns solid.
 - **Labels declutter** (`label.js`): placed nearest first, the selected one before all; a label that would overlap a placed one
@@ -37,7 +37,7 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   layout; only a changed class, visibility or transform is written. The cards' rectangles come from `hud.kotak()` /
   `panel.kotak()` (host-relative, cached, re-measured by a ResizeObserver or `ukurKotak()`, never per frame); the bundle joins
   them into `halangan`. `adegan.aturRuang()` fits the default view into the free area (`setViewOffset` on a scaled virtual frame, never above 1x) beside the
-  KPI row and the larger side of the machine table (right of it or above it); an open panel only moves the centre; do not call `saveState()` for it (it would overwrite home with the current view). `lantai.mjs label-rapi` checks it at three window sizes.
+  KPI row and the larger free side of the left column (machine table + attention card): to its right, or below it; an open panel only moves the centre; do not call `saveState()` for it (it would overwrite home with the current view). `lantai.mjs label-rapi` checks it at three window sizes.
 - One WebGL context for the whole session: leaving the page pauses, coming back resumes; never create a second canvas.
   One InstancedMesh per part (10 draw calls for 14 machines); a refresh with the same machines touches only changed rows.
 - Fetch with plain `fetch`, never `frappe.call`: a failed request must not open a message dialog.
@@ -59,6 +59,18 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - The open panel writes a node only when its text changed and waits for the camera to rest like the labels; `aria-live` is on the status chip and the note only (`lantai.mjs panel-quiet`).
 - A sidebar or build change needs `bench build --app erp_internal` and a restart of `bench start`.
 
+## The info cards (`hud.js`)
+
+- **Left column (`.kiri`)**, top left right under the top bar (under the KPI row below 1100 px): the machine table, then directly under it the
+  attention card. Both are listed by `hud.kotak()`, so labels avoid them, and `ukurKotak()` feeds `adegan.aturRuang` the column's right edge (or its bottom).
+  The table keeps its fold (collapsed under 760 px); the attention card has its own (`erp.lantai.perhatianTutup`, folded on a phone until opened) and is
+  hidden on a phone while the bottom sheet is open.
+- **Attention card** (`.perhatian`): every machine not in Production, worst first: Problem, Maintenance, Setup, Idle, Off (an empty status counts as Idle), floor order
+  within a status; each row has the machine, its status chip and the Work Order item (textContent only); a click or Enter selects the machine like a table row;
+  all running reads `__("All machines running")`. `hud.urutPerhatian(daftar)` is the order (pure). `lantai.mjs perhatian`, and `hud-xss` for an item name of HTML.
+- **Loading screen** (`.memuat`, built by the bundle): a glass card with a spinner and `__("Loading production floor…")` over the whole floor from mount until the first answer
+  (data or a failure) and the second frame tick are in and the cards are filled; then it is removed. A failed first load gives way to `.catatan-lantai`. No dialog (`lantai.mjs memuat`, `notes`).
+
 ## The floor plan and the factory (Revision 2)
 
 - `denah.js` is pure (no imports): `BARIS`, `posisi`, `posisiSisa(i)`, `SLAB`, `DINDING`, `PINTU`, `ZONA`, `JALUR`. `adegan.js` re-exports
@@ -66,12 +78,12 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   14 spare slots keep 1.5 m from every zone and every `JALUR` segment, and that no `JALUR` segment crosses a zone other than `bahan` and `jadi`.
   Change a zone or a slot only with that test green (a spare slot inside a zone, or on the forklift loop, is the failure it guards).
 - `pabrik.js` (`buatPabrik(adegan) -> {tema, info, buang}`): the cut-away building and the outside (ground, road, dock apron, truck, trees), all built from code. Static solids are
-  merged per material (one mesh), the trees are one `InstancedMesh`. A theme change recolours the ground, road, apron and window glow; it creates no geometry, material or texture. The window glow is
+  merged per material (one mesh), the trees are one `InstancedMesh`. A theme change recolours the ground, road, apron and window glow and re-tints the merged solids (walls, roof cap, columns, truck: the material's colour multiplies the vertex colours; `info()` has `tema`, `dinding`, `atap`, `truk` as drawn); it creates no geometry, material or texture. The window glow is
   `MeshBasicMaterial` that `saatTurun` dims. `bentuk.js` holds the small shape helpers (`warnai`, `balok`, `tegak`, `tabungZ`, `datar`, `terbuang`) shared with `zona.js`.
 - `zona.js` (`buatZona(adegan) -> {tema, info, buang}`): the six painted zones with their props (pallets of resin sacks and a dryer; pallets of crates, buckets and basins; red reject bins; a mould rack; the
   grinder; the glass QC office). Pallets, sacks, crates, buckets, basins and bins are one `InstancedMesh` each (tint by instance colour), the static parts one merged mesh, the QC glass and the paint their own
   materials. The lettering of all six zones is one canvas atlas (2 x 3 cells) drawn from `__("Raw Material")`, `__("Finished Goods")`, `__("Reject")`, `__("Mould Storage")`, `__("Grinder")`,
-  `__("QC Office")` and redrawn only on a theme change. `info()` is `{calls, tris, tulisan, pelat}`: `tulisan` the strings as drawn, `pelat` each plate's rectangle (`lantai.mjs zona` checks every plate lies on
+  `__("QC Office")` and redrawn only on a theme change; in dark the props' material is tinted darker too. `info()` is `{calls, tris, tulisan, pelat, tema, alat, kontras}` (`kontras`: each lettering's WCAG contrast against its plate over the zone paint over the floor, computed in sRGB, >= 3:1 in both themes, `lantai.mjs dekor-gelap`): `tulisan` the strings as drawn, `pelat` each plate's rectangle (`lantai.mjs zona` checks every plate lies on
   the slab at its zone). The QC plate sits inside the glass box on its own floor (y 0.1). Decor must never hide a machine, its lamp or its label: `lantai.mjs pabrik` raycasts from the camera to each andon point.
 - The default camera sits higher and further back (`kamera.position` 0, 32, 36) and `adegan.terapkanRuang` fits the machines with `LONGGAR` (0.8) room
   to spare, so the building shows around them; `label-rapi` still asserts no label is hidden or overlapping.

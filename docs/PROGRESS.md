@@ -2,6 +2,11 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (Production Floor Revision 2, Task 5 of 5)
+- Left column under the top bar: machine table, then the attention card (not in Production: Problem, Maintenance, Setup, Idle, Off; row click selects). Loading screen until first data and frame. Dark palette for the building, truck, props; lettering contrast >= 3:1 in both themes (`info().zona.kontras`). New cases `perhatian`, `dekor-gelap`, `memuat`; `hud-xss` and `notes` extended.
+- Tests as run: `node --test tools/denah.test.mjs` 6 OK; full `node tools/lantai.mjs` all cases OK (perf 60.0 fps, 0 dropped, 0 long tasks, 35 calls, 37,428 triangles; an earlier run under heavy machine load showed 1-2 long tasks, rerun clean); `tools/cek_layar.mjs` 3 users OK; `run-tests --app erp_internal` on erp-test 188 OK; docker build and `deploy/check_image.sh erp-internal:uji` OK.
+- Abel: restart `bench start` after the build.
+
 ## 2026-10-29 (sample data rerun on a later day)
 - `contoh._order` finds a sample Work Order by its plan start among the orders not Stopped or Closed; on another day
   it cancels the earlier run's Production Entries inside the new window, stops that order (`_lepas`) and makes a

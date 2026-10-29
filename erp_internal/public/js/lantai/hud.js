@@ -1,6 +1,6 @@
 // The info bar over the 3D floor, laid out like BPT Live's screen: a top bar (company logo and name, "Production
 // Floor", the machine count, the live dot and a ticking clock), a row of KPI cards on the right, and a collapsible
-// machine table at the bottom left whose status chips double as the legend. A table row selects its machine
+// machine table at the top left, under the bar, whose status chips double as the legend, with the attention card directly under it. A table row selects its machine
 // through `saatPilih`, the same path as a click in the scene.
 //
 // Record text goes in through textContent only; the logo's src is set only for a same-origin /files/ or
@@ -51,18 +51,19 @@ export const GAYA_HUD = `
 .sel[data-kpi="jalan"] .nilai{color:var(--chip-hijau)}
 .sel[data-kpi="masalah"][data-ada="1"] .nilai{color:var(--chip-merah)}
 
-.tabel{position:absolute;left:12px;bottom:12px;width:min(470px,calc(100% - 370px));
-	max-height:calc(100% - var(--atas,170px) - 24px);display:flex;flex-direction:column;overflow:hidden}
+.kiri{position:absolute;left:12px;top:calc(var(--bar,72px) + 10px);width:min(420px,calc(100% - 370px));
+	max-height:calc(100% - var(--bar,72px) - 22px);display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.tabel{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .tabel .kepala{padding:10px 12px 8px 14px;display:flex;flex-direction:column;gap:8px}
 .lipat{display:flex;align-items:center;gap:8px;font:inherit;font-weight:650;font-size:14px;color:inherit;
 	background:none;border:0;padding:0;cursor:pointer;text-align:left}
 .lipat .jml{font-weight:600;color:var(--kaca-redup);font-size:12px}
 .lipat svg{margin-left:auto;transition:transform .2s;color:var(--kaca-redup)}
-.tabel[data-tutup] .lipat svg{transform:rotate(-90deg)}
+.tabel[data-tutup] .lipat svg,.perhatian[data-tutup] .lipat svg{transform:rotate(-90deg)}
 .legenda{display:flex;flex-wrap:wrap;gap:5px}
 .legenda .chip .jumlah{font-variant-numeric:tabular-nums;margin-left:2px}
 .legenda .chip[data-nol]{background:transparent;box-shadow:inset 0 0 0 1px var(--kaca-garis)}
-.tabel .isi{overflow:auto;border-top:1px solid var(--kaca-garis);max-height:320px}
+.tabel .isi{overflow:auto;border-top:1px solid var(--kaca-garis);max-height:320px;min-height:0;flex:1 1 auto}
 .tabel[data-tutup] .isi{display:none}
 .tabel table{border-collapse:collapse;width:100%}
 .tabel th{position:sticky;top:0;z-index:1;background:var(--kaca-padat);text-align:left;font-size:11px;font-weight:600;
@@ -78,6 +79,35 @@ export const GAYA_HUD = `
 .tabel tbody tr.dipilih td.no{color:var(--kaca-aksen)}
 .tabel tbody tr:focus-visible{outline:2px solid var(--kaca-aksen);outline-offset:-2px}
 
+.perhatian{flex:0 0 auto;display:flex;flex-direction:column;overflow:hidden}
+.perhatian .kepala{padding:9px 12px 9px 14px}
+.perhatian .jml.ada{color:var(--chip-merah)}
+.perhatian[data-tutup] .daftar,.perhatian[data-tutup] .kosong{display:none}
+.perhatian .daftar{list-style:none;margin:0;padding:0;max-height:176px;overflow:auto;border-top:1px solid var(--kaca-garis)}
+.perhatian li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:6px 12px 6px 14px;
+	cursor:pointer}
+.perhatian li + li{border-top:1px solid var(--kaca-garis)}
+.perhatian li:hover{background:var(--kaca-tombol)}
+.perhatian li.dipilih{background:var(--kaca-pilih)}
+.perhatian li:focus-visible{outline:2px solid var(--kaca-aksen);outline-offset:-2px}
+.perhatian li[hidden],.perhatian .kosong[hidden]{display:none}
+.perhatian .no{font-weight:650;font-variant-numeric:tabular-nums;color:var(--kaca-redup)}
+.perhatian li.dipilih .no{color:var(--kaca-aksen)}
+.perhatian .teks{min-width:0}
+.perhatian .mesin{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perhatian .item{font-size:11.5px;color:var(--kaca-redup);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perhatian .item[hidden]{display:none}
+.perhatian .kosong{margin:0;padding:9px 14px 11px;border-top:1px solid var(--kaca-garis);color:var(--chip-hijau);font-weight:600}
+
+.memuat{position:absolute;inset:0;z-index:5;display:grid;place-items:center;pointer-events:auto;
+	background:color-mix(in srgb,var(--lantai-latar) 55%,transparent)}
+.memuat[hidden]{display:none}
+.memuat .kartu{display:flex;align-items:center;gap:12px;padding:14px 20px;font-weight:600}
+.memuat .putar{width:18px;height:18px;flex:none;border-radius:50%;border:3px solid var(--kaca-garis);
+	border-top-color:var(--kaca-aksen);animation:memutar .9s linear infinite}
+@keyframes memutar{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.memuat .putar{animation-duration:3s}}
+
 .kamera{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;padding:4px;
 	border-radius:16px}
 .kamera button{width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:12px;
@@ -86,6 +116,9 @@ export const GAYA_HUD = `
 .kamera button + button{margin-top:2px}
 :host([data-panel]) .kamera{right:346px}
 
+@media (max-width:1099px){
+	.kiri{top:calc(var(--atas,170px) + 10px);max-height:calc(100% - var(--atas,170px) - 22px)}
+}
 @media (max-width:759px){
 	.atas{top:8px;left:8px;right:8px;gap:6px}
 	.bar{padding:8px 10px;gap:6px 10px;min-height:0}
@@ -105,7 +138,8 @@ export const GAYA_HUD = `
 	.sel .nilai{font-size:16px}
 	.sel .nilai small{font-size:11px}
 	.sel .ket{display:none}
-	.tabel{left:8px;right:auto;bottom:8px;width:calc(100% - 70px);max-height:calc(100% - var(--atas,150px) - 16px)}
+	.kiri{left:8px;top:calc(var(--atas,150px) + 8px);width:calc(100% - 16px);max-height:calc(100% - var(--atas,150px) - 16px);gap:6px}
+	:host([data-panel]) .perhatian{display:none}
 	.simulasi{margin-top:-6px;padding:0 8px;font-size:9.5px;line-height:10px}
 	.kamera{right:8px;bottom:8px}
 	:host([data-panel]) .kamera{right:8px}
@@ -114,7 +148,10 @@ export const GAYA_HUD = `
 
 const IKON_LIPAT = `<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const KUNCI_TUTUP = "erp.lantai.tabelTutup"; // localStorage: "1" collapsed, "0" open
+const KUNCI_PERHATIAN = "erp.lantai.perhatianTutup"; // localStorage: "1" folded, "0" open
 const HP = "(max-width: 759px)";
+// The attention order: worst first. An empty status counts as Idle; Production needs no attention.
+const URUTAN_PERHATIAN = ["Problem", "Maintenance", "Setup", "Idle", "Off"];
 
 const angka = (n) => (typeof format_number === "function" ? format_number(n, null, 0) : String(n));
 const el = (induk, tag, kelas) => {
@@ -179,6 +216,19 @@ export function hitung(daftar) {
 	};
 }
 
+// The machines that need attention, worst status first, floor order within a status (the server's order).
+export function urutPerhatian(daftar) {
+	const rank = (m) => {
+		const r = URUTAN_PERHATIAN.indexOf(m?.status || "Idle");
+		return r < 0 ? URUTAN_PERHATIAN.length : r;
+	};
+	return (daftar || [])
+		.map((m, i) => [m, i])
+		.filter(([m]) => (m?.status || "Idle") !== "Production")
+		.sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1])
+		.map(([m]) => m);
+}
+
 // `saatPilih(nama)` selects a machine (a table row click); `saatDetik()` runs on each clock tick; `diam()` says
 // whether the camera rests (the clock only writes then).
 export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
@@ -230,8 +280,10 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 	const simulasi = el(atas, "div", "simulasi");
 	simulasi.textContent = __("Forklift, operators and parts are simulated");
 
+	// The left column under the top bar: the machine table and, directly under it, the attention card.
+	const kolom = el(hud, "div", "kiri");
 	// Machine table with the status legend in its header.
-	const tabel = el(hud, "section", "tabel kartu");
+	const tabel = el(kolom, "section", "tabel kartu");
 	const kepala = el(tabel, "div", "kepala");
 	const lipat = el(kepala, "button", "lipat");
 	lipat.type = "button";
@@ -298,6 +350,97 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 		const item = el(tdWo, "span");
 		const kecil = el(tdWo, "span", "kecil");
 		return { tr, no, mesin, chip, item, kecil };
+	}
+
+	// The attention card: the machines that are not producing, worst first (Problem, Maintenance, Setup, Idle, Off),
+	// each with its status chip and Work Order item. A row selects the machine like a table row.
+	const perhatian = el(kolom, "section", "perhatian kartu");
+	const kepalaP = el(perhatian, "div", "kepala");
+	const lipatP = el(kepalaP, "button", "lipat");
+	lipatP.type = "button";
+	el(lipatP, "span").textContent = __("Needs attention");
+	const jmlP = el(lipatP, "span", "jml angka");
+	lipatP.insertAdjacentHTML("beforeend", IKON_LIPAT);
+	const daftarP = el(perhatian, "ul", "daftar");
+	const kosongP = el(perhatian, "p", "kosong");
+	kosongP.textContent = __("All machines running");
+	const barisP = new Map(); // machine name → its row
+	function setelTutupP(tutup, simpan) {
+		perhatian.toggleAttribute("data-tutup", tutup);
+		lipatP.setAttribute("aria-expanded", String(!tutup));
+		lipatP.setAttribute("aria-label", tutup ? __("Show attention list") : __("Hide attention list"));
+		if (simpan)
+			try {
+				localStorage.setItem(KUNCI_PERHATIAN, tutup ? "1" : "0");
+			} catch {
+				/* storage blocked: the choice lasts this page only */
+			}
+	}
+	let tersimpanP = null;
+	try {
+		tersimpanP = localStorage.getItem(KUNCI_PERHATIAN);
+	} catch {
+		tersimpanP = null;
+	}
+	// Folded on a phone unless the user opened it before; open on a wide screen unless the user folded it.
+	const hpAwal = window.matchMedia?.(HP).matches;
+	setelTutupP(tersimpanP === null ? !!hpAwal : tersimpanP === "1", false);
+	lipatP.addEventListener("click", () => setelTutupP(!perhatian.hasAttribute("data-tutup"), true));
+	const dariBarisP = (e) => e.target.closest?.("li[data-mesin]")?.dataset.mesin;
+	daftarP.addEventListener("click", (e) => {
+		const n = dariBarisP(e);
+		if (n) saatPilih?.(n);
+	});
+	daftarP.addEventListener("keydown", (e) => {
+		if (e.key !== "Enter" && e.key !== " ") return;
+		const n = dariBarisP(e);
+		if (!n) return;
+		e.preventDefault();
+		saatPilih?.(n);
+	});
+	function barisPerhatianBaru(namaMesin) {
+		const li = document.createElement("li");
+		li.dataset.mesin = namaMesin;
+		li.tabIndex = 0;
+		li.setAttribute("role", "button");
+		const no = el(li, "span", "no");
+		const teks = el(li, "div", "teks");
+		const mesin = el(teks, "div", "mesin");
+		const item = el(teks, "div", "item");
+		const chip = el(li, "span", "chip");
+		return { li, no, mesin, item, chip };
+	}
+	function isiPerhatian(daftar) {
+		const perlu = urutPerhatian(daftar);
+		const hidup = new Set();
+		let sebelum = null;
+		for (const m of perlu) {
+			const n = String(m?.name ?? "");
+			hidup.add(n);
+			let b = barisP.get(n);
+			if (!b) {
+				b = barisPerhatianBaru(n);
+				barisP.set(n, b);
+			}
+			const tempat = sebelum ? sebelum.nextSibling : daftarP.firstChild;
+			if (tempat !== b.li) daftarP.insertBefore(b.li, tempat);
+			sebelum = b.li;
+			tulis(b.no, Number(m?.nomor) > 0 ? String(m.nomor).padStart(2, "0") : "–");
+			tulis(b.mesin, judulMesin(m).replace(/^\d+ · /, "") || n);
+			const wo = m?.wo;
+			tulis(b.item, wo ? String(wo.item_name || wo.item_code || wo.name || "") : "");
+			b.item.hidden = !wo;
+			isiChip(b.chip, m?.status);
+			b.li.classList.toggle("dipilih", n === dipilih);
+		}
+		for (const [n, b] of barisP)
+			if (!hidup.has(n)) {
+				b.li.remove();
+				barisP.delete(n);
+			}
+		kosongP.hidden = perlu.length > 0;
+		tulis(jmlP, angka(perlu.length));
+		jmlP.classList.toggle("ada", perlu.length > 0);
 	}
 
 	let dipilih = null;
@@ -395,6 +538,7 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 			chipLegenda[s].parentNode.toggleAttribute("data-nol", !n);
 		}
 		isiTabel(daftar);
+		isiPerhatian(daftar);
 	}
 
 	// The clock, in the user's language and time zone.
@@ -434,13 +578,23 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 
 	const host = root.host;
 	let tinggiAtas = -1;
+	let tinggiBar = -1;
 	const pengamat = new ResizeObserver(() => {
+		if (!host) return;
 		const t = Math.ceil(atas.offsetTop + atas.offsetHeight);
-		if (t === tinggiAtas || !host) return;
-		tinggiAtas = t;
-		host.style.setProperty("--atas", `${t}px`);
+		if (t !== tinggiAtas) {
+			tinggiAtas = t;
+			host.style.setProperty("--atas", `${t}px`);
+		}
+		// The left column starts right under the top bar.
+		const b = Math.ceil(atas.offsetTop + bar.offsetHeight);
+		if (b !== tinggiBar) {
+			tinggiBar = b;
+			host.style.setProperty("--bar", `${b}px`);
+		}
 	});
 	pengamat.observe(atas);
+	pengamat.observe(bar);
 
 	// The rectangles of the visible fixed cards, host-relative px: labels step aside for them and the default view
 	// centres in the space under the top bar and KPI row. Cached; measured only when a card resizes (fold, window,
@@ -452,24 +606,29 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 		if (!host) return;
 		const asal = host.getBoundingClientRect();
 		const hasil = [];
-		for (const k of [bar, kpi, simulasi, tabel, ...kartuLain]) {
+		for (const k of [bar, kpi, simulasi, tabel, perhatian, ...kartuLain]) {
 			if (k.hidden) continue;
 			const r = k.getBoundingClientRect();
 			if (r.width > 0 && r.height > 0)
 				hasil.push({ x0: r.left - asal.left, y0: r.top - asal.top, x1: r.right - asal.left, y1: r.bottom - asal.top });
 		}
 		const a = atas.getBoundingClientRect();
-		// The machine table covers a corner: keep clear of it on whichever side leaves the larger free rectangle
-		// (to its right, or above it); a collapsed table is a thin strip, so "above" wins.
-		const t = tabel.getBoundingClientRect();
+		// The left column (machine table, attention card) covers a corner: keep clear of it on whichever side leaves
+		// the larger free rectangle (to its right, or below it); a folded column is thin, so "below" can win.
+		let kolomKanan = 0;
+		let kolomBawah = 0;
+		for (const k of [tabel, perhatian]) {
+			const r = k.getBoundingClientRect();
+			if (r.width <= 0 || r.height <= 0) continue;
+			kolomKanan = Math.max(kolomKanan, Math.ceil(r.right - asal.left) + 8);
+			kolomBawah = Math.max(kolomBawah, Math.ceil(r.bottom - asal.top) + 8);
+		}
 		const atasPx = Math.ceil(a.bottom - asal.top);
-		const kiri = t.width > 0 ? Math.ceil(t.right - asal.left) + 8 : 0;
-		const bawah = t.height > 0 ? Math.ceil(asal.bottom - t.top) + 8 : 0;
-		const luasKiri = (asal.width - kiri) * (asal.height - atasPx);
-		const luasBawah = asal.width * (asal.height - atasPx - bawah);
+		const luasKanan = (asal.width - kolomKanan) * (asal.height - atasPx);
+		const luasBawah = asal.width * (asal.height - Math.max(atasPx, kolomBawah));
 		const ruang = { atas: atasPx, kanan: 0, bawah: 0, kiri: 0 };
-		if (luasKiri >= luasBawah) ruang.kiri = kiri;
-		else ruang.bawah = bawah;
+		if (luasKanan >= luasBawah) ruang.kiri = kolomKanan;
+		else ruang.atas = Math.max(atasPx, kolomBawah);
 		const sama = (x, y) => JSON.stringify(x) === JSON.stringify(y);
 		if (sama(hasil, kotakKini) && sama(ruang, ruangKini)) return;
 		kotakKini = hasil;
@@ -477,7 +636,7 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 		saatKotak?.();
 	}
 	const pengamatKotak = new ResizeObserver(ukurKotak);
-	for (const k of [atas, bar, kpi, simulasi, tabel]) pengamatKotak.observe(k);
+	for (const k of [atas, bar, kpi, simulasi, tabel, perhatian]) pengamatKotak.observe(k);
 	if (host) pengamatKotak.observe(host);
 
 	let liveKini = null;
@@ -507,16 +666,18 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 		pilih(namaMesin) {
 			dipilih = namaMesin;
 			for (const [n, b] of baris) b.tr.classList.toggle("dipilih", n === namaMesin);
+			for (const [n, b] of barisP) b.li.classList.toggle("dipilih", n === namaMesin);
 		},
 		jeda: henti,
 		lanjut: mulai,
-		info: () => ({ angka: angkaKini, jam: jamDetik !== null, tutup: tabel.hasAttribute("data-tutup") }),
+		info: () => ({ angka: angkaKini, jam: jamDetik !== null, tutup: tabel.hasAttribute("data-tutup"), perhatian: barisP.size }),
 		buang() {
 			henti();
 			pengamat.disconnect();
 			pengamatKotak.disconnect();
 			hud.remove();
 			baris.clear();
+			barisP.clear();
 		},
 	};
 }

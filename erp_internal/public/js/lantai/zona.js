@@ -7,6 +7,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { ZONA } from "./denah.js";
+import { WARNA_LANTAI } from "./adegan.js";
 import { balok, datar, tabungZ, tegak, terbuang, warnai } from "./bentuk.js";
 
 const C = {
@@ -20,9 +21,27 @@ const C = {
 	merah: 0xc9362d,
 	rangka: 0xdfe3e8,
 };
+// Per theme: the lettering and its plate (hex and opacity), and `padat`, the tint that multiplies the props' vertex
+// colours (the light sacks and crates would glare on the dark floor).
 const TEMA = {
-	light: { huruf: "#15202b", pelat: "rgba(255,255,255,0.82)" },
-	dark: { huruf: "#f1f5f9", pelat: "rgba(20,24,30,0.82)" },
+	light: { huruf: 0x15202b, pelat: 0xffffff, alfa: 0.82, padat: 0xffffff },
+	dark: { huruf: 0xf1f5f9, pelat: 0x14181e, alfa: 0.82, padat: 0x8f969f },
+};
+const css = (hex) => `#${hex.toString(16).padStart(6, "0")}`;
+const rgba = (hex, a) => `rgba(${(hex >> 16) & 255},${(hex >> 8) & 255},${hex & 255},${a})`;
+const kanal = (hex) => [(hex >> 16) & 255, (hex >> 8) & 255, hex & 255];
+const FLOOR_FILL = 0.26; // the zone fill's opacity over the floor (below)
+// WCAG contrast of two sRGB triples.
+const terang = (c) => {
+	const [r, g, b] = c.map((v) => {
+		const s = v / 255;
+		return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+	});
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const kontrasDari = (a, b) => {
+	const [x, y] = [terang(a), terang(b)].sort((m, n) => n - m);
+	return (x + 0.05) / (y + 0.05);
 };
 // Floor paint per zone (fill and border).
 const CAT = { bahan: 0x4d7fbf, cetakan: 0x7a8794, qc: 0x3fa5a8, jadi: 0x3fae6a, reject: 0xd9473d, giling: 0xe0902a };
@@ -150,6 +169,7 @@ export function buatZona(adegan) {
 		return urus(g);
 	};
 	const lambert = mat(new THREE.MeshLambertMaterial({ vertexColors: true }));
+	lambert.color.setHex(TEMA.light.padat);
 
 	// --- static solids: one merged mesh ---------------------------------------------------------------------------
 	const padat = [];
@@ -240,7 +260,7 @@ export function buatZona(adegan) {
 			datar(k.x1 - t, k.z0 + t, k.x1, k.z1 - t, 0.014, CAT[nama])
 		);
 	}
-	for (const [daftar, opasitas] of [[isi, 0.26], [garis, 0.75]]) {
+	for (const [daftar, opasitas] of [[isi, FLOOR_FILL], [garis, 0.75]]) {
 		const geo = gabung(daftar);
 		grup.add(new THREE.Mesh(geo, mat(new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: opasitas, depthWrite: false, toneMapped: false }))));
 		catat(geo);
@@ -271,11 +291,11 @@ export function buatZona(adegan) {
 				ctx.font = font();
 			}
 			const lebar = ctx.measureText(teks).width + 44;
-			ctx.fillStyle = t.pelat;
+			ctx.fillStyle = rgba(t.pelat, t.alfa);
 			ctx.beginPath();
 			ctx.roundRect(x + (SEL_L - lebar) / 2, y + 8, lebar, SEL_T - 16, 20);
 			ctx.fill();
-			ctx.fillStyle = t.huruf;
+			ctx.fillStyle = css(t.huruf);
 			ctx.fillText(teks, x + SEL_L / 2, y + SEL_T / 2 + 3);
 			return teks;
 		});
@@ -307,17 +327,40 @@ export function buatZona(adegan) {
 	adegan.scene.add(grup);
 
 	let t = TEMA.light;
+	let namaTema = "light";
+	// The lettering against its zone as drawn: the plate over the zone's fill over the floor, in sRGB (the paint is
+	// unlit MeshBasicMaterial, blended in output space).
+	const kontras = () =>
+		Object.fromEntries(
+			HURUF.map((nama) => {
+				const lantai = kanal(WARNA_LANTAI[namaTema]);
+				const isi = kanal(CAT[nama]).map((v, i) => v * FLOOR_FILL + lantai[i] * (1 - FLOOR_FILL));
+				const diatas = kanal(t.pelat).map((v, i) => v * t.alfa + isi[i] * (1 - t.alfa));
+				return [nama, kontrasDari(kanal(t.huruf), diatas)];
+			})
+		);
 	return {
 		// "light" or "dark": the floor lettering follows Desk's theme (the atlas is redrawn; nothing else changes).
 		tema(nama) {
 			const baru = nama === "dark" ? TEMA.dark : TEMA.light;
 			if (baru === t) return;
 			t = baru;
+			namaTema = nama === "dark" ? "dark" : "light";
+			lambert.color.setHex(t.padat);
 			gambarHuruf(t);
 			adegan.tandaiKotor();
 		},
 		// The zones' share of the draw calls and triangles, the lettering as drawn and where each plate lies.
-		info: () => ({ calls, tris: Math.round(tris), tulisan: [...tulisan], pelat }),
+		info: () => ({
+			calls,
+			tris: Math.round(tris),
+			tulisan: [...tulisan],
+			pelat,
+			tema: namaTema,
+			// A sack of resin as the screen shows it (vertex colour x theme tint), and the lettering contrast per zone.
+			alat: `#${new THREE.Color(0xf1ead8).multiply(lambert.color).getHexString()}`,
+			kontras: kontras(),
+		}),
 		buang() {
 			adegan.scene.remove(grup);
 			for (const g of geometri) g.dispose();
