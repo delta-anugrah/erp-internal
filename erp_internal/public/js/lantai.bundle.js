@@ -9,6 +9,7 @@ import { GAYA_KACA } from "./lantai/kaca.js";
 import { buatLabel, GAYA_LABEL } from "./lantai/label.js";
 import { buatMesin } from "./lantai/mesin.js";
 import { buatPabrik } from "./lantai/pabrik.js";
+import { buatZona } from "./lantai/zona.js";
 import { buatPanel, GAYA_PANEL } from "./lantai/panel.js";
 
 frappe.provide("erp.lantai");
@@ -235,6 +236,7 @@ erp.lantai.pasang = function (host) {
 		return pasangTabel(host);
 	}
 	const pabrik = buatPabrik(adegan);
+	const zona = buatZona(adegan);
 	const mesin = buatMesin(adegan);
 	adegan.tiap.push(mesin.tick);
 	adegan.saatTurun.push(mesin.diam);
@@ -311,6 +313,7 @@ erp.lantai.pasang = function (host) {
 		if (host.dataset.tema !== t) host.dataset.tema = t;
 		adegan.tema(gelap);
 		pabrik.tema(t);
+		zona.tema(t);
 	};
 	ikutTema();
 	const pengamatTema = new MutationObserver(ikutTema);
@@ -459,6 +462,7 @@ erp.lantai.pasang = function (host) {
 			panel.buang();
 			label.buang();
 			mesin.buang();
+			zona.buang();
 			pabrik.buang();
 			adegan.buang();
 			root.innerHTML = "";
@@ -477,6 +481,7 @@ erp.lantai.pasang = function (host) {
 				webgl: true,
 				mesin: mesinInfo,
 				pabrik: pabrik.info(),
+				zona: zona.info(),
 				label: label.info(),
 				halangan: halanganKini,
 				hud: hud.info(),

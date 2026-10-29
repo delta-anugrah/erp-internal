@@ -26,6 +26,9 @@
 //                a bottom sheet at 390 px wide
 //   pabrik       the decor is drawn; every machine's andon point projects inside the canvas with nothing in front of it from
 //                the default camera; Mesin 01 set to Problem has a red, pulsing floor ring (restored after)
+//   zona         the zones' props and floor lettering: the six strings in English and (user switched) Indonesian, every
+//                lettering plate on the slab and at its zone, building + zones <= 100 calls / 250k triangles, 20 status
+//                changes grow no geometry, texture or program (language switched back after)
 //   status       the Problem button: spinner and disabled until the answer, the server's status (get_value), the
 //                chip, the lamp; a refused change is an inline note; an unchanged refetch touches no machine
 //   wo, xss      a submitted In Process Work Order (40 produced) on Mesin 03: label item and progress, panel link;
@@ -1254,6 +1257,68 @@ if (jalankan("pabrik")) await kasus("pabrik", async () => {
 		await ctx.close();
 	}
 });
+// --- zona: the zones' props and floor lettering, English and Indonesian, the budget, nothing new after load ----------
+if (jalankan("zona")) await kasus("zona", async () => {
+	const ctx = await konteksMasuk(browser);
+	const ENGLISH = ["Raw Material", "Finished Goods", "Reject", "Mould Storage", "Grinder", "QC Office"];
+	const INDONESIA = ["Bahan Baku", "Barang Jadi", "Reject", "Gudang Cetakan", "Penggiling", "QC / Kantor"];
+	let p = await bukaLantai(ctx);
+	try {
+		await p.waitForTimeout(1200);
+		const i = await p.evaluate(() => erp.lantai.aktif.info());
+		cek(i.zona?.calls > 0, `zona: info().zona ${JSON.stringify(i.zona)}`);
+		cek(JSON.stringify(i.zona?.tulisan) === JSON.stringify(ENGLISH), `zona: lettering in English ${JSON.stringify(i.zona?.tulisan)}`);
+		const jumlah = (i.pabrik?.calls || 0) + (i.zona?.calls || 0);
+		cek(jumlah > 0 && jumlah <= 100, `zona: draw calls of building + zones ${jumlah}`);
+		cek((i.pabrik?.tris || 0) + (i.zona?.tris || 0) <= 250000, `zona: triangles of building + zones ${(i.pabrik?.tris || 0) + (i.zona?.tris || 0)}`);
+		cek(i.render.calls <= 100 && i.render.triangles <= 250000, `zona: rendered ${i.render.calls} calls, ${i.render.triangles} triangles`);
+		// Every lettering plate lies on the slab and touches its own zone.
+		const { SLAB, ZONA } = await import("../erp_internal/public/js/lantai/denah.js");
+		for (const [nama, k] of Object.entries(i.zona?.pelat || {})) {
+			const z = ZONA[nama];
+			cek(k.x0 >= SLAB.x0 && k.x1 <= SLAB.x1 && k.z0 >= SLAB.z0 && k.z1 <= SLAB.z1, `zona: the ${nama} lettering leaves the slab ${JSON.stringify(k)}`);
+			cek(k.x0 >= z.x0 - 0.01 && k.x1 <= z.x1 + 0.01 && k.z1 > z.z0 && k.z0 < z.z1 + 0.5 && k.z0 >= z.z0 - 0.01, `zona: the ${nama} lettering is not at its zone ${JSON.stringify(k)}`);
+		}
+		cek(Object.keys(i.zona?.pelat || {}).length === 6, `zona: ${Object.keys(i.zona?.pelat || {}).length} lettering plates`);
+		// 20 status changes grow no geometry, texture or program.
+		const m = await p.evaluate(async () => {
+			const nilai = () => {
+				const k = erp.lantai.aktif.info();
+				return { ...k.memory, programs: k.programs };
+			};
+			const d = await erp.lantai.ambil();
+			const awal = nilai();
+			const STATUS = ["Production", "Off", "Idle", "Problem", "Maintenance", "Setup"];
+			for (let n = 0; n < 20; n++) {
+				d.mesin[n % d.mesin.length].status = STATUS[n % STATUS.length];
+				erp.lantai.aktif.perbarui(d);
+				await new Promise((r) => setTimeout(r, 60));
+			}
+			return { awal, akhir: nilai() };
+		});
+		cek(m.akhir.geometries <= m.awal.geometries && m.akhir.textures <= m.awal.textures && m.akhir.programs <= m.awal.programs, `zona: 20 status changes grew ${JSON.stringify(m)}`);
+		await p.evaluate(() => erp.lantai.aktif.muat());
+		await p.screenshot({ path: join(HASIL, "lantai-zona.png") });
+		// Indonesian: the same strings, translated.
+		await api(p, "erp_internal.bahasa.ganti", { lang: "id" });
+		await p.close();
+		p = await bukaLantai(ctx);
+		await p.waitForTimeout(800);
+		const j = await p.evaluate(() => erp.lantai.aktif.info());
+		cek(JSON.stringify(j.zona?.tulisan) === JSON.stringify(INDONESIA), `zona: lettering in Indonesian ${JSON.stringify(j.zona?.tulisan)}`);
+		await p.screenshot({ path: join(HASIL, "lantai-zona-id.png") });
+		cek((await dialog(p)) === 0, "zona: a message dialog is open");
+		cek(!p.__galat.length, `zona: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	} finally {
+		try {
+			setNilai("User", "user@example.com", "language", "en");
+			bench("execute", "frappe.clear_cache", "--kwargs", JSON.stringify({ user: "user@example.com" }));
+		} catch (e) {
+			gagal.push(`zona: could not switch user@example.com back to English: ${e.message.slice(0, 200)}`);
+		}
+		await ctx.close();
+	}
+});
 if (jalankan("hud")) await kasus("hud", async () => {
 	const ctx = await konteksMasuk(browser);
 	const p = await bukaLantai(ctx);
@@ -1763,4 +1828,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, zona, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);
