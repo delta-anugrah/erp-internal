@@ -205,3 +205,39 @@ A machine that no longer runs this mould.,Mesin yang tidak lagi menjalankan ceta
 Make BOMs,Buat BOM
 "{0} BOMs made, {1} unchanged, {2} switched off.","{0} BOM dibuat, {1} tetap, {2} dinonaktifkan."
 Set the material of this row before making BOMs.,Isi bahan baris ini dulu sebelum membuat BOM.
+Apply,Terapkan
+Cavities must be a whole number.,Cavity harus bilangan bulat.
+Columns ignored: {0},Kolom diabaikan: {0}
+Excel or CSV file,File Excel atau CSV
+Import Machine Capacity,Impor Kapasitas Mesin
+Import from Excel,Impor dari Excel
+Item {0} does not exist.,Barang {0} tidak ada.
+Item {0} is disabled.,Barang {0} nonaktif.
+More than one item is named {0}.,Lebih dari satu barang bernama {0}.
+More than one machine has the number {0}.,Lebih dari satu mesin bernomor {0}.
+More than one product is named {0}.,Lebih dari satu produk bernama {0}.
+No item {0}.,Tidak ada barang {0}.
+No machine {0}.,Tidak ada mesin {0}.
+No product named {0}.,Tidak ada produk bernama {0}.
+Only .xlsx and .csv files can be imported.,Hanya file .xlsx dan .csv yang bisa diimpor.
+Preview,Pratinjau
+Reason,Alasan
+Result,Hasil
+Row,Baris
+Same product and machine as row {0}.,Produk dan mesinnya sama dengan baris {0}.
+The file has more than {0} rows.,File punya lebih dari {0} baris.
+The file is empty or larger than {0} MB.,File kosong atau lebih besar dari {0} MB.
+The file is empty.,File kosong.
+The file is not a valid Excel file.,File ini bukan file Excel yang sah.
+The row names no machine.,Baris ini tidak menyebut mesin.
+The row names no material.,Baris ini tidak menyebut bahan.
+The row names no product.,Baris ini tidak menyebut produk.
+"Unexpected error, see the Error Log.","Terjadi kesalahan, lihat Error Log."
+You cannot read this file.,Kamu tidak boleh membaca file ini.
+"{0} BOMs made, {1} switched off.","{0} BOM dibuat, {1} dinonaktifkan."
+"{0} is ambiguous: write it with a comma for decimals, e.g. 1,25 or 1250.","{0} bisa dibaca dua cara: tulis desimal dengan koma, mis. 1,25 atau 1250."
+{0} is not a number.,{0} bukan angka.
+New,Baru
+Changed,Berubah
+Unchanged,Tidak berubah
+Refused,Ditolak

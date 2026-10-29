@@ -2,6 +2,14 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (Plan vs Actual, Task 3 of 6)
+- Task 3: Excel import of machine capacity. `planning/impor_kapasitas.py` (`KOLOM_IMPOR`, `normal`, `angka`, `baca`,
+  `pratinjau`, `terapkan`), list button "Import from Excel" in `machine_capacity_list.js` (Preview, Apply, every cell
+  escaped), sample `tests/data/kapasitas.xlsx` from `tools/contoh_kapasitas.py`, 33 Indonesian rows,
+  `docs/impor.md` section 6. Preview writes nothing; Apply writes New/Changed rows and their BOMs per row in a savepoint.
+- Tests as run: `run-tests --app erp_internal`: 151 tests OK (135 + 16 in `test_impor_kapasitas`).
+- Next: Task 4, Production Entry.
+
 ## 2026-10-29 (Plan vs Actual, Task 1 of 6)
 - Task 1 (`203969e` and a follow-up): DocType Machine Capacity (module Planning; Manufacturing Manager writes, Manufacturing User
   reads), `planning/kapasitas.py` (`kapasitas()` lookup: variant row, template + Jenis, template; `jenis_varian`,

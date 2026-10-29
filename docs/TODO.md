@@ -3,12 +3,12 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
 Last full run (2026-10-29, after Plan vs Actual Task 1): `bench --site erp-test.localhost run-tests --app erp_internal`:
-128 tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+128 tests, all OK (151 after Plan vs Actual Task 3). `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
 ## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)
 - [x] Task 1: Machine Capacity and the lookup (`kapasitas.py`, `test_kapasitas`)
 - [x] Task 2: BOMs from capacity (Make BOMs button)
-- [ ] Task 3: Excel import of capacity
+- [x] Task 3: Excel import of capacity (`impor_kapasitas.py`, `test_impor_kapasitas`)
 - [ ] Task 4: Production Entry (stock entries, cancel)
 - [ ] Task 5: Plan vs Actual report
 - [ ] Task 6: Docs and final checks

@@ -132,6 +132,60 @@ impor dengan **Import Type** `Update Existing Records`.
 
 Cek setelah impor: total per bulan di **Sales History** (Report view, group by Month) sama dengan file Samuel.
 
+## 6. Kapasitas mesin (`kapasitas.xlsx`)
+
+Kapasitas per produk per mesin (waktu siklus, cavity, berat, bahan) dari Excel Samuel, tanpa Data Import. Buka
+**Machine Capacity** (menu Manufacturing), tombol **Import from Excel**: lampirkan file `.xlsx` atau `.csv`
+(maksimal 2 MB dan 2000 baris), klik **Preview**, cek tabelnya, lalu **Apply**. Sebelum Apply tidak ada yang
+ditulis. Yang boleh: Manufacturing Manager (profil Admin dan Developer). Contoh file yang dites ada di
+`erp_internal/tests/data/kapasitas.xlsx` (dibuat ulang dengan `tools/contoh_kapasitas.py`; `test_impor_kapasitas.py`
+mengimpornya sungguhan).
+
+**Judul kolom dibaca dari artinya**, bukan urutannya. Besar kecil huruf, spasi, tanda baca diabaikan (`Cycle Time
+(detik)` = `cycletimedetik`), `%` dibaca "persen". Kolom yang judulnya tidak dikenal diabaikan dan disebut di
+atas tabel. Daftar nama lain ada di `KOLOM_IMPOR` (`planning/impor_kapasitas.py`); nama baru = tambah di tabel itu.
+
+| Isi | Judul yang dikenal (sebagian) |
+|---|---|
+| kode barang | `Kode Barang`, `Item Code`, `SKU` |
+| produk | `Produk`, `Nama Produk`, `Product` |
+| jenis | `Jenis`, `Tipe`, `Type` |
+| mesin | `Mesin`, `No Mesin`, `Machine` |
+| waktu siklus (detik) | `Cycle Time`, `CT`, `Siklus`, `Cycle (detik)` |
+| cavity | `Cavity`, `Cav`, `Jumlah Cavity` |
+| berat produk (gram) | `Berat`, `Gram`, `Berat Produk`, `Weight` |
+| berat runner (gram per tembakan) | `Runner`, `Sprue`, `Berat Runner` |
+| bahan | `Bahan`, `Material`, `PP/HDPE` |
+| masterbatch dan persennya | `Masterbatch`; `MB %`, `Persen MB` |
+
+**Cara mencocokkan baris:**
+
+- **Barang**: kalau ada `Kode Barang`, itu yang dipakai. Kalau tidak: `Produk` + `Jenis`. `Produk` dicocokkan
+  dengan nama barang template (besar kecil huruf tidak berpengaruh); pasangan produk + jenis yang `master.PISAH`
+  pisahkan (Sendok Makan Pack/Ball) menunjuk templatenya sendiri; ejaan jenis disamakan lewat `master.SAMA` ("Warna
+  DX" = DX). Jenis yang tidak dimiliki varian mana pun ditolak. Jenis kosong = baris untuk seluruh template.
+- **Mesin**: angka di selnya dipakai sebagai `Machine No.` (`3`, `03`, `Mesin 03` sama saja); kalau tidak ada
+  angka, dicocokkan dengan nama mesin. Dua mesin bernomor sama ditolak.
+- **Bahan dan masterbatch**: kode barang atau nama barang. Bahan yang tidak ada **ditolak, tidak dibuatkan**, supaya
+  salah ketik tidak menambah barang stok. Satuannya harus Kg (aturan Machine Capacity).
+- **Angka**: `2,5` dan `2.5` = 2,5; `1.250,5` dan `1,250.5` = 1250,5. `1.250` dan `1,250` bisa berarti seribu dua
+  ratus lima puluh atau satu seperempat, jadi **ditolak**; tulis `1250` atau `1,25`.
+
+**Hasil per baris** (nomor baris = nomor baris di Excel, baris 1 judul):
+
+| Hasil | Arti |
+|---|---|
+| New | baris kapasitas baru |
+| Changed | sudah ada (barang + jenis + mesin sama) tapi angka atau bahan di file beda; kolom yang beda disebut di Reason |
+| Unchanged | sudah sama persis; tidak ditulis |
+| Refused | ditolak, alasannya di kolom Reason (barang, mesin atau bahan tidak ada, angka tidak jelas, nilai ditolak form, baris kembar dalam file) |
+
+**Apply** menulis baris New dan Changed, lalu membuat BOM-nya seperti tombol **Make BOMs** (`kapasitas.buat_bom_kapasitas`);
+baris Unchanged tidak disentuh. Kalau satu baris gagal saat Apply (padahal lolos Preview), baris itu dibatalkan
+seluruhnya, ditandai Refused dengan pesan kesalahannya, dan baris lain jalan terus. File yang sama diimpor dua kali:
+kali kedua semuanya Unchanged dan tidak ada BOM baru. Baris kapasitas yang sudah dinonaktifkan tidak diaktifkan
+lagi oleh impor.
+
 ## Data induk Samuel: katalog dan mesin (`master.py`)
 
 Barang jadi Dinda House Ware, daftar harganya dan mesin injection tidak lewat CSV, tapi lewat importer sendiri
