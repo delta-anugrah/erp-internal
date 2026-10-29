@@ -8,6 +8,8 @@ Newest first. One entry per working session: what changed, test results as run, 
   new one. No more `db.set_value` on a submitted order's qty or dates. New test `test_hari_berikutnya`.
 - Tests as run: `run-tests --module erp_internal.tests.test_contoh` 8 OK (twice); full run 201 (13 unit + 188
   integration) OK; ruff check clean.
+- Abel 2026-10-29: the home shortcut cap stays 12 (`PINTASAN_MAKS`). Samuel asked about shifts, reject types and
+  runner (`docs/menunggu-samuel.md` rows 9-11).
 
 ## 2026-10-29 (Plan vs Actual, whole-branch review fixes)
 - `Work Order.erp_mesin` is now `allow_on_submit` (migrate both sites): a submitted order's machine can change, so the

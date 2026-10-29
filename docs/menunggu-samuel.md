@@ -14,6 +14,9 @@ place in the last column and strike the row.
 | 6 | Server provider and budget, domain, off-site backup bucket | local compose stack only | `deploy/server/.env`, Task 7/8 |
 | 7 | Who uses it, and as Admin or User | one sample user per role (`developer@`, `admin@`, `user@example.com`) | users at go-live |
 | 8 | Office days off and leave: Saturday off? Which leave types and how many days of annual leave? | Saturday and Sunday off; Cuti Tahunan 12, Sakit, Izin (unpaid); national holidays entered by HR from the SKB | `setup.LIBUR_MINGGUAN`, `setup.JENIS_CUTI`, Task 15/17 |
+| 9 | Factory shifts: how many, and their hours? (asked 2026-10-29) | `setup.SHIFT_PABRIK`: Shift 1, 2, 3 of 8 h each | Plan vs Actual target per shift, Production Entry |
+| 10 | Which reject types are recorded? (asked 2026-10-29) | the sample Reject Reasons: Short Shot, Flashing, Belang / Warna, Bubble, Pecah / Retak, Sink Mark | Reject Reason list, Plan vs Actual reason columns |
+| 11 | Runner (the leftover plastic in the mould's channels): ground and reused, or thrown away? (asked 2026-10-29) | counted in the material per shot (`runner_weight`), not returned to stock | capacity BOM material, a regrind item if reused |
 
 ## Answers (Mas Samuel, 2026-10-28)
 

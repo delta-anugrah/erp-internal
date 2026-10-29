@@ -21,8 +21,6 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
       has no plan) and group it by Machine, Day, Item, Work Order and Shift; then again in Indonesian.
 
 ## Waiting on Abel
-- [ ] Decide: home shortcuts cap raised from 10 to 12 (Manufacturing 12, Setup 11) against Samuel's "short homes";
-      trim links instead?
 - [ ] Optional: allow a Work Order's machine change only while Not Started / In Process (now any submitted order).
 - [ ] In the browser: Machine Capacity list → Import from Excel (Preview, Apply), Make BOMs, Record Output on a Work
       Order, Plan vs Actual in both target modes, in Indonesian too.
@@ -83,6 +81,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
+- [ ] Plan vs Actual: shifts, reject types, runner (`docs/menunggu-samuel.md` rows 9-11, asked 2026-10-29).
 
 ## Master data
 - [x] Samuel's catalog and machines (`erp_internal/master.py`, `test_master` 8 OK; run twice on `erp.localhost`,
