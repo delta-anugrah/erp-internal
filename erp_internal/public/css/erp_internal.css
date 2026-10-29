@@ -26,3 +26,10 @@
 		z-index: 1031;
 	}
 }
+
+/* A form whose name is a random hash (Sales History, Machine Capacity) shows its title; the hash under the
+   title in the form sidebar only raised questions (Abel, 2026-10-29: hide what users don't need). */
+body[data-route^="Form/Sales History/"] .form-name-container,
+body[data-route^="Form/Machine Capacity/"] .form-name-container {
+	display: none !important;
+}

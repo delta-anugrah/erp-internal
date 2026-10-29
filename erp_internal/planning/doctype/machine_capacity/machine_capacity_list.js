@@ -42,6 +42,9 @@ function tabel(h) {
 }
 
 frappe.listview_settings["Machine Capacity"] = {
+	// The name is a random hash: no ID column or filter (Abel, 2026-10-29: hide what users don't need).
+	hide_name_column: true,
+	hide_name_filter: true,
 	onload(listview) {
 		if (!frappe.model.can_create("Machine Capacity") || !frappe.model.can_write("Machine Capacity")) return;
 		listview.page.add_inner_button(__("Import from Excel"), () => bukaImpor(listview));

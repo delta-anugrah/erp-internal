@@ -52,6 +52,15 @@ class TestSalesHistory(IntegrationTestCase):
 		doc = self.baru(date(2026, 5, 17)).insert()
 		self.assertEqual(getdate(doc.bulan), date(2026, 5, 1))
 
+	def test_judul_barang_dan_bulan(self):
+		# The name is a hash; the title users see is the item and the month (Abel, 2026-10-29).
+		doc = self.baru(date(2026, 4, 9)).insert()
+		self.assertEqual(doc.title, f"{BARANG_UJI} · 04-2026")
+		meta = frappe.get_meta("Sales History")
+		self.assertEqual(meta.title_field, "title")
+		self.assertTrue(meta.show_title_field_in_link)
+		self.assertTrue(frappe.get_meta("Machine Capacity").show_title_field_in_link)
+
 	def test_duplikat_ditolak(self):
 		# Review Focus 1: the same file imported twice must not double the forecast.
 		bulan = get_first_day(add_months(getdate(today()), -2))

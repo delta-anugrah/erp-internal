@@ -94,7 +94,8 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [x] Commit this session's work (company rename + logo, Running vs Idle, `penjualan.py`).
 - [x] Production Floor: turn machines 01-07 like 08-14 (lamps visible); Problem's red lamp blinks clearly.
 - [x] Production Floor: remove the forklift for now.
-- [ ] Hide IDs users don't need (Sales History's hash name first; sweep the other forms).
+- [x] Hide IDs users don't need (Sales History's hash name first; sweep the other forms). Only Sales History and
+      Machine Capacity are hash-named; Production Entry's `PE-…` stays (a document number). Abel: say if Company should go too.
 - [ ] Order Readiness: leave template items out.
 - [ ] Desk sidebar: the collapsed sidebar's expand button is tiny and covered.
 - [ ] Fitting icons for our sidebar links.

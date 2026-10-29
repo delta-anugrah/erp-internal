@@ -73,6 +73,11 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
   keeps an Admin from handing out any role outside Admin and User or touching a Developer account (User
   validate/has_permission, Has Role insert); `test_pengguna` tries every path.
 - A report that reads with `get_all` checks the caller's Company/Warehouse permission itself (Order Readiness).
+- Hide what users don't need (Abel, 2026-10-29). A DocType named by hash (Sales History, Machine Capacity) shows a
+  title instead: `show_title_field_in_link`, `hide_name_column`/`hide_name_filter` in its `*_list.js`, and the form
+  sidebar's name hidden in `public/css/erp_internal.css`. Sales History's `title` is "ITEM · MM-YYYY"
+  (`sales_history.judul`, set in validate; old rows filled by `patches/judul_riwayat.py`). Document numbers people
+  quote (Production Entry `PE-…`, Work Order, BOM) stay visible.
 - `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with nothing on that user's rail; it
   must never fail boot. `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
 - `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Admin and Developer

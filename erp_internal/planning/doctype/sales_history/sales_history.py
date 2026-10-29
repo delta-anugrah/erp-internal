@@ -13,6 +13,7 @@ from frappe.utils import flt, get_first_day, getdate
 class SalesHistory(Document):
 	def validate(self):
 		self.bulan = get_first_day(self.bulan)
+		self.title = judul(self.item_code, self.bulan)
 		if flt(self.qty) < 0:
 			frappe.throw(_("Qty cannot be negative."))
 		if not frappe.db.get_value("Item", self.item_code, "is_stock_item"):
@@ -32,6 +33,11 @@ class SalesHistory(Document):
 				),
 				frappe.UniqueValidationError,
 			)
+
+
+def judul(item_code: str, bulan) -> str:
+	"""The row's title, shown instead of its hash name: "CTH-KURSI · 09-2026"."""
+	return f"{item_code} · {getdate(bulan).strftime('%m-%Y')}"
 
 
 def on_doctype_update():
