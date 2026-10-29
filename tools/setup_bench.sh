@@ -18,7 +18,7 @@ SOCKETIO_PORT=9002
 REDIS_QUEUE_PORT=11002
 REDIS_CACHE_PORT=13002
 SITES=(erp.localhost erp-test.localhost)
-COMPANY="PT Contoh Plastik"
+COMPANY="PT Delta Anugrah"
 COMPANY_ABBR=CPL
 
 tag() { "$PYTHON" -c "import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])" "$REPO/versi.json" "$1"; }

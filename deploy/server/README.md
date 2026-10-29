@@ -47,7 +47,7 @@ from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json
 
    `--mariadb-user-host-login-scope="%"`: otherwise the site's database user is bound to the container's IP, which
    changes on restart.
-7. **Wizard**, in the same `tools` container (the values Task 8 confirms with Samuel; dev uses PT Contoh Plastik,
+7. **Wizard**, in the same `tools` container (the values Task 8 confirms with Samuel; dev uses PT Delta Anugrah,
    CPL): English, Indonesia, Asia/Jakarta, IDR, chart "Standard", fiscal year January to December, Administrator
    only.
 

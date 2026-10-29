@@ -164,7 +164,7 @@ const tulis = (node, nilai) => {
 	if (node.textContent !== nilai) node.textContent = nilai;
 };
 
-// "PT Contoh Plastik" → "CP": the first letters of the first two words after a legal form.
+// "PT Delta Anugrah" → "DA": the first letters of the first two words after a legal form.
 export function inisial(nama) {
 	const kata = String(nama ?? "")
 		.replace(/[^\p{L}\p{N}\s]/gu, " ")

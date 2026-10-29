@@ -25,8 +25,9 @@ from erp_internal.tests import utils
 
 TANDA = "DATA CONTOH"
 
-# The one company, factory and office together (Samuel, 2026-10-28; the real one is PT Delta Anugrah).
-PERUSAHAAN = ("PT Contoh Plastik", "CPL")
+# The one company, factory and office together (Samuel, 2026-10-28), under its real name so the Production Floor
+# shows it; abbreviation CPL kept from the earlier sample name PT Contoh Plastik (renamed on erp.localhost 2026-10-29).
+PERUSAHAAN = ("PT Delta Anugrah", "CPL")
 
 # Item code → (name, group, stock UOM, other UOMs with their factor, valuation rate, opening stock).
 BARANG = {
@@ -169,6 +170,7 @@ def buat_contoh() -> dict[str, int]:
 
 	hari_ini = getdate(today())
 	company = tandai("Company", utils.buat_perusahaan(*PERUSAHAAN))
+	_logo(company)
 	_barang(company)
 	_jual_beli(company, hari_ini)
 	_produksi(company, hari_ini)
@@ -186,6 +188,26 @@ def tandai(doctype: str, nama: str) -> str:
 def surel(profil: str) -> str:
 	"""The sample user of a Role Profile: `<profile, lower case>@example.com` (as `tools/cek_layar.mjs`)."""
 	return f"{profil.lower()}@example.com"
+
+
+def _logo(company: str) -> None:
+	"""Attach the Delta Anugrah logo as the company logo, once (the Production Floor's top bar shows it)."""
+	if frappe.db.get_value("Company", company, "company_logo"):
+		return
+	with open(frappe.get_app_path("erp_internal", "public", "images", "delta-anugrah.png"), "rb") as f:
+		isi = f.read()
+	berkas = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": "delta-anugrah.png",
+			"attached_to_doctype": "Company",
+			"attached_to_name": company,
+			"attached_to_field": "company_logo",
+			"is_private": 0,
+			"content": isi,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.set_value("Company", company, "company_logo", berkas.file_url)
 
 
 def _barang(company: str) -> None:
