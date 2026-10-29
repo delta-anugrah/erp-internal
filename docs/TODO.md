@@ -10,7 +10,7 @@ Last full run (2026-10-29, after Plan vs Actual Task 1): `bench --site erp-test.
 - [x] Task 2: BOMs from capacity (Make BOMs button)
 - [x] Task 3: Excel import of capacity (`impor_kapasitas.py`, `test_impor_kapasitas`)
 - [x] Task 4: Production Entry (stock entries, cancel; `test_hasil_produksi`)
-- [ ] Task 5: Plan vs Actual report
+- [x] Task 5: Plan vs Actual report (`planning/report/plan_vs_actual/`, `test_plan_vs_actual`)
 - [ ] Task 6: Docs and final checks
 
 ## Waiting on Abel

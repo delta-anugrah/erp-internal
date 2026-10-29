@@ -146,3 +146,35 @@ Status, yang paling mendesak di atas:
 - **Set lead time**: produk belum punya Item Lead Time, isi dulu;
 - **Scheduled**: masih ada waktu;
 - **OK**: stok dan produksi cukup.
+
+## Laporan Plan vs Actual
+
+**Manufacturing → Plan vs Actual** membandingkan rencana dengan hasil yang dicatat lewat Production Entry.
+
+Isi filter: Company, From Date dan To Date (otomatis 7 hari yang berakhir kemarin). Mesin, Item (pilih template, semua
+variannya ikut), Work Order dan Shift boleh dikosongkan. Hanya Production Entry yang sudah **Submit** yang dihitung.
+
+**Group by** mengatur baris: Machine, Machine + Day (bawaan), Day, Item, Work Order atau Shift. Angkanya dihitung dari
+mesin × hari × Work Order × shift, lalu dijumlahkan sesuai pilihan.
+
+**Target from** menentukan dari mana target datang:
+
+- **Work Order** (bawaan): jumlah Work Order dibagi rata ke hari rencananya (Planned Start sampai Planned End, kalau
+  kosong sampai Expected Delivery; kalau dua-duanya kosong, semua di hari mulai). Target masuk ke mesin di Work Order;
+  Work Order tanpa mesin masuk baris **No machine** (hasilnya tetap tampil di mesin yang mencatat). Kalau dikelompokkan
+  per Shift, target hari itu dibagi menurut jam jalan yang dicatat di tiap shift; hari tanpa catatan dibagi rata ke
+  tiga shift.
+- **Capacity**: pcs per jam dari Machine Capacity × jam jalan di Production Entry. Pasangan item-mesin tanpa data
+  kapasitas tidak punya target: kolom Note menulis **No capacity** dan Achieved % kosong. Hari rencana tanpa catatan
+  hasil bertarget 0.
+
+| Kolom | Artinya |
+|---|---|
+| Target | rencana (kosong kalau tidak ada) |
+| Good / Reject | jumlah bagus dan reject yang dicatat |
+| Reject % | reject ÷ (bagus + reject) |
+| Achieved % | bagus ÷ target: **hijau** mulai 100 %, **oranye** mulai 85 %, **merah** di bawahnya |
+| (nama alasan) | satu kolom per alasan reject yang muncul di hasil |
+
+Hari yang punya target tetapi belum ada hasil tetap muncul: bagus 0, Achieved % 0. Grafik batang di atas tabel
+menampilkan Target, Good dan Reject per baris. Kalau muncul izin ditolak, akunmu nggak boleh buka company itu.

@@ -2,6 +2,16 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (Plan vs Actual, Task 5 of 6)
+- Task 5: Script Report Plan vs Actual (module Planning, `ref_doctype` Production Entry; Manufacturing User/Manager,
+  System Manager), in Manufacturing's sidebar and home after Order Readiness. Cells (machine, day, Work Order, shift)
+  with a target from the Work Order (even over its planned days; split over shifts by recorded hours) or from
+  Machine Capacity (`pcs_per_hour` × recorded hours; none without a capacity row), grouped by `KELOMPOK`;
+  dynamic reject-reason columns, Achieved % pill (`CAPAI_HIJAU` 100 / `CAPAI_KUNING` 85, sent on the column),
+  bar chart. Company permission checked, submitted entries and orders of that company only.
+- Tests as run: `test_plan_vs_actual` 11 OK, `test_tampilan` and `test_bahasa` OK; full run in the commit message
+  below. Review notes: a reason column is `r_` + scrubbed name with non-word characters turned into `_`.
+
 ## 2026-10-29 (Plan vs Actual, Task 4 of 6)
 - Task 4: DocTypes Reject Reason (seeded from `setup.ALASAN_REJECT`, never deleted), Production Entry
   (`PE-.YYYY.-.#####`, submittable) and its child Production Entry Reject. Submit: ERPNext's Manufacture entry for the

@@ -283,3 +283,24 @@ Run hours must be more than 0 and at most 24.,Jam jalan harus lebih dari 0 dan p
 Set the Default Scrap Warehouse of {0} first.,Isi dulu Default Scrap Warehouse di {0}.
 Work Order {0} does not exist.,Perintah Produksi {0} tidak ada.
 Re-open Work Order {0} first.,Buka lagi dulu Perintah Produksi {0}.
+From Date cannot be after To Date.,Dari Tanggal tidak boleh setelah Sampai Tanggal.
+Unknown grouping {0}.,Pengelompokan {0} tidak dikenal.
+Unknown target source {0}.,Sumber target {0} tidak dikenal.
+Target,Target
+Good,Bagus
+Reject,Reject
+Reject %,Reject %
+Achieved %,Tercapai %
+Note,Catatan
+No machine,Tanpa mesin
+No capacity,Tanpa kapasitas
+From Date,Dari Tanggal
+To Date,Sampai Tanggal
+Group by,Kelompokkan per
+Target from,Target dari
+A template matches all its variants.,Template mencakup semua variannya.
+Work Order: its quantity spread over its planned days. Capacity: pieces per hour × run hours.,Work Order: jumlahnya dibagi rata ke hari rencananya. Capacity: pcs per jam × jam jalan.
+Plan vs Actual,Rencana vs Aktual
+Machine + Day,Mesin + Hari
+Day,Hari
+Capacity,Kapasitas
