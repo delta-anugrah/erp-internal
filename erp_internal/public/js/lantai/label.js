@@ -6,6 +6,13 @@
 // New text waits until the camera has rested for DIAM ms: in Chrome, the first repaint of a label while it moves
 // under a drag stalls the main thread for 50-100 ms (measured in a headed run, no script involved), which broke the
 // frame budget when a status change arrived mid-orbit. A resting label repaints for free.
+//
+// Declutter: the labels are placed nearest first (the selected one before all). A label whose box would overlap one
+// already placed shrinks to a compact chip (number and status dot); one that would sit under a fixed card (`halangan`,
+// host-relative rectangles from hud.js and panel.js) is hidden. Every label caches its full and compact size, measured
+// only after its text changed (the camera rests then), so a frame reads no layout, and only a changed class or
+// visibility is written. A label flips between full and compact only when the overlap starts or ends by more
+// than HISTERESIS px, so it does not flicker at a boundary.
 
 // Label and chip layout. The card look (fill, light edge, radius, shadow) is `.kartu` from kaca.js, but without the
 // backdrop blur and with a denser fill: fourteen labels move with the camera and each blurred backdrop is redrawn
@@ -24,6 +31,10 @@ export const GAYA_LABEL = `
 }
 .label .baris{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .label .judul{font-weight:600;font-variant-numeric:tabular-nums}
+.label.ringkas > .isi{padding:4px 8px;border-radius:12px}
+.label.ringkas .baris{flex-direction:row;align-items:center;gap:5px}
+.label.ringkas .sisa,.label.ringkas .wo{display:none}
+.label.ringkas .chip{font-size:0;line-height:10px;padding:0;gap:0;background:none}
 .label.dipilih > .isi{outline:2px solid var(--kaca-aksen);outline-offset:1px}
 .label .wo{margin-top:3px;max-width:134px}
 .label .wo-item{display:block;overflow:hidden;text-overflow:ellipsis;color:var(--kartu-teks-redup)}
@@ -33,16 +44,21 @@ export const GAYA_LABEL = `
 `;
 
 const DIAM = 120; // ms the camera must rest before label text changes are written
+const HISTERESIS = 8; // px an overlap must start or end by before a label switches between full and compact
 
 const dua = (n) => String(n).padStart(2, "0");
 const angka = (n) => (typeof format_number === "function" ? format_number(n, null, 0) : String(n));
 
 // "03 · NISSEI 260T": number, brand and tonnage, whichever exist.
 export function judulMesin(row) {
+	const { nomor, sisa } = bagianJudul(row);
+	return [nomor, sisa].filter(Boolean).join(" · ") || String(row?.name ?? "");
+}
+// The title in two parts: the number (what the compact chip keeps) and brand and tonnage.
+function bagianJudul(row) {
 	const nomor = Number(row?.nomor) > 0 ? dua(row.nomor) : "";
 	const ton = Number(row?.tonase) > 0 ? `${Number(row.tonase)}T` : "";
-	const sisi = [row?.merek, ton].filter(Boolean).join(" ");
-	return [nomor, sisi].filter(Boolean).join(" · ") || String(row?.name ?? "");
+	return { nomor, sisa: [row?.merek, ton].filter(Boolean).join(" ") };
 }
 
 // The status chip's text and colour key; an empty status reads as Idle. Status values are the Workstation's own
@@ -61,7 +77,10 @@ export const persen = (wo) => {
 	return qty > 0 ? Math.max(0, Math.min(100, Math.round(((Number(wo.produced_qty) || 0) / qty) * 100))) : 0;
 };
 
-export function buatLabel(root, adegan, mesin) {
+// Do two boxes overlap by more than `m` px on both axes? A negative `m` grows them (they overlap or come within |m|).
+const beririsan = (a, b, m) => a.x0 < b.x1 - m && a.x1 > b.x0 + m && a.y0 < b.y1 - m && a.y1 > b.y0 + m;
+
+export function buatLabel(root, adegan, mesin, { halangan = () => [] } = {}) {
 	const lapis = document.createElement("div");
 	lapis.className = "label-lapis";
 	root.appendChild(lapis);
@@ -69,6 +88,7 @@ export function buatLabel(root, adegan, mesin) {
 	const titik = { x: 0, y: 0, depan: true }; // scratch for projections
 	let tulis = 0; // transform writes since mount, for tools/lantai.mjs
 	let dipilih = null;
+	let tersembunyi = 0; // labels hidden under a card, from the last placement
 
 	function buat(nama) {
 		const el = document.createElement("div");
@@ -80,6 +100,10 @@ export function buatLabel(root, adegan, mesin) {
 		baris.className = "baris";
 		const judul = baris.appendChild(document.createElement("span"));
 		judul.className = "judul";
+		const no = judul.appendChild(document.createElement("span"));
+		no.className = "no";
+		const sisa = judul.appendChild(document.createElement("span"));
+		sisa.className = "sisa";
 		const chip = baris.appendChild(document.createElement("span"));
 		chip.className = "chip";
 		const wo = isi.appendChild(document.createElement("div"));
@@ -93,7 +117,15 @@ export function buatLabel(root, adegan, mesin) {
 		const teksAngka = wo.appendChild(document.createElement("span"));
 		teksAngka.className = "wo-angka";
 		lapis.appendChild(el);
-		return { el, judul, chip, wo, item, isiBar, teksAngka, x: NaN, y: NaN, tampak: true, teks: {} };
+		return {
+			el, judul, no, sisa, chip, wo, item, isiBar, teksAngka, nama,
+			x: NaN, y: NaN, tampak: true, teks: {},
+			ringkas: null, // null until first placed: the first decision has no hysteresis
+			ukur: true, // the sizes below are stale (text changed)
+			lp: 0, tp: 0, lr: 0, tr: 0, // full and compact box, px
+			px: 0, py: 0, dalam: 0, depan: false, // this frame's projection
+			x0: 0, y0: 0, x1: 0, y1: 0, // the box placed this frame
+		};
 	}
 
 	// Writes a text only when it changed, so a refresh with the same data touches no node.
@@ -101,6 +133,7 @@ export function buatLabel(root, adegan, mesin) {
 		if (l.teks[kunci] === nilai) return;
 		l.teks[kunci] = nilai;
 		node.textContent = nilai;
+		l.ukur = true;
 	}
 
 	let tunda = null; // rows waiting for the camera to rest
@@ -123,8 +156,15 @@ export function buatLabel(root, adegan, mesin) {
 				l = buat(nama);
 				per.set(nama, l);
 			}
-			teks(l, "judul", l.judul, judulMesin(row));
+			const bagian = bagianJudul(row);
+			// The number alone reads as the whole title when the row has no brand or tonnage; an unnumbered machine
+			// shows its name.
+			const polos = !bagian.nomor && !bagian.sisa ? String(row?.name ?? "") : "";
+			teks(l, "no", l.no, bagian.nomor || polos);
+			teks(l, "sisa", l.sisa, bagian.nomor && bagian.sisa ? ` · ${bagian.sisa}` : bagian.sisa);
+			const sebelum = l.chip.dataset.status;
 			isiChip(l.chip, row?.status);
+			if (l.chip.dataset.status !== sebelum) l.ukur = true;
 			const wo = row?.wo;
 			if (wo) {
 				teks(l, "item", l.item, String(wo.item_name || wo.item_code || wo.name || ""));
@@ -135,7 +175,10 @@ export function buatLabel(root, adegan, mesin) {
 					l.isiBar.style.width = lebar;
 				}
 			}
-			if (l.wo.hidden !== !wo) l.wo.hidden = !wo;
+			if (l.wo.hidden !== !wo) {
+				l.wo.hidden = !wo;
+				l.ukur = true;
+			}
 			l.el.classList.toggle("dipilih", nama === dipilih);
 		}
 		for (const [nama, l] of per)
@@ -143,31 +186,103 @@ export function buatLabel(root, adegan, mesin) {
 				l.el.remove();
 				per.delete(nama);
 			}
+		ukurSemua();
 		adegan.tandaiKotor(); // the layout may have moved: place the labels on the next frame
 	}
 
-	// Places every label over its machine (just above the andon), hidden when the machine is behind the camera.
+	// Measures the labels whose text changed, in both forms (a layout read: only called once the camera rests, with
+	// the text writes). The class is put back as it was.
+	function ukurSemua() {
+		for (const l of per.values()) {
+			if (!l.ukur) continue;
+			l.ukur = false;
+			const awal = l.el.classList.contains("ringkas");
+			const isi = l.el.firstChild;
+			l.el.classList.remove("ringkas");
+			l.lp = isi.offsetWidth;
+			l.tp = isi.offsetHeight;
+			l.el.classList.add("ringkas");
+			l.lr = isi.offsetWidth;
+			l.tr = isi.offsetHeight;
+			l.el.classList.toggle("ringkas", awal);
+		}
+	}
+
+	const urut = []; // labels in front of the camera, placed in this order; reused every frame
+	const bandingkan = (a, b) => (a.nama === dipilih ? -1 : b.nama === dipilih ? 1 : a.dalam - b.dalam);
+	const kosong = [];
+
+	// Places every label over its machine (just above the andon). Nearest first (the selected one before all): full
+	// when its box clears the boxes already placed, else compact; hidden when behind the camera or under a card.
+	// Only changes are written: the transform when the position moved, the class and visibility when they flip.
 	function segarkan() {
 		const daftar = mesin.daftar();
+		const kartu = halangan() || kosong;
+		urut.length = 0;
 		for (let i = 0; i < daftar.length; i++) {
 			const s = daftar[i];
 			const l = per.get(s.nama);
 			if (!l) continue;
 			adegan.proyeksi(s.x, 2.45, s.z, titik);
-			const tampak = titik.depan;
-			if (tampak !== l.tampak) {
-				l.tampak = tampak;
-				l.el.style.visibility = tampak ? "" : "hidden";
+			l.depan = titik.depan;
+			l.px = Math.round(titik.x);
+			l.py = Math.round(titik.y);
+			l.dalam = titik.dalam;
+			if (l.depan) urut.push(l);
+			else tulisTampak(l, false);
+		}
+		urut.sort(bandingkan);
+		let terpasang = 0; // urut[0..terpasang) are the placed boxes
+		let sembunyi = 0;
+		for (let i = 0; i < urut.length; i++) {
+			const l = urut[i];
+			// Full unless it hits a placed box; a label already full stays so until the hit is deeper than
+			// HISTERESIS, one already compact grows back only when even a HISTERESIS wider box clears.
+			l.x0 = l.px - l.lp / 2;
+			l.x1 = l.px + l.lp / 2;
+			l.y0 = l.py - l.tp;
+			l.y1 = l.py;
+			let penuh = true;
+			if (l.nama !== dipilih) {
+				const m = l.ringkas === null ? 0 : l.ringkas ? -HISTERESIS : HISTERESIS;
+				for (let j = 0; j < terpasang; j++)
+					if (beririsan(l, urut[j], m)) {
+						penuh = false;
+						break;
+					}
 			}
-			if (!tampak) continue;
-			const x = Math.round(titik.x);
-			const y = Math.round(titik.y);
-			if (x === l.x && y === l.y) continue;
-			l.x = x;
-			l.y = y;
-			l.el.style.transform = `translate3d(${x}px,${y}px,0)`;
+			if (!penuh) {
+				l.x0 = l.px - l.lr / 2;
+				l.x1 = l.px + l.lr / 2;
+				l.y0 = l.py - l.tr;
+			}
+			if (l.ringkas !== !penuh) {
+				l.ringkas = !penuh;
+				l.el.classList.toggle("ringkas", l.ringkas);
+			}
+			let bawahKartu = false;
+			for (let j = 0; j < kartu.length && !bawahKartu; j++) bawahKartu = beririsan(l, kartu[j], 0);
+			tulisTampak(l, !bawahKartu);
+			if (bawahKartu) {
+				sembunyi += 1;
+				continue; // a hidden label takes no room from the others
+			}
+			// Keep the placed boxes at the front of `urut`.
+			urut[i] = urut[terpasang];
+			urut[terpasang] = l;
+			terpasang += 1;
+			if (l.x === l.px && l.y === l.py) continue;
+			l.x = l.px;
+			l.y = l.py;
+			l.el.style.transform = `translate3d(${l.px}px,${l.py}px,0)`;
 			tulis += 1;
 		}
+		tersembunyi = sembunyi;
+	}
+	function tulisTampak(l, tampak) {
+		if (tampak === l.tampak) return;
+		l.tampak = tampak;
+		l.el.style.visibility = tampak ? "" : "hidden";
 	}
 	adegan.penyegar.push(segarkan);
 	const tiap = () => {
@@ -180,8 +295,20 @@ export function buatLabel(root, adegan, mesin) {
 		pilih(nama) {
 			dipilih = nama;
 			for (const [n, l] of per) l.el.classList.toggle("dipilih", n === nama);
+			adegan.tandaiKotor(); // the selected label is placed first
 		},
-		info: () => ({ jumlah: per.size, tulis, tertunda: !!tunda }),
+		// The cards moved: place again on the next frame.
+		kotakBaru: () => adegan.tandaiKotor(),
+		info() {
+			const kotak = [];
+			let ringkas = 0;
+			for (const l of per.values()) {
+				if (l.ringkas) ringkas += 1;
+				if (l.tampak && l.depan)
+					kotak.push({ nama: l.nama, x0: l.x0, y0: l.y0, x1: l.x1, y1: l.y1, ringkas: !!l.ringkas });
+			}
+			return { jumlah: per.size, tulis, tertunda: !!tunda, ringkas, tersembunyi, kotak };
+		},
 		buang() {
 			const i = adegan.penyegar.indexOf(segarkan);
 			if (i >= 0) adegan.penyegar.splice(i, 1);

@@ -178,6 +178,18 @@ export function buatAdegan(root) {
 
 	let lebarLayar = 1;
 	let tinggiLayar = 1;
+	const ruang = { atas: 0, kanan: 0, bawah: 0, kiri: 0 }; // px the cards take; the view centres in the rest
+	// Shifts the projection so the camera's target sits at the centre of the free area (a sub-view of the full
+	// frame: same size, offset), not under a card. No offset at all when the cards take nothing.
+	function terapkanRuang() {
+		const { atas, kanan, bawah, kiri } = ruang;
+		if (!atas && !kanan && !bawah && !kiri) kamera.clearViewOffset();
+		else {
+			const dx = lebarLayar / 2 - (kiri + (lebarLayar - kanan)) / 2;
+			const dy = tinggiLayar / 2 - (atas + (tinggiLayar - bawah)) / 2;
+			kamera.setViewOffset(lebarLayar, tinggiLayar, Math.round(dx), Math.round(dy), lebarLayar, tinggiLayar);
+		}
+	}
 	function ukuran() {
 		const l = root.clientWidth || 1;
 		const t = root.clientHeight || 1;
@@ -185,6 +197,7 @@ export function buatAdegan(root) {
 		tinggiLayar = t;
 		renderer.setSize(l, t);
 		kamera.aspect = l / t;
+		terapkanRuang();
 		kamera.updateProjectionMatrix();
 		tandaiKotor();
 	}
@@ -313,12 +326,24 @@ export function buatAdegan(root) {
 			kontrol.update();
 			tandaiKotor();
 		},
-		// Screen pixels of a world point into `out` ({x, y, depan}); `depan` false when it is behind the camera.
+		// The free area for the default view, in px the cards take on each side. The camera's home is the same
+		// position and target, so the reset button returns to the view centred in the free area (the offset belongs
+		// to the camera, not to the saved state: `saveState()` here would overwrite home with wherever the user is).
+		aturRuang({ atas = 0, kanan = 0, bawah = 0, kiri = 0 } = {}) {
+			if (ruang.atas === atas && ruang.kanan === kanan && ruang.bawah === bawah && ruang.kiri === kiri) return;
+			Object.assign(ruang, { atas, kanan, bawah, kiri });
+			terapkanRuang();
+			kamera.updateProjectionMatrix();
+			tandaiKotor();
+		},
+		// Screen pixels of a world point into `out` ({x, y, depan, dalam}); `depan` false when it is behind the
+		// camera, `dalam` the depth (smaller is nearer).
 		proyeksi(x, y, z, out) {
 			v0.set(x, y, z).project(kamera);
 			out.x = ((v0.x + 1) / 2) * lebarLayar; // cached sizes: no layout read between label writes
 			out.y = ((1 - v0.y) / 2) * tinggiLayar;
 			out.depan = v0.z < 1;
+			out.dalam = v0.z;
 			return out;
 		},
 		reset() {

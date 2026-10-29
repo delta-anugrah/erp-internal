@@ -236,8 +236,18 @@ erp.lantai.pasang = function (host) {
 	const mesin = buatMesin(adegan);
 	adegan.tiap.push(mesin.tick);
 	adegan.saatTurun.push(mesin.diam);
-	const label = buatLabel(root.querySelector(".lantai"), adegan, mesin);
+	// Rectangles of every visible fixed card (HUD and side panel), host-relative px, rebuilt only when a card moved
+	// or resized (never per frame): labels step aside for them and the default view centres in the free area.
+	let halanganKini = [];
+	let panel = null;
+	function kotakBaru() {
+		halanganKini = [...hud.kotak(), ...(panel ? panel.kotak() : [])];
+		adegan.aturRuang(hud.ruang());
+		label.kotakBaru();
+	}
+	const label = buatLabel(root.querySelector(".lantai"), adegan, mesin, { halangan: () => halanganKini });
 	const hud = buatHud(root, {
+		saatKotak: kotakBaru,
 		saatPilih: (nama) => pilih(nama),
 		saatDetik: () => hud.status(adaLive(), ambilan.terakhir),
 		diam: () => adegan.sejakGerak() >= DIAM_HUD,
@@ -271,6 +281,7 @@ erp.lantai.pasang = function (host) {
 	const kameraBar = document.createElement("div");
 	kameraBar.className = "kamera kartu";
 	root.querySelector(".hud").appendChild(kameraBar);
+	hud.tambahKartu(kameraBar);
 	for (const [kelas, judul, isi, aksi] of [
 		["zum-masuk", __("Zoom in"), "+", () => adegan.zum(ZUM)],
 		["zum-keluar", __("Zoom out"), "−", () => adegan.zum(1 / ZUM)],
@@ -301,7 +312,8 @@ erp.lantai.pasang = function (host) {
 	let dipilih = null;
 	const baris = (nama) => (data.mesin || []).find((m) => m.name === nama) || null;
 
-	const panel = buatPanel(root, {
+	panel = buatPanel(root, {
+		saatKotak: kotakBaru,
 		diam: () => adegan.sejakGerak() >= DIAM_HUD,
 		saatStatus: (nama, status) =>
 			kirimStatus(nama, status).then((row) => {
@@ -320,6 +332,7 @@ erp.lantai.pasang = function (host) {
 		label.pilih(dipilih);
 		hud.pilih(dipilih);
 		host.toggleAttribute("data-panel", !!row);
+		hud.ukurKotak(); // the camera bar moves aside for the panel
 		if (!row) {
 			panel.tutup();
 			return;
@@ -430,6 +443,7 @@ erp.lantai.pasang = function (host) {
 				webgl: true,
 				mesin: mesinInfo,
 				label: label.info(),
+				halangan: halanganKini,
 				hud: hud.info(),
 				pilih: dipilih,
 				poll: POLL,

@@ -19,6 +19,9 @@
 //   adaptive     CPU throttled 6x: pixel ratio 1 within 4 s, the reset button answers within 300 ms
 //   label        machine 3's label reads "03 · <brand> <tonnage>T" over its machine; no label writes while the camera
 //                rests; labels behind the camera hide
+//   label-rapi   at 1440x900, 1280x720 and 390x844 from the default camera: no two full labels intersect, no visible
+//                label intersects a card, the selected label (Mesin 05 through the table) is full, no full/compact
+//                switch over 2 s of rest; zoomed in twice no visible label intersects the KPI row
 //   pilih        a real click on Mesin 03 opens its panel and flies the camera to it; Open machine goes to the form;
 //                a bottom sheet at 390 px wide
 //   status       the Problem button: spinner and disabled until the answer, the server's status (get_value), the
@@ -1100,6 +1103,81 @@ const panelDiAtas = (p) =>
 		return titik.filter(([x, y]) => !pn.contains(r.elementFromPoint(x, y))).map(([x, y]) => `${Math.round(x)},${Math.round(y)}`);
 	});
 
+// Labels declutter: from `info().label.kotak` (the boxes the label code placed), checked against the DOM sizes, the
+// cards' rectangles (`info().halangan`) and each other.
+const beririsan = (a, b, m = 0) => a.x0 < b.x1 - m && a.x1 > b.x0 + m && a.y0 < b.y1 - m && a.y1 > b.y0 + m;
+const labelRapi = (p) =>
+	p.evaluate(() => {
+		const i = erp.lantai.aktif.info();
+		const r = erp.lantai.aktif.host.shadowRoot;
+		const asal = erp.lantai.aktif.host.getBoundingClientRect();
+		const dom = {};
+		for (const el of r.querySelectorAll(".label")) {
+			const k = el.querySelector(".isi").getBoundingClientRect();
+			dom[el.dataset.mesin] = { x0: k.left - asal.left, y0: k.top - asal.top, x1: k.right - asal.left, y1: k.bottom - asal.top, hidden: el.style.visibility === "hidden" };
+		}
+		return { label: i.label, halangan: i.halangan, dom };
+	});
+if (jalankan("label-rapi")) await kasus("label-rapi", async () => {
+	for (const [l, t] of [[1440, 900], [1280, 720], [390, 844]]) {
+		const nm = `label-rapi ${l}x${t}`;
+		const ctx = await konteksMasuk(browser, { viewport: { width: l, height: t } });
+		const p = await bukaLantai(ctx);
+		await p.waitForTimeout(2500);
+		let s = await labelRapi(p);
+		const kotak = s.label?.kotak;
+		cek(Array.isArray(kotak) && kotak.length > 0, `${nm}: info().label.kotak ${JSON.stringify(kotak)}`);
+		cek(Array.isArray(s.halangan) && s.halangan.length > 0, `${nm}: info().halangan ${JSON.stringify(s.halangan)}`);
+		if (Array.isArray(kotak) && Array.isArray(s.halangan)) {
+			const penuh = kotak.filter((k) => !k.ringkas);
+			for (let a = 0; a < penuh.length; a++)
+				for (let b = a + 1; b < penuh.length; b++)
+					cek(!beririsan(penuh[a], penuh[b]), `${nm}: full labels ${penuh[a].nama} and ${penuh[b].nama} intersect`);
+			for (const k of kotak)
+				for (const h of s.halangan) cek(!beririsan(k, h), `${nm}: label ${k.nama} sits under a card ${JSON.stringify(h)}`);
+			// The cached boxes are the real ones (± 2 px).
+			for (const k of kotak) {
+				const d = s.dom[k.nama];
+				cek(d && Math.abs(d.x0 - k.x0) <= 2 && Math.abs(d.x1 - k.x1) <= 2 && Math.abs(d.y0 - k.y0) <= 2 && Math.abs(d.y1 - k.y1) <= 2, `${nm}: ${k.nama} cached box ${JSON.stringify(k)} vs DOM ${JSON.stringify(d)}`);
+			}
+			cek(typeof s.label.ringkas === "number" && typeof s.label.tersembunyi === "number", `${nm}: ringkas/tersembunyi missing`);
+			cek(penuh.length >= 1, `${nm}: no full label at all`);
+		}
+		// The selected label stays full (through the table, like a user).
+		const d = await api(p, "erp_internal.production_floor.get_data", {}, false);
+		const m5 = d.mesin.find((m) => m.nomor === 5);
+		await p.evaluate((n) => erp.lantai.aktif.host.shadowRoot.querySelector(`tr[data-mesin="${n}"]`).click(), m5.name);
+		await p.waitForTimeout(2500);
+		s = await labelRapi(p);
+		const k5 = s.label?.kotak?.find((k) => k.nama === m5.name);
+		cek(k5 && !k5.ringkas, `${nm}: selected label ${JSON.stringify(k5)} is not full`);
+		// Hysteresis: after the rest no label switches between full and compact.
+		const a1 = JSON.stringify((s.label?.kotak || []).map((k) => [k.nama, k.ringkas]));
+		await p.waitForTimeout(2000);
+		const s2 = await labelRapi(p);
+		cek(a1 === JSON.stringify((s2.label?.kotak || []).map((k) => [k.nama, k.ringkas])), `${nm}: labels switched during a 2 s rest`);
+		// Zoomed in twice from the default view: nothing under the KPI row.
+		await p.evaluate(() => erp.lantai.aktif.host.shadowRoot.querySelector(".kamera .reset").click());
+		await p.evaluate(() => erp.lantai.aktif.pilih(null));
+		await p.waitForTimeout(1200);
+		for (let n = 0; n < 2; n++) {
+			await p.evaluate(() => erp.lantai.aktif.host.shadowRoot.querySelector(".kamera .zum-masuk").click());
+			await p.waitForTimeout(700);
+		}
+		await p.waitForTimeout(1500);
+		s = await labelRapi(p);
+		const kpi = await p.evaluate(() => {
+			const h = erp.lantai.aktif.host;
+			const a = h.getBoundingClientRect();
+			const k = h.shadowRoot.querySelector(".kpi").getBoundingClientRect();
+			return { x0: k.left - a.left, y0: k.top - a.top, x1: k.right - a.left, y1: k.bottom - a.top };
+		});
+		for (const k of s.label?.kotak || []) cek(!beririsan(k, kpi), `${nm} zoomed: label ${k.nama} sits under the KPI row`);
+		await p.screenshot({ path: join(HASIL, `lantai-label-rapi-${l}.png`) });
+		cek((await dialog(p)) === 0, `${nm}: a message dialog is open`);
+		await ctx.close();
+	}
+});
 if (jalankan("hud")) await kasus("hud", async () => {
 	const ctx = await konteksMasuk(browser);
 	const p = await bukaLantai(ctx);

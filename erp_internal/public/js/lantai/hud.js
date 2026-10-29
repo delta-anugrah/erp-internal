@@ -178,7 +178,7 @@ export function hitung(daftar) {
 
 // `saatPilih(nama)` selects a machine (a table row click); `saatDetik()` runs on each clock tick; `diam()` says
 // whether the camera rests (the clock only writes then).
-export function buatHud(root, { saatPilih, saatDetik, diam } = {}) {
+export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 	const hud = el(root, "div", "hud");
 
 	// Top bar and KPI row in one column; its height (`--atas` on the host) keeps the panel and the table below it.
@@ -435,8 +435,44 @@ export function buatHud(root, { saatPilih, saatDetik, diam } = {}) {
 	});
 	pengamat.observe(atas);
 
+	// The rectangles of the visible fixed cards, host-relative px: labels step aside for them and the default view
+	// centres in the space under the top bar and KPI row. Cached; measured only when a card resizes (fold, window,
+	// a text change), when the host resizes, or on `ukurKotak()` (a card moved without resizing), never per frame.
+	const kartuLain = []; // cards added by the bundle (camera bar, later the attention card)
+	let kotakKini = [];
+	let ruangKini = { atas: 0, kanan: 0, bawah: 0, kiri: 0 };
+	function ukurKotak() {
+		if (!host) return;
+		const asal = host.getBoundingClientRect();
+		const hasil = [];
+		for (const k of [bar, kpi, tabel, ...kartuLain]) {
+			if (k.hidden) continue;
+			const r = k.getBoundingClientRect();
+			if (r.width > 0 && r.height > 0)
+				hasil.push({ x0: r.left - asal.left, y0: r.top - asal.top, x1: r.right - asal.left, y1: r.bottom - asal.top });
+		}
+		const a = atas.getBoundingClientRect();
+		const ruang = { atas: Math.ceil(a.bottom - asal.top), kanan: 0, bawah: 0, kiri: 0 };
+		const sama = (x, y) => JSON.stringify(x) === JSON.stringify(y);
+		if (sama(hasil, kotakKini) && sama(ruang, ruangKini)) return;
+		kotakKini = hasil;
+		ruangKini = ruang;
+		saatKotak?.();
+	}
+	const pengamatKotak = new ResizeObserver(ukurKotak);
+	for (const k of [atas, bar, kpi, tabel]) pengamatKotak.observe(k);
+	if (host) pengamatKotak.observe(host);
+
 	let liveKini = null;
 	return {
+		kotak: () => kotakKini,
+		ruang: () => ruangKini,
+		ukurKotak,
+		// Another fixed card (the camera bar): its rectangle joins `kotak()`.
+		tambahKartu(k) {
+			kartuLain.push(k);
+			pengamatKotak.observe(k);
+		},
 		perbarui,
 		// The live dot: "Live" while realtime is connected, else "Updated HH:MM" of the last good fetch.
 		status(adaLive, kapan) {
@@ -461,6 +497,7 @@ export function buatHud(root, { saatPilih, saatDetik, diam } = {}) {
 		buang() {
 			henti();
 			pengamat.disconnect();
+			pengamatKotak.disconnect();
 			hud.remove();
 			baris.clear();
 		},

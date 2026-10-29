@@ -55,7 +55,7 @@ const angka = (n) => (typeof format_number === "function" ? format_number(n, nul
 // Error whose message is the note to show. `saatTutup()` is called when the user closes the panel.
 // `diam()` says whether the camera rests: new text for an open panel waits for it, like the labels' (a text repaint
 // in a card while a drag moves the camera stalls Chrome's main thread); `tick()` is called on each frame.
-export function buatPanel(root, { saatStatus, saatTutup, diam = () => true }) {
+export function buatPanel(root, { saatStatus, saatTutup, diam = () => true, saatKotak }) {
 	const panel = el(root, "section", "panel kartu");
 	panel.hidden = true;
 	const kepala = el(panel, "div", "kepala");
@@ -197,6 +197,24 @@ export function buatPanel(root, { saatStatus, saatTutup, diam = () => true }) {
 			);
 	}
 
+	// The open panel's rectangle, host-relative px, cached like the HUD's (`ukurKotak()` after it opens or closes;
+	// a ResizeObserver covers its content growing).
+	let kotakKini = [];
+	function ukurKotak() {
+		const host = root.host;
+		let hasil = [];
+		if (!panel.hidden && host) {
+			const a = host.getBoundingClientRect();
+			const r = panel.getBoundingClientRect();
+			if (r.width > 0 && r.height > 0) hasil = [{ x0: r.left - a.left, y0: r.top - a.top, x1: r.right - a.left, y1: r.bottom - a.top }];
+		}
+		if (JSON.stringify(hasil) === JSON.stringify(kotakKini)) return;
+		kotakKini = hasil;
+		saatKotak?.();
+	}
+	const pengamatKotak = new ResizeObserver(ukurKotak);
+	pengamatKotak.observe(panel);
+
 	function sembunyikan() {
 		panel.hidden = true;
 		baris = null;
@@ -205,6 +223,8 @@ export function buatPanel(root, { saatStatus, saatTutup, diam = () => true }) {
 	}
 
 	return {
+		kotak: () => kotakKini,
+		ukurKotak,
 		// Shows `row`'s machine; a different machine clears the last note.
 		buka(row) {
 			if (baris?.name !== row.name) catatan.hidden = true;
@@ -231,6 +251,7 @@ export function buatPanel(root, { saatStatus, saatTutup, diam = () => true }) {
 		tutup: sembunyikan,
 		nama: () => baris?.name ?? null,
 		buang() {
+			pengamatKotak.disconnect();
 			panel.remove();
 		},
 	};
