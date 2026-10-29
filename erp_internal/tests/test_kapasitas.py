@@ -1,9 +1,12 @@
 """Machine Capacity: the two computed figures, the lookup order and every refusal."""
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from erp_internal.planning.kapasitas import RUNNER_DIGILING, jenis_varian, kapasitas
+from erp_internal.planning import kapasitas as kapasitas_modul
+from erp_internal.planning.kapasitas import jenis_varian, kapasitas
 from erp_internal.tests.utils import buat_barang, buat_kapasitas, buat_mesin, buat_varian
 
 TEMPLATE = "_UJI-KAP"
@@ -44,18 +47,22 @@ class TestKapasitas(IntegrationTestCase):
 		self.assertEqual(r.material_per_pcs, 50)
 
 	def test_runner_bawaan(self):
-		r = frappe.get_doc(
-			{
-				"doctype": "Machine Capacity",
-				"item": self.v[1],
-				"workstation": self.m2,
-				"cycle_time": 10,
-				"cavities": 2,
-				"part_weight": 10,
-				"material": self.pp,
-			}
-		).insert()
-		self.assertEqual(r.runner_reground, RUNNER_DIGILING)
+		baru = {
+			"doctype": "Machine Capacity",
+			"item": self.v[1],
+			"workstation": self.m2,
+			"cycle_time": 10,
+			"cavities": 2,
+			"part_weight": 10,
+			"material": self.pp,
+		}
+		with patch.object(kapasitas_modul, "RUNNER_DIGILING", 1):
+			r = frappe.get_doc(baru).insert()
+			self.assertEqual(r.runner_reground, 1)
+		frappe.delete_doc("Machine Capacity", r.name, force=1)
+		# a value that was given wins over the default
+		with patch.object(kapasitas_modul, "RUNNER_DIGILING", 1):
+			self.assertEqual(frappe.get_doc({**baru, "runner_reground": 0}).insert().runner_reground, 0)
 
 	def test_urutan_cari(self):
 		isi = {"cavities": 2, "part_weight": 40, "material": self.pp}

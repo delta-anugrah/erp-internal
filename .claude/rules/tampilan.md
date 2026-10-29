@@ -29,7 +29,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   its app's title and `Custom Workspace` has no title field. So the page title, breadcrumb and tab read "HR"
   ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
 - Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
-  is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing.
+  is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and Machine Capacity (a
+  Planning DocType) in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]` after BOM; the Planning module itself stays blocked.
 - Production Floor (page `production-floor`, `lantai.md`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the

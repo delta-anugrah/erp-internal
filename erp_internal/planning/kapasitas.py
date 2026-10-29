@@ -5,11 +5,17 @@ The lookup is the only way the report and the BOM step find a row (Machine Capac
 
 import frappe
 
-# A new capacity row's `runner_reground` when the field was not given. Open question to Samuel: is the
-# runner reground and reused (1) or thrown away (0)?
+# A new capacity row's `runner_reground` when the field was not given (import, API). Open question to Samuel:
+# is the runner reground and reused (1) or thrown away (0)? A new form asks `runner_digiling()` for it.
 RUNNER_DIGILING = 0
 
 ATRIBUT_JENIS = "Jenis"
+
+
+@frappe.whitelist()
+def runner_digiling() -> int:
+	"""The default of a new row's `runner_reground`, for the form (it would send 0 for an untouched Check)."""
+	return RUNNER_DIGILING
 
 
 def jenis_varian(item: str) -> str | None:

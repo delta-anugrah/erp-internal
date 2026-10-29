@@ -2,6 +2,14 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (Plan vs Actual, Task 1 of 6)
+- Task 1 (`203969e` and a follow-up): DocType Machine Capacity (module Planning; Manufacturing Manager writes, Manufacturing User
+  reads), `planning/kapasitas.py` (`kapasitas()` lookup: variant row, template + Jenis, template; `jenis_varian`,
+  `RUNNER_DIGILING`, `runner_digiling()` for the form), sidebar and shortcut after BOM, 35 Indonesian rows,
+  fixtures `buat_varian`/`buat_mesin`/`buat_kapasitas`. Material must be a stock item counted in Kg.
+- Tests as run: `run-tests --app erp_internal`: 128 tests OK (123 + 5 in `test_kapasitas`).
+- Next: Task 2, BOMs from capacity rows.
+
 ## 2026-10-28 (Production Floor, Tasks 1-7 of 7)
 - Revision 1 (Abel, `dfcc7cf`, `e2bd3d7`): English route and endpoints, an info bar like BPT Live's, a liquid glass
   look. Tasks renumbered: 4 rename, 5 labels and panel, 6 info bar and glass, 7 navigation and docs.

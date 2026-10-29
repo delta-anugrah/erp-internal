@@ -9,8 +9,13 @@ from erp_internal.planning import kapasitas
 
 
 class MachineCapacity(Document):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		# Frappe fills an unset Check with 0 before `before_insert`, so note now whether the caller gave one.
+		self._runner_diberikan = self.get("runner_reground") is not None
+
 	def before_insert(self):
-		if self.runner_reground is None:
+		if not self._runner_diberikan:
 			self.runner_reground = kapasitas.RUNNER_DIGILING
 
 	def validate(self):

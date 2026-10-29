@@ -110,7 +110,7 @@ shortcuts to the same links as its sidebar, nothing else:
 | Stock | Item, Stock Entry, Warehouse, Stock Balance, Stock Ledger |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
-| Manufacturing | Production Floor, Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Order Readiness, BOM, Item Lead Time |
+| Manufacturing | Production Floor, Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Order Readiness, BOM, Machine Capacity, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings |

@@ -2,8 +2,16 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-10-28, after the Production Floor final review fixes): `bench --site erp-test.localhost run-tests --app erp_internal`:
-123 tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+Last full run (2026-10-29, after Plan vs Actual Task 1): `bench --site erp-test.localhost run-tests --app erp_internal`:
+128 tests, all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+
+## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)
+- [x] Task 1: Machine Capacity and the lookup (`kapasitas.py`, `test_kapasitas`)
+- [ ] Task 2: BOMs from capacity (Make BOMs button)
+- [ ] Task 3: Excel import of capacity
+- [ ] Task 4: Production Entry (stock entries, cancel)
+- [ ] Task 5: Plan vs Actual report
+- [ ] Task 6: Docs and final checks
 
 ## Waiting on Abel
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
