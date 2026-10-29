@@ -437,19 +437,22 @@ def _bagus(per_jam: float, urutan: int) -> int:
 
 
 def _order(company: str, kode: str, mesin: str, qty: int, mulai: date, selesai: date) -> str:
-	"""The open sample Work Order of `kode` on `mesin` (BOM: the one made for that machine), found by tag,
-	planned from `mulai` to `selesai`. An order of an earlier run gets these dates and quantity too."""
-	ada = frappe.db.get_value(
-		"Work Order",
-		{
-			"production_item": kode,
-			"erp_mesin": mesin,
-			"company": company,
-			"docstatus": 1,
-			"_user_tags": ("like", f"%{TANDA}%"),
-		},
-	)
+	"""The sample Work Order of `kode` on `mesin` planned from `mulai` to `selesai` (BOM: the one made for that
+	machine), found by tag and start date among the orders not stopped, so a rerun the same day changes
+	nothing. A run on another day plans a new window: the open orders of earlier runs first lose their
+	entries inside it and are stopped."""
+	tagged = {
+		"production_item": kode,
+		"erp_mesin": mesin,
+		"company": company,
+		"docstatus": 1,
+		"_user_tags": ("like", f"%{TANDA}%"),
+		"status": ("not in", ("Stopped", "Closed")),
+	}
+	ada = frappe.db.get_value("Work Order", {**tagged, "planned_start_date": ("between", (mulai, mulai))})
 	if not ada:
+		for lama in frappe.get_all("Work Order", tagged, pluck="name"):
+			_lepas(lama, mulai)
 		bom = frappe.db.get_value(
 			"BOM",
 			{
@@ -477,28 +480,22 @@ def _order(company: str, kode: str, mesin: str, qty: int, mulai: date, selesai: 
 		).insert(ignore_permissions=True)
 		wo.submit()
 		ada = wo.name
-	else:
-		# A sample order of an earlier run (one start date, 50000 pieces) is put on this plan; db.set_value
-		# because a submitted order's dates and quantity are read only.
-		wo = frappe.db.get_value(
-			"Work Order", ada, ["qty", "planned_start_date", "planned_end_date"], as_dict=True
-		)
-		if (
-			flt(wo.qty),
-			getdate(wo.planned_start_date),
-			wo.planned_end_date and getdate(wo.planned_end_date),
-		) != (
-			flt(qty),
-			mulai,
-			selesai,
-		):
-			frappe.db.set_value(
-				"Work Order",
-				ada,
-				{"qty": qty, "planned_start_date": mulai, "planned_end_date": selesai},
-				update_modified=False,
-			)
 	return tandai("Work Order", ada)
+
+
+def _lepas(wo: str, mulai: date) -> None:
+	"""Cancel the Production Entries of an earlier run's order dated `mulai` or later (the new window would
+	count them twice), then stop the order (a Completed one reopens when its entries are cancelled)."""
+	for pe in frappe.get_all(
+		"Production Entry",
+		{"work_order": wo, "docstatus": 1, "posting_date": (">=", mulai)},
+		pluck="name",
+		order_by="posting_date desc, creation desc",
+	):
+		frappe.get_doc("Production Entry", pe).cancel()
+	order = frappe.get_doc("Work Order", wo)
+	order.update_status("Stopped")
+	order.update_planned_qty()
 
 
 def _hasil(wo: str, hari: date, urutan: int, per_jam: float) -> None:

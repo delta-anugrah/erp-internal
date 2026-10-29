@@ -2,6 +2,13 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (sample data rerun on a later day)
+- `contoh._order` finds a sample Work Order by its plan start among the orders not Stopped or Closed; on another day
+  it cancels the earlier run's Production Entries inside the new window, stops that order (`_lepas`) and makes a
+  new one. No more `db.set_value` on a submitted order's qty or dates. New test `test_hari_berikutnya`.
+- Tests as run: `run-tests --module erp_internal.tests.test_contoh` 8 OK (twice); full run 201 (13 unit + 188
+  integration) OK; ruff check clean.
+
 ## 2026-10-29 (Plan vs Actual, whole-branch review fixes)
 - `Work Order.erp_mesin` is now `allow_on_submit` (migrate both sites): a submitted order's machine can change, so the
   Production Entry refusal "change the Work Order's machine first" can be followed. The report puts the whole target on

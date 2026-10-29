@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import getdate, today
+from frappe.utils import add_days, getdate, today
 from frappe.utils.password import check_password
 
 from erp_internal.contoh import (
@@ -12,6 +12,7 @@ from erp_internal.contoh import (
 	DIBUAT,
 	KAPASITAS,
 	KARYAWAN,
+	ORDER_PRODUKSI,
 	PELANGGAN,
 	PEMASOK,
 	PERUSAHAAN,
@@ -80,6 +81,29 @@ class TestContoh(IntegrationTestCase):
 			(frappe.db.count("Production Entry", {"docstatus": 1}), frappe.db.count("Machine Capacity")),
 			sebelum,
 		)
+
+	def test_hari_berikutnya(self):
+		# A run on a later day plans a new window: one open order per sample row, the earlier ones stopped,
+		# one entry per order key and day, and no order made more than it planned.
+		buat_contoh()
+		besok = add_days(today(), 1)
+		with patch("erp_internal.contoh.today", return_value=besok):
+			buat_contoh()
+		tag = {"docstatus": 1, "_user_tags": ("like", f"%{TANDA}%")}
+		buka = frappe.get_all(
+			"Work Order", {**tag, "status": ("not in", ("Stopped", "Closed"))}, pluck="name"
+		)
+		self.assertEqual(len(buka), len(ORDER_PRODUKSI))
+		for wo in buka:
+			self.assertEqual(
+				getdate(frappe.db.get_value("Work Order", wo, "planned_end_date")), getdate(today())
+			)
+		for o in frappe.get_all("Work Order", tag, ["qty", "produced_qty"]):
+			self.assertLessEqual(o.produced_qty, o.qty)
+		entri = frappe.get_all("Production Entry", tag, ["workstation", "item", "posting_date"])
+		kunci = [(e.workstation, e.item, e.posting_date) for e in entri]
+		self.assertEqual(len(kunci), len(set(kunci)))
+		self.assertEqual(max(e.posting_date for e in entri), getdate(today()))
 
 	def test_pengguna_masuk_dengan_sandi(self):
 		buat_contoh()

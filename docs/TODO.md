@@ -2,8 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-10-29, after Plan vs Actual Task 6): `bench --site erp-test.localhost run-tests --app erp_internal`:
-200 tests (13 unit + 187 integration), all OK (after the whole-branch review fixes). `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
+Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-test.localhost run-tests --app erp_internal`:
+201 tests (13 unit + 188 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
 `PINTASAN_MAKS` raised 10 to 12: Manufacturing has 12, Setup 11).
 
 ## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)
@@ -21,11 +21,6 @@ Last full run (2026-10-29, after Plan vs Actual Task 6): `bench --site erp-test.
       has no plan) and group it by Machine, Day, Item, Work Order and Shift; then again in Indonesian.
 
 ## Waiting on Abel
-- [ ] Known issue: `buat_contoh` rerun on a later day fails: the sample Work Orders with share 1.0 are Completed after
-      the first run and the next day's Production Entry is refused; and the qty correction by db.set_value can leave
-      qty below produced_qty with a stale status. Until fixed, don't rerun `buat_contoh` on erp.localhost on another
-      day (fix: look up only open sample orders and make a new one when Completed, or recompute qty from
-      produced_qty and call the status update).
 - [ ] Decide: home shortcuts cap raised from 10 to 12 (Manufacturing 12, Setup 11) against Samuel's "short homes";
       trim links instead?
 - [ ] Optional: allow a Work Order's machine change only while Not Started / In Process (now any submitted order).
