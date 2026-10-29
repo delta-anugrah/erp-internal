@@ -21,7 +21,7 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
    4. `apps`: erpnext and hrms at their pinned tags;
    5. `link`: `apps/erp_internal` → this repo, `pip install -e`, `sites/apps.txt`;
    6. `sites`: `erp.localhost` and `erp-test.localhost` (`allow_tests`) with erpnext, hrms and erp_internal;
-   7. `wizard`: completes the setup wizard of `erp.localhost` without a browser, ticks PT Contoh Plastik's `erp_aktif` (Run by ERP Internal) and runs
+   7. `wizard`: completes the setup wizard of `erp.localhost` without a browser, ticks PT Delta Anugrah's `erp_aktif` (Run by ERP Internal) and runs
       `migrate`, which builds its warehouses, item groups, UOMs, production defaults and holiday lists (`erp_internal/setup.py`).
 3. `cd ~/Desktop/Projects/erp-internal-bench && bench start`, then open http://erp.localhost:8002 and sign in as
    Administrator.
@@ -34,7 +34,7 @@ Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install 
 | Country | Indonesia |
 | Time zone | Asia/Jakarta |
 | Currency | IDR |
-| Company | PT Contoh Plastik (DATA CONTOH) |
+| Company | PT Delta Anugrah (DATA CONTOH on dev; renamed from PT Contoh Plastik 2026-10-29) |
 | Abbreviation | CPL |
 | Chart of accounts | Standard |
 | Fiscal year | 1 January to 31 December of the current year |
@@ -95,6 +95,11 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin}.json` (templates with only the listed
   variants, packings, price list `Harga Pola 2026`, Workstations `Mesin 01`..`14`); rerun after a new file
   (`docs/impor.md`, tested by `tests/test_master.py`).
+- Samuel's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
+  reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw
+  materials with their price per kg, Sales History January-September 2026 (spread evenly over the colours) and each
+  variant's `safety_stock` (half an average month) (`docs/impor.md` "Excel penjualan Samuel", tested by
+  `tests/test_penjualan.py`).
 - Production (`erp_internal/planning/`, module Planning): the company's Work Orders default to its Gudang
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
@@ -150,7 +155,7 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
 
 ## Sample data
 
-`erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): one sample company (PT Contoh Plastik), products
+`erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): one company (PT Delta Anugrah, abbreviation CPL, with its logo), products
 with BOMs, lead times and stock, customers, suppliers, 6 months of Sales History, open orders, 10 Machine Capacity rows with their BOMs, 4 open Work Orders (plus one older order without a machine) and 28 Production Entries over the last 7 days, employees on the
 shift, one project, and one user per role (`developer@`, `admin@`, `user@example.com`):
 

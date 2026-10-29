@@ -2,6 +2,21 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (company name and logo on dev, Production vs Idle)
+- `erp.localhost`: Company PT Contoh Plastik renamed PT Delta Anugrah (abbreviation CPL kept, warehouses keep `- CPL`), logo
+  attached; backup `20261029_160326-erp_localhost-database.sql.gz` before. `contoh.PERUSAHAAN` and `setup_bench.sh` use the new
+  name; `contoh._logo` attaches `delta-anugrah.png` once.
+- Production Floor: Production's floor ring breathes (0.4 Hz) and its screen is lit; Idle is dimmer (0.78) with a dark screen
+  (`GAYA` `nadi`, `layar`). `lantai.mjs states` checks screen brightness, ring breath and a still Idle ring.
+- Tests as run: `node tools/lantai.mjs states hud perf` OK (perf 60.0 fps, 0 dropped, 0 long tasks, 35 calls, 37,428 triangles);
+  `run-tests --module erp_internal.tests.test_contoh` 8 OK.
+- Samuel's sales Excel (Abel's paste, 2026-10-29): `penjualan.py` + `data/penjualan_2026.json`. New types/products
+  (Soft, DX Soft, Gantungan Dinda Hitam, Toples Nastar, Sendok Bebek in UOM `Ball Kecil`; colours guessed, no price),
+  7 raw materials (Kg, buying list `Harga Bahan Baku`), Sales History Jan-Sep spread evenly over colours (Abel's
+  choice), `safety_stock` = half an average month. On `erp.localhost`: 513 rows over 90 variants, every Excel row and
+  month matches, second run writes 0. The Excel's Total row leaves out row 1. Open points: `docs/menunggu-samuel.md` row 14.
+- Tests: `run-tests --module erp_internal.tests.test_penjualan` 7 OK; full `run-tests --app erp_internal` ran 195 integration tests, 1 failure (`test_bahasa`: the new message had no Indonesian), fixed in `id.csv`, `test_bahasa` 6 OK on rerun; `uvx ruff check erp_internal/` clean.
+
 ## 2026-10-29 (Production Floor Revision 2, Task 5 of 5)
 - Left column under the top bar: machine table, then the attention card (not in Production: Problem, Maintenance, Setup, Idle, Off; row click selects). Loading screen until first data and frame. Dark palette for the building, truck, props; lettering contrast >= 3:1 in both themes (`info().zona.kontras`). New cases `perhatian`, `dekor-gelap`, `memuat`; `hud-xss` and `notes` extended.
 - Tests as run: `node --test tools/denah.test.mjs` 6 OK; full `node tools/lantai.mjs` all cases OK (perf 60.0 fps, 0 dropped, 0 long tasks, 35 calls, 37,428 triangles; an earlier run under heavy machine load showed 1-2 long tasks, rerun clean); `tools/cek_layar.mjs` 3 users OK; `run-tests --app erp_internal` on erp-test 188 OK; docker build and `deploy/check_image.sh erp-internal:uji` OK.

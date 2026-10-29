@@ -53,7 +53,7 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
   - [ ] Orbit (drag), zoom (scroll), pan (right drag), then the home button in the camera bar: smooth, no stutter, no error dialog.
   - [ ] They look like injection moulding machines; JSW, NISSEI and CHENDE in different colours.
   - [ ] Set a machine's status in its Workstation form (Production, Problem, Maintenance, Off), reload the floor:
-        green lamp + mould moving, red blinking, blue + dimmed, unlit + darker. Put the status back.
+        green lamp + mould moving + breathing green ring + lit screen, red blinking, blue + dimmed, unlit + darker. Put the status back.
   - [ ] Go to another page and come back 5 times: still smooth, the laptop fan stays quiet.
   - [ ] Labels like "03 · NISSEI 260T" show a status chip, and the Work Order item and progress when one runs.
   - [ ] Click a machine: the camera flies to it and a side panel opens (a bottom sheet on a narrow window).
@@ -85,7 +85,21 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [ ] Small: the forklift's rear corner stands about 0.5 m on the end of the "Finished Goods" lettering at its jadi stop
       (`denah.js` JALUR stop 28.3, -7, arriving at about 45°). Move the stop to z <= -9 or x >= 30 and add a body-footprint
       check against the lettering plates to `tools/denah.test.mjs`.
-- Note: the logo exists in the repo (`erp_internal/public/images/delta-anugrah.svg`). The Production Floor's top bar shows the default Company's logo, so the dev site shows initials (its default company is the sample PT Contoh Plastik); at go-live PT Delta Anugrah is the company and gets the logo.
+- [x] 2026-10-29: `erp.localhost`'s company renamed PT Contoh Plastik → PT Delta Anugrah (abbreviation CPL kept) with the logo
+      (`contoh._logo`), so the floor's top bar shows both. At go-live the wizard makes PT Delta Anugrah; attach the logo there too.
+- [x] 2026-10-29: Running reads apart from Idle (breathing green ring, lit screen; Idle dimmer with a dark screen).
+- [ ] Abel: look at the floor in your own Chrome (restart `bench start` first): is Production vs Idle clear enough now?
+
+## Abel 2026-10-29 evening (next session, in order)
+- [ ] Commit this session's work (company rename + logo, Running vs Idle, `penjualan.py`).
+- [ ] Production Floor: turn machines 01-07 like 08-14 (lamps visible); Problem's red lamp blinks clearly.
+- [ ] Production Floor: remove the forklift for now.
+- [ ] Hide IDs users don't need (Sales History's hash name first; sweep the other forms).
+- [ ] Order Readiness: leave template items out.
+- [ ] Desk sidebar: the collapsed sidebar's expand button is tiny and covered.
+- [ ] Fitting icons for our sidebar links.
+- [ ] Makefile for the server setup (`make setup`, steps in order, stop on error, no secrets).
+- [ ] Ask Abel: "Production floor di desk" (default: a tile on the Apps home).
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
@@ -93,8 +107,11 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
       (editable lists). Runner: answered 2026-10-29, thrown away (default kept).
 - [ ] Capacity: which item runs on which machine (asked 2026-10-29). Samuel's Excel (2026-10-29) gave cycle time,
       cavities, kg per pcs (the "Gr" header is kg), material and its price per kg, and Jan-Sep 2026 sales per item.
-- [ ] Next session: import that Excel's sales history, raw material items with their price, and minimum stock from
-      sales; ask Samuel how many pcs are in a "Ball Kecil" (Sendok Bebek) and a "Pack" (Sendok JSW).
+- [x] 2026-10-29: that Excel's sales history, raw materials with their price and minimum stock (`penjualan.muat`, run on
+      `erp.localhost`: 513 Sales History rows over 90 variants, 7 raw materials; `test_penjualan` 7 OK).
+- [ ] Ask Samuel `docs/menunggu-samuel.md` rows 13-14 (Ball Kecil and Pack contents, colours of the new types, which
+      price is the selling price).
+- [ ] Abel: Sales History list (group by Month) and Order Readiness with the new minimum stock on `erp.localhost`.
 
 ## Master data
 - [x] Samuel's catalog and machines (`erp_internal/master.py`, `test_master` 8 OK; run twice on `erp.localhost`,
@@ -102,7 +119,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [ ] Still from Samuel (`docs/menunggu-samuel.md` row 4): capacity per product per machine (cycle time, cavities),
       mould per machine, raw material per product (kg per pcs, PP/HDPE, masterbatch), minimum stock, spoons per
       Sendok Makan pack; confirm the "per ball" contents taken from prices and Gantungan Dinda Super's Dus price.
-- [ ] At go-live: the items are loaded into the default company's setup (PT Contoh Plastik on `erp.localhost`);
+- [ ] At go-live: the items are loaded into the default company's setup (PT Delta Anugrah, CPL, on `erp.localhost`);
       on PT Delta Anugrah's site rerun `muat` after the wizard.
 
 ## Part A: foundation and the factory
