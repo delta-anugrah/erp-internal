@@ -2,26 +2,10 @@
 // machine slot. Later pieces (machines, labels) hang off the `Adegan` this returns.
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { BARIS, SLAB, posisi } from "./denah.js";
 
-// Machine numbers per row, back row first; both read left to right from the default camera.
-export const BARIS = [
-	[14, 13, 12, 11, 10, 9, 8],
-	[1, 2, 3, 4, 5, 6, 7],
-];
-const JARAK_X = 4.2; // between machine centres along a row
-const JARAK_Z = 7; // between the two rows
-const LEBAR = JARAK_X * 7 + 4;
-const DALAM = JARAK_Z + 10;
-
-// Floor position of a machine number; `baris` is the row index in BARIS (0 = back).
-export function posisi(nomor) {
-	for (let b = 0; b < BARIS.length; b++) {
-		const i = BARIS[b].indexOf(nomor);
-		if (i >= 0)
-			return { x: (i - (BARIS[b].length - 1) / 2) * JARAK_X, z: (b - (BARIS.length - 1) / 2) * JARAK_Z, baris: b };
-	}
-	return null;
-}
+// The floor plan lives in denah.js (pure, so Node can test it); re-exported for the pieces that used to import it here.
+export { BARIS, posisi };
 
 // One WebGL context for the whole session: the renderer is created once per mount and `konteks` counts creations.
 let konteks = 0;
@@ -71,8 +55,9 @@ export function buatAdegan(root) {
 
 	const scene = new THREE.Scene();
 	scene.background = new THREE.Color(0xdfe3e8);
-	const kamera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
-	kamera.position.set(0, 19, 27);
+	scene.fog = new THREE.Fog(0xdfe3e8, 90, 220); // the far ground fades into the background
+	const kamera = new THREE.PerspectiveCamera(40, 1, 0.5, 400);
+	kamera.position.set(0, 32, 36);
 	const kontrol = new OrbitControls(kamera, renderer.domElement);
 	kontrol.enableDamping = true;
 	kontrol.target.set(0, 0, 0);
@@ -88,21 +73,19 @@ export function buatAdegan(root) {
 	scene.add(matahari);
 
 	const bahanLantai = new THREE.MeshLambertMaterial({ color: TEMA.light.lantai });
-	const lantai = new THREE.Mesh(new THREE.PlaneGeometry(LEBAR, DALAM), bahanLantai);
+	const lantai = new THREE.Mesh(new THREE.PlaneGeometry(SLAB.x1 - SLAB.x0, SLAB.z1 - SLAB.z0), bahanLantai);
 	lantai.rotation.x = -Math.PI / 2;
+	lantai.position.set((SLAB.x0 + SLAB.x1) / 2, 0, (SLAB.z0 + SLAB.z1) / 2);
 	scene.add(lantai);
 
 	// Yellow aisle lines: along each side of the walkway between the rows, and across the front.
 	const garis = new THREE.LineBasicMaterial({ color: 0xe0b100 });
 	const titik = (...p) => p.map(([x, z]) => new THREE.Vector3(x, 0.01, z));
-	const sisi = LEBAR / 2 - 1;
+	const sisi = 19; // the lines stop short of the zones at both ends of the hall
 	for (const z of [-1.4, 1.4])
 		scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(titik([-sisi, z], [sisi, z])), garis));
 	scene.add(
-		new THREE.Line(
-			new THREE.BufferGeometry().setFromPoints(titik([-sisi, DALAM / 2 - 1], [sisi, DALAM / 2 - 1])),
-			garis
-		)
+		new THREE.Line(new THREE.BufferGeometry().setFromPoints(titik([-sisi, SLAB.z1 - 1], [sisi, SLAB.z1 - 1])), garis)
 	);
 
 	// A slot marker per machine number, so the floor shows where each one stands.
@@ -182,10 +165,11 @@ export function buatAdegan(root) {
 	const tambah = { kanan: 0, bawah: 0 }; // an open side panel: only moves the view's centre, never rescales it
 	// The home camera on a spare camera, to measure where the machines and their labels fall in the default view
 	// whatever the user did with the live one. Allocated once; used only when the layout changes.
-	const kamHome = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+	const kamHome = new THREE.PerspectiveCamera(40, 1, 0.5, 400);
 	const pt = new THREE.Vector3();
 	const MARGIN_X = 82; // px a label reaches to each side of its machine
-	const MARGIN_ATAS = 90; // px a label (with a Work Order) rises above its anchor
+	const LONGGAR = 0.8; // the default view zooms out this much beyond the tight fit, to show the building around the machines
+const MARGIN_ATAS = 90; // px a label (with a Work Order) rises above its anchor
 	// Fits the default view into the free area: the camera's projection becomes a sub-view of a virtual frame scaled
 	// by `s` (never above 1) and shifted so the machines and labels, as the home camera sees them, fill the free area
 	// and sit centred in it. No offset at all when the cards take nothing.
@@ -220,7 +204,8 @@ export function buatAdegan(root) {
 		y1 += 10;
 		const bebasL = lebarLayar - kiri - kanan;
 		const bebasT = tinggiLayar - atas - bawah;
-		const s = Math.max(0.4, Math.min(1, bebasL / (x1 - x0), bebasT / (y1 - y0)));
+		// The machines and labels fit with room to spare (the building around them shows), never below 0.4.
+		const s = Math.max(0.4, Math.min(1, bebasL / (x1 - x0), bebasT / (y1 - y0)) * LONGGAR);
 		const dx = s * ((x0 + x1) / 2) - (kiri + (bebasL - tambah.kanan) / 2);
 		const dy = s * ((y0 + y1) / 2) - (atas + (bebasT - tambah.bawah) / 2);
 		kamera.setViewOffset(lebarLayar * s, tinggiLayar * s, Math.round(dx), Math.round(dy), lebarLayar, tinggiLayar);
@@ -349,6 +334,7 @@ export function buatAdegan(root) {
 		tema(gelap) {
 			const t = gelap ? TEMA.dark : TEMA.light;
 			scene.background.setHex(t.latar);
+			scene.fog.color.setHex(t.latar);
 			bahanLantai.color.setHex(t.lantai);
 			bahanPenanda.color.setHex(t.penanda);
 			tandaiKotor();

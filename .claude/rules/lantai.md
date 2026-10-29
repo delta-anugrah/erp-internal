@@ -4,7 +4,7 @@ paths: ["erp_internal/production_floor.py", "erp_internal/public/js/lantai.bundl
 # Production Floor (`/desk/production-floor`)
 
 Server: `production_floor.py` (`get_data`, POST `set_status`, realtime `production_floor`). Client: the page script
-(small, only the plain table and `erp.lantai.ambil`) and `lantai.bundle.js` with `lantai/{adegan,mesin,label,panel,hud,kaca}.js`.
+(small, only the plain table and `erp.lantai.ambil`) and `lantai.bundle.js` with `lantai/{denah,adegan,mesin,pabrik,label,panel,hud,kaca}.js`.
 The full description is in CLAUDE.md's "Where things are"; the design and its two revisions in
 `docs/superpowers/specs/2026-10-28-production-floor-design.md`.
 
@@ -18,7 +18,7 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 
 - >= 57 fps over a 10 s scripted orbit with two status changes (first 2 s dropped).
 - Frame intervals > 25 ms: at most 1 %. Longest frame <= 50 ms. 0 long tasks.
-- <= 60 draw calls, <= 150k triangles (now 10 and 14,394). 20 status changes grow no geometry, texture or program.
+- <= 100 draw calls, <= 250k triangles (Revision 2; the scene with the building is about 20 calls and 21k triangles, the decor's share is `info().pabrik`). 20 status changes grow no geometry, texture or program.
 - Not p95: Chrome's rAF clock sits at 18.6 ms even for an empty canvas, so a p95 gate only measures that noise.
 - Adaptive quality (mean frame over 22 ms for 2 s: pixel ratio 1, still platens) and the home button answering within
   300 ms under 6x CPU throttle (`adaptive`).
@@ -58,6 +58,21 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   refetch with machines on screen stays silent. The note clears on the next good fetch (`lantai.mjs notes`).
 - The open panel writes a node only when its text changed and waits for the camera to rest like the labels; `aria-live` is on the status chip and the note only (`lantai.mjs panel-quiet`).
 - A sidebar or build change needs `bench build --app erp_internal` and a restart of `bench start`.
+
+## The floor plan and the factory (Revision 2)
+
+- `denah.js` is pure (no imports): `BARIS`, `posisi`, `posisiSisa(i)`, `SLAB`, `DINDING`, `PINTU`, `ZONA`, `JALUR`. `adegan.js` re-exports
+  `BARIS`/`posisi`. `node --test tools/denah.test.mjs` checks that the zones lie in the slab and never overlap, that every machine slot and the first
+  14 spare slots keep 1.5 m from every zone and every `JALUR` segment, and that no `JALUR` segment crosses a zone other than `bahan` and `jadi`.
+  Change a zone or a slot only with that test green (a spare slot inside a zone, or on the forklift loop, is the failure it guards).
+- `pabrik.js` (`buatPabrik(adegan) -> {tema, info, buang}`): the cut-away building, the outside and the zones, all built from code. Static solids are
+  merged per material (one mesh), the trees are one `InstancedMesh`, the lettering is one canvas atlas redrawn only when the theme changes. A theme
+  change recolours materials and redraws that canvas; it creates no geometry, material or texture. The window glow is `MeshBasicMaterial` that
+  `saatTurun` dims. Decor must never hide a machine, its lamp or its label: `lantai.mjs pabrik` raycasts from the camera to each andon point.
+- The default camera sits higher and further back (`kamera.position` 0, 32, 36) and `adegan.terapkanRuang` fits the machines with `LONGGAR` (0.8) room
+  to spare, so the building shows around them; `label-rapi` still asserts no label is hidden or overlapping.
+- Status rings (`mesin.js`): one `InstancedMesh` ring per machine on the floor, colour = the lit andon segment (Off: grey), Problem pulses with its
+  lamp. `mesin.info()` has `cincin` (hex) and `fase` (0..1 of the mould cycle, also in `daftar()` states, for the life layer).
 
 ## Accepted deviations from the design
 

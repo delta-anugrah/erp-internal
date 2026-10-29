@@ -4,14 +4,10 @@
 // (a mould cycle rewrites one matrix per machine). Nothing here allocates per frame.
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { BARIS, posisi } from "./adegan.js";
+import { BARIS, posisi, posisiSisa } from "./denah.js";
 
 // Instances reserved per part: the 14 slots plus a spare row and a half for duplicate or unknown numbers.
 const MAKS = 28;
-// Spare spots for a machine whose slot is taken or whose number has no slot: rows in front of row 2.
-const SISA_PER_BARIS = 7;
-const SISA_Z0 = 6.3;
-const SISA_DZ = 2.6;
 
 // Body tint per brand (the machine's `merek`); anything else is neutral grey.
 const WARNA_MEREK = { JSW: 0x2f68b4, NISSEI: 0x3f9470, CHENDE: 0xe0802a };
@@ -33,6 +29,8 @@ const GAYA = {
 	Off: { lampu: -1, denyut: 0, redup: 0.38, gerak: false },
 };
 const gaya = (status) => GAYA[status] || GAYA.Idle;
+// The floor ring's colour when no segment is lit (Off): a dim grey.
+const CINCIN_MATI = [0.3, 0.32, 0.35];
 
 const SIKLUS = 5; // seconds per mould open/close
 const LANGKAH = 0.38; // platen stroke, machine units
@@ -102,7 +100,9 @@ function bentuk() {
 	const layar = bagian(new THREE.PlaneGeometry(0.3, 0.2), [ANDON.x, 1.46, 0.692], 0xffffff);
 	const lampu = new THREE.CylinderGeometry(0.058, 0.058, ANDON.h - 0.004, 16);
 	const bayangan = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-	return { tubuh, logam: mergeGeometries(logam), pelat, layar, lampu, bayangan };
+	// The status ring on the floor, an ellipse of unit size around the machine's footprint (scaled per machine).
+	const cincin = new THREE.RingGeometry(0.9, 1, 48).rotateX(-Math.PI / 2);
+	return { tubuh, logam: mergeGeometries(logam), pelat, layar, lampu, bayangan, cincin };
 }
 
 // A soft dark blob under each machine instead of shadow maps.
@@ -138,9 +138,11 @@ export function buatMesin(adegan) {
 		layar: new THREE.MeshBasicMaterial({ toneMapped: false }),
 		lampu: new THREE.MeshBasicMaterial({ toneMapped: false }),
 		bayangan: new THREE.MeshBasicMaterial({ map: tekstur, transparent: true, depthWrite: false }),
+		cincin: new THREE.MeshBasicMaterial({ toneMapped: false, transparent: true, opacity: 0.85, depthWrite: false }),
 	};
 	const mesh = {
 		bayangan: instans(g.bayangan, bahan.bayangan),
+		cincin: instans(g.cincin, bahan.cincin),
 		tubuh: instans(g.tubuh, bahan.tubuh),
 		logam: instans(g.logam, bahan.logam),
 		pelat: instans(g.pelat, bahan.logam),
@@ -148,6 +150,7 @@ export function buatMesin(adegan) {
 		lampu: instans(g.lampu, bahan.lampu, SEGMEN.length),
 	};
 	mesh.bayangan.renderOrder = -1;
+	mesh.cincin.renderOrder = 1; // after the blob and the decor's floor paint
 	const grup = new THREE.Group();
 	for (const m of Object.values(mesh)) grup.add(m);
 	adegan.scene.add(grup);
@@ -185,6 +188,7 @@ export function buatMesin(adegan) {
 		mesh.pelat.setMatrixAt(i, s.dasar);
 		mesh.layar.setMatrixAt(i, s.dasar);
 		mesh.bayangan.setMatrixAt(i, m4.makeScale(3.9 * s.skala, 1, 1.9).setPosition(s.x, 0.006, s.z));
+		mesh.cincin.setMatrixAt(i, m4.makeScale(1.85 * s.skala, 1, 1.25).setPosition(s.x, 0.03, s.z));
 		q.setFromAxisAngle(SUMBU_Y, s.putar);
 		for (let k = 0; k < SEGMEN.length; k++) {
 			v.set(ANDON.x, ANDON.y0 + (SEGMEN.length - 1 - k + 0.5) * ANDON.h, ANDON.z).applyMatrix4(s.dasar);
@@ -204,7 +208,7 @@ export function buatMesin(adegan) {
 		s.skala = panjang(row?.tonase);
 		s.merek.set(WARNA_MEREK[String(row?.merek || "").toUpperCase()] ?? WARNA_LAIN);
 		// The platen's phase belongs to the machine: its number, and half a cycle more when it stands in the spare row.
-		s.fase = ((s.nomor * 0.37) % 1) + (s.slot === null ? 0.5 : 0);
+		s.fase0 = ((s.nomor * 0.37) % 1) + (s.slot === null ? 0.5 : 0);
 		v.set(p.x, 0, p.z);
 		skala.set(s.skala, 1, 1);
 		s.dasar.compose(v, q.setFromAxisAngle(SUMBU_Y, s.putar), skala);
@@ -250,9 +254,7 @@ export function buatMesin(adegan) {
 			const nomor = Number(row?.nomor) || 0;
 			let p = posisi(nomor);
 			if (!p || terpakai.has(nomor)) {
-				const b = Math.floor(sisa / SISA_PER_BARIS);
-				const i = sisa % SISA_PER_BARIS;
-				p = { x: (i - (SISA_PER_BARIS - 1) / 2) * 4.2, z: SISA_Z0 + b * SISA_DZ, baris: BARIS.length + b };
+				p = posisiSisa(sisa);
 				sisa += 1;
 			} else terpakai.add(nomor);
 			const nama = String(row?.name ?? "");
@@ -265,7 +267,9 @@ export function buatMesin(adegan) {
 					kini: new Float32Array(SEGMEN.length * 3),
 					redup: 1,
 					amp: 0,
-					fase: 0,
+					fase0: 0,
+					fase: 0, // where the mould is in its cycle, 0..1 (the platen's, whether or not it moves)
+					cin: new Float32Array(3), // the floor ring's current colour
 					status: "Idle",
 					sentuh: 0,
 				};
@@ -275,6 +279,8 @@ export function buatMesin(adegan) {
 					const f = k === awal.lampu ? 1 : REDUP_SEGMEN;
 					s.kini.set([warnaSegmen[k].r * f, warnaSegmen[k].g * f, warnaSegmen[k].b * f], k * 3);
 				}
+				const mati = awal.lampu < 0;
+				s.cin.set(mati ? CINCIN_MATI : [warnaSegmen[awal.lampu].r, warnaSegmen[awal.lampu].g, warnaSegmen[awal.lampu].b]);
 				lama.set(nama, s);
 			}
 			s.sentuh += 1;
@@ -293,6 +299,7 @@ export function buatMesin(adegan) {
 				warna.fromArray(s.kini, k * 3);
 				mesh.lampu.setColorAt(i * SEGMEN.length + k, warna);
 			}
+			mesh.cincin.setColorAt(i, warna.fromArray(s.cin));
 		});
 		for (const [nama, m] of Object.entries(mesh)) {
 			m.count = keadaan.length * (nama === "lampu" ? SEGMEN.length : 1);
@@ -311,6 +318,8 @@ export function buatMesin(adegan) {
 		let ubahTubuh = false; // body colours (dimming), four buffers
 		let ubahLampu = false; // andon colours only: a pulsing lamp uploads just this buffer
 		let ubahPelat = false;
+		let ubahCincin = false;
+		const putaran = waktu / SIKLUS;
 		for (let i = 0; i < keadaan.length; i++) {
 			const s = keadaan[i];
 			const g = gaya(s.status);
@@ -335,11 +344,25 @@ export function buatMesin(adegan) {
 				mesh.lampu.setColorAt(i * SEGMEN.length + j, warna);
 				ubahLampu = true;
 			}
+			// The floor ring follows the lit lamp segment, pulsing with it (Off: dim grey).
+			const w = g.lampu >= 0 ? warnaSegmen[g.lampu] : null;
+			const tr = w ? w.r * nyala : CINCIN_MATI[0];
+			const tg = w ? w.g * nyala : CINCIN_MATI[1];
+			const tb = w ? w.b * nyala : CINCIN_MATI[2];
+			const c = s.cin;
+			if (Math.abs(tr - c[0]) + Math.abs(tg - c[1]) + Math.abs(tb - c[2]) >= 0.003) {
+				c[0] += (tr - c[0]) * k;
+				c[1] += (tg - c[1]) * k;
+				c[2] += (tb - c[2]) * k;
+				mesh.cincin.setColorAt(i, warna.fromArray(c));
+				ubahCincin = true;
+			}
+			s.fase = (((putaran + s.fase0) % 1) + 1) % 1;
 			const tujuan = g.gerak && !diam ? 1 : 0;
 			if (s.amp === 0 && tujuan === 0) continue;
 			s.amp += (tujuan - s.amp) * k;
 			if (tujuan === 0 && s.amp < 0.002) s.amp = 0;
-			const buka = 0.5 - 0.5 * Math.cos(2 * Math.PI * (waktu / SIKLUS + s.fase));
+			const buka = 0.5 - 0.5 * Math.cos(2 * Math.PI * (putaran + s.fase0));
 			geser.makeTranslation(-LANGKAH * buka * s.amp, 0, 0);
 			mesh.pelat.setMatrixAt(i, m4.multiplyMatrices(s.dasar, geser));
 			ubahPelat = true;
@@ -352,6 +375,7 @@ export function buatMesin(adegan) {
 		}
 		if (ubahLampu) mesh.lampu.instanceColor.needsUpdate = true;
 		if (ubahPelat) mesh.pelat.instanceMatrix.needsUpdate = true;
+		if (ubahCincin) mesh.cincin.instanceColor.needsUpdate = true;
 	}
 
 	// The name of the machine under a ray (null when it hits none), for click selection. Names are unique,
@@ -389,6 +413,8 @@ export function buatMesin(adegan) {
 					redup: s.redup,
 					gerak: g.gerak,
 					amp: s.amp,
+					fase: s.fase,
+					cincin: `#${warna.setRGB(s.cin[0], s.cin[1], s.cin[2]).getHexString()}`,
 					sentuh: s.sentuh,
 				};
 			});

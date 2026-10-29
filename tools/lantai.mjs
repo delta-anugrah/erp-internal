@@ -14,7 +14,7 @@
 //                empty, no dialog; a duplicate and an unknown number land in the spare row
 //   no-webgl     --disable-webgl: the plain table with 14 rows, no canvas, no dialog; the same when the bundle fails
 //   perf         headed Chromium 1440x900 @2x: 10 s scripted orbit with two status changes, first 2 s dropped:
-//                >= 57 fps, intervals > 25 ms <= 1 %, max <= 50 ms, no long task, <= 60 draw calls, <= 150k
+//                >= 57 fps, intervals > 25 ms <= 1 %, max <= 50 ms, no long task, <= 100 draw calls, <= 250k
 //                triangles; 20 status changes grow no geometry, texture or shader program (p95 printed only)
 //   adaptive     CPU throttled 6x: pixel ratio 1 within 4 s, the reset button answers within 300 ms
 //   label        machine 3's label reads "03 · <brand> <tonnage>T" over its machine; no label writes while the camera
@@ -24,6 +24,8 @@
 //                switch over 2 s of rest; zoomed in twice no visible label intersects the KPI row
 //   pilih        a real click on Mesin 03 opens its panel and flies the camera to it; Open machine goes to the form;
 //                a bottom sheet at 390 px wide
+//   pabrik       the decor is drawn; every machine's andon point projects inside the canvas with nothing in front of it from
+//                the default camera; Mesin 01 set to Problem has a red, pulsing floor ring (restored after)
 //   status       the Problem button: spinner and disabled until the answer, the server's status (get_value), the
 //                chip, the lamp; a refused change is an inline note; an unchanged refetch touches no machine
 //   wo, xss      a submitted In Process Work Order (40 produced) on Mesin 03: label item and progress, panel link;
@@ -709,7 +711,8 @@ if (jalankan("wo") || jalankan("xss")) await kasus("wo/xss", async () => {
 		});
 		if (!bom?.name) throw new Error("no default BOM on the site for a sample Work Order");
 		// Four BOM batches, so no raw material row turns fractional.
-		const QTY = (Number(bom.quantity) || 1) * 4;
+		const q = Number(bom.quantity) || 1;
+		const QTY = q * Math.max(4, Math.ceil(100 / q)); // whole BOM batches, and more than the 40 produced
 		const baru = await api(p, "frappe.client.insert", {
 			doc: { doctype: "Work Order", production_item: bom.item, bom_no: bom.name, qty: QTY, company: await p.evaluate(() => frappe.defaults.get_default("company")), erp_mesin: "Mesin 03" },
 		});
@@ -1212,6 +1215,45 @@ if (jalankan("label-rapi")) await kasus("label-rapi", async () => {
 		await ctx.close();
 	}
 });
+// --- pabrik: the building and the outside, the andon points stay clear, the floor rings follow the statuses ----------
+if (jalankan("pabrik")) await kasus("pabrik", async () => {
+	const ctx = await konteksMasuk(browser);
+	const p = await bukaLantai(ctx);
+	const asli = await catatStatus(p, ["Mesin 01"]);
+	try {
+		await p.waitForTimeout(1500);
+		const i = await p.evaluate(() => erp.lantai.aktif.info());
+		cek(i.pabrik?.calls > 0, `pabrik: info().pabrik ${JSON.stringify(i.pabrik)}`);
+		cek(i.pabrik?.tris > 0 && i.pabrik.tris < 120000, `pabrik: the decor's triangles ${i.pabrik?.tris}`);
+		const lebar = 1440;
+		const tinggi = 900;
+		const andon = await p.evaluate(() => erp.lantai.aktif.periksaAndon());
+		cek(andon.length === 14, `pabrik: ${andon.length} andon points`);
+		for (const a of andon) {
+			cek(a.layar.depan && a.layar.x > 0 && a.layar.x < lebar && a.layar.y > 0 && a.layar.y < tinggi, `pabrik: ${a.nama}'s andon is off the canvas at ${Math.round(a.layar.x)},${Math.round(a.layar.y)}`);
+			cek(a.mesinPertama, `pabrik: a ray to ${a.nama}'s andon hits something else first (${a.pertama?.toFixed(2)} of ${a.jarak.toFixed(2)})`);
+			cek(a.pertama !== null && a.pertama >= a.jarak - 0.5, `pabrik: something stands in front of ${a.nama}'s andon (${a.pertama?.toFixed(2)} of ${a.jarak.toFixed(2)})`);
+		}
+		// The ring takes the status colour; Problem pulses like its lamp.
+		await api(p, "erp_internal.production_floor.set_status", { machine: "Mesin 01", status: "Problem" });
+		await p.evaluate(() => erp.lantai.aktif.muat());
+		await tunggu(p, () => erp.lantai.aktif.info().mesin.find((m) => m.nama === "Mesin 01")?.status === "Problem", null, 5000);
+		await p.waitForTimeout(800);
+		const cincin = new Set();
+		for (let k = 0; k < 8; k++) {
+			cincin.add(await p.evaluate(() => erp.lantai.aktif.info().mesin.find((m) => m.nama === "Mesin 01")?.cincin));
+			await p.waitForTimeout(110);
+		}
+		cek(cincin.size >= 3, `pabrik: the Problem ring does not pulse: ${[...cincin].join(" ")}`);
+		cek([...cincin].every((h) => { const n = [1, 3, 5].map((j) => parseInt(h.slice(j, j + 2), 16)); return n[0] > n[1] + 20 && n[0] > n[2] + 20; }), `pabrik: the Problem ring is not red: ${[...cincin].join(" ")}`);
+		await p.screenshot({ path: join(HASIL, "lantai-pabrik.png") });
+		cek((await dialog(p)) === 0, "pabrik: a message dialog is open");
+		cek(!p.__galat.length, `pabrik: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
+	} finally {
+		await pulihkanStatus(p, asli);
+		await ctx.close();
+	}
+});
 if (jalankan("hud")) await kasus("hud", async () => {
 	const ctx = await konteksMasuk(browser);
 	const p = await bukaLantai(ctx);
@@ -1570,8 +1612,8 @@ if (jalankan("perf")) {
 		cek(hasil.jatuh <= hasil.n * 0.01, `perf: ${hasil.jatuh} of ${hasil.n} frames dropped (> 25 ms), over 1 %`);
 		cek(hasil.max <= 50, `perf: max ${hasil.max?.toFixed(2)} ms > 50`);
 		cek(hasil.panjang.length === 0, `perf: long tasks ${JSON.stringify(hasil.panjang)}`);
-		cek(hasil.render.calls <= 60, `perf: draw calls ${hasil.render.calls} > 60`);
-		cek(hasil.render.triangles <= 150000, `perf: triangles ${hasil.render.triangles} > 150000`);
+		cek(hasil.render.calls <= 100, `perf: draw calls ${hasil.render.calls} > 100`);
+		cek(hasil.render.triangles <= 250000, `perf: triangles ${hasil.render.triangles} > 250000`);
 		cek(!hasil.kualitas.rendah, "perf: adaptive quality dropped on this machine");
 		cek(
 			JSON.stringify(hasil.mesin) === JSON.stringify([["Mesin 07", "Problem"], ["Mesin 08", "Maintenance"]]),
@@ -1721,4 +1763,4 @@ if (gagal.length) {
 	console.error("GAGAL:\n- " + gagal.join("\n- "));
 	process.exit(1);
 }
-console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);
+console.log(`OK: production-floor (${KASUS.length ? KASUS.join(", ") : "1 canvas, 1 context, 14 markers in floor order, states, 13-machines, no-webgl, label, pabrik, pilih, status, wo, xss, set_value, poll, live, reconnect, notes, panel-quiet, strip, hidden, id, hud, hud-live, hud-xss, glass, perf, adaptive"})`);

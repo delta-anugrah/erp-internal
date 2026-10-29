@@ -2,12 +2,13 @@
 // repo's node_modules. The bundle fetches its own data and owns the live updates (realtime nudge, poll), so a stale
 // page script cached by Desk cannot leave the floor empty. The page script keeps a plain table of its own for when
 // this bundle does not load.
-import { Raycaster, Vector2 } from "three";
+import { Raycaster, Vector2, Vector3 } from "three";
 import { buatAdegan, TanpaWebGL } from "./lantai/adegan.js";
 import { buatHud, GAYA_HUD } from "./lantai/hud.js";
 import { GAYA_KACA } from "./lantai/kaca.js";
 import { buatLabel, GAYA_LABEL } from "./lantai/label.js";
 import { buatMesin } from "./lantai/mesin.js";
+import { buatPabrik } from "./lantai/pabrik.js";
 import { buatPanel, GAYA_PANEL } from "./lantai/panel.js";
 
 frappe.provide("erp.lantai");
@@ -233,6 +234,7 @@ erp.lantai.pasang = function (host) {
 		if (!(e instanceof TanpaWebGL)) throw e;
 		return pasangTabel(host);
 	}
+	const pabrik = buatPabrik(adegan);
 	const mesin = buatMesin(adegan);
 	adegan.tiap.push(mesin.tick);
 	adegan.saatTurun.push(mesin.diam);
@@ -308,6 +310,7 @@ erp.lantai.pasang = function (host) {
 		const t = gelap ? "dark" : "light";
 		if (host.dataset.tema !== t) host.dataset.tema = t;
 		adegan.tema(gelap);
+		pabrik.tema(t);
 	};
 	ikutTema();
 	const pengamatTema = new MutationObserver(ikutTema);
@@ -413,6 +416,31 @@ erp.lantai.pasang = function (host) {
 		pilih,
 		pilihDari: (r) => mesin.pilihDari(r),
 		lihat: (pos, target) => adegan.lihat(pos, target),
+		// Debug for tools/lantai.mjs: each machine's andon top on screen from the current camera and what a ray from the
+		// camera to it hits first (nothing of the decor may stand in front of it).
+		periksaAndon() {
+			const ray = new Raycaster();
+			const dari = adegan.kamera.position;
+			const p = new Vector3();
+			const arah = new Vector3();
+			adegan.kamera.updateMatrixWorld();
+			return mesin.daftar().map((s) => {
+				p.set(0.2, 2.2, 0.62).applyMatrix4(s.dasar);
+				adegan.proyeksi(p.x, p.y, p.z, titik);
+				arah.subVectors(p, dari);
+				const jarak = arah.length();
+				ray.set(dari, arah.normalize());
+				const kena = ray.intersectObjects(adegan.scene.children, true)[0];
+				const di = kena ? kena.point : null;
+				return {
+					nama: s.nama,
+					layar: { x: titik.x, y: titik.y, depan: titik.depan },
+					jarak,
+					pertama: kena ? kena.distance : null,
+					mesinPertama: !!di && Math.abs(di.x - s.x) < 2.3 && Math.abs(di.z - s.z) < 1.3,
+				};
+			});
+		},
 		jeda() {
 			adegan.jeda();
 			live.jeda();
@@ -431,6 +459,7 @@ erp.lantai.pasang = function (host) {
 			panel.buang();
 			label.buang();
 			mesin.buang();
+			pabrik.buang();
 			adegan.buang();
 			root.innerHTML = "";
 			if (erp.lantai.aktif === ctl) erp.lantai.aktif = null;
@@ -447,6 +476,7 @@ erp.lantai.pasang = function (host) {
 				...i,
 				webgl: true,
 				mesin: mesinInfo,
+				pabrik: pabrik.info(),
 				label: label.info(),
 				halangan: halanganKini,
 				hud: hud.info(),
