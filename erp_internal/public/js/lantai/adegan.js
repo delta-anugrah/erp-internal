@@ -178,17 +178,52 @@ export function buatAdegan(root) {
 
 	let lebarLayar = 1;
 	let tinggiLayar = 1;
-	const ruang = { atas: 0, kanan: 0, bawah: 0, kiri: 0 }; // px the cards take; the view centres in the rest
-	// Shifts the projection so the camera's target sits at the centre of the free area (a sub-view of the full
-	// frame: same size, offset), not under a card. No offset at all when the cards take nothing.
+	const ruang = { atas: 0, kanan: 0, bawah: 0, kiri: 0 }; // px the cards take; the view fits in the rest
+	const tambah = { kanan: 0, bawah: 0 }; // an open side panel: only moves the view's centre, never rescales it
+	// The home camera on a spare camera, to measure where the machines and their labels fall in the default view
+	// whatever the user did with the live one. Allocated once; used only when the layout changes.
+	const kamHome = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+	const pt = new THREE.Vector3();
+	const MARGIN_X = 82; // px a label reaches to each side of its machine
+	const MARGIN_ATAS = 90; // px a label (with a Work Order) rises above its anchor
+	// Fits the default view into the free area: the camera's projection becomes a sub-view of a virtual frame scaled
+	// by `s` (never above 1) and shifted so the machines and labels, as the home camera sees them, fill the free area
+	// and sit centred in it. No offset at all when the cards take nothing.
 	function terapkanRuang() {
 		const { atas, kanan, bawah, kiri } = ruang;
-		if (!atas && !kanan && !bawah && !kiri) kamera.clearViewOffset();
-		else {
-			const dx = lebarLayar / 2 - (kiri + (lebarLayar - kanan)) / 2;
-			const dy = tinggiLayar / 2 - (atas + (tinggiLayar - bawah)) / 2;
-			kamera.setViewOffset(lebarLayar, tinggiLayar, Math.round(dx), Math.round(dy), lebarLayar, tinggiLayar);
+		if (!atas && !kanan && !bawah && !kiri) {
+			kamera.clearViewOffset();
+			return;
 		}
+		kamHome.aspect = lebarLayar / tinggiLayar;
+		kamHome.position.copy(kontrol.position0);
+		kamHome.lookAt(kontrol.target0);
+		kamHome.updateProjectionMatrix();
+		kamHome.updateMatrixWorld(true);
+		let x0 = Infinity;
+		let y0 = Infinity;
+		let x1 = -Infinity;
+		let y1 = -Infinity;
+		for (const m of penanda.children)
+			for (const y of [0, 2.45]) {
+				pt.set(m.position.x, y, m.position.z).project(kamHome);
+				const px = ((pt.x + 1) / 2) * lebarLayar;
+				const py = ((1 - pt.y) / 2) * tinggiLayar;
+				x0 = Math.min(x0, px);
+				x1 = Math.max(x1, px);
+				y0 = Math.min(y0, py);
+				y1 = Math.max(y1, py);
+			}
+		x0 -= MARGIN_X;
+		x1 += MARGIN_X;
+		y0 -= MARGIN_ATAS;
+		y1 += 10;
+		const bebasL = lebarLayar - kiri - kanan;
+		const bebasT = tinggiLayar - atas - bawah;
+		const s = Math.max(0.4, Math.min(1, bebasL / (x1 - x0), bebasT / (y1 - y0)));
+		const dx = s * ((x0 + x1) / 2) - (kiri + (bebasL - tambah.kanan) / 2);
+		const dy = s * ((y0 + y1) / 2) - (atas + (bebasT - tambah.bawah) / 2);
+		kamera.setViewOffset(lebarLayar * s, tinggiLayar * s, Math.round(dx), Math.round(dy), lebarLayar, tinggiLayar);
 	}
 	function ukuran() {
 		const l = root.clientWidth || 1;
@@ -329,9 +364,12 @@ export function buatAdegan(root) {
 		// The free area for the default view, in px the cards take on each side. The camera's home is the same
 		// position and target, so the reset button returns to the view centred in the free area (the offset belongs
 		// to the camera, not to the saved state: `saveState()` here would overwrite home with wherever the user is).
-		aturRuang({ atas = 0, kanan = 0, bawah = 0, kiri = 0 } = {}) {
-			if (ruang.atas === atas && ruang.kanan === kanan && ruang.bawah === bawah && ruang.kiri === kiri) return;
+		// `panel` ({kanan, bawah}): what the open side panel takes; the view is centred in what is left of the free area.
+		aturRuang({ atas = 0, kanan = 0, bawah = 0, kiri = 0 } = {}, { kanan: pk = 0, bawah: pb = 0 } = {}) {
+			if (ruang.atas === atas && ruang.kanan === kanan && ruang.bawah === bawah && ruang.kiri === kiri && tambah.kanan === pk && tambah.bawah === pb) return;
 			Object.assign(ruang, { atas, kanan, bawah, kiri });
+			tambah.kanan = pk;
+			tambah.bawah = pb;
 			terapkanRuang();
 			kamera.updateProjectionMatrix();
 			tandaiKotor();

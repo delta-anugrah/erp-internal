@@ -242,7 +242,12 @@ erp.lantai.pasang = function (host) {
 	let panel = null;
 	function kotakBaru() {
 		halanganKini = [...hud.kotak(), ...(panel ? panel.kotak() : [])];
-		adegan.aturRuang(hud.ruang());
+		// An open panel (a card at the right on a desktop, a bottom sheet on a phone) only shifts the centre.
+		const pk = panel?.kotak()[0];
+		const lebar = host.clientWidth;
+		const tinggi = host.clientHeight;
+		const sisi = pk ? (pk.x1 - pk.x0 < lebar * 0.6 ? { kanan: lebar - pk.x0 + 8 } : { bawah: tinggi - pk.y0 + 8 }) : {};
+		adegan.aturRuang(hud.ruang(), sisi);
 		label.kotakBaru();
 	}
 	const label = buatLabel(root.querySelector(".lantai"), adegan, mesin, { halangan: () => halanganKini });

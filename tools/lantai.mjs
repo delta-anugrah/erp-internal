@@ -1142,6 +1142,40 @@ if (jalankan("label-rapi")) await kasus("label-rapi", async () => {
 			}
 			cek(typeof s.label.ringkas === "number" && typeof s.label.tersembunyi === "number", `${nm}: ringkas/tersembunyi missing`);
 			cek(penuh.length >= 1, `${nm}: no full label at all`);
+			// With the table open the default view fits the free area: nothing hidden, all 14 labels shown.
+			if (l >= 1280) cek(s.label.tersembunyi === 0 && kotak.length === 14, `${nm}: default view hides ${s.label.tersembunyi} labels, shows ${kotak.length} of 14`);
+		}
+		// Hysteresis for real (once): dolly out until a label flips between full and compact, then jiggle the camera by a
+		// few px around that point; nobody may flip back.
+		if (l === 1440) {
+			const r = await p.evaluate(async () => {
+				const a = erp.lantai.aktif;
+				const rAF = () => new Promise((f) => requestAnimationFrame(() => requestAnimationFrame(f)));
+				const pos = (d) => a.lihat([0, d * 0.5, d * 0.86], [0, 0, 0]);
+				const vektor = () => JSON.stringify(a.info().label.kotak.map((k) => [k.nama, k.ringkas]));
+				let sebelum = null;
+				let ketemu = null;
+				for (let d = 70; d >= 25 && ketemu === null; d -= 0.2) {
+					pos(d);
+					await rAF();
+					const v = vektor();
+					if (sebelum !== null && v !== sebelum) ketemu = d;
+					sebelum = v;
+				}
+				if (ketemu === null) return { ketemu };
+				const awal = vektor();
+				const beda = [];
+				for (let n = 0; n < 12; n++) {
+					for (const dd of [0.15, 0, -0.15, 0]) {
+						pos(ketemu + dd);
+						await rAF();
+						if (vektor() !== awal) beda.push(ketemu + dd);
+					}
+				}
+				return { ketemu, beda };
+			});
+			cek(r.ketemu !== null && r.ketemu !== undefined, `${nm}: no full/compact flip found while dollying out`);
+			cek(!r.beda?.length, `${nm}: labels flipped while the camera jiggled by a few px: ${JSON.stringify(r.beda)}`);
 		}
 		// The selected label stays full (through the table, like a user).
 		const d = await api(p, "erp_internal.production_floor.get_data", {}, false);

@@ -452,7 +452,17 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 				hasil.push({ x0: r.left - asal.left, y0: r.top - asal.top, x1: r.right - asal.left, y1: r.bottom - asal.top });
 		}
 		const a = atas.getBoundingClientRect();
-		const ruang = { atas: Math.ceil(a.bottom - asal.top), kanan: 0, bawah: 0, kiri: 0 };
+		// The machine table covers a corner: keep clear of it on whichever side leaves the larger free rectangle
+		// (to its right, or above it); a collapsed table is a thin strip, so "above" wins.
+		const t = tabel.getBoundingClientRect();
+		const atasPx = Math.ceil(a.bottom - asal.top);
+		const kiri = t.width > 0 ? Math.ceil(t.right - asal.left) + 8 : 0;
+		const bawah = t.height > 0 ? Math.ceil(asal.bottom - t.top) + 8 : 0;
+		const luasKiri = (asal.width - kiri) * (asal.height - atasPx);
+		const luasBawah = asal.width * (asal.height - atasPx - bawah);
+		const ruang = { atas: atasPx, kanan: 0, bawah: 0, kiri: 0 };
+		if (luasKiri >= luasBawah) ruang.kiri = kiri;
+		else ruang.bawah = bawah;
 		const sama = (x, y) => JSON.stringify(x) === JSON.stringify(y);
 		if (sama(hasil, kotakKini) && sama(ruang, ruangKini)) return;
 		kotakKini = hasil;

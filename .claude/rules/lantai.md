@@ -36,8 +36,8 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   overlap change (hysteresis). Sizes are cached and measured only after a text change (camera at rest), so a frame reads no
   layout; only a changed class, visibility or transform is written. The cards' rectangles come from `hud.kotak()` /
   `panel.kotak()` (host-relative, cached, re-measured by a ResizeObserver or `ukurKotak()`, never per frame); the bundle joins
-  them into `halangan`. `adegan.aturRuang()` offsets the camera's projection (`setViewOffset`) so the default view centres under the
-  KPI row; do not call `saveState()` for it (it would overwrite home with the current view). `lantai.mjs label-rapi` checks it at three window sizes.
+  them into `halangan`. `adegan.aturRuang()` fits the default view into the free area (`setViewOffset` on a scaled virtual frame, never above 1x) beside the
+  KPI row and the larger side of the machine table (right of it or above it); an open panel only moves the centre; do not call `saveState()` for it (it would overwrite home with the current view). `lantai.mjs label-rapi` checks it at three window sizes.
 - One WebGL context for the whole session: leaving the page pauses, coming back resumes; never create a second canvas.
   One InstancedMesh per part (10 draw calls for 14 machines); a refresh with the same machines touches only changed rows.
 - Fetch with plain `fetch`, never `frappe.call`: a failed request must not open a message dialog.
