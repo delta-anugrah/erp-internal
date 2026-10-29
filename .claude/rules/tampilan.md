@@ -29,8 +29,10 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   its app's title and `Custom Workspace` has no title field. So the page title, breadcrumb and tab read "HR"
   ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
 - Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
-  is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and Machine Capacity (a
-  Planning DocType) in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]` after BOM; the Planning module itself stays blocked.
+  is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and the Planning
+  DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Entry (after Work
+  Order), Plan vs Actual (after Order Readiness), Machine Capacity (after BOM); Reject Reason sits in Setup after
+  Manufacturing Settings. The Planning module itself stays blocked.
 - Production Floor (page `production-floor`, `lantai.md`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
@@ -42,7 +44,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Three Role Profiles (`PROFIL_PERAN`): User, Admin, Developer. Admin holds the manager roles plus the User roles
   (Stock Manager alone reads neither Company nor Stock Balance in v16) and `PERAN_ADMIN` ("ERP Admin"). Every
   profile must read Company (`test_izin_per_profil`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
-- Admin's rail adds `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock and the business settings; its home is
+- Admin's rail adds `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons; its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Developer only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on

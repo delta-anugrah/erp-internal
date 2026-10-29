@@ -4,7 +4,9 @@ ERPNext v16 for the plastic factory (stock, sales, purchasing, production with a
 (attendance, projects). This repo is the Frappe app `erp_internal`.
 
 - Design: `docs/superpowers/specs/2026-10-27-erp-internal-design.md`
-- Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md` (read its "Revision 2" and "Revision 3" first)
+- Plan: `docs/superpowers/plans/2026-10-27-erp-internal-plan.md` (read its "Revision 2", "Revision 3" and "Revision 4" first)
+- Plan vs Actual: spec `docs/superpowers/specs/2026-10-28-plan-vs-actual-design.md`, plan
+  `docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md`
 
 ## Dev setup (macOS)
 
@@ -99,6 +101,11 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   orders, rounded up), then MPS → MRP → Work Order; the Order Readiness report shows what is short and when to
   start (`planning/rumus.py`, design §10). It needs read permission on the chosen Company (and Warehouse);
   other companies' stock is refused. Staff guide: `docs/panduan/produksi.md`.
+- Production (capacity and output): Machine Capacity per product per machine (`planning/kapasitas.py`). "Make BOMs"
+  and the Excel import (`docs/impor.md` section 6) build one default BOM per variant per machine; a draft Work Order
+  with a machine gets that machine's BOM (`pilih_bom`). Production Entry ("Record Output" on a Work Order) books the
+  good pieces (Manufacture) and the rejects (Repack into Gudang Reject) as two Stock Entries; the Plan vs Actual
+  report compares them with the target. Guide: `docs/panduan/produksi.md`.
 
 ## Screens
 
@@ -110,10 +117,10 @@ shortcuts to the same links as its sidebar, nothing else:
 | Stock | Item, Stock Entry, Warehouse, Stock Balance, Stock Ledger |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
-| Manufacturing | Production Floor, Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Order Readiness, Plan vs Actual, BOM, Machine Capacity, Item Lead Time |
+| Manufacturing | Production Floor, Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Production Entry, Order Readiness, Plan vs Actual, BOM, Machine Capacity, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
-| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings |
+| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |
 
 The sidebar folds into the rail and opens again with the round arrow at its bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible).
@@ -144,7 +151,7 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
 ## Sample data
 
 `erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): one sample company (PT Contoh Plastik), products
-with BOMs, lead times and stock, customers, suppliers, 6 months of Sales History, open orders, employees on the
+with BOMs, lead times and stock, customers, suppliers, 6 months of Sales History, open orders, 10 Machine Capacity rows with their BOMs, 4 open Work Orders (plus one older order without a machine) and 28 Production Entries over the last 7 days, employees on the
 shift, one project, and one user per role (`developer@`, `admin@`, `user@example.com`):
 
 ```bash

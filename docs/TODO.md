@@ -21,6 +21,16 @@ Last full run (2026-10-29, after Plan vs Actual Task 6): `bench --site erp-test.
       has no plan) and group it by Machine, Day, Item, Work Order and Shift; then again in Indonesian.
 
 ## Waiting on Abel
+- [ ] Known issue: `buat_contoh` rerun on a later day fails: the sample Work Orders with share 1.0 are Completed after
+      the first run and the next day's Production Entry is refused; and the qty correction by db.set_value can leave
+      qty below produced_qty with a stale status. Until fixed, don't rerun `buat_contoh` on erp.localhost on another
+      day (fix: look up only open sample orders and make a new one when Completed, or recompute qty from
+      produced_qty and call the status update).
+- [ ] Decide: home shortcuts cap raised from 10 to 12 (Manufacturing 12, Setup 11) against Samuel's "short homes";
+      trim links instead?
+- [ ] Optional: allow a Work Order's machine change only while Not Started / In Process (now any submitted order).
+- [ ] In the browser: Machine Capacity list → Import from Excel (Preview, Apply), Make BOMs, Record Output on a Work
+      Order, Plan vs Actual in both target modes, in Indonesian too.
 - [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
       database root password, so it is yours to run (`deploy/server/README.md`). Can wait for the DigitalOcean go-live.
 - [ ] Look at the screens in Indonesian once (switch the language in the user menu) and click Fill from History and
