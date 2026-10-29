@@ -52,6 +52,7 @@ Last full run (2026-10-28, after the Production Floor final review fixes): `benc
   - [ ] Go to a Work Order and come back (sidebar link and browser back): the floor fills the screen, no empty strip.
 
 ## Production Floor, next round (Abel, 2026-10-28 22:32)
+Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec Revision 2).
 - [ ] Labels overlap from the default camera (08/09, 05/06): spread or stack them so none covers another.
 - [ ] Zoomed in, the KPI cards cover the back row's labels: hide or fade a label under a card, or keep labels out
       of the cards' area.
