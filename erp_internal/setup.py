@@ -148,6 +148,19 @@ GUDANG_PRODUKSI = {
 	"default_scrap_warehouse": "Gudang Reject",
 }
 PENGATURAN_PRODUKSI = {"backflush_raw_materials_based_on": "BOM"}  # Manufacturing Settings
+# The factory's shifts (name, hours) for Production Entry: its Shift choices and the default run hours (until
+# Samuel says how many shifts and how long). Written as a Property Setter on Production Entry.shift.
+SHIFT_PABRIK = (("Shift 1", 8), ("Shift 2", 8), ("Shift 3", 8))
+# The Reject Reasons setup makes when missing (until Samuel lists his). Admin may add more; none is deleted.
+ALASAN_REJECT = (
+	"Short Shot",
+	"Flashing",
+	"Belang / Warna",
+	"Pecah / Retak",
+	"Bubble",
+	"Sink Mark",
+	"Lainnya",
+)
 # Item Group → the warehouse its items default to, per company.
 GUDANG_GRUP = {
 	"Barang Jadi": "Gudang Barang Jadi",
@@ -222,6 +235,8 @@ def pastikan_setup() -> None:
 	_bawaan()
 	_alur_jual_beli()
 	_produksi()
+	_shift_pabrik()
+	_alasan_reject()
 	_kantor()
 	_proyek()
 	tampilan.terapkan()
@@ -486,6 +501,28 @@ def _produksi() -> None:
 				ubah = True
 		if ubah:
 			doc.save(ignore_permissions=True)
+
+
+def jam_shift(nama: str) -> float:
+	"""The hours of factory shift `nama` (`SHIFT_PABRIK`), 0 for an unknown shift."""
+	return float(dict(SHIFT_PABRIK).get(nama, 0))
+
+
+def _shift_pabrik() -> None:
+	"""Production Entry's Shift choices: a blank, then the SHIFT_PABRIK names."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	pilihan = "\n".join(("", *(nama for nama, _jam in SHIFT_PABRIK)))
+	if frappe.get_meta("Production Entry").get_field("shift").options != pilihan:
+		make_property_setter(
+			"Production Entry", "shift", "options", pilihan, "Text", validate_fields_for_doctype=False
+		)
+
+
+def _alasan_reject() -> None:
+	for nama in ALASAN_REJECT:
+		if not frappe.db.exists("Reject Reason", nama):
+			frappe.get_doc({"doctype": "Reject Reason", "reason_name": nama}).insert(ignore_permissions=True)
 
 
 def _kantor() -> None:

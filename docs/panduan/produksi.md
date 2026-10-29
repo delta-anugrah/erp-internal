@@ -6,7 +6,8 @@ Alurnya:
 
 1. sekali per produk: **lama produksi** dan **resep (BOM)**;
 2. tiap bulan: **perkiraan penjualan → jadwal produksi → MRP → perintah produksi**;
-3. tiap Senin: cek **Order Readiness** (Siap Order).
+3. tiap shift: **catat hasil produksi** per mesin (bagus dan reject);
+4. tiap Senin: cek **Order Readiness** (Siap Order).
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
@@ -81,7 +82,43 @@ Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, 
 1. Buka Work Order-nya, **Submit**.
 2. Bahan diambil ke mesin: **Start** (Material Transfer for Manufacture), **Submit** Stock Entry-nya.
 3. Produk selesai: **Finish** (Manufacture), isi jumlah yang jadi, **Submit**. Stok barang jadi bertambah, bahan
-   berkurang sesuai BOM.
+   berkurang sesuai BOM. Untuk mesin cetak, lebih enak lewat **Catat hasil produksi** (di bawah): sekali isi,
+   barang bagus dan reject langsung tercatat.
+
+## Catat hasil produksi
+Tiap mesin, tiap shift, tiap Work Order: satu **Production Entry** (Hasil Produksi). Diisi admin pabrik dari catatan
+operator.
+
+1. Buka Work Order yang sudah di-**Submit** dan belum selesai, klik **Record Output**. (Atau **Manufacturing →
+   Production Entry → + Add Production Entry**, lalu pilih **Work Order**.) **Item**, **Machine** dan **Company**
+   terisi sendiri dari Work Order.
+2. **Date**: tanggal shift-nya (tidak boleh besok). **Shift**: Shift 1, 2 atau 3. **Run Hours** terisi panjang shift
+   (8 jam); ganti kalau mesin cuma jalan sebagian.
+3. **Good Qty**: jumlah barang bagus.
+4. **Rejects**: satu baris per alasan (**Reason**, misalnya Short Shot, Flashing, Bubble) dan jumlahnya. **Reject
+   Qty** dijumlah sendiri.
+5. **Save**, **Submit**.
+
+Saat Submit stok bergerak sendiri (dua Stock Entry, kelihatan di bagian **Stock Entries**):
+
+| Yang terjadi | Ke mana |
+|---|---|
+| Barang bagus | Gudang Barang Jadi, dan dihitung ke **Produced Qty** Work Order |
+| Barang reject | Gudang Reject (barangnya sama), **tidak** dihitung ke Work Order |
+| Bahan (biji plastik, masterbatch) | berkurang sesuai BOM untuk bagus + reject |
+
+Jadi Work Order baru **Completed** kalau barang **bagus**-nya sudah cukup; reject tidak ikut menghitung.
+
+Ditolak kalau: mesinnya beda dengan mesin di Work Order (ganti dulu mesin di Work Order), bagus dan reject
+dua-duanya 0, ada baris reject 0, tanggal di masa depan, jam jalan 0 atau lebih dari 24, Work Order belum di-submit
+atau sudah selesai/berhenti, atau alasan reject-nya sudah dinonaktifkan. Bahan kurang di gudang: Submit gagal dan
+tidak ada stok yang berubah.
+
+Salah isi? Buka Production Entry-nya, **Cancel** (kedua Stock Entry ikut batal, stok kembali), lalu **Amend** dan
+perbaiki.
+
+Daftar alasan reject: **Settings → Reject Reason** (Admin). Tambah alasan baru di sana; alasan yang tidak dipakai lagi
+cukup dicentang **Disabled**, jangan dihapus.
 
 ## Tiap Senin: Order Readiness (Siap Order)
 

@@ -554,3 +554,28 @@ def buat_kapasitas(item: str, mesin: str, **nilai) -> str:
 		.insert(ignore_permissions=True)
 		.name
 	)
+
+
+def buat_hasil(wo: str, good: float, rejects: dict[str, float] | None = None, **lain):
+	"""Insert and submit a new Production Entry of `good` pieces and `rejects` (reason → qty) for Work Order
+	`wo`, on the order's machine, dated today, Shift 1; `lain` overrides any field. Made as the current user
+	(no ignore_permissions): the tests check who may record output."""
+	from frappe.utils import today
+
+	order = frappe.db.get_value("Work Order", wo, ["company", "erp_mesin"], as_dict=True)
+	doc = frappe.get_doc(
+		{
+			"doctype": "Production Entry",
+			"company": order.company,
+			"work_order": wo,
+			"workstation": order.erp_mesin,
+			"posting_date": today(),
+			"shift": "Shift 1",
+			"good_qty": good,
+			"rejects": [{"reason": r, "qty": q} for r, q in (rejects or {}).items()],
+			**lain,
+		}
+	)
+	doc.insert()
+	doc.submit()
+	return doc

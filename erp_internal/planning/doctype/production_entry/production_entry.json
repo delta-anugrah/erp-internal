@@ -1,0 +1,230 @@
+{
+ "actions": [],
+ "autoname": "PE-.YYYY.-.#####",
+ "creation": "2026-10-29 15:00:00.000000",
+ "description": "What one machine made in one shift for one Work Order. Submit moves the stock: good pieces to the finished goods warehouse, rejects to the reject warehouse, material used for both.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "work_order",
+  "item",
+  "workstation",
+  "column_break_kapan",
+  "company",
+  "posting_date",
+  "shift",
+  "hours",
+  "section_hasil",
+  "good_qty",
+  "column_break_hasil",
+  "reject_qty",
+  "rejects",
+  "notes",
+  "section_stok",
+  "manufacture_entry",
+  "column_break_stok",
+  "reject_entry",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "work_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Work Order",
+   "options": "Work Order",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "work_order.production_item",
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Item",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "description": "Defaults to the Work Order's machine.",
+   "fieldname": "workstation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Machine",
+   "link_filters": "[[\"Workstation\", \"erp_nomor\", \">\", 0]]",
+   "options": "Workstation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_kapan",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "shift",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Shift",
+   "options": "\nShift 1\nShift 2\nShift 3",
+   "reqd": 1
+  },
+  {
+   "description": "Hours the machine ran in this shift; defaults to the shift's length.",
+   "fieldname": "hours",
+   "fieldtype": "Float",
+   "label": "Run Hours",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_hasil",
+   "fieldtype": "Section Break",
+   "label": "Output"
+  },
+  {
+   "description": "Good pieces: they go to the finished goods warehouse and count toward the Work Order.",
+   "fieldname": "good_qty",
+   "fieldtype": "Float",
+   "label": "Good Qty"
+  },
+  {
+   "fieldname": "column_break_hasil",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The total of the reject rows below.",
+   "fieldname": "reject_qty",
+   "fieldtype": "Float",
+   "label": "Reject Qty",
+   "read_only": 1
+  },
+  {
+   "description": "Rejected pieces by reason: they go to the reject warehouse and do not count toward the Work Order.",
+   "fieldname": "rejects",
+   "fieldtype": "Table",
+   "label": "Rejects",
+   "options": "Production Entry Reject"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_stok",
+   "fieldtype": "Section Break",
+   "label": "Stock Entries"
+  },
+  {
+   "fieldname": "manufacture_entry",
+   "fieldtype": "Link",
+   "label": "Good Pieces Entry",
+   "no_copy": 1,
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_stok",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reject_entry",
+   "fieldtype": "Link",
+   "label": "Reject Entry",
+   "no_copy": 1,
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Production Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 0,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-29 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Planning",
+ "name": "Production Entry",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Manufacturing Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Manufacturing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "posting_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "item",
+ "track_changes": 1
+}

@@ -43,10 +43,10 @@ LABEL = {"Accounts": "Invoicing", "Setup": "Settings", "Shift & Attendance": "HR
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
 # guides' flows use (docs/panduan/): each module home shows the same links as shortcuts (`PINTASAN`,
-# `test_rumah_sama_dengan_sidebar`). Sales History and Order Readiness (module Planning, ours) sit in Selling and
-# Manufacturing: Planning has no rail entry and stays blocked in every Module Profile. Accounts and Leaves keep a
+# `test_rumah_sama_dengan_sidebar`). Sales History, Order Readiness, Machine Capacity and Production Entry (module
+# Planning, ours) sit in Selling and Manufacturing, Reject Reason in Setup: Planning has no rail entry and stays blocked in every Module Profile. Accounts and Leaves keep a
 # short sidebar for a page Frappe opens in its own module (no rail icon). Setup (shown as Settings) holds users,
-# opening stock (Stock Reconciliation, Admin only) and the business settings; System Settings and Build stay
+# opening stock (Stock Reconciliation, Admin only), the business settings and the reject reasons; System Settings and Build stay
 # with System Manager.
 SIDEBAR = {
 	"Stock": ["Item", "Stock Entry", "Warehouse", "Stock Balance", "Stock Ledger"],
@@ -66,6 +66,7 @@ SIDEBAR = {
 		"Master Production Schedule",
 		"Material Requirements Planning Report",
 		"Work Order",
+		"Production Entry",
 		"Order Readiness",
 		"BOM",
 		"Machine Capacity",
@@ -92,6 +93,7 @@ SIDEBAR = {
 		"Selling Settings",
 		"Buying Settings",
 		"Manufacturing Settings",
+		"Reject Reason",
 		"Accounts Settings",
 		"Projects Settings",
 		"HR Settings",
@@ -227,6 +229,7 @@ PINTASAN = {
 			format="{} In Process",
 			color="Blue",
 		),
+		_p("Production Entry"),
 		_p("Order Readiness", jenis="Report"),
 		_p("BOM"),
 		_p("Machine Capacity"),
@@ -280,6 +283,7 @@ PINTASAN = {
 		_p("Selling Settings", doc_view=""),
 		_p("Buying Settings", doc_view=""),
 		_p("Manufacturing Settings", doc_view=""),
+		_p("Reject Reason"),
 		_p("Accounts Settings", doc_view=""),
 		_p("Projects Settings", doc_view=""),
 		_p("HR Settings", doc_view=""),

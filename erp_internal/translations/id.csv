@@ -242,3 +242,42 @@ Changed,Berubah
 Unchanged,Tidak berubah
 Refused,Ditolak
 "The capacity row {0} is switched off. Switch it on by hand, then import again.","Baris kapasitas {0} dinonaktifkan. Aktifkan dulu secara manual, lalu impor lagi."
+Production Entry,Hasil Produksi
+Production Entry Reject,Reject Hasil Produksi
+Reject Reason,Alasan Reject
+Record Output,Catat Hasil
+"What one machine made in one shift for one Work Order. Submit moves the stock: good pieces to the finished goods warehouse, rejects to the reject warehouse, material used for both.","Hasil satu mesin dalam satu shift untuk satu Perintah Produksi. Saat Submit stok bergerak sendiri: barang bagus ke gudang barang jadi, reject ke gudang reject, bahan terpakai untuk keduanya."
+"Why a moulded piece went to reject. Production Entry lists its rejects by these reasons.","Kenapa satu barang cetak jadi reject. Hasil Produksi mencatat reject-nya per alasan ini."
+"No longer offered on new Production Entries; old entries keep it.","Tidak ditawarkan lagi di Hasil Produksi baru; catatan lama tetap memakainya."
+Defaults to the Work Order's machine.,Otomatis mesin Perintah Produksi.
+Date,Tanggal
+Shift,Shift
+Shift 1,Shift 1
+Shift 2,Shift 2
+Shift 3,Shift 3
+Run Hours,Jam Jalan
+Hours the machine ran in this shift; defaults to the shift's length.,"Jam mesin jalan di shift ini; otomatis sepanjang shift."
+Output,Hasil
+Good Qty,Jumlah Bagus
+"Good pieces: they go to the finished goods warehouse and count toward the Work Order.","Barang bagus: masuk gudang barang jadi dan dihitung ke Perintah Produksi."
+Reject Qty,Jumlah Reject
+The total of the reject rows below.,Jumlah semua baris reject di bawah.
+Rejects,Reject
+"Rejected pieces by reason: they go to the reject warehouse and do not count toward the Work Order.","Barang reject per alasan: masuk gudang reject dan tidak dihitung ke Perintah Produksi."
+Notes,Catatan
+Stock Entries,Stock Entry
+Good Pieces Entry,Stock Entry Barang Bagus
+Reject Entry,Stock Entry Reject
+Amended From,Diamendemen Dari
+Production Entry {0},Hasil Produksi {0}
+Submit Work Order {0} first.,Submit dulu Perintah Produksi {0}.
+Work Order {0} takes no output: it is {1}.,Perintah Produksi {0} tidak bisa diberi hasil: statusnya {1}.
+"Work Order {0} belongs to {1}, not {2}.","Perintah Produksi {0} milik {1}, bukan {2}."
+Work Order {0} runs on {1}. Change the Work Order's machine first.,Perintah Produksi {0} jalan di {1}. Ganti dulu mesin di Perintah Produksi.
+Good qty cannot be negative.,Jumlah bagus tidak boleh minus.
+Row {0}: the reject qty must be more than 0.,Baris {0}: jumlah reject harus lebih dari 0.
+Row {0}: the reason {1} is disabled.,Baris {0}: alasan {1} sudah dinonaktifkan.
+Enter the good qty or at least one reject.,Isi jumlah bagus atau minimal satu reject.
+The date cannot be in the future.,Tanggal tidak boleh di masa depan.
+Run hours must be more than 0 and at most 24.,Jam jalan harus lebih dari 0 dan paling banyak 24.
+Set the Default Scrap Warehouse of {0} first.,Isi dulu Default Scrap Warehouse di {0}.

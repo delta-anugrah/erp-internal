@@ -52,8 +52,8 @@ app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: t
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# The "Fill from History" button (planning/forecast.py).
-doctype_js = {"Sales Forecast": "public/js/sales_forecast.js"}
+# The "Fill from History" button (planning/forecast.py); "Record Output" on a Work Order (Production Entry).
+doctype_js = {"Sales Forecast": "public/js/sales_forecast.js", "Work Order": "public/js/work_order.js"}
 
 # proyek.py: an employee submits only their own timesheet (IZIN_TAMBAHAN gives the Employee role submit).
 # pengguna.py: an Admin hands out only Admin and User roles and leaves Developer accounts alone.

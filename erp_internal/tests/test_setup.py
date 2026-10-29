@@ -110,6 +110,8 @@ class TestSetup(IntegrationTestCase):
 					"Holiday List",
 					"Holiday List Assignment",
 					"Leave Type",
+					"Reject Reason",
+					"Property Setter",
 				)
 			}
 
