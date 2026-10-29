@@ -127,3 +127,54 @@ smooth, jangan patah2 / laggy".
   - Label, clock and info bar text is written only once the camera rests (about 120 ms for labels, at most about 1 s
     for the bar and clock), because a text write during a drag stalls Chrome's main thread 50-100 ms and drops
     frames. While the camera moves the old text stays.
+
+## Revision 2 (Abel, 2026-10-29): a fuller, livelier floor
+
+Abel, after using the floor on 2026-10-28: labels overlap from the default camera (08/09, 05/06); zoomed in, the KPI
+cards cover the back row's labels; and next to BPT Live the floor looks "too empty and plain". He asked for the plan
+straight away, without a design round, so every choice below is **our call** unless marked as his.
+
+**Why.** Samuel shows this screen to people. It should read at a glance as *a working plastics factory*, the way
+BPT Live reads as a working BPT, while every machine figure stays true.
+
+**Labels that never collide or hide behind a card.**
+- Labels are decluttered on screen: nearest machine first; a label whose box would overlap one already placed shows
+  as a compact chip (number and status dot only). The selected label is always full. A label does not flip between
+  full and compact on every frame (hysteresis: it changes only when the overlap starts or ends by more than 8 px).
+- A label under a fixed card (top bar, KPI row, attention card, machine table, side panel, camera bar) is hidden.
+- The default camera frames the floor in the free area under the KPI row (`camera.setViewOffset`), so at 1440×900
+  and 1280×720 no label of the default view sits under a card.
+
+**A factory around the machines** (decor: fixed, not data):
+- the building, cut away like a dollhouse: a floor slab, low back and side walls with a window band, steel columns
+  along the walls, a roof edge outline, a rolling door to a loading dock;
+- outside: ground, a road with lane dashes along the front, a few low-poly trees, a parked truck at the dock;
+- painted zones with floor lettering (translated): Raw Material (pallets of resin sacks, a granule dryer), Finished
+  Goods (pallets of crates and stacked buckets and basins, Dinda House Ware's kind of products), Reject (red bins),
+  Mould Storage (a rack of mould blocks), a grinder for regrind, and a glass QC/office box;
+- each machine's floor ring takes its status colour (Problem pulses like its lamp).
+
+**Life on the floor** (simulated; the HUD says so in one small line, "Forklift, operators and parts are simulated"):
+- an operator figure in front of each machine in Production or Setup; a technician with a yellow helmet at a machine
+  in Maintenance or Problem; nobody at Idle or Off;
+- a machine in Production drops a part into the bin beside it once per mould cycle (in step with the platen); the
+  bin's fill rises and empties every few minutes;
+- one forklift drives a loop: raw material → the aisle between the rows → finished goods → the dock, pausing at each
+  stop.
+
+**More information, all from real data:** an attention card on the left, under the top bar: every machine not in
+Production, worst first (Problem, Maintenance, Setup, Idle, Off), with its status chip and, when it has one, its
+Work Order; a row click selects the machine. "All machines running" when the list is empty.
+
+**Budget (amended).** The fps gate is unchanged (≥ 57 fps, ≤ 1 % frames over 25 ms, max ≤ 50 ms, 0 long tasks). The
+scene may use ≤ 100 draw calls and ≤ 250k triangles: static decor is merged per material, repeated props and people
+are instanced, nothing is allocated per frame. Adaptive quality, when it triggers, also stops the life layer
+(forklift, parts, figures' motion) and the window glow. Everything is built from code: no image, model or font is
+downloaded.
+
+**Non-goals.** Real forklift or operator tracking; real stock in the zones (Plan vs Actual and stock may feed them
+later); shift, OEE, downtime (waiting on Samuel); a layout editor.
+
+**Anti-goals.** Decor that hides a machine, its lamp or its label; simulated things that could be read as data;
+stutter; anything copied from BPT Live's code (`.claude/rules/terpisah-dari-bpt.md`; its screen is a reference for
+the look only).
