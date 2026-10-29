@@ -281,3 +281,5 @@ Enter the good qty or at least one reject.,Isi jumlah bagus atau minimal satu re
 The date cannot be in the future.,Tanggal tidak boleh di masa depan.
 Run hours must be more than 0 and at most 24.,Jam jalan harus lebih dari 0 dan paling banyak 24.
 Set the Default Scrap Warehouse of {0} first.,Isi dulu Default Scrap Warehouse di {0}.
+Work Order {0} does not exist.,Perintah Produksi {0} tidak ada.
+Re-open Work Order {0} first.,Buka lagi dulu Perintah Produksi {0}.

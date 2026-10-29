@@ -3,11 +3,12 @@
 Submit moves the stock through two Stock Entries, both made as the current user:
 - good pieces: ERPNext's own Manufacture entry for the order (`make_stock_entry`), so the order's produced qty
   and status stay ERPNext's; the material for them is backflushed by the BOM;
-- rejects: a Repack entry that takes the BOM's material for the rejected pieces from where the Manufacture
-  takes it and puts the pieces, as the same item, into the company's Default Scrap Warehouse (Gudang Reject).
-  It is not linked to the order, so rejects never count toward it. Process loss is not used: ERPNext counts
-  it toward the order's completed qty.
-Cancel cancels both. Everything runs in the submit's own transaction: a failing Repack undoes the Manufacture.
+- rejects: a Repack entry that takes the BOM's material for the rejected pieces from the order's source
+  warehouse (Gudang Bahan Baku), never from work in progress, and puts the pieces, as the same item, into the
+  company's Default Scrap Warehouse (Gudang Reject). Rejects are material used on top of what was transferred
+  for the good pieces, so the transferred material stays whole for them. The entry is not linked to the order,
+  so rejects never count toward it. Process loss is not used: ERPNext counts it toward the order's completed qty.
+Cancel cancels both. Submit is all or nothing: a failing Repack undoes the Manufacture (savepoint).
 """
 
 import frappe
@@ -34,6 +35,8 @@ class ProductionEntry(Document):
 			self.hours = jam_shift(self.shift)
 
 	def validate(self):
+		if not self.work_order:
+			return  # Frappe's mandatory check refuses it next
 		self.cek_order()
 		self.cek_mesin()
 		self.cek_jumlah()
@@ -46,6 +49,8 @@ class ProductionEntry(Document):
 		order = frappe.db.get_value(
 			"Work Order", self.work_order, ["docstatus", "status", "company"], as_dict=True
 		)
+		if not order:
+			frappe.throw(_("Work Order {0} does not exist.").format(frappe.bold(self.work_order)))
 		if order.docstatus != 1:
 			frappe.throw(_("Submit Work Order {0} first.").format(frappe.bold(self.work_order)))
 		if order.status not in STATUS_TERBUKA:
@@ -86,11 +91,24 @@ class ProductionEntry(Document):
 	def on_submit(self):
 		from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
 
-		if flt(self.good_qty) > 0:
-			se = frappe.get_doc(make_stock_entry(self.work_order, "Manufacture", flt(self.good_qty)))
-			self.db_set("manufacture_entry", self._ajukan(se).name)
-		if flt(self.reject_qty) > 0:
-			self.db_set("reject_entry", self._ajukan(self._entri_reject()).name)
+		# All or nothing even outside a web request (bench execute, a test): undo the Manufacture if the
+		# Repack fails.
+		frappe.db.savepoint("hasil_produksi_submit")
+		try:
+			if flt(self.good_qty) > 0:
+				se = frappe.get_doc(make_stock_entry(self.work_order, "Manufacture", flt(self.good_qty)))
+				self.db_set("manufacture_entry", self._ajukan(se).name)
+			if flt(self.reject_qty) > 0:
+				self.db_set("reject_entry", self._ajukan(self._entri_reject()).name)
+		except Exception:
+			frappe.db.rollback(save_point="hasil_produksi_submit")
+			raise
+
+	def before_cancel(self):
+		# ERPNext refuses any stock entry against a stopped order ("Transaction not allowed against stopped
+		# Work Order"); say what to do instead.
+		if frappe.db.get_value("Work Order", self.work_order, "status") == "Stopped":
+			frappe.throw(_("Re-open Work Order {0} first.").format(frappe.bold(self.work_order)))
 
 	def on_cancel(self):
 		for nama in (self.reject_entry, self.manufacture_entry):
@@ -108,8 +126,8 @@ class ProductionEntry(Document):
 		return se
 
 	def _entri_reject(self):
-		"""The Repack entry of the rejects: the BOM's material for `reject_qty` pieces out of the warehouse each
-		material comes from in the Manufacture entry, and the pieces into the Default Scrap Warehouse."""
+		"""The Repack entry of the rejects: the BOM's material for `reject_qty` pieces out of the order's source
+		warehouse, and the pieces into the Default Scrap Warehouse."""
 		from erpnext.manufacturing.doctype.bom.bom import get_bom_items_as_dict
 
 		wo = frappe.get_doc("Work Order", self.work_order)
@@ -117,9 +135,10 @@ class ProductionEntry(Document):
 		if not gudang_reject:
 			frappe.throw(_("Set the Default Scrap Warehouse of {0} first.").format(frappe.bold(self.company)))
 
-		# The same source as ERPNext's Manufacture (StockEntry.get_bom_raw_materials, make_stock_entry): with
-		# skip_transfer the order's own row per material, else the work-in-progress warehouse.
-		langsung = wo.skip_transfer and not wo.from_wip_warehouse
+		# Where a skip_transfer Manufacture takes material (StockEntry.get_bom_raw_materials): the order's row per
+		# material, else the order's source warehouse, else the item default. Never the work-in-progress
+		# warehouse, even when the order transfers: ERPNext counts that material as transferred for the good
+		# pieces and caps transfers at the order qty, so taking rejects from it would leave the order short.
 		sumber_order = {r.item_code: r.source_warehouse for r in wo.required_items}
 		bahan = get_bom_items_as_dict(
 			wo.bom_no, wo.company, qty=flt(self.reject_qty), fetch_exploded=wo.use_multi_level_bom
@@ -137,9 +156,10 @@ class ProductionEntry(Document):
 					"uom": b.stock_uom,
 					"conversion_factor": 1,
 					"s_warehouse": (
-						(sumber_order.get(b.item_code) or b.source_warehouse or b.default_warehouse)
-						if langsung
-						else wo.wip_warehouse
+						sumber_order.get(b.item_code)
+						or wo.source_warehouse
+						or b.source_warehouse
+						or b.default_warehouse
 					),
 				},
 			)

@@ -105,14 +105,15 @@ Saat Submit stok bergerak sendiri (dua Stock Entry, kelihatan di bagian **Stock 
 |---|---|
 | Barang bagus | Gudang Barang Jadi, dan dihitung ke **Produced Qty** Work Order |
 | Barang reject | Gudang Reject (barangnya sama), **tidak** dihitung ke Work Order |
-| Bahan (biji plastik, masterbatch) | berkurang sesuai BOM untuk bagus + reject |
+| Bahan untuk barang bagus | sesuai BOM, dari Gudang Produksi kalau sudah di-**Start** (transfer), kalau tidak dari Gudang Bahan Baku |
+| Bahan untuk barang reject | sesuai BOM, selalu dari **Gudang Bahan Baku** (bahan yang sudah ditransfer tetap utuh untuk barang bagus) |
 
 Jadi Work Order baru **Completed** kalau barang **bagus**-nya sudah cukup; reject tidak ikut menghitung.
 
 Ditolak kalau: mesinnya beda dengan mesin di Work Order (ganti dulu mesin di Work Order), bagus dan reject
 dua-duanya 0, ada baris reject 0, tanggal di masa depan, jam jalan 0 atau lebih dari 24, Work Order belum di-submit
 atau sudah selesai/berhenti, atau alasan reject-nya sudah dinonaktifkan. Bahan kurang di gudang: Submit gagal dan
-tidak ada stok yang berubah.
+tidak ada stok yang berubah. Work Order yang di-**Stop** tidak bisa di-Cancel hasilnya: **Re-open** dulu Work Order-nya.
 
 Salah isi? Buka Production Entry-nya, **Cancel** (kedua Stock Entry ikut batal, stok kembali), lalu **Amend** dan
 perbaiki.

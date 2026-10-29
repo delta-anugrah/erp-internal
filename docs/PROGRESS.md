@@ -6,11 +6,13 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Task 4: DocTypes Reject Reason (seeded from `setup.ALASAN_REJECT`, never deleted), Production Entry
   (`PE-.YYYY.-.#####`, submittable) and its child Production Entry Reject. Submit: ERPNext's Manufacture entry for the
   good pieces (`make_stock_entry`, counts toward the Work Order) and a Repack entry for the rejects (BOM material from
-  where the Manufacture takes it, the item into the company's Default Scrap Warehouse; no process loss), both as the
+  the order's source warehouse, never WIP, the item into the company's Default Scrap Warehouse; no process loss), both as the
   current user and dated on the entry; cancel cancels both. `setup.SHIFT_PABRIK`/`jam_shift` (Shift choices by
   Property Setter), "Record Output" on Work Order (`public/js/work_order.js`), sidebar after Work Order and Reject
   Reason under Settings, 39 Indonesian rows, fixture `buat_hasil`, guide section "Catat hasil produksi".
-- Tests as run: `run-tests --app erp_internal`: 165 tests OK (11 in `test_hasil_produksi`).
+- Tests as run: `run-tests --app erp_internal`: 165 tests OK (11 in `test_hasil_produksi`). Review fixes: rejects never
+  take WIP material, atomic submit by savepoint, cancel on a Stopped order refused with a clear message;
+  `test_hasil_produksi` 13 OK.
 - Next: Task 5, the Plan vs Actual report.
 
 ## 2026-10-29 (Plan vs Actual, Task 3 of 6)

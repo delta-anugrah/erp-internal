@@ -91,16 +91,24 @@ class TestHasilProduksi(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Work Order", wo, "status"), "In Process")
 
 	def test_dengan_transfer(self):
+		# Rejects take material from Gudang Bahan Baku, never from what was transferred for the good pieces: a
+		# fully transferred order still completes on its good pieces.
 		from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
 
+		w0 = stok(PP, self.produksi)
 		wo = self.order(skip_transfer=0)
-		frappe.get_doc(make_stock_entry(wo, "Material Transfer for Manufacture", 400)).insert().submit()
-		w0, s0, r0 = stok(PP, self.produksi), stok(PP, self.sumber), stok(JADI, self.reject)
-		buat_hasil(wo, good=300, rejects={"Short Shot": 20, "Flashing": 5})
-		self.assertAlmostEqual(w0 - stok(PP, self.produksi), 325 * 0.05)
-		self.assertEqual(stok(PP, self.sumber), s0)
+		frappe.get_doc(make_stock_entry(wo, "Material Transfer for Manufacture", 1000)).insert().submit()
+		s0, r0 = stok(PP, self.sumber), stok(JADI, self.reject)
+		buat_hasil(wo, good=975, rejects={"Short Shot": 20, "Flashing": 5})
+		self.assertAlmostEqual(s0 - stok(PP, self.sumber), 25 * 0.05)
 		self.assertEqual(stok(JADI, self.reject) - r0, 25)
-		self.assertEqual(frappe.db.get_value("Work Order", wo, "produced_qty"), 300)
+		self.assertEqual(frappe.db.get_value("Work Order", wo, "status"), "In Process")
+		buat_hasil(wo, good=25)
+		self.assertEqual(
+			frappe.db.get_value("Work Order", wo, ["produced_qty", "status"]), (1000, "Completed")
+		)
+		self.assertAlmostEqual(stok(PP, self.produksi), w0)
+		self.assertAlmostEqual(s0 - stok(PP, self.sumber), 25 * 0.05)
 
 	def test_batal(self):
 		wo = self.order()
@@ -111,6 +119,24 @@ class TestHasilProduksi(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Work Order", wo, "produced_qty"), 0)
 		for se in (pe.manufacture_entry, pe.reject_entry):
 			self.assertEqual(frappe.db.get_value("Stock Entry", se, "docstatus"), 2)
+
+	def test_batal_order_berhenti(self):
+		from erpnext.manufacturing.doctype.work_order.work_order import stop_unstop
+
+		wo = self.order()
+		pe = buat_hasil(wo, good=10, rejects={"Bubble": 1})
+		stop_unstop(wo, "Stopped")
+		with self.assertRaisesRegex(frappe.ValidationError, "Re-open Work Order"):
+			pe.cancel()
+		self.assertEqual(frappe.db.get_value("Stock Entry", pe.manufacture_entry, "docstatus"), 1)
+
+	def test_tanpa_order(self):
+		dasar = {"doctype": "Production Entry", "company": self.pabrik, "workstation": self.mesin}
+		dasar |= {"shift": "Shift 1", "good_qty": 1}
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc(dasar).insert()
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc({**dasar, "work_order": "_UJI-TIDAK-ADA"}).insert()
 
 	def test_user_biasa_bisa_ajukan(self):
 		wo = self.order()
@@ -143,7 +169,14 @@ class TestHasilProduksi(IntegrationTestCase):
 				"company": self.pabrik,
 			}
 		).insert()
+		lain = buat_perusahaan("_Uji Pabrik 2", "_UP2")
+		bom_lain = buat_bom(JADI, {PP: 0.05}, company=lain)
+		wo_lain = frappe.get_doc(
+			{"doctype": "Work Order", "production_item": JADI, "bom_no": bom_lain, "qty": 5, "company": lain}
+		).insert()
+		wo_lain.submit()
 		kasus = {
+			"other company": (wo_lain.name, 1, None, {"company": self.pabrik, "workstation": self.mesin}),
 			"draft order": (draf.name, 1, None, {"workstation": self.mesin}),
 			"other machine": (wo, 10, None, {"workstation": self.mesin_lain}),
 			"not a numbered machine": (wo, 10, None, {"workstation": "_Uji Bukan Mesin"}),
@@ -168,8 +201,12 @@ class TestHasilProduksi(IntegrationTestCase):
 		# request's transaction then undoes the Manufacture too), it is not swallowed.
 		wo = self.order()
 		stok_awal(self.pabrik, PP, 10, "Gudang Bahan Baku")
+		j0 = stok(JADI, self.jadi)
 		with self.assertRaises(frappe.ValidationError):
 			buat_hasil(wo, good=150, rejects={"Bubble": 100})
+		self.assertEqual(stok(JADI, self.jadi), j0)
+		self.assertFalse(frappe.db.exists("Stock Entry", {"work_order": wo}))
+		self.assertEqual(frappe.db.get_value("Work Order", wo, "produced_qty"), 0)
 
 	def test_alasan_bawaan(self):
 		self.assertTrue(set(ALASAN_REJECT) <= set(frappe.get_all("Reject Reason", pluck="name")))

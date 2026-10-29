@@ -43,10 +43,11 @@ LABEL = {"Accounts": "Invoicing", "Setup": "Settings", "Shift & Attendance": "HR
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
 # guides' flows use (docs/panduan/): each module home shows the same links as shortcuts (`PINTASAN`,
-# `test_rumah_sama_dengan_sidebar`). Sales History, Order Readiness, Machine Capacity and Production Entry (module
-# Planning, ours) sit in Selling and Manufacturing, Reject Reason in Setup: Planning has no rail entry and stays blocked in every Module Profile. Accounts and Leaves keep a
-# short sidebar for a page Frappe opens in its own module (no rail icon). Setup (shown as Settings) holds users,
-# opening stock (Stock Reconciliation, Admin only), the business settings and the reject reasons; System Settings and Build stay
+# `test_rumah_sama_dengan_sidebar`). Sales History, Order Readiness, Machine Capacity and Production
+# Entry (module Planning, ours) sit in Selling and Manufacturing, Reject Reason in Setup: Planning has no
+# rail entry and stays blocked in every Module Profile. Accounts and Leaves keep a short sidebar for a page
+# Frappe opens in its own module (no rail icon). Setup (shown as Settings) holds users, opening stock (Stock
+# Reconciliation, Admin only), the business settings and the reject reasons; System Settings and Build stay
 # with System Manager.
 SIDEBAR = {
 	"Stock": ["Item", "Stock Entry", "Warehouse", "Stock Balance", "Stock Ledger"],
