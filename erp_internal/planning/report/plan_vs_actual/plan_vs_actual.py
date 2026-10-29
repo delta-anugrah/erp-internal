@@ -57,6 +57,7 @@ def execute(filters=None):
 	if not f.company:
 		frappe.throw(_("Select a company."))
 	# The report reads with frappe.qb (no User Permissions), so the company filter is the only fence.
+	frappe.has_permission("Production Entry", "read", throw=True)
 	frappe.has_permission("Company", "read", doc=f.company, throw=True)
 	f.from_date, f.to_date = _tanggal(f)
 	if f.from_date > f.to_date:
@@ -86,9 +87,19 @@ def _tampil(rows: list[dict]) -> list[dict]:
 	]
 
 
-def nama_alasan(alasan: str) -> str:
-	"""The fieldname of a reject reason's column."""
-	return "r_" + re.sub(r"\W", "_", frappe.scrub(alasan))
+def nama_kolom(alasan: set[str]) -> dict[str, str]:
+	"""Reason → column fieldname: `r_` + the scrubbed name with non-word characters as `_`; reasons that
+	scrub to the same name get `_2`, `_3`, ... in alphabetical order, so no two share a column."""
+	hasil, dipakai = {}, set()
+	for nama in sorted(alasan):
+		dasar = "r_" + re.sub(r"\W", "_", frappe.scrub(nama))
+		n, i = dasar, 1
+		while n in dipakai:
+			i += 1
+			n = f"{dasar}_{i}"
+		dipakai.add(n)
+		hasil[nama] = n
+	return hasil
 
 
 def kolom(group_by: str, rows: list[dict]) -> list[dict]:
@@ -116,7 +127,7 @@ def kolom(group_by: str, rows: list[dict]) -> list[dict]:
 		for n in r:
 			if n.startswith("r_"):
 				ada[n] = r["_alasan"][n]
-	return kolom + [k(label, n, precision=0, width=100) for n, label in sorted(ada.items())]
+	return kolom + [k(frappe.utils.escape_html(label), n, precision=0, width=100) for n, label in sorted(ada.items())]
 
 
 def grafik(group_by: str, rows: list[dict]) -> dict:
@@ -182,9 +193,16 @@ def data(f: frappe._dict) -> list[dict]:
 		jam = jam_hari.setdefault((e.work_order, getdate(e.posting_date)), {})
 		jam[e.shift] = jam.get(e.shift, 0) + flt(e.hours)
 
+	cache: dict[tuple, object] = {}
+
+	def kap(item, mesin):
+		if (item, mesin) not in cache:
+			cache[(item, mesin)] = kapasitas(item, mesin)
+		return cache[(item, mesin)]
+
 	if mode == "Capacity":
 		for s in sel.values():
-			baris = kapasitas(s.item, s.mesin)
+			baris = kap(s.item, s.mesin)
 			s.target = flt(baris.pcs_per_hour) * s.jam if baris else None
 	for wo, o in order.items():
 		if o.mulai is None:
@@ -202,12 +220,13 @@ def data(f: frappe._dict) -> list[dict]:
 			elif not jam:
 				# Capacity: a planned day with nothing recorded has no hours, so a target of 0 where a
 				# capacity row exists, none where it does not.
-				ada = o.erp_mesin and kapasitas(o.production_item, o.erp_mesin)
+				ada = o.erp_mesin and kap(o.production_item, o.erp_mesin)
 				for shift, _jam in SHIFT_PABRIK:
 					ambil(mesin, tanggal, wo, shift).target = 0.0 if ada else None
 
 	cells = [s for s in sel.values() if not f.shift or s.shift == f.shift]
-	return _kelompok(cells, f.group_by or "Machine + Day", mode, _nomor_mesin(cells))
+	kol = nama_kolom({a for s in cells for a in s.alasan})
+	return _kelompok(cells, f.group_by or "Machine + Day", mode, _nomor_mesin(cells), kol)
 
 
 def _barang(item: str | None) -> list[str] | None:
@@ -306,7 +325,7 @@ def _nomor_mesin(cells: list) -> dict[str, int]:
 	return dict(rows)
 
 
-def _kelompok(cells: list, group_by: str, mode: str, nomor: dict) -> list[dict]:
+def _kelompok(cells: list, group_by: str, mode: str, nomor: dict, kol: dict) -> list[dict]:
 	kunci = KELOMPOK[group_by]
 	grup: dict[tuple, dict] = {}
 	for s in cells:
@@ -319,7 +338,7 @@ def _kelompok(cells: list, group_by: str, mode: str, nomor: dict) -> list[dict]:
 		baris["good"] += s.good
 		baris["reject"] += s.reject
 		for alasan, qty in s.alasan.items():
-			n = nama_alasan(alasan)
+			n = kol[alasan]
 			baris[n] = baris.get(n, 0) + qty
 			baris["_alasan"][n] = alasan
 

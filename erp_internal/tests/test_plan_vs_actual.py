@@ -10,6 +10,7 @@ from erp_internal.planning.report.plan_vs_actual.plan_vs_actual import (
 	bagi_shift,
 	data,
 	execute,
+	kolom as susun_kolom,
 	target_harian,
 )
 from erp_internal.tests.utils import (
@@ -200,6 +201,45 @@ class TestPlanVsActual(IntegrationTestCase):
 		per_shift = {r["shift"]: r for r in data(self.f(group_by="Shift"))}
 		self.assertEqual(per_shift["Shift 1"]["target"], 200 + 300)
 		self.assertEqual(per_shift["Shift 2"]["target"], 100)
+
+	def test_jendela_lebih_lebar_dari_rentang(self):
+		self.order(qty=600, mulai=-4, selesai=1)  # 6 days, 100 a day
+		rows = data(self.f(from_date=d(-2), to_date=d(-1)))
+		self.assertEqual([(r["tanggal"], r["target"]) for r in rows], [(d(-2), 100), (d(-1), 100)])
+
+	def test_filter_mesin_kapasitas(self):
+		buat_kapasitas(JADI, self.m1, material=PP)
+		buat_kapasitas(JADI, self.m2, material=PP)
+		a, b = self.order(mesin="m1"), self.order(mesin="m2")
+		self.hasil(a, -2, 10, jam=8)
+		self.hasil(b, -2, 10, jam=4)
+		rows = data(self.f(target_dari="Capacity", workstation=self.m2))
+		self.assertEqual({r["mesin"] for r in rows}, {self.m2})
+		self.assertEqual([r["target"] for r in rows if r["tanggal"] == d(-2)], [2880])
+
+	def test_kolom_alasan(self):
+		aneh = 'Gores & "x" / y'
+		for nama in (aneh, "Cacat A", "Cacat-A"):
+			if not frappe.db.exists("Reject Reason", nama):
+				frappe.get_doc({"doctype": "Reject Reason", "reason_name": nama}).insert(ignore_permissions=True)
+		wo = self.order()
+		self.hasil(wo, -2, 5, {aneh: 1, "Cacat A": 2, "Cacat-A": 4})
+		kolom, rows, _pesan, _grafik = execute(self.f())
+		alasan = [c for c in kolom if c["fieldname"].startswith("r_")]
+		self.assertEqual(len({c["fieldname"] for c in alasan}), 3)
+		por = {c["label"]: rows[0][c["fieldname"]] for c in alasan}
+		self.assertIn("Gores &amp; &quot;x&quot; / y", por)
+		# Frappe refuses < and > in a name, so the HTML case is checked on kolom() directly.
+		html = susun_kolom("Day", [{"r_a": 1, "_alasan": {"r_a": "<b>Gores</b>"}}])
+		self.assertEqual(html[-1]["label"], "&lt;b&gt;Gores&lt;/b&gt;")
+		self.assertEqual(sorted(por.values()), [1, 2, 4])
+		self.assertEqual(por["Cacat A"], 2)
+
+	def test_izin_production_entry(self):
+		email = buat_pengguna("pa-tanpa-pe@example.com", None, None, None)
+		frappe.set_user(email)
+		with self.assertRaises(frappe.PermissionError):
+			execute(self.f())
 
 	def test_execute(self):
 		wo = self.order()
