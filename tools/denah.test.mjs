@@ -90,6 +90,13 @@ test("posisi matches the old layout", () => {
 
 test("JALUR is closed and every stop lies in bahan, jadi or by PINTU", () => {
 	assert.ok(JALUR.length >= 4);
+	// JALUR is an open list that the forklift loops: the segment from the last point back to the first must be a real,
+	// short hop (the last point is on the aisle z = 0 right by bahan, the first is the stop inside bahan).
+	const awal = JALUR[0];
+	const akhir = JALUR[JALUR.length - 1];
+	assert.ok(awal.x >= ZONA.bahan.x0 && awal.x <= ZONA.bahan.x1 && awal.z >= ZONA.bahan.z0 && awal.z <= ZONA.bahan.z1, "the loop starts in bahan");
+	assert.equal(akhir.z, 0, "the loop ends on the aisle z = 0");
+	assert.ok(Math.hypot(akhir.x - awal.x, akhir.z - awal.z) <= 4, "the wrap segment from the last point to the first is short");
 	const dalam = (p, k) => p.x >= k.x0 && p.x <= k.x1 && p.z >= k.z0 && p.z <= k.z1;
 	const dekatPintu = (p) => jarakKotak(p.x, p.z, { x0: PINTU.x, x1: PINTU.x, z0: PINTU.z0, z1: PINTU.z1 }) <= 3;
 	const henti = JALUR.filter((p) => p.henti > 0);
