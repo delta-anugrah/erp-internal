@@ -10,6 +10,13 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Tests as run: `run-tests --app erp_internal`: 128 tests OK (123 + 5 in `test_kapasitas`).
 - Next: Task 2, BOMs from capacity rows.
 
+## 2026-10-29 (Plan vs Actual, Task 2 of 6)
+- Task 2: `kapasitas.varian_tercakup`, `baris_bom`, `buat_bom_kapasitas(nama, company=None)` (button "Make BOMs" on
+  Machine Capacity, Manufacturing Manager; no save hook), `pilih_bom` on Work Order `before_validate` (not `validate`:
+  ERPNext builds the required items in `validate`, so the BOM must be swapped before). Custom fields `BOM.erp_mesin`
+  and `BOM.erp_kapasitas` (`setup.FIELD_BOM`). Hand-made BOMs are never touched. `test_bom_kapasitas`: 7 tests.
+- Next: Task 3, the Excel import of capacity.
+
 ## 2026-10-28 (Production Floor, Tasks 1-7 of 7)
 - Revision 1 (Abel, `dfcc7cf`, `e2bd3d7`): English route and endpoints, an info bar like BPT Live's, a liquid glass
   look. Tasks renumbered: 4 rename, 5 labels and panel, 6 info bar and glass, 7 navigation and docs.

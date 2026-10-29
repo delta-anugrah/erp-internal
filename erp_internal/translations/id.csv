@@ -202,3 +202,6 @@ Shot,Tembakan
 {0} already has a capacity row on {1}.,{0} sudah punya baris kapasitas di {1}.
 {0} must be a stock item counted in Kg.,{0} harus barang stok dengan satuan Kg.
 A machine that no longer runs this mould.,Mesin yang tidak lagi menjalankan cetakan ini.
+Make BOMs,Buat BOM
+"{0} BOMs made, {1} unchanged, {2} switched off.","{0} BOM dibuat, {1} tetap, {2} dinonaktifkan."
+Set the material of this row before making BOMs.,Isi bahan baris ini dulu sebelum membuat BOM.

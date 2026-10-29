@@ -50,6 +50,10 @@ Tanpa lama produksi, Order Readiness menulis **Set lead time** dan tidak memberi
    Pcs). Contoh ember: `0,25` Kg biji PP dan `1` kemasan.
 3. **Save**, **Submit**. BOM pertama otomatis jadi BOM utama (**Is Default**).
 
+Produk yang punya baris **Machine Capacity** tidak perlu BOM manual: buka barisnya, klik **Make BOMs**. Sistem
+membuat satu BOM per varian per mesin (biji plastik dan masterbatch dihitung dari berat produk dan runner), lalu
+menonaktifkan BOM lama dari baris itu yang tidak dipakai Work Order yang masih jalan. BOM buatan tangan tidak diubah.
+
 ## Tiap bulan
 
 ### 1. Perkiraan penjualan (Sales Forecast)

@@ -64,7 +64,11 @@ doc_events = {
 	# runs after save, submit, cancel and update-after-submit. Workstation keeps on_update: Job Card writes its status
 	# with db.set_value (no event at all), which the page's poll catches.
 	"Workstation": {"on_update": "erp_internal.production_floor.siarkan"},
-	"Work Order": {"on_change": "erp_internal.production_floor.siarkan"},
+	"Work Order": {
+		"on_change": "erp_internal.production_floor.siarkan",
+		# before_validate, not validate: ERPNext builds the required items in validate, from the BOM then set.
+		"before_validate": "erp_internal.planning.kapasitas.pilih_bom",
+	},
 	"User": {
 		"before_validate": "erp_internal.pengguna.cek_user_awal",
 		"validate": "erp_internal.pengguna.cek_user",

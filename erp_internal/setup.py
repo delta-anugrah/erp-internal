@@ -88,6 +88,27 @@ FIELD_WO_MESIN = {
 	"link_filters": json.dumps([["Workstation", "erp_nomor", ">", 0]]),
 }
 
+# The machine and the capacity row a BOM was made from (`kapasitas.buat_bom_kapasitas`). A BOM without them was
+# made by hand and is never touched.
+FIELD_BOM = [
+	{
+		"fieldname": "erp_mesin",
+		"label": "Machine",
+		"fieldtype": "Link",
+		"options": "Workstation",
+		"insert_after": "item",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "erp_kapasitas",
+		"label": "Machine Capacity",
+		"fieldtype": "Link",
+		"options": "Machine Capacity",
+		"insert_after": "erp_mesin",
+		"read_only": 1,
+	},
+]
+
 GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart")
 # Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`).
 SATUAN = ("Pcs", "Lusin", "Gross", "Karton", "Ball", "Dus", "Ikat", "Pack", "Sak", "Roll", "Kg")
@@ -266,7 +287,13 @@ def _impor_boleh() -> None:
 def _field_aktif() -> None:
 	# create_custom_fields saves only a field that is missing or differs.
 	create_custom_fields(
-		{"Company": [FIELD_AKTIF], "Workstation": FIELD_MESIN, "Work Order": [FIELD_WO_MESIN]}, update=True
+		{
+			"Company": [FIELD_AKTIF],
+			"Workstation": FIELD_MESIN,
+			"Work Order": [FIELD_WO_MESIN],
+			"BOM": FIELD_BOM,
+		},
+		update=True,
 	)
 
 

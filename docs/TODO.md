@@ -7,7 +7,7 @@ Last full run (2026-10-29, after Plan vs Actual Task 1): `bench --site erp-test.
 
 ## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)
 - [x] Task 1: Machine Capacity and the lookup (`kapasitas.py`, `test_kapasitas`)
-- [ ] Task 2: BOMs from capacity (Make BOMs button)
+- [x] Task 2: BOMs from capacity (Make BOMs button)
 - [ ] Task 3: Excel import of capacity
 - [ ] Task 4: Production Entry (stock entries, cancel)
 - [ ] Task 5: Plan vs Actual report
