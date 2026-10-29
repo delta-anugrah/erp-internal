@@ -461,3 +461,96 @@ def jatah_cuti(karyawan: str, jenis: str, jumlah: float, dari: date, sampai: dat
 	doc.insert()
 	doc.submit()
 	return doc.name
+
+
+def buat_varian(template: str, jenis: list[str], warna: list[str]) -> list[str]:
+	"""Get or create the template `template` (Barang Jadi, attributes Jenis and Warna) and one variant per
+	(jenis, warna) pair, jenis-major; return the variant codes in that order. Missing attribute values are
+	added to the Item Attributes; existing ones are reused."""
+	from erpnext.controllers.item_variant import create_variant
+
+	for atribut, nilai in (("Jenis", jenis), ("Warna", warna)):
+		if frappe.db.exists("Item Attribute", atribut):
+			doc = frappe.get_doc("Item Attribute", atribut)
+		else:
+			doc = frappe.get_doc({"doctype": "Item Attribute", "attribute_name": atribut})
+		ada = {r.attribute_value for r in doc.item_attribute_values}
+		ada_abbr = {r.abbr for r in doc.item_attribute_values}
+		baru = [n for n in nilai if n not in ada]
+		for n in baru:
+			abbr = "".join(c for c in n.upper() if c.isalnum())[:6]
+			while abbr in ada_abbr:
+				abbr += "X"
+			ada_abbr.add(abbr)
+			doc.append("item_attribute_values", {"attribute_value": n, "abbr": abbr})
+		if baru or doc.is_new():
+			doc.save(ignore_permissions=True)
+
+	if not frappe.db.exists("Item", template):
+		frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": template,
+				"item_name": template,
+				"item_group": "Barang Jadi",
+				"stock_uom": "Pcs",
+				"is_stock_item": 1,
+				"has_variants": 1,
+				"variant_based_on": "Item Attribute",
+				"attributes": [{"attribute": "Jenis"}, {"attribute": "Warna"}],
+			}
+		).insert(ignore_permissions=True)
+	hasil = []
+	for j in jenis:
+		for w in warna:
+			ada = frappe.db.sql(
+				"""select i.name from `tabItem` i
+				join `tabItem Variant Attribute` a
+					on a.parent = i.name and a.attribute = 'Jenis' and a.attribute_value = %s
+				join `tabItem Variant Attribute` b
+					on b.parent = i.name and b.attribute = 'Warna' and b.attribute_value = %s
+				where i.variant_of = %s""",
+				(j, w, template),
+			)
+			if ada:
+				hasil.append(ada[0][0])
+				continue
+			varian = create_variant(template, {"Jenis": j, "Warna": w})
+			varian.insert(ignore_permissions=True)
+			hasil.append(varian.name)
+	return hasil
+
+
+def buat_mesin(nomor: int) -> str:
+	"""Get or create the numbered machine Workstation `_Uji Mesin NN`."""
+	nama = f"_Uji Mesin {nomor:02d}"
+	if not frappe.db.exists("Workstation", nama):
+		frappe.get_doc({"doctype": "Workstation", "workstation_name": nama, "erp_nomor": nomor}).insert(
+			ignore_permissions=True
+		)
+	return nama
+
+
+def buat_kapasitas(item: str, mesin: str, **nilai) -> str:
+	"""Get or create the Machine Capacity row of (`item`, `jenis`, `mesin`). A new row takes `nilai` over
+	defaults (20 s, 4 cavities, 50 g, 12 g runner); an existing row is returned as is. A bad value raises."""
+	jenis = nilai.get("jenis", "")
+	ada = frappe.db.get_value("Machine Capacity", {"item": item, "jenis": jenis, "workstation": mesin})
+	if ada:
+		return ada
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "Machine Capacity",
+				"item": item,
+				"workstation": mesin,
+				"cycle_time": 20,
+				"cavities": 4,
+				"part_weight": 50,
+				"runner_weight": 12,
+				**nilai,
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)

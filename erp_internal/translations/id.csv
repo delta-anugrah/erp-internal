@@ -168,3 +168,37 @@ Not updated yet,Belum diperbarui
 Zoom in,Perbesar
 Zoom out,Perkecil
 WO,PP
+A template covers all its variants; a variant's own row wins over its template's.,Template berlaku untuk semua variannya; baris milik varian menang atas baris template.
+Cavities,Kavitas
+Cavities must be at least 1.,Kavitas minimal 1.
+Computed,Hasil hitungan
+Cycle Time (s),Waktu Siklus (detik)
+Cycle time must be more than 0.,Waktu siklus harus lebih dari 0.
+Disabled,Nonaktif
+Grams per piece.,Gram per pcs.
+Grams per shot (sprue and runner).,Gram per tembakan (sprue dan runner).
+"How fast one machine makes one product: cycle time, cavities, weights and material. The target for Plan vs Actual and the source of the BOMs.","Seberapa cepat satu mesin membuat satu produk: waktu siklus, kavitas, berat dan bahan. Jadi target Rencana vs Aktual dan sumber BOM."
+Jenis,Jenis
+"Jenis can only be set on a template item, not on {0}.","Jenis hanya boleh diisi pada barang template, bukan pada {0}."
+Machine Capacity,Kapasitas Mesin
+Masterbatch,Masterbatch
+Masterbatch %,Masterbatch %
+"Masterbatch % must be from 0 up to, but not including, 100.",Masterbatch % harus dari 0 sampai di bawah 100.
+Material,Bahan
+Material per Piece (g),Bahan per Pcs (g)
+No variant of {0} has the Jenis {1}.,Tidak ada varian {0} dengan Jenis {1}.
+Of the total resin mix.,Dari total campuran resin.
+"Only with a template item: the row covers that template's variants of this Jenis (e.g. Super, DX).","Hanya untuk barang template: baris ini berlaku untuk varian template dengan Jenis ini (mis. Super, DX)."
+Part Weight (g),Berat Produk (g)
+Part weight must be more than 0.,Berat produk harus lebih dari 0.
+Pieces per Hour,Pcs per Jam
+Pieces per shot.,Pcs per tembakan.
+Reground and reused: the runner is not consumed material. Thrown away: it is.,Digiling dan dipakai lagi: runner bukan bahan terpakai. Dibuang: runner terpakai.
+Runner Reground,Runner Digiling
+Runner Weight (g),Berat Runner (g)
+Runner weight cannot be negative.,Berat runner tidak boleh negatif.
+Seconds per shot.,Detik per tembakan.
+Shot,Tembakan
+{0} already has a capacity row on {1}.,{0} sudah punya baris kapasitas di {1}.
+{0} must be a stock item counted in Kg.,{0} harus barang stok dengan satuan Kg.
+A machine that no longer runs this mould.,Mesin yang tidak lagi menjalankan cetakan ini.
