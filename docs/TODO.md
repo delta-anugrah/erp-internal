@@ -96,7 +96,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [x] Production Floor: remove the forklift for now.
 - [x] Hide IDs users don't need (Sales History's hash name first; sweep the other forms). Only Sales History and
       Machine Capacity are hash-named; Production Entry's `PE-…` stays (a document number). Abel: say if Company should go too.
-- [ ] Order Readiness: leave template items out.
+- [x] Order Readiness: leave template items out (`has_variants` 0; `test_template_tidak_ikut`).
 - [ ] Desk sidebar: the collapsed sidebar's expand button is tiny and covered.
 - [ ] Fitting icons for our sidebar links.
 - [ ] Makefile for the server setup (`make setup`, steps in order, stop on error, no secrets).

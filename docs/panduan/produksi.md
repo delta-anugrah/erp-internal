@@ -127,7 +127,7 @@ cukup dicentang **Disabled**, jangan dihapus.
 
 ## Tiap Senin: Order Readiness (Siap Order)
 
-**Manufacturing → Order Readiness** Satu baris per produk jadi, untuk bulan yang dipilih:
+**Manufacturing → Order Readiness** Satu baris per produk jadi (per varian, misalnya per warna; template seperti "BASKOM-20" tidak ikut karena tidak pernah distok atau dijual), untuk bulan yang dipilih:
 
 Pilih Company dan (kalau perlu) Warehouse milik company itu. Kalau muncul izin ditolak atau "Warehouse ... does
 not belong to company", akunmu nggak boleh buka company atau gudang itu.

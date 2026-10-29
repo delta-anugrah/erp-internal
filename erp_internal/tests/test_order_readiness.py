@@ -16,6 +16,7 @@ from erp_internal.tests.utils import (
 	buat_perusahaan,
 	lama_produksi,
 	stok_awal,
+	buat_varian,
 	tahun_fiskal,
 )
 
@@ -65,6 +66,13 @@ class TestOrderReadiness(IntegrationTestCase):
 		).insert()
 		wo.submit()
 		return wo
+
+	def test_template_tidak_ikut(self):
+		# A template is never stocked or sold; only its variants are (Abel, 2026-10-29: "BASKOM-20: Baskom 20" with 0s).
+		varian = buat_varian("_UJI-OR-TPL", ["Super"], ["Merah"])
+		kode = [r["item_code"] for r in data(self.pabrik, self.awal, None, "Barang Jadi", self.hari_ini)]
+		self.assertNotIn("_UJI-OR-TPL", kode)
+		self.assertIn(varian[0], kode)
 
 	def test_angka_per_kolom(self):
 		# The spec's example: kurang 870, lama 870 / 200 + 1 = 5.35, the start already passed.

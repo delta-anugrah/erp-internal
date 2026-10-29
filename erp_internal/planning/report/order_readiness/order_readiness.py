@@ -145,7 +145,8 @@ def _barang(item_group: str) -> list:
 	grup = frappe.get_all("Item Group", {"lft": (">=", lft), "rgt": ("<=", rgt)}, pluck="name")
 	return frappe.get_all(
 		"Item",
-		{"item_group": ("in", grup), "disabled": 0, "is_stock_item": 1},
+		# A template (has_variants) is never stocked or sold, only its variants: it would be a row of 0s.
+		{"item_group": ("in", grup), "disabled": 0, "is_stock_item": 1, "has_variants": 0},
 		["name", "item_name", "safety_stock"],
 		order_by="name asc",
 	)
