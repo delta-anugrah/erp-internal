@@ -72,9 +72,10 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   keeps the sidebar's fold arrow visible on a desktop. Frappe v16.53 folds the module sidebar with that arrow
   (or the 8 px edge), but shows the arrow only on hover. Beside the pinned dock a folded sidebar slides shut and
   the dock stays as the rail; Frappe then parks the arrow half under the dock (z-index 1030), so our CSS moves
-  it into the dock above the profile avatar (`.sidebar-hidden`: left -41px, bottom 56px, z-index 1031). The
-  choice is kept in localStorage `desk-sidebar-collapsed`. `cek_layar` folds,
-  reloads and reopens it for each user.
+  it into the dock above the profile avatar as a 32 px button with border and shadow (`.sidebar-hidden`: left
+  -45px, bottom 60px, z-index 1031; Abel 2026-10-29: the 24 px disc was too small). The choice is kept in
+  localStorage `desk-sidebar-collapsed`. `cek_layar` folds, checks the folded arrow is >= 32 px and on top at its
+  centre, reloads and reopens it for each user.
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen

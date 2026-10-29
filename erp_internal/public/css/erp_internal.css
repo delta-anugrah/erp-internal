@@ -19,11 +19,32 @@
 
 	/* With the panel folded all the way (dock mode, `.sidebar-hidden`), Frappe parks the arrow at left -12px,
 	   half under the dock (z-index 1030), so it could not be seen. Put it in the dock, centred above the
-	   profile avatar: the container starts at the dock's 57 px edge, so -41px centres a 24 px disc in it. */
+	   profile avatar, as a real button: 32 px with a border and a shadow (Abel, 2026-10-29: the 24 px disc was
+	   too small to find). The container starts at the dock's 57 px edge, so -45px centres 32 px in it. */
 	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow {
-		left: -41px;
-		bottom: 56px;
+		left: -45px;
+		bottom: 60px;
 		z-index: 1031;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 8px;
+		border: 1px solid var(--border-color);
+		background: var(--fg-color);
+		color: var(--text-color);
+		box-shadow: var(--shadow-md);
+	}
+
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow:hover,
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow:focus-visible {
+		background: var(--btn-default-hover-bg, var(--fg-hover-color));
+	}
+
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow .icon {
+		width: 16px;
+		height: 16px;
 	}
 }
 

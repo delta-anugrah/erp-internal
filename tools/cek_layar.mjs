@@ -140,6 +140,12 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			await panah.click();
 			await page.waitForTimeout(700);
 			const tutup = await lebar();
+			// Folded, the arrow is a 32 px button in the dock and nothing covers its centre (Abel, 2026-10-29).
+			const lipat = await panah.evaluate((e) => {
+				const r = e.getBoundingClientRect();
+				return { w: r.width, h: r.height, atas: e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)) };
+			});
+			cek(lipat.w >= 32 && lipat.h >= 32 && lipat.atas, `folded sidebar arrow: ${JSON.stringify(lipat)}`);
 			await page.reload();
 			await page.waitForLoadState("networkidle");
 			await page.waitForTimeout(1000);
