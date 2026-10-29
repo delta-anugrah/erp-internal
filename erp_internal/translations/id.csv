@@ -228,6 +228,7 @@ Same product and machine as row {0}.,Produk dan mesinnya sama dengan baris {0}.
 The file has more than {0} rows.,File punya lebih dari {0} baris.
 The file is empty or larger than {0} MB.,File kosong atau lebih besar dari {0} MB.
 The file is empty.,File kosong.
+No header row found in the first {0} rows: it must name at least {1} known columns.,Baris judul kolom tidak ditemukan di {0} baris pertama: harus memuat minimal {1} kolom yang dikenal.
 The file is not a valid Excel file.,File ini bukan file Excel yang sah.
 The row names no machine.,Baris ini tidak menyebut mesin.
 The row names no material.,Baris ini tidak menyebut bahan.
@@ -285,6 +286,7 @@ Work Order {0} does not exist.,Perintah Produksi {0} tidak ada.
 Re-open Work Order {0} first.,Buka lagi dulu Perintah Produksi {0}.
 From Date cannot be after To Date.,Dari Tanggal tidak boleh setelah Sampai Tanggal.
 Unknown grouping {0}.,Pengelompokan {0} tidak dikenal.
+Unknown shift {0}.,Shift {0} tidak dikenal.
 Unknown target source {0}.,Sumber target {0} tidak dikenal.
 Target,Target
 Good,Bagus

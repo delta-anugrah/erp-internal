@@ -86,6 +86,8 @@ FIELD_WO_MESIN = {
 	"options": "Workstation",
 	"insert_after": "production_item",
 	"link_filters": json.dumps([["Workstation", "erp_nomor", ">", 0]]),
+	# A submitted order's machine can change (a machine breaks down); Plan vs Actual then moves its whole target.
+	"allow_on_submit": 1,
 }
 
 # The machine and the capacity row a BOM was made from (`kapasitas.buat_bom_kapasitas`). A BOM without them was

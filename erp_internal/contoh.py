@@ -9,6 +9,7 @@ Refused on a production site (site config `erp_produksi`). Every record made her
 `tests/utils.py`, the same ones the tests use.
 """
 
+import math
 from datetime import date, timedelta
 
 import frappe
@@ -96,9 +97,16 @@ KAPASITAS = (
 	("CTH-KURSI", 1, 70, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
 	("CTH-KURSI", 2, 85, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
 )
-# Open Work Orders (product, machine number) that take the sample output, and how many pieces each plans.
-ORDER_PRODUKSI = (("CTH-EMBER-10L", 1), ("CTH-GAYUNG", 1), ("CTH-BASKOM-40", 2), ("CTH-KURSI", 2))
-QTY_ORDER_PRODUKSI = 50000
+# Open Work Orders (product, machine number, the Achieved % its sample output lands on). Each plans the seven
+# days of output, from the first entry day to yesterday: its quantity is the good pieces made divided by that
+# share (capacity x 8 h x 7 days times the yield), so the report shows green (100), orange (85 up to
+# 100) and red (below 85). An order takes no output past its quantity, so 100 is the most it can reach.
+ORDER_PRODUKSI = (
+	("CTH-EMBER-10L", 1, 1.0),
+	("CTH-GAYUNG", 1, 1.0),
+	("CTH-BASKOM-40", 2, 0.72),
+	("CTH-KURSI", 2, 0.95),
+)
 HARI_PRODUKSI = 7  # days of Production Entries, ending yesterday
 # Resin and masterbatch received the day before the first entry (kg): the entries are back-dated and need stock.
 TERIMA_BAHAN = {"CTH-BIJI-PP": 20000, "CTH-BIJI-HDPE": 12000, "CTH-PEWARNA": 800}
@@ -359,9 +367,11 @@ def _produksi(company: str, hari_ini: date) -> None:
 		kapasitas[kode, mesin] = frappe.db.get_value("Machine Capacity", baris, "pcs_per_hour")
 
 	_terima_bahan(company, add_days(hari_ini, -HARI_PRODUKSI - 1))
-	for kode, no in ORDER_PRODUKSI:
+	for kode, no, capai in ORDER_PRODUKSI:
 		mesin = _mesin(no)
-		wo = _order(company, kode, mesin, add_days(hari_ini, -HARI_PRODUKSI - 1))
+		per_jam = kapasitas[kode, mesin]
+		qty = math.ceil(sum(_bagus(per_jam, i) for i in range(HARI_PRODUKSI)) / capai)
+		wo = _order(company, kode, mesin, qty, add_days(hari_ini, -HARI_PRODUKSI), add_days(hari_ini, -1))
 		for i in range(HARI_PRODUKSI):
 			hari = add_days(hari_ini, i - HARI_PRODUKSI)
 			_hasil(wo, hari, i, kapasitas[kode, mesin])
@@ -421,8 +431,14 @@ def _terima_bahan(company: str, tanggal: date) -> None:
 		tandai("Stock Entry", ada)
 
 
-def _order(company: str, kode: str, mesin: str, mulai: date) -> str:
-	"""The open sample Work Order of `kode` on `mesin` (BOM: the one made for that machine), found by tag."""
+def _bagus(per_jam: float, urutan: int) -> int:
+	"""The good pieces of the sample Shift 1 entry number `urutan`."""
+	return round(flt(per_jam) * setup.jam_shift("Shift 1") * YIELD_HARIAN[urutan % len(YIELD_HARIAN)])
+
+
+def _order(company: str, kode: str, mesin: str, qty: int, mulai: date, selesai: date) -> str:
+	"""The open sample Work Order of `kode` on `mesin` (BOM: the one made for that machine), found by tag,
+	planned from `mulai` to `selesai`. An order of an earlier run gets these dates and quantity too."""
 	ada = frappe.db.get_value(
 		"Work Order",
 		{
@@ -451,15 +467,37 @@ def _order(company: str, kode: str, mesin: str, mulai: date) -> str:
 				"doctype": "Work Order",
 				"production_item": kode,
 				"bom_no": bom,
-				"qty": QTY_ORDER_PRODUKSI,
+				"qty": qty,
 				"company": company,
 				"erp_mesin": mesin,
 				"skip_transfer": 1,
 				"planned_start_date": mulai,
+				"planned_end_date": selesai,
 			}
 		).insert(ignore_permissions=True)
 		wo.submit()
 		ada = wo.name
+	else:
+		# A sample order of an earlier run (one start date, 50000 pieces) is put on this plan; db.set_value
+		# because a submitted order's dates and quantity are read only.
+		wo = frappe.db.get_value(
+			"Work Order", ada, ["qty", "planned_start_date", "planned_end_date"], as_dict=True
+		)
+		if (
+			flt(wo.qty),
+			getdate(wo.planned_start_date),
+			wo.planned_end_date and getdate(wo.planned_end_date),
+		) != (
+			flt(qty),
+			mulai,
+			selesai,
+		):
+			frappe.db.set_value(
+				"Work Order",
+				ada,
+				{"qty": qty, "planned_start_date": mulai, "planned_end_date": selesai},
+				update_modified=False,
+			)
 	return tandai("Work Order", ada)
 
 
@@ -470,7 +508,7 @@ def _hasil(wo: str, hari: date, urutan: int, per_jam: float) -> None:
 		{"work_order": wo, "posting_date": hari, "shift": "Shift 1", "docstatus": ("<", 2)},
 	)
 	if not ada:
-		bagus = round(flt(per_jam) * setup.jam_shift("Shift 1") * YIELD_HARIAN[urutan % len(YIELD_HARIAN)])
+		bagus = _bagus(per_jam, urutan)
 		reject = {
 			alasan: max(1, round(bagus * porsi))
 			for alasan, porsi in ALASAN_HARIAN[urutan % len(ALASAN_HARIAN)].items()

@@ -49,8 +49,6 @@ def kapasitas(item: str, workstation: str) -> frappe._dict | None:
 	if template:
 		kandidat += [(template, jenis_varian(item) or ""), (template, "")]
 	for kode, jenis in kandidat:
-		if jenis is None:
-			continue
 		if row := frappe.db.get_value(
 			"Machine Capacity",
 			{"item": kode, "jenis": jenis or ("in", ("", None)), "workstation": workstation, "disabled": 0},
@@ -192,7 +190,13 @@ def pilih_bom(doc, method=None) -> None:
 			return
 	baru = frappe.db.get_value(
 		"BOM",
-		{"item": doc.production_item, "erp_mesin": doc.erp_mesin, "docstatus": 1, "is_active": 1},
+		{
+			"item": doc.production_item,
+			"erp_mesin": doc.erp_mesin,
+			"company": doc.company,
+			"docstatus": 1,
+			"is_active": 1,
+		},
 		"name",
 		order_by="creation desc, name desc",
 	)

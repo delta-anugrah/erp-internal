@@ -13,8 +13,9 @@ from erp_internal.planning.report.plan_vs_actual.plan_vs_actual import (
 	target_harian,
 )
 from erp_internal.planning.report.plan_vs_actual.plan_vs_actual import (
-	kolom as susun_kolom,
+	shift as shift_pabrik,
 )
+from erp_internal.setup import SHIFT_PABRIK
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
@@ -232,12 +233,20 @@ class TestPlanVsActual(IntegrationTestCase):
 		alasan = [c for c in kolom if c["fieldname"].startswith("r_")]
 		self.assertEqual(len({c["fieldname"] for c in alasan}), 3)
 		por = {c["label"]: rows[0][c["fieldname"]] for c in alasan}
-		self.assertIn("Gores &amp; &quot;x&quot; / y", por)
-		# Frappe refuses < and > in a name, so the HTML case is checked on kolom() directly.
-		html = susun_kolom("Day", [{"r_a": 1, "_alasan": {"r_a": "<b>Gores</b>"}}])
-		self.assertEqual(html[-1]["label"], "&lt;b&gt;Gores&lt;/b&gt;")
+		# The label is raw so Excel/CSV export shows `&`; Frappe refuses < and > in a name.
+		self.assertIn(aneh, por)
+		with self.assertRaises(frappe.NameError):
+			frappe.get_doc({"doctype": "Reject Reason", "reason_name": "<b>Gores</b>"}).insert(
+				ignore_permissions=True
+			)
 		self.assertEqual(sorted(por.values()), [1, 2, 4])
 		self.assertEqual(por["Cacat A"], 2)
+
+	def test_shift_dari_server(self):
+		self.assertEqual(shift_pabrik(), [n for n, _j in SHIFT_PABRIK])
+		with self.assertRaises(frappe.ValidationError):
+			execute(self.f(shift="Shift 99"))
+		execute(self.f(shift=SHIFT_PABRIK[0][0]))
 
 	def test_izin_production_entry(self):
 		email = buat_pengguna("pa-tanpa-pe@example.com", None, None, None)

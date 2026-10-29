@@ -46,6 +46,8 @@ KOLOM_IMPOR = {
 MAKS_BYTE = 2 * 1024 * 1024
 MAKS_BARIS = 2000
 MAKS_KOLOM = 40
+BARIS_KEPALA = 10  # the header is looked for in the first this many non-empty rows
+MIN_KOLOM_KEPALA = 2  # a header row names at least this many known columns
 BERKAS_BOLEH = (".xlsx", ".csv")
 
 ANGKA = ("cycle_time", "part_weight", "runner_weight", "masterbatch_percent")
@@ -180,30 +182,46 @@ def _tabel(doc, isi: bytes):
 		teks = isi.decode("utf-8-sig")
 	except UnicodeDecodeError:
 		teks = isi.decode("cp1252")
-	kepala = next((b for b in teks.splitlines() if b.strip()), "")
-	pemisah = max(",;\t", key=kepala.count)
+	# The separator is the one used most in the first lines, so a title row above the header does not decide.
+	awal = "\n".join([b for b in teks.splitlines() if b.strip()][:BARIS_KEPALA])
+	pemisah = max(",;\t", key=awal.count)
 	for baris in csv.reader(io.StringIO(teks), delimiter=pemisah):
 		yield baris[:MAKS_KOLOM]
 
 
+def _kepala(sel: list, asing: list | None) -> dict[int, str]:
+	"""The column index → key map of a candidate header row; unknown headers go to `asing`."""
+	kolom, tak_dikenal = {}, []
+	for i, h in enumerate(sel):
+		if h is None or not str(h).strip():
+			continue
+		kunci = PETA.get(normal(h))
+		if kunci and kunci not in kolom.values():
+			kolom[i] = kunci
+		else:
+			tak_dikenal.append(str(h).strip())
+	if len(kolom) >= MIN_KOLOM_KEPALA and asing is not None:
+		asing += [h for h in tak_dikenal if h not in asing]
+	return kolom
+
+
 def _baca(doc, asing: list | None = None) -> list[dict]:
-	kolom, kepala_ada, hasil = {}, False, []
+	kolom, calon, hasil = {}, 0, []
 	for no, sel in enumerate(_tabel(doc, _isi(doc)), start=1):
 		# The hard limit counts every row, blank ones too: a sheet of millions of empty rows must not run on.
 		if no > MAKS_BARIS + 100:
 			frappe.throw(_("The file has more than {0} rows.").format(MAKS_BARIS))
 		if not any(str(c).strip() for c in sel if c is not None):
 			continue
-		if not kepala_ada:
-			kepala_ada = True
-			for i, h in enumerate(sel):
-				if h is None or not str(h).strip():
-					continue
-				kunci = PETA.get(normal(h))
-				if kunci and kunci not in kolom.values():
-					kolom[i] = kunci
-				elif asing is not None and str(h).strip() not in asing:
-					asing.append(str(h).strip())
+		if not kolom:
+			# The header is the first of the first rows that names enough known columns: a title row may sit
+			# above it.
+			calon += 1
+			kolom = _kepala(sel, asing)
+			if len(kolom) < MIN_KOLOM_KEPALA:
+				kolom = {}
+				if calon >= BARIS_KEPALA:
+					break
 			continue
 		if len(hasil) >= MAKS_BARIS:
 			frappe.throw(_("The file has more than {0} rows.").format(MAKS_BARIS))
@@ -212,13 +230,19 @@ def _baca(doc, asing: list | None = None) -> list[dict]:
 			if i < len(sel) and sel[i] is not None and str(sel[i]).strip() != "":
 				baris[kunci] = sel[i]
 		hasil.append(baris)
-	if not kepala_ada:
+	if not calon:
 		frappe.throw(_("The file is empty."))
+	if not kolom:
+		frappe.throw(
+			_("No header row found in the first {0} rows: it must name at least {1} known columns.").format(
+				BARIS_KEPALA, MIN_KOLOM_KEPALA
+			)
+		)
 	return hasil
 
 
 def baca(file_url: str, asing: list | None = None) -> list[dict]:
-	"""The data rows of the first sheet of a `.xlsx` (or of a `.csv`): the first non-empty row is the header, each
+	"""The data rows of the first sheet of a `.xlsx` (or of a `.csv`): the header is the first of the first 10 non-empty rows that names at least 2 known columns, each
 	row is `{"no": <row number in the file>, <column key>: <cell>}` with empty cells left out. A header that
 	matches nothing is ignored and appended once to `asing`."""
 	return _baca(_berkas(file_url), asing)

@@ -141,6 +141,9 @@ ditulis. Yang boleh: Manufacturing Manager (profil Admin dan Developer). Contoh 
 `erp_internal/tests/data/kapasitas.xlsx` (dibuat ulang dengan `tools/contoh_kapasitas.py`; `test_impor_kapasitas.py`
 mengimpornya sungguhan).
 
+**Baris judul** = baris pertama (dari 10 baris terisi pertama) yang memuat minimal 2 judul yang dikenal, jadi
+judul besar atau baris kosong di atas judul kolom tidak masalah. Kalau tidak ada, file ditolak dengan pesan jelas.
+
 **Judul kolom dibaca dari artinya**, bukan urutannya. Besar kecil huruf, spasi, tanda baca diabaikan (`Cycle Time
 (detik)` = `cycletimedetik`), `%` dibaca "persen". Kolom yang judulnya tidak dikenal diabaikan dan disebut di
 atas tabel. Daftar nama lain ada di `KOLOM_IMPOR` (`planning/impor_kapasitas.py`); nama baru = tambah di tabel itu.
@@ -171,7 +174,7 @@ atas tabel. Daftar nama lain ada di `KOLOM_IMPOR` (`planning/impor_kapasitas.py`
 - **Angka**: `2,5` dan `2.5` = 2,5; `1.250,5` dan `1,250.5` = 1250,5. `1.250` dan `1,250` bisa berarti seribu dua
   ratus lima puluh atau satu seperempat, jadi **ditolak**; tulis `1250` atau `1,25`.
 
-**Hasil per baris** (nomor baris = nomor baris di Excel, baris 1 judul):
+**Hasil per baris** (nomor baris = nomor baris di Excel, termasuk baris judul dan baris kosong di atasnya):
 
 | Hasil | Arti |
 |---|---|

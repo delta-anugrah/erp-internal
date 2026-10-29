@@ -52,6 +52,13 @@ def bagi_shift(target: float, jam: dict[str, float]) -> dict[str, float]:
 	return {n: target * j / total for n, j in jam.items()}
 
 
+@frappe.whitelist()
+def shift() -> list[str]:
+	"""The shift names of the factory, for the Shift filter."""
+	frappe.has_permission("Production Entry", "read", throw=True)
+	return [n for n, _jam in SHIFT_PABRIK]
+
+
 def execute(filters=None):
 	f = frappe._dict(filters or {})
 	if not f.company:
@@ -65,6 +72,8 @@ def execute(filters=None):
 	f.group_by = f.group_by or "Machine + Day"
 	if f.group_by not in KELOMPOK:
 		frappe.throw(_("Unknown grouping {0}.").format(frappe.bold(f.group_by)))
+	if f.shift and f.shift not in shift():
+		frappe.throw(_("Unknown shift {0}.").format(frappe.bold(f.shift)))
 	rows = data(f)
 	return kolom(f.group_by, rows), _tampil(rows), None, grafik(f.group_by, rows)
 
@@ -127,9 +136,7 @@ def kolom(group_by: str, rows: list[dict]) -> list[dict]:
 		for n in r:
 			if n.startswith("r_"):
 				ada[n] = r["_alasan"][n]
-	return kolom + [
-		k(frappe.utils.escape_html(label), n, precision=0, width=100) for n, label in sorted(ada.items())
-	]
+	return kolom + [k(label, n, precision=0, width=100) for n, label in sorted(ada.items())]
 
 
 def grafik(group_by: str, rows: list[dict]) -> dict:

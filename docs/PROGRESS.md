@@ -2,6 +2,21 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-29 (Plan vs Actual, whole-branch review fixes)
+- `Work Order.erp_mesin` is now `allow_on_submit` (migrate both sites): a submitted order's machine can change, so the
+  Production Entry refusal "change the Work Order's machine first" can be followed. The report puts the whole target on
+  the current machine (past days too); said in `docs/panduan/produksi.md`. `pilih_bom` stays draft-only and now filters
+  BOMs by the order's company.
+- Plan vs Actual: the Shift filter is filled from `plan_vs_actual.shift()` (`SHIFT_PABRIK`), `execute` refuses an
+  unknown shift; reason column labels are raw (no `escape_html`, `&` shows in Excel/CSV).
+- Capacity import: the header is the first of the first 10 non-empty rows that names at least 2 known columns (a title
+  row or blank rows above are fine; the CSV separator is chosen over those lines). `docs/impor.md` updated.
+- `contoh.py`: sample Work Orders plan first entry day to yesterday; qty = good pieces / a target share (1.0, 1.0, 0.72,
+  0.95), so Mesin 01 reads 100 % (green) and Mesin 02 76 % (red); an older sample order gets the new dates and qty by
+  `db.set_value`. Removed the dead `jenis is None` branch in `kapasitas()`; produksi.md fixes (material warehouse, shifts).
+- Tests as run: full run 200 (13 unit + 187 integration) OK; ruff check and format clean; `buat_contoh` twice on
+  `erp.localhost`, second run changed nothing.
+
 ## 2026-10-29 (Plan vs Actual, Task 6 of 6)
 - Task 6: `contoh.py` now also makes 10 Machine Capacity rows (5 products on Mesin 01 and 02) with their BOMs
   (`buat_bom_kapasitas`), 4 open Work Orders and 28 Production Entries (7 days ending yesterday, Shift 1, rejects by

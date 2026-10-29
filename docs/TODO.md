@@ -3,7 +3,7 @@
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
 Last full run (2026-10-29, after Plan vs Actual Task 6): `bench --site erp-test.localhost run-tests --app erp_internal`:
-196 tests (13 unit + 183 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
+200 tests (13 unit + 187 integration), all OK (after the whole-branch review fixes). `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
 `PINTASAN_MAKS` raised 10 to 12: Manufacturing has 12, Setup 11).
 
 ## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)

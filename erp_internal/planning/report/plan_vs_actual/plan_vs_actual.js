@@ -52,7 +52,13 @@ frappe.query_reports["Plan vs Actual"] = {
 				filters: { company: frappe.query_report.get_filter_value("company"), docstatus: 1 },
 			}),
 		},
-		{ fieldname: "shift", label: __("Shift"), fieldtype: "Select", options: "\nShift 1\nShift 2\nShift 3" },
+		{
+			fieldname: "shift",
+			label: __("Shift"),
+			fieldtype: "Select",
+			options: "",
+			// Filled in onload from the factory's shifts (SHIFT_PABRIK).
+		},
 		{
 			fieldname: "group_by",
 			label: __("Group by"),
@@ -71,6 +77,17 @@ frappe.query_reports["Plan vs Actual"] = {
 			description: __("Work Order: its quantity spread over its planned days. Capacity: pieces per hour × run hours."),
 		},
 	],
+	onload(report) {
+		frappe.call({
+			method: "erp_internal.planning.report.plan_vs_actual.plan_vs_actual.shift",
+			callback: (r) => {
+				const filter = report.get_filter("shift");
+				if (!filter || !r.message) return;
+				filter.df.options = ["", ...r.message].join("\n");
+				filter.refresh();
+			},
+		});
+	},
 	formatter(value, row, column, data, default_formatter) {
 		const html = default_formatter(value, row, column, data);
 		if (column.fieldname === "capai" && data && data.capai !== null && data.capai !== undefined) {

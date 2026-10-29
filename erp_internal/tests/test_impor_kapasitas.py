@@ -130,6 +130,23 @@ class TestImporKapasitas(IntegrationTestCase):
 		self.assertEqual([b["hasil"] for b in h["baris"]], ["New"])
 		self.assertEqual(h["baris"][0]["cycle_time"], 20)
 
+	def test_judul_di_bawah_baris_judul_berkas(self):
+		isi = (
+			"Daftar kapasitas pabrik\n\n"
+			"Produk;Jenis;No Mesin;Warna Kotak;Cycle;Cavity;Berat;Bahan\n_UJI-IMP;Super;1;x;20;4;50;_UJI-PP\n"
+		)
+		asing = []
+		baris = baca(buat_berkas("_uji_judul.csv", isi.encode()), asing)
+		self.assertEqual([b["no"] for b in baris], [4])
+		self.assertEqual(baris[0]["produk"], TEMPLATE)
+		self.assertEqual(asing, ["Warna Kotak"])  # only the real header's unknown columns, not the title row
+
+	def test_tanpa_baris_judul(self):
+		isi = "Daftar kapasitas\n" + "\n".join(f"baris {i};x" for i in range(12)) + "\n"
+		with self.assertRaises(frappe.ValidationError) as e:
+			pratinjau(buat_berkas("_uji_tanpa_judul.csv", isi.encode()))
+		self.assertIn("header", str(e.exception).lower())
+
 	def test_pratinjau_tanpa_tulis(self):
 		n = frappe.db.count("Machine Capacity")
 		b = frappe.db.count("BOM")
