@@ -313,7 +313,7 @@ if (jalankan("states")) {
 		Production: ["hijau", "#22d36b", 0, 1, true, 1.3, 0.4],
 		Off: [null, null, 0, 0.38, false, 0.06, 0],
 		Idle: ["kuning", "#ffc21a", 0, 0.78, false, 0.2, 0],
-		Problem: ["merah", null, 1, 1, false, 0.7, 0],
+		Problem: ["merah", null, 1.25, 1, false, 0.7, 0],
 		Maintenance: ["biru", "#3d8bff", 0, 0.6, false, 0.3, 0],
 		Setup: ["kuning", null, 0.45, 1, false, 0.7, 0],
 	};
@@ -364,13 +364,16 @@ if (jalankan("states")) {
 			if (!gerak) cek(m.amp === 0, `${mesin} (${status}) platen still moving (amp ${m.amp})`);
 			else if (!info.kualitas.rendah) cek(m.amp > 0.9, `${mesin} (Production) platen not cycling (amp ${m.amp})`);
 		}
-		// Problem pulses: its lamp colour changes between samples.
-		const warnaMerah = new Set();
-		for (let i = 0; i < 6; i++) {
-			warnaMerah.add(await p.evaluate(() => erp.lantai.aktif.info().mesin.find((m) => m.nama === "Mesin 04")?.warna));
-			await p.waitForTimeout(110);
+		// Problem blinks hard: its red lamp is seen fully lit and nearly dark within two periods.
+		const warnaMerah = [];
+		for (let i = 0; i < 16; i++) {
+			warnaMerah.push(await p.evaluate(() => erp.lantai.aktif.info().mesin.find((m) => m.nama === "Mesin 04")?.warna));
+			await p.waitForTimeout(90);
 		}
-		cek(warnaMerah.size >= 3, `Problem lamp does not pulse: ${[...warnaMerah].join(" ")}`);
+		const merah = warnaMerah.map((h) => parseInt(String(h).slice(1, 3), 16) || 0);
+		cek(per["Mesin 04"]?.kedip === true, "Problem lamp is not marked as blinking");
+		// The hex is sRGB: the dark phase (0.05 linear) reads about 0x3f.
+		cek(Math.max(...merah) >= 230 && Math.min(...merah) <= 80, `Problem lamp does not blink on and off: ${warnaMerah.join(" ")}`);
 		// Production's ring breathes (brightness swings) while its lamp stays steady; Idle's ring is still.
 		const terangCincin = (h) => Math.max(...[1, 3, 5].map((j) => parseInt(h.slice(j, j + 2), 16)));
 		const napas = { "Mesin 01": [], "Mesin 03": [] };

@@ -35,7 +35,7 @@ smooth, jangan patah2 / laggy".
   | Production | green, steady; floor ring breathes slowly, screen lit | the moving platen cycles (mould opens and closes) |
   | Setup | yellow, slow pulse | still |
   | Idle (also empty) | yellow, steady; screen dark | still, body slightly dimmed |
-  | Problem | red, pulse about 1 Hz | still |
+  | Problem | red, hard on/off blink 1.25 Hz (Abel, 2026-10-29) | still |
   | Maintenance | blue, steady | still, body dimmed |
   | Off | unlit | still, body dimmed more |
 

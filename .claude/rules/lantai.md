@@ -87,12 +87,16 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   the slab at its zone). The QC plate sits inside the glass box on its own floor (y 0.1). Decor must never hide a machine, its lamp or its label: `lantai.mjs pabrik` raycasts from the camera to each andon point.
 - The default camera sits higher and further back (`kamera.position` 0, 32, 36) and `adegan.terapkanRuang` fits the machines with `LONGGAR` (0.8) room
   to spare, so the building shows around them; `label-rapi` still asserts no label is hidden or overlapping.
-- Status rings (`mesin.js`): one `InstancedMesh` ring per machine on the floor, colour = the lit andon segment (Off: grey), Problem pulses with its
+- Status rings (`mesin.js`): one `InstancedMesh` ring per machine on the floor, colour = the lit andon segment (Off: grey), Problem blinks with its
   lamp. `mesin.info()` has `cincin` (hex) and `fase` (0..1 of the mould cycle, also in `daftar()` states, for the life layer).
 - **Production reads apart from Idle** (Abel, 2026-10-29; `GAYA` in `mesin.js`): Production's ring breathes slowly on its own (`nadi` 0.4 Hz,
   brightness 45-100 %, phase per machine) while its lamp stays steady, and its control screen is lit (`layar` 1.3); Idle has a still ring, a dark
   screen (0.2) and a dimmer body (`redup` 0.78). Every status sets a screen brightness (`info().mesin[].terang`; `layar` there is the bundle's
   screen point). The breathing only rewrites the 14 ring colours, so `perf` stays at 60 fps with 0 dropped frames (`lantai.mjs states` checks it).
+- **Every row faces the camera** (Abel, 2026-10-29; `bentukKeadaan` sets `putar` 0): the front row 01-07 used to turn round to the aisle and hid
+  its andon lamps. **Problem blinks hard** (`GAYA.Problem.kedip`, 1.25 Hz, lit 55 % of the period, else 0.05): the lit segment snaps instead of easing (easing
+  blurred the old 1 Hz pulse into a soft glow); its ring eases between 35 % and full so it stays red. `info().mesin[].kedip`; `lantai.mjs states` asserts
+  the lamp is seen lit (>= 0xe6 red) and dark (<= 0x50, sRGB) within 16 samples.
 
 ## The simulated life layer (`hidup.js`)
 

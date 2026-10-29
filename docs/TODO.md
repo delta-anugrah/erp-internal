@@ -91,8 +91,8 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [ ] Abel: look at the floor in your own Chrome (restart `bench start` first): is Production vs Idle clear enough now?
 
 ## Abel 2026-10-29 evening (next session, in order)
-- [ ] Commit this session's work (company rename + logo, Running vs Idle, `penjualan.py`).
-- [ ] Production Floor: turn machines 01-07 like 08-14 (lamps visible); Problem's red lamp blinks clearly.
+- [x] Commit this session's work (company rename + logo, Running vs Idle, `penjualan.py`).
+- [x] Production Floor: turn machines 01-07 like 08-14 (lamps visible); Problem's red lamp blinks clearly.
 - [ ] Production Floor: remove the forklift for now.
 - [ ] Hide IDs users don't need (Sales History's hash name first; sweep the other forms).
 - [ ] Order Readiness: leave template items out.

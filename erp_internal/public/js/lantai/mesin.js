@@ -19,19 +19,23 @@ const WARNA_SEGMEN = [0xff3b30, 0xffc21a, 0x22d36b, 0x3d8bff];
 const REDUP_SEGMEN = 0.16; // an unlit segment's share of its colour
 
 // Status → look (the spec's table). `lampu` is the lit segment (-1 = none), `denyut` the pulse in Hz (lamp and
-// ring), `nadi` a slow breath of the floor ring alone in Hz, `redup` the body brightness, `layar` the control
+// ring), `kedip` a hard on/off blink at that rate instead of a soft pulse (the lamp snaps, the ring eases), `nadi` a slow breath of the floor ring alone in Hz, `redup` the body brightness, `layar` the control
 // screen's brightness, `gerak` whether the moving platen cycles. Production (lit screen, breathing green ring) and
 // Idle (dim body, dark screen, still yellow ring) must read apart at a glance (Abel, 2026-10-29).
 const GAYA = {
 	Production: { lampu: 2, denyut: 0, nadi: 0.4, redup: 1, layar: 1.3, gerak: true },
 	Setup: { lampu: 1, denyut: 0.45, nadi: 0, redup: 1, layar: 0.7, gerak: false },
 	Idle: { lampu: 1, denyut: 0, nadi: 0, redup: 0.78, layar: 0.2, gerak: false },
-	Problem: { lampu: 0, denyut: 1, nadi: 0, redup: 1, layar: 0.7, gerak: false },
+	Problem: { lampu: 0, denyut: 1.25, kedip: true, nadi: 0, redup: 1, layar: 0.7, gerak: false },
 	Maintenance: { lampu: 3, denyut: 0, nadi: 0, redup: 0.6, layar: 0.3, gerak: false },
 	Off: { lampu: -1, denyut: 0, nadi: 0, redup: 0.38, layar: 0.06, gerak: false },
 };
 // The breathing ring's brightness swings between this share and full.
 const NADI_BAWAH = 0.45;
+// A blinking lamp: lit this share of each period, else at KEDIP_MATI; its ring never drops below CINCIN_KEDIP.
+const KEDIP_NYALA = 0.55;
+const KEDIP_MATI = 0.05;
+const CINCIN_KEDIP = 0.35;
 const gaya = (status) => GAYA[status] || GAYA.Idle;
 // The floor ring's colour when no segment is lit (Off): a dim grey.
 const CINCIN_MATI = [0.3, 0.32, 0.35];
@@ -207,8 +211,9 @@ export function buatMesin(adegan) {
 		s.z = p.z;
 		s.baris = p.baris;
 		s.slot = p.baris < BARIS.length ? s.nomor : null;
-		// The front row and the spare rows turn round, so every control panel faces the aisle.
-		s.putar = p.baris === 0 ? 0 : Math.PI;
+		// Every row faces the default camera (+z), so each andon lamp and control screen is in view (Abel, 2026-10-29:
+		// the front row used to turn round to the aisle and hid its lamps).
+		s.putar = 0;
 		s.skala = panjang(row?.tonase);
 		s.merek.set(WARNA_MEREK[String(row?.merek || "").toUpperCase()] ?? WARNA_LAIN);
 		// The platen's phase belongs to the machine: its number, and half a cycle more when it stands in the spare row.
@@ -337,17 +342,20 @@ export function buatMesin(adegan) {
 				warnaiTubuh(i, s);
 				ubahTubuh = true;
 			}
-			const nyala = g.denyut ? 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(2 * Math.PI * g.denyut * waktu)) : 1;
+			let nyala = 1;
+			if (g.kedip) nyala = (g.denyut * waktu) % 1 < KEDIP_NYALA ? 1 : KEDIP_MATI;
+			else if (g.denyut) nyala = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(2 * Math.PI * g.denyut * waktu));
 			for (let j = 0; j < SEGMEN.length; j++) {
 				const f = j === g.lampu ? nyala : REDUP_SEGMEN;
+				const kj = g.kedip && j === g.lampu ? 1 : k; // a blink snaps; easing would blur it into a pulse
 				const c = warnaSegmen[j];
 				const o = j * 3;
 				const a = s.kini;
 				const d = Math.abs(c.r * f - a[o]) + Math.abs(c.g * f - a[o + 1]) + Math.abs(c.b * f - a[o + 2]);
 				if (d < 0.003) continue;
-				a[o] += (c.r * f - a[o]) * k;
-				a[o + 1] += (c.g * f - a[o + 1]) * k;
-				a[o + 2] += (c.b * f - a[o + 2]) * k;
+				a[o] += (c.r * f - a[o]) * kj;
+				a[o + 1] += (c.g * f - a[o + 1]) * kj;
+				a[o + 2] += (c.b * f - a[o + 2]) * kj;
 				warna.setRGB(a[o], a[o + 1], a[o + 2]);
 				mesh.lampu.setColorAt(i * SEGMEN.length + j, warna);
 				ubahLampu = true;
@@ -357,9 +365,10 @@ export function buatMesin(adegan) {
 			const napas = g.nadi
 				? NADI_BAWAH + (1 - NADI_BAWAH) * (0.5 + 0.5 * Math.sin(2 * Math.PI * g.nadi * waktu + s.fase0 * 6.283))
 				: 1;
-			const tr = w ? w.r * nyala * napas : CINCIN_MATI[0];
-			const tg = w ? w.g * nyala * napas : CINCIN_MATI[1];
-			const tb = w ? w.b * nyala * napas : CINCIN_MATI[2];
+			const nyalaCincin = g.kedip ? Math.max(nyala, CINCIN_KEDIP) : nyala;
+			const tr = w ? w.r * nyalaCincin * napas : CINCIN_MATI[0];
+			const tg = w ? w.g * nyalaCincin * napas : CINCIN_MATI[1];
+			const tb = w ? w.b * nyalaCincin * napas : CINCIN_MATI[2];
 			const c = s.cin;
 			if (Math.abs(tr - c[0]) + Math.abs(tg - c[1]) + Math.abs(tb - c[2]) >= 0.003) {
 				c[0] += (tr - c[0]) * k;
@@ -421,6 +430,7 @@ export function buatMesin(adegan) {
 					lampu: j >= 0 ? SEGMEN[j] : null,
 					warna: j >= 0 ? `#${warna.setRGB(s.kini[j * 3], s.kini[j * 3 + 1], s.kini[j * 3 + 2]).getHexString()}` : null,
 					denyut: g.denyut,
+					kedip: !!g.kedip,
 					nadi: g.nadi,
 					redup: s.redup,
 					terang: s.layar, // the control screen's brightness (`layar` is the bundle's screen point)
