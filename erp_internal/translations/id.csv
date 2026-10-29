@@ -241,3 +241,4 @@ New,Baru
 Changed,Berubah
 Unchanged,Tidak berubah
 Refused,Ditolak
+"The capacity row {0} is switched off. Switch it on by hand, then import again.","Baris kapasitas {0} dinonaktifkan. Aktifkan dulu secara manual, lalu impor lagi."

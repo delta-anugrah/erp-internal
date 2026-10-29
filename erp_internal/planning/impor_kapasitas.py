@@ -127,11 +127,16 @@ def _berkas(file_url) -> "frappe.model.document.Document":
 		frappe.throw(_("Only .xlsx and .csv files can be imported."))
 	# One answer for "no such file" and "not yours", so the URL of someone else's file is not confirmed.
 	salah = frappe.PermissionError(_("You cannot read this file."))
-	nama = frappe.db.get_value("File", {"file_url": file_url}, "name")
-	if not nama:
-		raise salah
-	doc = frappe.get_doc("File", nama)
-	if doc.is_folder or doc.is_remote_file or not doc.has_permission("read"):
+	# Several File rows can share one URL: take one the caller may read.
+	doc = None
+	for nama in frappe.get_all(
+		"File", {"file_url": file_url}, pluck="name", order_by="creation, name", limit=50
+	):
+		ada = frappe.get_doc("File", nama)
+		if not (ada.is_folder or ada.is_remote_file) and ada.has_permission("read"):
+			doc = ada
+			break
+	if not doc:
 		raise salah
 	if not (doc.file_name or "").lower().endswith(BERKAS_BOLEH):
 		frappe.throw(_("Only .xlsx and .csv files can be imported."))
@@ -184,6 +189,9 @@ def _tabel(doc, isi: bytes):
 def _baca(doc, asing: list | None = None) -> list[dict]:
 	kolom, kepala_ada, hasil = {}, False, []
 	for no, sel in enumerate(_tabel(doc, _isi(doc)), start=1):
+		# The hard limit counts every row, blank ones too: a sheet of millions of empty rows must not run on.
+		if no > MAKS_BARIS + 100:
+			frappe.throw(_("The file has more than {0} rows.").format(MAKS_BARIS))
 		if not any(str(c).strip() for c in sel if c is not None):
 			continue
 		if not kepala_ada:
@@ -197,7 +205,7 @@ def _baca(doc, asing: list | None = None) -> list[dict]:
 				elif asing is not None and str(h).strip() not in asing:
 					asing.append(str(h).strip())
 			continue
-		if no > MAKS_BARIS + 100 or len(hasil) >= MAKS_BARIS:
+		if len(hasil) >= MAKS_BARIS:
 			frappe.throw(_("The file has more than {0} rows.").format(MAKS_BARIS))
 		baris = {"no": no}
 		for i, kunci in kolom.items():
@@ -377,6 +385,12 @@ def _rencana(file_url: str) -> dict:
 			if ada:
 				dok = frappe.get_doc("Machine Capacity", ada)
 				baris["kapasitas"] = ada
+				if dok.disabled:
+					raise Tolak(
+						_(
+							"The capacity row {0} is switched off. Switch it on by hand, then import again."
+						).format(ada)
+					)
 				beda = _beda(dok, nilai)
 				dok.update(nilai)
 			else:

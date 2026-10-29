@@ -312,3 +312,63 @@ class TestImporKapasitas(IntegrationTestCase):
 			pratinjau(self.url)
 		own = buat_berkas("_uji_milik_admin.xlsx", isi_berkas("kapasitas.xlsx"), pemilik=admin)
 		self.assertEqual(len(pratinjau(own)["baris"]), 10)
+
+	def test_baris_nonaktif(self):
+		self.terapkan()
+		nama = frappe.db.get_value(
+			"Machine Capacity", {"item": TEMPLATE, "jenis": "Super", "workstation": self.mesin[1]}
+		)
+		frappe.db.set_value("Machine Capacity", nama, "disabled", 1)
+		boms = frappe.get_all("BOM", {"erp_kapasitas": nama, "is_active": 1}, pluck="name")
+		for berat in (50, 60):  # the file's own value, and a changed one
+			isi = (
+				"Produk,Jenis,Mesin,Cycle,Cavity,Berat,Berat Runner,Bahan,Masterbatch,MB %\n"
+				f"_UJI-IMP,Super,1,20,4,{berat},12,_UJI-PP,_UJI-MB,2\n"
+			)
+			url = buat_berkas(f"_uji_nonaktif_{berat}.csv", isi.encode())
+			h = self.terapkan(url)
+			self.assertEqual(h["baris"][0]["hasil"], "Refused")
+			self.assertIn("switched off", h["baris"][0]["alasan"])
+			self.assertEqual(pratinjau(url)["baris"][0]["hasil"], "Refused")
+			self.assertEqual(h["bom"], {"dibuat": 0, "nonaktif": 0})
+		self.assertEqual(frappe.db.get_value("Machine Capacity", nama, ["disabled", "part_weight"]), (1, 50))
+		self.assertEqual(frappe.get_all("BOM", {"erp_kapasitas": nama, "is_active": 1}, pluck="name"), boms)
+
+	def test_ribuan_baris_kosong(self):
+		from openpyxl import Workbook
+
+		buku = Workbook()
+		lembar = buku.active
+		lembar.append(["Produk", "Jenis", "Mesin", "Cycle", "Cavity", "Berat", "Bahan"])
+		lembar.cell(row=5000, column=1, value=None)  # a sheet that is 5000 rows tall and empty
+		import io
+
+		kosong = io.BytesIO()
+		buku.save(kosong)
+		with patch.object(impor_kapasitas, "MAKS_BARIS", 10):
+			# a data row beyond the raw limit (10 + 100) refuses even though the rows between are blank
+			lembar.cell(row=300, column=1, value="_UJI-IMP")
+			dua = io.BytesIO()
+			buku.save(dua)
+			with self.assertRaises(frappe.ValidationError):
+				pratinjau(buat_berkas("_uji_kosong.xlsx", dua.getvalue()))
+
+	def test_url_dipakai_bersama(self):
+		# Another user's private File with the same URL comes first; the caller's own copy is used.
+		admin = buat_pengguna("_uji.impor.admin2@example.com", ADMIN, None, self.pabrik)
+		self.addCleanup(frappe.set_user, "Administrator")
+		pertama = frappe.get_doc("File", {"file_url": self.url})
+		sama = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": pertama.file_name,
+				"file_url": self.url,
+				"is_private": 1,
+				"owner": admin,
+			}
+		)
+		sama.flags.ignore_file_validate = True
+		sama.insert(ignore_permissions=True)
+		frappe.db.set_value("File", sama.name, "owner", admin)
+		frappe.set_user(admin)
+		self.assertEqual(len(pratinjau(self.url)["baris"]), 10)
