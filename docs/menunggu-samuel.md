@@ -16,7 +16,9 @@ place in the last column and strike the row.
 | 8 | Office days off and leave: Saturday off? Which leave types and how many days of annual leave? | Saturday and Sunday off; Cuti Tahunan 12, Sakit, Izin (unpaid); national holidays entered by HR from the SKB | `setup.LIBUR_MINGGUAN`, `setup.JENIS_CUTI`, Task 15/17 |
 | 9 | Factory shifts: how many, and their hours? (asked 2026-10-29) | `setup.SHIFT_PABRIK`: Shift 1, 2, 3 of 8 h each | Plan vs Actual target per shift, Production Entry |
 | 10 | Which reject types are recorded? (asked 2026-10-29) | the sample Reject Reasons: Short Shot, Flashing, Belang / Warna, Bubble, Pecah / Retak, Sink Mark | Reject Reason list, Plan vs Actual reason columns |
-| 11 | Runner (the leftover plastic in the mould's channels): ground and reused, or thrown away? (asked 2026-10-29) | counted in the material per shot (`runner_weight`), not returned to stock | capacity BOM material, a regrind item if reused |
+| ~~11~~ | ~~Runner (the leftover plastic in the mould's channels): ground and reused, or thrown away? (asked 2026-10-29)~~ answered 2026-10-29: treat it as thrown away | counted in the material per shot (`runner_weight`), not returned to stock | capacity BOM material, a regrind item if reused |
+| 12 | Which item runs on which machine? Also: is the "Gr" column of his capacity Excel really kg? (asked 2026-10-29) | no Machine Capacity rows for the real items; weights read as kg | Machine Capacity rows (Excel import), `buat_bom_kapasitas` |
+| 13 | How many pcs in a "Ball Kecil" (Sendok Bebek Catering) and a "Pack" (Sendok Panjang JSW)? | not converted to pcs | Item UOM conversion |
 
 ## Answers (Mas Samuel, 2026-10-28)
 

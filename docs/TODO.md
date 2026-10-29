@@ -82,11 +82,19 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
       smoothness budget (`.claude/rules/lantai.md`); plan it first (spec revision, then tasks).
 - [ ] Abel: look at the fuller floor (light and dark, a phone width) and say if the left column, the attention card and
       the loading screen are right. Also: the default view fits the 14 machines; Raw Material sits under the left column and Reject, grinder, door and truck are off-screen. Say whether the default view should show the whole building.
+- [ ] Small: the forklift's rear corner stands about 0.5 m on the end of the "Finished Goods" lettering at its jadi stop
+      (`denah.js` JALUR stop 28.3, -7, arriving at about 45°). Move the stop to z <= -9 or x >= 30 and add a body-footprint
+      check against the lettering plates to `tools/denah.test.mjs`.
 - Note: the logo exists in the repo (`erp_internal/public/images/delta-anugrah.svg`). The Production Floor's top bar shows the default Company's logo, so the dev site shows initials (its default company is the sample PT Contoh Plastik); at go-live PT Delta Anugrah is the company and gets the logo.
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
-- [ ] Plan vs Actual: shifts, reject types, runner (`docs/menunggu-samuel.md` rows 9-11, asked 2026-10-29).
+- [ ] Plan vs Actual: shifts and reject types (`docs/menunggu-samuel.md` rows 9-10): no answer, keep the defaults
+      (editable lists). Runner: answered 2026-10-29, thrown away (default kept).
+- [ ] Capacity: which item runs on which machine (asked 2026-10-29). Samuel's Excel (2026-10-29) gave cycle time,
+      cavities, kg per pcs (the "Gr" header is kg), material and its price per kg, and Jan-Sep 2026 sales per item.
+- [ ] Next session: import that Excel's sales history, raw material items with their price, and minimum stock from
+      sales; ask Samuel how many pcs are in a "Ball Kecil" (Sendok Bebek) and a "Pack" (Sendok JSW).
 
 ## Master data
 - [x] Samuel's catalog and machines (`erp_internal/master.py`, `test_master` 8 OK; run twice on `erp.localhost`,
