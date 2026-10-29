@@ -4,11 +4,13 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from erp_internal.planning.kapasitas import baris_bom, buat_bom_kapasitas, pilih_bom, varian_tercakup
+from erp_internal.tampilan import ADMIN, USER
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
 	buat_kapasitas,
 	buat_mesin,
+	buat_pengguna,
 	buat_perusahaan,
 	buat_varian,
 )
@@ -96,6 +98,10 @@ class TestBomKapasitas(IntegrationTestCase):
 		h = self.buat(tpl)
 		self.assertEqual(len(h["dibuat"]), 4)
 		self.assertEqual(sorted(h["nonaktif"]), sorted(lama[1:]))
+		for n in lama[1:]:
+			self.assertEqual(frappe.db.get_value("BOM", n, "is_active"), 0)
+		for n in h["dibuat"]:
+			self.assertEqual(frappe.db.get_value("Item", frappe.db.get_value("BOM", n, "item"), "default_bom"), n)
 		self.assertEqual(frappe.db.get_value("BOM", lama[0], "is_active"), 1)
 		self.assertTrue(all(frappe.db.get_value("BOM", n, "is_default") for n in h["dibuat"]))
 		wo.delete()
@@ -112,9 +118,15 @@ class TestBomKapasitas(IntegrationTestCase):
 
 	def test_izin(self):
 		tpl = self.row(TEMPLATE, self.m1)
-		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("Guest")
 		self.assertRaises(frappe.PermissionError, buat_bom_kapasitas, tpl)
+		pegawai = buat_pengguna("_uji.bomk.user@example.com", USER, USER, None)
+		frappe.set_user(pegawai)
+		self.assertRaises(frappe.PermissionError, self.buat, tpl)
+		admin = buat_pengguna("_uji.bomk.admin@example.com", ADMIN, ADMIN, None)
+		frappe.set_user(admin)
+		self.assertEqual(len(self.buat(tpl)["dibuat"]), 4)
 
 	def test_pilih_bom_mesin(self):
 		self.buat(self.row(self.v[0], self.m1))

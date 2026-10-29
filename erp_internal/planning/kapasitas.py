@@ -116,11 +116,13 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 	`dibuat` (new), `tetap` (already right) and `nonaktif` (older ones switched off). Hand-made BOMs (no
 	`erp_kapasitas`) are never touched."""
 	frappe.has_permission("Machine Capacity", "write", nama, throw=True)
-	frappe.has_permission("BOM", "create", throw=True)
+	for perm in ("create", "submit", "write"):
+		frappe.has_permission("BOM", perm, throw=True)
 	row = frappe.get_doc("Machine Capacity", nama)
 	if not row.disabled and not row.material:
 		frappe.throw(_("Set the material of this row before making BOMs."))
 	company = company or erpnext.get_default_company()
+	frappe.has_permission("Company", "read", doc=company, throw=True)
 	hasil = {"dibuat": [], "tetap": [], "nonaktif": []}
 	aman = set()
 	for item in varian_tercakup(nama):
@@ -160,7 +162,6 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 				],
 			}
 		)
-		bom.flags.ignore_permissions = True
 		bom.insert()
 		bom.submit()
 		hasil["dibuat"].append(bom.name)
@@ -171,7 +172,6 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 		if lama in aman or _dipakai(lama):
 			continue
 		doc = frappe.get_doc("BOM", lama)
-		doc.flags.ignore_permissions = True
 		doc.is_active = 0
 		doc.is_default = 0
 		doc.save()
@@ -201,3 +201,4 @@ def pilih_bom(doc, method=None) -> None:
 		# The lines came from the old BOM: let ERPNext build them again from the new one.
 		doc.set("required_items", [])
 		doc.set("operations", [])
+		doc.set_work_order_operations()
