@@ -43,7 +43,7 @@ template ikut berbahasa Indonesia; dua-duanya diterima.
 | `Item Code` | kode barang, unik |
 | `Item Name` | nama barang |
 | `Item Group` | `Barang Jadi`, `Bahan Baku`, `Bahan Penolong`, `Kemasan` atau `Sparepart` |
-| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll` atau `Kg` (hanya `Kg` boleh pecahan) |
+| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Ball Kecil`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll` atau `Kg` (hanya `Kg` boleh pecahan) |
 | `Maintain Stock` | `1` untuk barang yang distok |
 | `Safety Stock` | stok minimum |
 | `UOM (uoms)` | satuan lain, misalnya `Karton` |
@@ -101,7 +101,7 @@ kolom barang (kolom dokumen dikosongkan). Centang **Submit After Import**.
 
 ```csv
 Company,Posting Date,Purpose,Difference Account,Item Code (Items),Warehouse (Items),Quantity (Items),Valuation Rate (Items)
-PT Contoh Plastik,31-12-2026,Opening Stock,Temporary Opening - CPL,EMB-10,Gudang Barang Jadi - CPL,120,9000
+PT Delta Anugrah,31-12-2026,Opening Stock,Temporary Opening - CPL,EMB-10,Gudang Barang Jadi - CPL,120,9000
 ,,,,BIJI-PP,Gudang Bahan Baku - CPL,500,15000
 ```
 
@@ -122,7 +122,7 @@ Sales Forecast. Riwayat **tidak** diimpor sebagai Sales Order, karena nanti terb
 
 ```csv
 Company,Item,Month,Qty
-PT Contoh Plastik,EMB-10,01-08-2026,2400
+PT Delta Anugrah,EMB-10,01-08-2026,2400
 ```
 
 Satu perusahaan, satu barang, satu bulan = satu baris. File yang sama diimpor dua kali tidak menggandakan angka:
@@ -188,6 +188,29 @@ baris Unchanged tidak disentuh. Kalau satu baris gagal saat Apply (padahal lolos
 seluruhnya, ditandai Refused dengan pesan kesalahannya, dan baris lain jalan terus. File yang sama diimpor dua kali:
 kali kedua semuanya Unchanged dan tidak ada BOM baru. Baris kapasitas yang sudah dinonaktifkan tidak diaktifkan
 lagi oleh impor.
+
+## Excel penjualan Samuel (`penjualan.py`)
+
+Excel Samuel 2026-10-29 (penjualan Januari-September 2026 dan spesifikasi barang) ada di
+`erp_internal/data/penjualan_2026.json`. Jalankan **sesudah** `master.muat` (barangnya dari sana):
+
+```bash
+cd ~/Desktop/Projects/erp-internal-bench
+bench --site erp.localhost execute erp_internal.penjualan.muat
+```
+
+Yang dibuat (dijalankan dua kali = sama saja, `ditulis` 0):
+
+| Apa | Isi |
+|---|---|
+| Tipe dan barang baru | yang dijual di Excel tapi tidak ada di daftar harga (`produk_baru`): Gayung Lumba Soft, Gayung Bajigur DX Soft, Gantungan Folding Soft, Gantungan Dinda Hitam, Toples Nastar 1/2 Kg (`TOPLES-NASTAR`), Sendok Bebek Catering (`SENDOK-BEBEK`, stok dalam `Ball Kecil`). Warnanya tebakan, belum ada harga (`docs/menunggu-samuel.md` baris 14) |
+| Bahan baku | 7 barang di grup `Bahan Baku`, stok dalam Kg (`BB-PP-WARNA`, `BB-PP-HITAM`, ...), harga per kg sebagai valuation rate dan di daftar harga beli `Harga Bahan Baku` |
+| Riwayat penjualan | Sales History per varian per bulan, dalam satuan stok (Lusin x 12, Gross x 144). Excel tidak memisah warna, jadi angkanya dibagi rata ke warna-warna tipe itu (sisa pembagian ke varian pertama menurut kode). Sendok Panjang JSW = Sendok Makan Pack |
+| Stok minimum | `safety_stock` tiap varian = setengah rata-rata penjualan sebulan, dibulatkan ke atas (`STOK_MIN_BULAN`); dipakai Order Readiness |
+
+Cek: total per baris Excel per bulan sama dengan jumlah Sales History varian-variannya (`test_penjualan`).
+Baris **Total** di Excel tidak menghitung baris 1 (Gantungan Dinda Super); di sini semua baris dihitung.
+Angka baru dari Samuel: ubah file JSON-nya, jalankan lagi.
 
 ## Data induk Samuel: katalog dan mesin (`master.py`)
 

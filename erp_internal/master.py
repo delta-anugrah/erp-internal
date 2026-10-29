@@ -51,6 +51,7 @@ KODE = {
 	"Pot UK 25 CM": "POT-25",
 	"Keranjang Sampah": "KERANJANG-SAMPAH",
 	"Baskom 20": "BASKOM-20",
+	"Toples Nastar 1/2 Kg": "TOPLES-NASTAR",  # from the sales Excel (`penjualan.py`)
 }
 # A product whose "type" is a packing, not a model: each packing is its own template, with its own stock UOM.
 # Sendok Makan's Pack is a packed product sold per pack (how many spoons a pack holds is not in the list); its
@@ -58,6 +59,8 @@ KODE = {
 PISAH = {
 	("Sendok Makan", "Pack"): ("SENDOK-MAKAN-PACK", "Sendok Makan Pack", "Pack"),
 	("Sendok Makan", "Ball"): ("SENDOK-MAKAN", "Sendok Makan", "Pcs"),
+	# From the sales Excel (`penjualan.py`): sold per "Ball Kecil", how many spoons it holds is not known yet.
+	("Sendok Bebek Catering", "Ball Kecil"): ("SENDOK-BEBEK", "Sendok Bebek Catering", "Ball Kecil"),
 }
 # The list's spellings of one value (Baby Love's "Orens", Keranjang Sampah's "Warna DX").
 SAMA = {
@@ -73,6 +76,8 @@ SINGKATAN = {
 		"Super & DX": "SDX",
 		"Bening": "BNG",
 		"Standard": "STD",
+		"Soft": "SFT",
+		"DX Soft": "DXS",
 	},
 	"Warna": {
 		"Merah": "MRH",
@@ -88,6 +93,7 @@ SINGKATAN = {
 		"Bening": "BNG",
 		"Bening Transparan": "BTR",
 		"Putih Susu": "PTS",
+		"Campur": "CMP",
 	},
 	"Ukuran": {"1 KG": "1KG", "1,5 KG": "1.5KG"},
 }
