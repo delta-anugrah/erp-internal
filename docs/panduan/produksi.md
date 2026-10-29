@@ -31,7 +31,7 @@ Floor** (pilihan paling atas).
 - **Tabel mesin** (kiri atas, tepat di bawah bar atas): klik satu baris, kamera terbang ke mesin itu. Panah di kanan atasnya melipat tabel.
 - **Perlu perhatian** (di bawah tabel mesin): mesin yang tidak sedang Production, yang paling parah di atas (Problem, Maintenance, Setup, Idle, Off), lengkap dengan Work Order-nya. Klik satu baris untuk terbang ke mesinnya. Kalau semua jalan tertulis **Semua mesin berjalan**. Di HP daftar ini terlipat dulu; ketuk judulnya untuk membukanya.
 - **Layar memuat**: sebentar setelah halaman dibuka muncul kartu **Memuat lantai produksi…** sampai data dan gambar pertama siap.
-- **Yang disimulasikan**: forklift, operator dan teknisi, suku cadang yang jatuh, dan isi tong hanyalah animasi (bukan data). Zona beserta isinya hanya dekorasi. Cincin di lantai mengikuti warna status mesin.
+- **Yang disimulasikan**: operator dan teknisi, suku cadang yang jatuh, dan isi tong hanyalah animasi (bukan data). Zona beserta isinya hanya dekorasi. Cincin di lantai mengikuti warna status mesin.
 - **Tampilan gelap**: gedung, truk, dan tulisan di lantai ikut menjadi gelap kalau Desk dipasang ke tema gelap.
 - **Klik satu mesin**: panel di kanan menunjukkan detailnya dan link ke Work Order-nya. Enam tombol status mengubah
   status mesin itu (sama dengan mengubah **Status** di formulir Workstation-nya); **Open machine** membuka

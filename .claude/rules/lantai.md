@@ -76,7 +76,7 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - `denah.js` is pure (no imports): `BARIS`, `posisi`, `posisiSisa(i)`, `SLAB`, `DINDING`, `PINTU`, `ZONA`, `JALUR`. `adegan.js` re-exports
   `BARIS`/`posisi`. `node --test tools/denah.test.mjs` checks that the zones lie in the slab and never overlap, that every machine slot and the first
   14 spare slots keep 1.5 m from every zone and every `JALUR` segment, and that no `JALUR` segment crosses a zone other than `bahan` and `jadi`.
-  Change a zone or a slot only with that test green (a spare slot inside a zone, or on the forklift loop, is the failure it guards).
+  Change a zone or a slot only with that test green (a spare slot inside a zone, or on the (currently unused) forklift loop, is the failure it guards).
 - `pabrik.js` (`buatPabrik(adegan) -> {tema, info, buang}`): the cut-away building and the outside (ground, road, dock apron, truck, trees), all built from code. Static solids are
   merged per material (one mesh), the trees are one `InstancedMesh`. A theme change recolours the ground, road, apron and window glow and re-tints the merged solids (walls, roof cap, columns, truck: the material's colour multiplies the vertex colours; `info()` has `tema`, `dinding`, `atap`, `truk` as drawn); it creates no geometry, material or texture. The window glow is
   `MeshBasicMaterial` that `saatTurun` dims. `bentuk.js` holds the small shape helpers (`warnai`, `balok`, `tegak`, `tabungZ`, `datar`, `terbuang`) shared with `zona.js`.
@@ -101,9 +101,9 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 ## The simulated life layer (`hidup.js`)
 
 - `buatHidup(adegan, mesin) -> {perbarui(daftar), tick, henti, info, buang}`. The bundle calls `perbarui(mesin.daftar())` after every `tata`, registers `tick` in `adegan.tiap` and `henti` in `adegan.saatTurun`.
-- Operator (Production, Setup), technician with yellow helmet (Maintenance, Problem), nobody at Idle/Off; one `InstancedMesh` each for body, head and helmet, re-laid only on `perbarui`. A machine in Production drops a part when its `fase` wraps (a pool of 28, one slot per machine) into its bin; the bin fills 1/48 per part and empties at full (about 4 minutes). The forklift walks `JALUR` at 1.6 m/s and waits `henti` ms at a stop (time counted from `dt`, which is clamped to 0.1 s, so a hidden page never makes it jump).
-- `henti()` is final: nothing moves or falls any more. 7 draw calls. `info().hidup` has `operator, teknisi, jatuh, forklift{x,z,henti,laju}, aktif, orang[], tong[]` (figures and bins only for drawn machines).
-- The HUD says `__("Forklift, operators and parts are simulated")` under the KPI row (`.simulasi`, in `hud.kotak()`). Nothing simulated may read as data.
+- Operator (Production, Setup), technician with yellow helmet (Maintenance, Problem), nobody at Idle/Off; one `InstancedMesh` each for body, head and helmet, re-laid only on `perbarui`. A machine in Production drops a part when its `fase` wraps (a pool of 28, one slot per machine) into its bin; the bin fills 1/48 per part and empties at full (about 4 minutes). Time is counted from `dt`, clamped to 0.1 s, so a hidden page never makes anything jump. **No forklift for now** (Abel, 2026-10-29): it was removed from `hidup.js`; `denah.JALUR` and its test stay for when it comes back (git history has `bentukGarpu` and its drive).
+- `henti()` is final: nothing moves or falls any more. 6 draw calls. `info().hidup` has `operator, teknisi, jatuh, aktif, orang[], tong[]` (figures and bins only for drawn machines).
+- The HUD says `__("Operators and parts are simulated")` under the KPI row (`.simulasi`, in `hud.kotak()`). Nothing simulated may read as data.
 
 ## Accepted deviations from the design
 

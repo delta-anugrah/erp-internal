@@ -50,9 +50,9 @@
 //   hud-live     the dot reads Live with realtime, "Updated HH:MM" with /socket.io blocked
 //   hud-xss      a company name of <img onerror> shows as text; only a same-origin /files/ logo becomes an image
 //   hidup        Mesin 01 Production, 02 Problem, 03 Off (restored after): an operator at 01, a technician at 02, nobody at
-//                03; parts fall within 2 cycles; the forklift moves within 3 s; the "simulated" note is in the HUD
+//                03; parts fall within 2 cycles; no forklift; the "simulated" note is in the HUD
 //                (13-machines, adaptive and hidden also check the life layer: figures and bins follow the drawn
-//                machines; after the quality drop no part falls and the forklift stands still; hidden: it stands still
+//                machines; after the quality drop no part falls; hidden: the mould cycle stands still
 //                and returns without a jump)
 //   perhatian    02 Problem, 03 Idle, 04 Maintenance (the rest Production): the attention card reads 02, 04, 03; a click
 //                selects 04; all Production says "All machines running"; it sits under the machine table, top left
@@ -1177,14 +1177,15 @@ if (jalankan("hidden")) await kasus("hidden", async () => {
 			document.dispatchEvent(new Event("visibilitychange"));
 		});
 		await p.waitForTimeout(300);
-		const garpu = () => p.evaluate(() => erp.lantai.aktif.info().hidup?.forklift ?? null);
-		const g1 = await garpu();
+		// The mould cycle's phase stands for the whole loop (the forklift that did this is gone).
+		const fase = () => p.evaluate(() => erp.lantai.aktif.info().mesin[0]?.fase ?? null);
+		const g1 = await fase();
 		ambil = 0;
 		await api(p, "erp_internal.production_floor.set_status", { machine: NAMA, status: "Off" });
 		await p.waitForTimeout(2000);
 		cek(ambil === 0, `hidden: ${ambil} get_data request(s) while the tab was hidden`);
-		const g2 = await garpu();
-		cek(g1 && g2 && g1.x === g2.x && g1.z === g2.z, `hidden: the forklift moved while hidden (${JSON.stringify(g1)} -> ${JSON.stringify(g2)})`);
+		const g2 = await fase();
+		cek(g1 !== null && g1 === g2, `hidden: the mould cycle ran while hidden (${g1} -> ${g2})`);
 		await p.evaluate(() => {
 			delete document.hidden;
 			document.dispatchEvent(new Event("visibilitychange"));
@@ -1192,10 +1193,11 @@ if (jalankan("hidden")) await kasus("hidden", async () => {
 		// The first frames back: at most one step (dt is clamped to 0.1 s), not the 2 s that passed.
 		const g3 = await p.evaluate(async () => {
 			await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-			return erp.lantai.aktif.info().hidup?.forklift ?? null;
+			return erp.lantai.aktif.info().mesin[0]?.fase ?? null;
 		});
-		const sauh = g2 && g3 ? Math.hypot(g3.x - g2.x, g3.z - g2.z) : Infinity;
-		cek(sauh <= (g3?.laju ?? 0) * 0.1 + 0.1, `hidden: the forklift jumped ${sauh.toFixed?.(2)} m on return`);
+		// Two frames of at most 0.1 s on a 5 s cycle: 0.04 of a cycle (wrapping past 1 counts the short way).
+		const sauh = g2 !== null && g3 !== null ? Math.min(Math.abs(g3 - g2), 1 - Math.abs(g3 - g2)) : Infinity;
+		cek(sauh <= 0.05, `hidden: the mould cycle jumped ${sauh.toFixed?.(3)} of a cycle on return`);
 		cek(await lihatStatus("Off"), "hidden: the tab shown again did not catch up within 3 s");
 		cek((await dialog(p)) === 0, "hidden: a message dialog is open");
 	} finally {
@@ -1668,7 +1670,7 @@ if (jalankan("hud-xss")) await kasus("hud-xss", async () => {
 
 // Glass: every fixed card blurs what is behind it (the moving labels do not, see label.js), and every text keeps 4.5:1 against its card over the floor, light and
 // dark. The backdrop is taken as the scene's background colour (the floor under the cards is close to it).
-// --- hidup: the simulated life layer (operators, technicians, parts, the forklift) and its note -------------------------
+// --- hidup: the simulated life layer (operators, technicians, parts) and its note ---------------------------------------
 if (jalankan("hidup")) await kasus("hidup", async () => {
 	const ctx = await konteksMasuk(browser);
 	const p = await bukaLantai(ctx);
@@ -1694,12 +1696,11 @@ if (jalankan("hidup")) await kasus("hidup", async () => {
 		const dulu = h.jatuh;
 		cek(await tunggu(p, (n) => erp.lantai.aktif.info().hidup.jatuh > n, dulu, 12000), `hidup: no part fell within 2 cycles (${dulu})`);
 		cek((await p.evaluate(() => erp.lantai.aktif.info().hidup.tong.length)) === (await p.evaluate(() => erp.lantai.aktif.info().mesin.length)), "hidup: bins and machines differ");
-		// The forklift is driving.
-		const f0 = h.forklift;
-		cek(await tunggu(p, (f) => Math.hypot(erp.lantai.aktif.info().hidup.forklift.x - f.x, erp.lantai.aktif.info().hidup.forklift.z - f.z) > 0.05, f0, 3000), `hidup: the forklift did not move within 3 s (${JSON.stringify(f0)})`);
+		// The forklift is out for now (Abel, 2026-10-29).
+		cek(!("forklift" in h), "hidup: the life layer still reports a forklift");
 		// The note says it is simulated, in the HUD.
 		const nota = await p.evaluate(() => erp.lantai.aktif.host.shadowRoot.querySelector(".hud .simulasi")?.textContent ?? null);
-		cek(nota === "Forklift, operators and parts are simulated", `hidup: the note reads ${JSON.stringify(nota)}`);
+		cek(nota === "Operators and parts are simulated", `hidup: the note reads ${JSON.stringify(nota)}`);
 		await p.screenshot({ path: join(HASIL, "lantai-hidup.png") });
 		cek((await dialog(p)) === 0, "hidup: a message dialog is open");
 		cek(!p.__galat.length, `hidup: console errors: ${p.__galat.slice(0, 3).join(" | ").slice(0, 300)}`);
@@ -2025,12 +2026,11 @@ if (jalankan("adaptive")) {
 		const info = await p.evaluate(() => erp.lantai.aktif.info());
 		cek(info.pabrik?.turun === true, `adaptive: the window glow did not dim (${info.pabrik?.turun})`);
 		cek(info.mesin.every((m) => m.amp < 0.5), `adaptive: platens kept cycling after quality dropped (${info.mesin.map((m) => m.amp.toFixed(2)).join(" ")})`);
-		// The life layer stops with it: the forklift stands still and no part falls for 2 s.
+		// The life layer stops with it: no part falls for 2 s.
 		cek(info.hidup?.aktif === false, `adaptive: the life layer is still active after the drop (${JSON.stringify(info.hidup?.aktif)})`);
 		const h2 = await p.evaluate(() => erp.lantai.aktif.info().hidup);
 		await p.waitForTimeout(2000);
 		const h3 = await p.evaluate(() => erp.lantai.aktif.info().hidup);
-		cek(h2 && h3 && h2.forklift.x === h3.forklift.x && h2.forklift.z === h3.forklift.z, "adaptive: the forklift kept driving after the drop");
 		cek(h2 && h3 && h2.jatuh === h3.jatuh, `adaptive: parts kept falling after the drop (${h2?.jatuh} -> ${h3?.jatuh})`);
 		// Move the camera, then a raw click on the reset button: the view is back within 300 ms.
 		await p.mouse.move(700, 450);

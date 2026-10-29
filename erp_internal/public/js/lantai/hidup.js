@@ -1,16 +1,14 @@
 // The simulated life on the floor: an operator at each machine in Production or Setup, a technician (yellow helmet) at
-// each one in Maintenance or Problem, a part dropped into the machine's bin once per mould cycle, and one forklift on
-// the loop `JALUR`. None of it is data (the HUD says so); only the machine statuses decide who stands where.
+// each one in Maintenance or Problem, and a part dropped into the machine's bin once per mould cycle. None of it is data
+// (the HUD says so); only the machine statuses decide who stands where. The forklift on `denah.JALUR` was taken out
+// for now (Abel, 2026-10-29); git history has it (bentukGarpu, the drive in tick).
 // Figures, bins and parts are InstancedMeshes built once at load; a fixed pool of parts, one slot per machine; nothing
 // is allocated per frame. Adaptive quality calls `henti()`: everything stands still for good.
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { JALUR } from "./denah.js";
 import { warnai } from "./bentuk.js";
 
 const MAKS = 28; // as mesin.js: instances per part
-const LAJU = 1.6; // forklift speed, m/s (a walking pace)
-const BELOK = 5; // heading easing rate
 const SIKLUS_TONG = 48; // parts per bin before it empties: 48 cycles of 5 s, about 4 minutes
 const LAMA_JATUH = 0.8; // s a part takes to fall
 const TINGGI_TONG = 0.44; // fill height at 100 %
@@ -36,25 +34,6 @@ function bentukOrang() {
 	return { badan: mergeGeometries([kaki, badan]), kepala, helm };
 }
 
-function bentukGarpu() {
-	const bagian = [
-		warnai(new THREE.BoxGeometry(1.1, 0.7, 1.6), [0, 0.65, -0.2], 0xf0a020), // body
-		warnai(new THREE.BoxGeometry(1.0, 0.5, 0.5), [0, 0.6, -1.15], 0x4a4f57), // counterweight
-		warnai(new THREE.BoxGeometry(0.8, 0.12, 0.7), [0, 1.1, -0.2], 0x2b2f36), // seat
-	];
-	for (const x of [-0.5, 0.5]) {
-		bagian.push(warnai(new THREE.BoxGeometry(0.06, 1.1, 0.06), [x, 1.65, -0.5], 0x4a4f57)); // rear posts
-		bagian.push(warnai(new THREE.BoxGeometry(0.06, 1.3, 0.06), [x, 1.75, 0.25], 0x4a4f57)); // front posts
-		bagian.push(warnai(new THREE.BoxGeometry(0.1, 1.5, 0.1), [x * 0.6, 1.15, 0.95], 0x2b2f36)); // mast
-		bagian.push(warnai(new THREE.BoxGeometry(0.16, 0.05, 1.0), [x * 0.6, 0.12, 1.45], 0xb8bec6)); // fork
-		for (const z of [-0.65, 0.35])
-			bagian.push(warnai(new THREE.CylinderGeometry(0.28, 0.28, 0.22, 14).rotateZ(Math.PI / 2), [x * 1.1, 0.28, z], 0x1c1f24)); // wheel
-	}
-	bagian.push(warnai(new THREE.BoxGeometry(1.2, 0.06, 0.95), [0, 2.4, -0.12], 0x4a4f57)); // roof
-	bagian.push(warnai(new THREE.BoxGeometry(0.12, 0.12, 0.12), [0, 2.5, -0.12], 0xffc21a)); // beacon
-	return mergeGeometries(bagian);
-}
-
 function instans(geo, bahan) {
 	const m = new THREE.InstancedMesh(geo, bahan, MAKS);
 	m.count = 0;
@@ -72,7 +51,6 @@ export function buatHidup(adegan, mesin) {
 	const orang = bentukOrang();
 	const geo = {
 		...orang,
-		garpu: bentukGarpu(),
 		tong: new THREE.CylinderGeometry(0.3, 0.25, 0.5, 14, 1, true).translate(0, 0.25, 0),
 		isi: new THREE.CylinderGeometry(0.235, 0.235, 1, 14).translate(0, 0.5, 0),
 		bagian: new THREE.BoxGeometry(1, 1, 1),
@@ -90,16 +68,12 @@ export function buatHidup(adegan, mesin) {
 		isi: instans(geo.isi, bahan.polos),
 		bagian: instans(geo.bagian, bahan.polos),
 	};
-	const garpu = new THREE.Mesh(geo.garpu, bahan.lambert);
-	garpu.frustumCulled = false;
 	const grup = new THREE.Group();
 	for (const m of Object.values(mesh)) grup.add(m);
-	grup.add(garpu);
 	adegan.scene.add(grup);
 
 	const m4 = new THREE.Matrix4();
 	const v = new THREE.Vector3();
-	const v2 = new THREE.Vector3();
 	const q = new THREE.Quaternion();
 	const k3 = new THREE.Vector3();
 	const warna = new THREE.Color();
@@ -118,15 +92,6 @@ export function buatHidup(adegan, mesin) {
 	let diam = false;
 	let kotor = false; // a bin fill changed
 	let bagianAktif = false;
-
-	// The forklift: the target point's index, position, heading, and the wait left at a stop (s).
-	let sasaran = 2;
-	const gk = { x: JALUR[1].x, z: JALUR[1].z, arah: Math.PI / 2, tunggu: 0 };
-	const pasangGarpu = () => {
-		garpu.position.set(gk.x, 0, gk.z);
-		garpu.rotation.y = gk.arah;
-	};
-	pasangGarpu();
 
 	// World position of a place in a machine's space.
 	const dunia = (s, [x, y, z], ke) => ke.set(x, y, z).applyMatrix4(s.dasar);
@@ -227,45 +192,20 @@ export function buatHidup(adegan, mesin) {
 			mesh.isi.instanceMatrix.needsUpdate = true;
 			kotor = false;
 		}
-		// The forklift: drive to the target point, wait there `henti` ms, take the next.
-		if (gk.tunggu > 0) gk.tunggu -= dt;
-		else {
-			const t = JALUR[sasaran];
-			const dx = t.x - gk.x;
-			const dz = t.z - gk.z;
-			const jarak = Math.hypot(dx, dz);
-			const langkah = LAJU * dt;
-			if (jarak <= langkah) {
-				gk.x = t.x;
-				gk.z = t.z;
-				gk.tunggu = t.henti / 1000;
-				sasaran = (sasaran + 1) % JALUR.length;
-			} else {
-				gk.x += (dx / jarak) * langkah;
-				gk.z += (dz / jarak) * langkah;
-			}
-			if (jarak > 0.01) {
-				let d = Math.atan2(dx, dz) - gk.arah;
-				d = Math.atan2(Math.sin(d), Math.cos(d));
-				gk.arah += d * (1 - Math.exp(-dt * BELOK));
-			}
-			pasangGarpu();
-		}
 	}
 
 	function info() {
 		const hitung = (j) => orangKini.filter((o) => o.jenis === j).length;
 		const banyak = orangKini.length;
-		const bagianTris = tris(geo.badan) * banyak + tris(geo.kepala) * banyak + tris(geo.helm) * banyak + (tris(geo.tong) + tris(geo.isi) + tris(geo.bagian)) * daftar.length + tris(geo.garpu);
+		const bagianTris = tris(geo.badan) * banyak + tris(geo.kepala) * banyak + tris(geo.helm) * banyak + (tris(geo.tong) + tris(geo.isi) + tris(geo.bagian)) * daftar.length;
 		return {
 			operator: hitung("operator"),
 			teknisi: hitung("teknisi"),
 			jatuh,
-			forklift: { x: gk.x, z: gk.z, henti: gk.tunggu > 0, laju: LAJU },
 			aktif: !diam,
 			orang: orangKini.map((o) => ({ ...o })),
 			tong: daftar.map((s, i) => ({ nama: s.nama, isi: isi[i] })),
-			calls: 7,
+			calls: 6,
 			tris: Math.round(bagianTris),
 		};
 	}

@@ -278,7 +278,7 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 
 	// The life layer is simulated: say so, small and muted.
 	const simulasi = el(atas, "div", "simulasi");
-	simulasi.textContent = __("Forklift, operators and parts are simulated");
+	simulasi.textContent = __("Operators and parts are simulated");
 
 	// The left column under the top bar: the machine table and, directly under it, the attention card.
 	const kolom = el(hud, "div", "kiri");

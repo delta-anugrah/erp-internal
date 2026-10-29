@@ -82,7 +82,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
       smoothness budget (`.claude/rules/lantai.md`); plan it first (spec revision, then tasks).
 - [ ] Abel: look at the fuller floor (light and dark, a phone width) and say if the left column, the attention card and
       the loading screen are right. Also: the default view fits the 14 machines; Raw Material sits under the left column and Reject, grinder, door and truck are off-screen. Say whether the default view should show the whole building.
-- [ ] Small: the forklift's rear corner stands about 0.5 m on the end of the "Finished Goods" lettering at its jadi stop
+- [ ] Parked (forklift removed 2026-10-29), only if it comes back: the forklift's rear corner stands about 0.5 m on the end of the "Finished Goods" lettering at its jadi stop
       (`denah.js` JALUR stop 28.3, -7, arriving at about 45°). Move the stop to z <= -9 or x >= 30 and add a body-footprint
       check against the lettering plates to `tools/denah.test.mjs`.
 - [x] 2026-10-29: `erp.localhost`'s company renamed PT Contoh Plastik → PT Delta Anugrah (abbreviation CPL kept) with the logo
@@ -93,7 +93,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 ## Abel 2026-10-29 evening (next session, in order)
 - [x] Commit this session's work (company rename + logo, Running vs Idle, `penjualan.py`).
 - [x] Production Floor: turn machines 01-07 like 08-14 (lamps visible); Problem's red lamp blinks clearly.
-- [ ] Production Floor: remove the forklift for now.
+- [x] Production Floor: remove the forklift for now.
 - [ ] Hide IDs users don't need (Sales History's hash name first; sweep the other forms).
 - [ ] Order Readiness: leave template items out.
 - [ ] Desk sidebar: the collapsed sidebar's expand button is tiny and covered.

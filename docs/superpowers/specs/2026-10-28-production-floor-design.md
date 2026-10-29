@@ -154,13 +154,13 @@ BPT Live reads as a working BPT, while every machine figure stays true.
   Mould Storage (a rack of mould blocks), a grinder for regrind, and a glass QC/office box;
 - each machine's floor ring takes its status colour (Problem pulses like its lamp).
 
-**Life on the floor** (simulated; the HUD says so in one small line, "Forklift, operators and parts are simulated"):
+**Life on the floor** (simulated; the HUD says so in one small line, "Operators and parts are simulated"):
 - an operator figure in front of each machine in Production or Setup; a technician with a yellow helmet at a machine
   in Maintenance or Problem; nobody at Idle or Off;
 - a machine in Production drops a part into the bin beside it once per mould cycle (in step with the platen); the
   bin's fill rises and empties every few minutes;
 - one forklift drives a loop: raw material → the aisle between the rows → finished goods → the dock, pausing at each
-  stop.
+  stop. Removed for now (Abel, 2026-10-29); `denah.JALUR` is kept for its return.
 
 **More information, all from real data:** an attention card on the left, under the top bar: every machine not in
 Production, worst first (Problem, Maintenance, Setup, Idle, Off), with its status chip and, when it has one, its
