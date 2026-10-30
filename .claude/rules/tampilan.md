@@ -37,6 +37,12 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
   sidebar on purpose; coming back to it from a Work Order stays under `/desk/manufacturing/` (`cek_layar`).
+- Production Floor tile on the Apps screen (Abel, 2026-10-29, "production floor di desk"): erp_internal's
+  `add_to_apps_screen` (hooks.py; title Production Floor, `public/images/aplikasi-lantai.svg`, sequence 3), shown by
+  `production_floor.boleh_buka` (the Page's own roles; never raises in boot). It has no dock, so `saring_aplikasi`
+  skips it. Its route names the shell, `/desk/manufacturing/production-floor`: without it Frappe kept the user's home
+  shell (`/desk/accounts/...`). Tile titles wrap to two lines (`erp_internal.css`, `.icons .icon-title`: Frappe's
+  desktop.css loads later). `test_tile_production_floor`, `cek_layar` (tile, its href).
 - Sidebar icons (Abel, 2026-10-29): `IKON_LINK` (link → lucide icon name, `/assets/frappe/icons/lucide/icons.svg`) gives
   every shown link an icon on every sidebar. `_baris_sidebar` sets it as the row's override only where it differs from
   the base row's icon (Frappe stores no override equal to the base, so an equal one would rewrite the sidebar on every

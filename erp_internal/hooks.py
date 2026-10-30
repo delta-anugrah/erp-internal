@@ -21,6 +21,22 @@ app_license = "mit"
 # 	}
 # ]
 
+# The Production Floor page gets its own Apps screen tile (Abel, 2026-10-29: "production floor di desk"). It has no
+# dock, so it opens its route; `tampilan.saring_aplikasi` keeps it, and `boleh_buka` shows it only to who may open
+# the page. erpnext's tile is 1, hrms's 2.
+add_to_apps_screen = [
+	{
+		"name": "erp_internal",
+		"logo": "/assets/erp_internal/images/aplikasi-lantai.svg",
+		"title": "Production Floor",
+		# The shell in the URL: from the Apps screen no sidebar is on screen, and Frappe kept the user's home
+		# shell (/desk/accounts/production-floor). Every profile has Manufacturing.
+		"route": "/desk/manufacturing/production-floor",
+		"has_permission": "erp_internal.production_floor.boleh_buka",
+		"sequence_id": 3,
+	}
+]
+
 # The dock, the rail down the left of the desk, is a document rather than a hook. Author it in
 # Manage Dock on a developer-mode site and press Export to App, and it is written to
 # `erp_internal/dock/erp_internal/erp_internal.json` for git to carry. An app that ships none has no

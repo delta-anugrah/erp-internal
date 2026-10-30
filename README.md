@@ -51,9 +51,9 @@ screen, the loading splash and the browser tab. Setup sets it on every migrate (
 original 200 px `delta-anugrah.jpeg`, kept beside it), and rendered from the SVG `delta-anugrah.png` (512 px,
 transparent), `favicon-32.png` and `favicon-192.png`. Settings point at the SVG; the favicon stays PNG.
 
-The Apps screen tiles are named ERP (ERPNext), HR (Frappe HR) and System (Frappe, Developer only); Indonesian:
-ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
-(ISC licence): `aplikasi-erp.svg` (factory), `aplikasi-hr.svg` (users), `aplikasi-sistem.svg` (settings). The
+The Apps screen tiles are named ERP (ERPNext), HR (Frappe HR), Production Floor (the floor page, for Manufacturing
+User) and System (Frappe, Developer only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
+(ISC licence): `aplikasi-erp.svg` (factory), `aplikasi-hr.svg` (users), `aplikasi-sistem.svg` (settings), `aplikasi-lantai.svg` (gauge). The
 rail's top slot inside an app shows that app's icon. That is `tampilan.merek_aplikasi` (`extend_bootinfo`, the boot
 copy of `app_data` only); a workspace saved from the desk keeps them (`erp_internal/ruang_kerja.py`).
 

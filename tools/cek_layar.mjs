@@ -16,11 +16,12 @@ import { chromium } from "playwright";
 
 const URL = (process.env.ERP_URL || "http://erp.localhost:8002").replace(/\/$/, "");
 const SANDI = process.env.ERP_SANDI;
-// Keep in step with tampilan.NAMA_APLIKASI / IKON_APLIKASI.
+// Keep in step with tampilan.NAMA_APLIKASI / IKON_APLIKASI, and hooks.add_to_apps_screen (Production Floor).
 const IKON_TILE = {
 	ERP: "/images/aplikasi-erp.svg",
 	HR: "/images/aplikasi-hr.svg",
 	System: "/images/aplikasi-sistem.svg",
+	"Production Floor": "/images/aplikasi-lantai.svg",
 };
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
@@ -104,7 +105,8 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 				]);
 				return {
 					rail: per_app.filter(([app]) => APLIKASI.includes(app)).flatMap(([, m]) => m),
-					kosong: per_app.filter(([, m]) => !m.length).map(([app]) => app),
+					// The Production Floor tile opens its page, not a rail.
+					kosong: per_app.filter(([app, m]) => !m.length && app !== "erp_internal").map(([app]) => app),
 					tile: tile.map((a) => a.app_name),
 				};
 			}, APLIKASI);
@@ -113,6 +115,9 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			const kurang = harap.modul.filter((m) => !rail.includes(m));
 			cek(!lebih.length && !kurang.length, `rail extra [${lebih}] missing [${kurang}]`);
 			cek(tile.includes("frappe") === harap.build, `System (Build) tile ${harap.build ? "missing" : "shown"}`);
+			cek(tile.includes("erp_internal"), "Production Floor tile missing");
+			const lantai = await page.locator(".icons > *", { hasText: "Production Floor" }).locator("a.icon-title").getAttribute("href");
+			cek(lantai === "/desk/manufacturing/production-floor", `Production Floor tile leads to ${lantai}`);
 			// Our names and icons on every tile (tampilan.merek_aplikasi), never an app's own.
 			const ubin = await page.locator(".icons > *").evaluateAll((l) =>
 				l.map((t) => [

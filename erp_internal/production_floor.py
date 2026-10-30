@@ -24,6 +24,15 @@ FIELD_MESIN = (
 STATUS_WO = ("In Process", "Not Started")
 
 
+def boleh_buka() -> bool:
+	"""The Apps screen tile's check (hooks `add_to_apps_screen`): only who may open the page sees it. Boot calls
+	it, so it never raises."""
+	try:
+		return frappe.get_doc("Page", "production-floor").is_permitted()
+	except Exception:
+		return False
+
+
 @frappe.whitelist()
 def get_data() -> dict:
 	"""Every numbered machine in floor order, each with its newest running Work Order (or None), and the company

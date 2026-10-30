@@ -467,7 +467,9 @@ def saring_aplikasi(bootinfo) -> None:
 		sidebars = bootinfo.get("module_sidebars") or {}
 		dock = bootinfo.get("dock") or {}
 		for app in bootinfo.get("app_data") or []:
-			if not app.get("on_apps_screen"):
+			# The Production Floor tile (erp_internal's add_to_apps_screen) opens a page, not a rail; Frappe
+			# already left it off for a user its `has_permission` refuses.
+			if not app.get("on_apps_screen") or app.get("app_name") == "erp_internal":
 				continue
 			entri = dock.get(app.get("app_name")) or app.get("dock") or []
 			if not any(

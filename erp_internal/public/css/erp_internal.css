@@ -54,3 +54,14 @@ body[data-route^="Form/Sales History/"] .form-name-container,
 body[data-route^="Form/Machine Capacity/"] .form-name-container {
 	display: none !important;
 }
+
+/* Apps screen tile titles wrap to a second line instead of an ellipsis: "Production Floor" read "Production …"
+   (Frappe's desktop.css keeps one line, and loads after this file: hence `.icons` for the specificity). Two lines
+   at most, centred under the icon. */
+body.desktop-page .icons .icon-title {
+	white-space: normal;
+	text-align: center;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+}

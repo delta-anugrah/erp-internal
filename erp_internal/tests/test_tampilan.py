@@ -203,7 +203,8 @@ class TestTampilan(IntegrationTestCase):
 				saring_aplikasi(boot)
 			finally:
 				frappe.set_user("Administrator")
-			tampil = {a["app_name"] for a in boot.app_data if a.get("on_apps_screen")}
+			# The Production Floor's own tile is test_tile_production_floor's.
+			tampil = {a["app_name"] for a in boot.app_data if a.get("on_apps_screen")} - {"erp_internal"}
 			harap = {
 				app
 				for app in APLIKASI
@@ -246,6 +247,29 @@ class TestTampilan(IntegrationTestCase):
 			self.assertNotIn("ERPNext", tampil)
 			self.assertEqual("System" in tampil, profil == DEVELOPER, profil)
 		self.assertEqual(frappe.get_hooks("app_logo_url", app_name="erpnext")[0][:16], "/assets/erpnext/")
+
+	def test_tile_production_floor(self):
+		# The Production Floor has its own Apps screen tile (erp_internal's add_to_apps_screen, Abel 2026-10-29),
+		# for whoever may open the page (Manufacturing User), and saring_aplikasi keeps it though it has no rail.
+		from frappe.boot import get_bootinfo
+
+		from erp_internal.tampilan import saring_aplikasi
+
+		def tile(user):
+			frappe.set_user(user)
+			try:
+				boot = get_bootinfo()
+				saring_aplikasi(boot)
+			finally:
+				frappe.set_user("Administrator")
+			return next((a for a in boot.app_data if a["app_name"] == "erp_internal" and a.get("on_apps_screen")), None)
+
+		for profil in PROFIL_PERAN:
+			t = tile(pengguna_profil(profil, "lantai"))
+			self.assertIsNotNone(t, profil)
+			self.assertEqual((t["app_title"], t["app_route"]), ("Production Floor", "/desk/manufacturing/production-floor"))
+		tanpa = buat_pengguna("_uji.lantai.tanpa@example.com", None, None, None)
+		self.assertIsNone(tile(tanpa))
 
 	def test_merek_aplikasi_tak_pernah_gagal(self):
 		from erp_internal.tampilan import merek_aplikasi
