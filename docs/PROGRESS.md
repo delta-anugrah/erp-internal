@@ -2,6 +2,21 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-30 (Abel's evening list, 8 items)
+- Committed the 2026-10-29 work (company rename + logo, Production vs Idle, `penjualan.py`) in 4 commits.
+- Production Floor: every row faces the camera (front row lamps visible); Problem blinks hard (1.25 Hz on/off); forklift
+  removed (HUD: "Operators and parts are simulated"; `denah.JALUR` kept).
+- Hash names hidden: Sales History `title` "ITEM · MM-YYYY" (patch `judul_riwayat`), no ID column/filter on Sales History
+  and Machine Capacity, links show the title, form sidebar hash hidden. Production Entry `PE-…` kept.
+- Order Readiness leaves templates out. Folded sidebar arrow is a 32 px button. `tampilan.IKON_LINK`: an icon on every
+  sidebar link. Production Floor tile on the Apps screen (default reading of "production floor di desk").
+- `deploy/server/Makefile` (`make env`, `make setup`), dry run with a fake docker/bench/crontab.
+- Tests as run: `run-tests --app erp_internal` 13 unit + 199 integration OK; `cek_layar` 3 users OK; `node --test
+  tools/denah.test.mjs` 6 OK; full `lantai.mjs`: all OK except `perf` and `poll` while the Mac's load average was ~65,
+  both OK on a rerun (perf 59.9 fps, 0.82 % dropped, max 41.9 ms, 0 long tasks); ruff clean.
+- Found on the way: a `bench build` while redis is down leaves old asset hashes in redis (Desk without CSS); rerun
+  `bench build --app erp_internal` with `bench start` up.
+
 ## 2026-10-29 (company name and logo on dev, Production vs Idle)
 - `erp.localhost`: Company PT Contoh Plastik renamed PT Delta Anugrah (abbreviation CPL kept, warehouses keep `- CPL`), logo
   attached; backup `20261029_160326-erp_localhost-database.sql.gz` before. `contoh.PERUSAHAAN` and `setup_bench.sh` use the new
