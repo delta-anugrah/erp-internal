@@ -95,12 +95,12 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [x] Production Floor: turn machines 01-07 like 08-14 (lamps visible); Problem's red lamp blinks clearly.
 - [x] Production Floor: remove the forklift for now.
 - [x] Hide IDs users don't need (Sales History's hash name first; sweep the other forms). Only Sales History and
-      Machine Capacity are hash-named; Production Entry's `PE-…` stays (a document number). Abel: say if Company should go too.
+      Machine Capacity are hash-named; Production Entry's `PE-…` stays (a document number). Company hidden too (2026-10-30, Abel).
 - [x] Order Readiness: leave template items out (`has_variants` 0; `test_template_tidak_ikut`).
 - [x] Desk sidebar: the collapsed sidebar's expand button is tiny and covered (now a 32 px button in the dock; `cek_layar` checks it).
 - [x] Fitting icons for our sidebar links (`tampilan.IKON_LINK`, every shown link of every sidebar; `test_ikon_sidebar`).
 - [x] Makefile for the server setup (`deploy/server/Makefile`: `make env`, `make setup`; dry run on a Mac with fakes). A real run waits for the server.
-- [x] "Production floor di desk": done as the default, a Production Floor tile on the Apps screen (opens `/desk/manufacturing/production-floor`). Abel: say if you meant something else.
+- [x] "Production floor di desk": done as the default, a Production Floor tile on the Apps screen (opens `/desk/manufacturing/production-floor`). Abel confirmed 2026-10-30.
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.

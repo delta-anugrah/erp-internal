@@ -67,7 +67,8 @@
    "label": "Company",
    "options": "Company",
    "remember_last_selected_value": 1,
-   "reqd": 1
+   "reqd": 1,
+   "depends_on": "eval:!doc.company"
   },
   {
    "default": "Today",
@@ -169,7 +170,7 @@
  "index_web_pages_for_search": 0,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-29 15:00:00.000000",
+ "modified": "2026-10-30 19:05:00.000000",
  "modified_by": "Administrator",
  "module": "Planning",
  "name": "Production Entry",

@@ -78,7 +78,8 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
   title instead: `show_title_field_in_link`, `hide_name_column`/`hide_name_filter` in its `*_list.js`, and the form
   sidebar's name hidden in `public/css/erp_internal.css`. Sales History's `title` is "ITEM · MM-YYYY"
   (`sales_history.judul`, set in validate; old rows filled by `patches/judul_riwayat.py`). Document numbers people
-  quote (Production Entry `PE-…`, Work Order, BOM) stay visible.
+  quote (Production Entry `PE-…`, Work Order, BOM) stay visible. Company (one company, fills itself) is off our
+  forms and filters: `depends_on: eval:!doc.company` on Sales History and Production Entry, so it shows only if empty.
 - `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with nothing on that user's rail; it
   must never fail boot. `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
 - `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Admin and Developer
