@@ -262,12 +262,17 @@ class TestTampilan(IntegrationTestCase):
 				saring_aplikasi(boot)
 			finally:
 				frappe.set_user("Administrator")
-			return next((a for a in boot.app_data if a["app_name"] == "erp_internal" and a.get("on_apps_screen")), None)
+			return next(
+				(a for a in boot.app_data if a["app_name"] == "erp_internal" and a.get("on_apps_screen")),
+				None,
+			)
 
 		for profil in PROFIL_PERAN:
 			t = tile(pengguna_profil(profil, "lantai"))
 			self.assertIsNotNone(t, profil)
-			self.assertEqual((t["app_title"], t["app_route"]), ("Production Floor", "/desk/manufacturing/production-floor"))
+			self.assertEqual(
+				(t["app_title"], t["app_route"]), ("Production Floor", "/desk/manufacturing/production-floor")
+			)
 		tanpa = buat_pengguna("_uji.lantai.tanpa@example.com", None, None, None)
 		self.assertIsNone(tile(tanpa))
 
@@ -290,7 +295,9 @@ class TestTampilan(IntegrationTestCase):
 			for i in resolve_sidebar(shell, "Administrator").items:
 				if i["type"] == "Link":
 					self.assertTrue(i.get("icon"), f"{shell}: {i['link_to']} has no icon")
-			items = {i["link_to"]: i for i in resolve_sidebar(shell, "Administrator").items if i["type"] == "Link"}
+			items = {
+				i["link_to"]: i for i in resolve_sidebar(shell, "Administrator").items if i["type"] == "Link"
+			}
 			for link, ikon in IKON_LINK.items():
 				if link in items:
 					self.assertEqual(items[link]["icon"], ikon, f"{shell}: {link}")

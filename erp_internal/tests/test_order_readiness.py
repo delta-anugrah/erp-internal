@@ -14,9 +14,9 @@ from erp_internal.tests.utils import (
 	buat_pengguna,
 	buat_perkiraan,
 	buat_perusahaan,
+	buat_varian,
 	lama_produksi,
 	stok_awal,
-	buat_varian,
 	tahun_fiskal,
 )
 
