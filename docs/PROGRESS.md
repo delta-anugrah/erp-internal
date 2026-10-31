@@ -6,6 +6,9 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Capacity import tested in the browser with a file built from the sample rows: New 1, Changed 1, Unchanged 9, one BOM made.
 - Fixed from it: the import dialog closes after Apply unless a row is Refused; BOM alerts read "BOMs made: N, ..." (id.csv);
   Production Entry Good Qty, Reject Qty and the reject rows' Qty have precision 0 (Indonesian "5,000" read as 5000).
+- Record Output on MFG-WO-2026-00004 (100 good, 5 Bubble, Shift 1): produced 7.548 → 7.648, MAT-STE-2026-00061/62.
+- Plan vs Actual checked by Playwright as `user@`: both target modes × six groupings, English and Indonesian, no
+  error; today's entry shows only with To Date = today (the default ends yesterday, by design).
 
 ## 2026-10-31 (real `make setup` and restore drill on the Mac)
 - Image `erp-internal:v0.0.1` built from `feat/lokal`, `deploy/check_image.sh` OK.

@@ -16,9 +16,9 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
 - [x] Abel, in the browser on `erp.localhost` (the sample data is there): Machine Capacity list, "Import from Excel"
       with `erp_internal/tests/data/kapasitas.xlsx` (Preview, then Apply; check the BOMs it makes). Done 2026-10-31 with a file of the sample rows (that test file
       only refuses: its items exist only during tests); the dialog now closes after Apply unless a row is Refused.
-- [ ] Abel: open a Work Order and use its button to record output (good qty, rejects, shift); check the stock entries
+- [x] Abel: open a Work Order and use its button to record output (good qty, rejects, shift); check the stock entries
       and the order's produced qty.
-- [ ] Abel: open Plan vs Actual in both target modes (a Work Order's planned days, and Machine Capacity when the order
+- [x] Abel: open Plan vs Actual in both target modes (a Work Order's planned days, and Machine Capacity when the order
       has no plan) and group it by Machine, Day, Item, Work Order and Shift; then again in Indonesian.
 
 ## Waiting on Abel
