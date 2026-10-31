@@ -33,7 +33,7 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
 - [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang, plus `produksi-1`;
       retake with `ERP_SANDI=<password> node tools/panduan_gambar.mjs`). `absen.md` and `proyek.md`
       reference no picture yet; `produksi.md` has `produksi-1.png` (the Production Floor).
-- [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `user@example.com` on a real phone. The sample
+- [ ] Deferred (Samuel 2026-10-31: the office uses fingerprint, HR not a priority; location needs https, so test on the server): try the phone check-in (`/hrms`, Add to Home Screen) as `user@example.com` on a real phone. The sample
       password is `SAMPLE_PASSWORD` in `~/Desktop/Projects/erp-internal-bench/.env`.
 - [x] Sign in as `user@` and `admin@example.com`: User has no Settings, Admin does; full width. `cek_layar` 3 users OK 2026-10-31.
 - [x] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused). Playwright/API 2026-10-31: Developer refused (403, "You cannot give these roles").
