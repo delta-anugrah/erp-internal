@@ -1,0 +1,168 @@
+# The erp-internal stack on its own server (deploy/server/README.md). Adapted from bpt's
+# deploy/droplet/docker-compose.yml (frappe_docker's compose.yaml + MariaDB), with:
+# - one site, from SITE; the image an exact tag from ERP_IMAGE, never latest;
+# - only 127.0.0.1:8080 open: the host's reverse proxy does TLS and faces the internet;
+# - its own MariaDB, Redis, volumes and network: nothing is shared with BPT or the sawit server.
+name: erp-internal
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+x-image: &image
+  image: ${ERP_IMAGE:?ERP_IMAGE must be an exact tag, never latest}
+  logging: *logging
+  restart: unless-stopped
+
+x-backend-env: &backend-env
+  DB_HOST: mariadb
+  DB_PORT: "3306"
+  REDIS_CACHE: redis-cache:6379
+  REDIS_QUEUE: redis-queue:6379
+  SOCKETIO_PORT: "9000"
+
+x-backend: &backend
+  <<: *image
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+  environment:
+    <<: *backend-env
+  depends_on:
+    configurator:
+      condition: service_completed_successfully
+
+services:
+  # Writes common_site_config.json and exits; the others wait for it to finish, not just start.
+  configurator:
+    <<: *image
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        ls -1 apps > sites/apps.txt;
+        bench set-config -g db_host $$DB_HOST;
+        bench set-config -gp db_port $$DB_PORT;
+        bench set-config -g redis_cache "redis://$$REDIS_CACHE";
+        bench set-config -g redis_queue "redis://$$REDIS_QUEUE";
+        bench set-config -g redis_socketio "redis://$$REDIS_QUEUE";
+        bench set-config -gp socketio_port $$SOCKETIO_PORT;
+    environment:
+      <<: *backend-env
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  backend:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      GUNICORN_WORKERS: "2"
+      GUNICORN_THREADS: "4"
+      GUNICORN_TIMEOUT: "120"
+
+  # One worker for every queue: a small office has few jobs (Data Import, emails, the daily jobs).
+  queue:
+    <<: *backend
+    command: bench worker --queue short,default,long
+
+  scheduler:
+    <<: *backend
+    command: bench schedule
+
+  websocket:
+    <<: *image
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    environment:
+      <<: *backend-env
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+  frontend:
+    <<: *image
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      # One site: every request is served as SITE, whatever Host the proxy passes on.
+      FRAPPE_SITE_NAME_HEADER: ${SITE:?set in .env}
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: "120"
+      CLIENT_MAX_BODY_SIZE: 50m
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    ports:
+      # PORT (default 8080): another one only for a restore drill stack beside production.
+      - "127.0.0.1:${PORT:-8080}:8080"
+    depends_on:
+      - backend
+      - websocket
+
+  # 11.8 LTS, as on the dev machine (versi pin: MariaDB 11.8.9).
+  mariadb:
+    image: mariadb:11.8.9
+    logging: *logging
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --character-set-client-handshake=FALSE
+      - --skip-name-resolve
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set in .env}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis-cache:
+    image: redis:6.2-alpine
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
+    logging: *logging
+    restart: unless-stopped
+
+  redis-queue:
+    image: redis:6.2-alpine
+    logging: *logging
+    restart: unless-stopped
+    volumes:
+      - redis-queue-data:/data
+
+  # One-off bench commands (new-site, migrate, restore): `docker compose run --rm tools bash -c '…'`.
+  tools:
+    <<: *image
+    restart: "no"
+    profiles: [setup]
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+    command: ["bash"]
+    env_file: .env
+    environment:
+      <<: *backend-env
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - ./cadangan:/home/frappe/cadangan
+    # Started right after `up -d`, it would read the image's default config (redis on 127.0.0.1:13311) before the
+    # configurator has written the real one (found by the first real `make setup`, 2026-10-31).
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+volumes:
+  sites:
+  logs:
+  db-data:
+  redis-queue-data:

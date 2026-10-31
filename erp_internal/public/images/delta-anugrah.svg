@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 138" role="img" aria-label="Delta Anugrah">
+	<!-- PT Delta Anugrah's mark, redrawn by hand from delta-anugrah.jpeg (the 200 px original kept beside it).
+	One outline drawn twice: dark with a 14-unit stroke for the edge, then blue on top. -->
+	<g transform="translate(-24.4 -41.5)">
+		<path fill="#111216" stroke="#111216" stroke-width="14" stroke-linejoin="round" d="M71.5 89.5 C75 84 79 82.5 84 82.5 C89 82.5 93.5 86.5 92.8 92.2 L68.5 131 C64.5 137 65 151 78 152.5 L130 152.5 C143 151 143.5 137 139.5 130.5 L97 60.2 A8 8 0 0 1 112.5 56 L167.5 137.5 C177 150 181 171 165 171 L45 171 C29 171 31 151 38.5 138 Z"/>
+		<path fill="#1f4782" d="M71.5 89.5 C75 84 79 82.5 84 82.5 C89 82.5 93.5 86.5 92.8 92.2 L68.5 131 C64.5 137 65 151 78 152.5 L130 152.5 C143 151 143.5 137 139.5 130.5 L97 60.2 A8 8 0 0 1 112.5 56 L167.5 137.5 C177 150 181 171 165 171 L45 171 C29 171 31 151 38.5 138 Z"/>
+	</g>
+</svg>

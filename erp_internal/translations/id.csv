@@ -1,0 +1,322 @@
+Stock,Stok
+Selling,Penjualan
+Buying,Pembelian
+Manufacturing,Produksi
+Invoicing,Faktur & Pembayaran
+Projects,Proyek
+Shift & Attendance,Absensi
+Leaves,Cuti
+Item,Barang
+Warehouse,Gudang
+Stock Entry,Mutasi Stok
+Stock Reconciliation,Stok Opname
+Stock Balance,Saldo Stok
+Stock Ledger,Kartu Stok
+Customer,Pelanggan
+Sales Order,Pesanan Penjualan
+Delivery Note,Surat Jalan
+Sales Invoice,Faktur Penjualan
+Payment Entry,Pembayaran
+Sales Order Analysis,Analisis Pesanan Penjualan
+Supplier,Pemasok
+Material Request,Permintaan Barang
+Purchase Order,Pesanan Pembelian
+Purchase Receipt,Penerimaan Barang
+Purchase Invoice,Faktur Pembelian
+Accounts Receivable,Piutang
+Accounts Payable,Hutang
+BOM,Resep Produk (BOM)
+Item Lead Time,Lama Produksi Barang
+Sales Forecast,Perkiraan Penjualan
+Master Production Schedule,Jadwal Produksi Induk
+Material Requirements Planning Report,Rencana Kebutuhan Material (MRP)
+Work Order,Perintah Produksi
+Project,Proyek
+Task,Tugas
+Timesheet,Catatan Jam Kerja
+Employee,Karyawan
+Employee Checkin,Absen Masuk/Pulang
+Attendance,Kehadiran
+Shift Type,Jenis Shift
+Shift Assignment,Jadwal Shift
+Leave Application,Pengajuan Cuti
+Leave Allocation,Jatah Cuti
+Holiday List,Daftar Hari Libur
+Run by ERP Internal,Dijalankan ERP Internal
+"Setup builds this company's warehouses, production defaults, holiday lists and PPN templates.","Setup membuat gudang, bawaan produksi, daftar hari libur dan template PPN perusahaan ini."
+Settings,Pengaturan
+Users,Pengguna
+Stock Settings,Pengaturan Stok
+Selling Settings,Pengaturan Penjualan
+Buying Settings,Pengaturan Pembelian
+Only a Developer can change this account.,Hanya Developer yang bisa mengubah akun ini.
+You cannot give these roles: {0},Anda tidak bisa memberi peran ini: {0}
+Bahasa Indonesia,Bahasa Indonesia
+English,English
+Sign in to change the language.,Masuk dulu untuk mengganti bahasa.
+Choose English or Indonesian.,Pilih English atau Bahasa Indonesia.
+New Stock Entry,Mutasi Stok Baru
+New Sales Order,Pesanan Penjualan Baru
+Open Sales Orders,Pesanan Penjualan Terbuka
+Unpaid Sales Invoices,Faktur Penjualan Belum Lunas
+Order Readiness,Siap Order
+Pending Material Requests,Permintaan Barang Tertunda
+New Purchase Order,Pesanan Pembelian Baru
+MRP,MRP
+Work Orders in Process,Perintah Produksi Berjalan
+Open Projects,Proyek Terbuka
+My Open Tasks,Tugas Saya yang Terbuka
+New Timesheet,Catatan Jam Kerja Baru
+Today's Attendance,Kehadiran Hari Ini
+New Leave Application,Pengajuan Cuti Baru
+Leave Applications to Approve,Pengajuan Cuti untuk Disetujui
+{} Open,{} terbuka
+{} Unpaid,{} belum lunas
+{} Pending,{} tertunda
+{} In Process,{} berjalan
+{} Today,{} hari ini
+{} To Approve,{} perlu disetujui
+Sales History,Riwayat Penjualan
+Planning,Perencanaan
+Month,Bulan
+Qty,Qty
+Item Name,Nama Barang
+Stock UOM,Satuan Stok
+"Any day of the month; stored as the 1st.","Tanggal berapa pun; disimpan sebagai tanggal 1."
+"Monthly quantity sold per company and item, imported from past records. One row per company, item and month.","Jumlah terjual per bulan per perusahaan dan barang, diimpor dari catatan lama. Satu baris per perusahaan, barang dan bulan."
+Qty cannot be negative.,Qty tidak boleh minus.
+Item {0} is not a stock item.,Barang {0} bukan barang stok.
+Sales history for {0} in {1} already exists.,Riwayat {0} bulan {1} sudah ada.
+Company,Perusahaan
+System Manager,System Manager
+Sales Manager,Manajer Penjualan
+Sales User,Staf Penjualan
+Manufacturing Manager,Manajer Produksi
+Manufacturing User,Staf Produksi
+Fill from History,Isi dari Riwayat
+Fill from History works only on a draft monthly Sales Forecast.,Isi dari Riwayat cuma untuk Perkiraan Penjualan bulanan yang masih draf.
+Select the items first.,Pilih barangnya dulu.
+Filled from the average of {0}.,Diisi dari rata-rata {0}.
+No history yet: {0}. Enter their numbers by hand.,Belum ada riwayat: {0}. Isi angkanya manual.
+Select a company.,Pilih perusahaannya.
+Item Group,Grup Barang
+Open Orders,Order Belum Dikirim
+Forecast This Month,Perkiraan Bulan Ini
+Ordered This Month,Sudah Dipesan Bulan Ini
+In Production,Sedang Diproduksi
+Safety Stock,Stok Pengaman
+Short,Kurang
+Lead Time (days),Lama Produksi (hari)
+Latest Start,Mulai Paling Lambat
+Status,Status
+Empty: the company's Gudang Barang Jadi.,Kosong: Gudang Barang Jadi perusahaan itu.
+Late,Telat,Order Readiness
+Start this week,Mulai minggu ini,Order Readiness
+Set lead time,Isi lama produksi,Order Readiness
+Scheduled,Terjadwal,Order Readiness
+OK,Aman,Order Readiness
+Sample data is not allowed on a production site (site config erp_produksi is set).,Data contoh tidak boleh di situs produksi (site config erp_produksi terisi).
+Set site config erp_sandi_contoh first: it is the password of the sample users.,Isi dulu site config erp_sandi_contoh: itu sandi para pengguna contoh.
+"Warehouse {0} does not belong to company {1}.","Gudang {0} bukan milik perusahaan {1}."
+"You can only submit your own timesheet.","Kamu cuma bisa submit timesheet milikmu sendiri."
+HR,SDM
+ERP,ERP
+System,Sistem
+Manufacturing Settings,Pengaturan Manufaktur
+Accounts Settings,Pengaturan Akun
+Projects Settings,Pengaturan Proyek
+HR Settings,Pengaturan SDM
+Opening Stock & Stock Count,Stok Awal & Stok Opname
+Machine No.,No. Mesin
+Machine Brand,Merek Mesin
+Machine Model,Model Mesin
+Clamping Force (Ton),Daya Jepit (Ton)
+Year Made,Tahun Buat
+Made In,Buatan
+"Order on the factory floor, 1 is the first machine.","Urutan di lantai pabrik, 1 = mesin pertama."
+Machine,Mesin
+"Unknown machine status: {0}","Status mesin tidak dikenal: {0}"
+"{0} is not a numbered machine.","{0} bukan mesin bernomor."
+Not permitted,Tidak diizinkan
+Production Floor,Lantai Produksi
+No.,No.
+Reset view,Atur Ulang Tampilan
+"The machine list could not be loaded.","Daftar mesin tidak dapat dimuat."
+"No numbered machines yet (set Machine No. on a Workstation).","Belum ada mesin bernomor (isi No. Mesin pada Workstation)."
+Close,Tutup
+Open machine,Buka mesin
+"No Work Order running on this machine.","Tidak ada Perintah Produksi yang berjalan di mesin ini."
+"The status could not be changed.","Status tidak dapat diubah."
+"The server could not be reached. Try again.","Server tidak dapat dihubungi. Coba lagi."
+Machines,Mesin
+Running,Berjalan
+Problem,Masalah
+Work Orders running,Perintah Produksi berjalan
+Output,Hasil
+Show machine list,Tampilkan daftar mesin
+Hide machine list,Sembunyikan daftar mesin
+"{0} machines","{0} mesin"
+"{0} off","{0} mati"
+"{0}% utilization","utilisasi {0}%"
+"{0} in maintenance","{0} dalam pemeliharaan"
+"{0} not started","{0} belum mulai"
+"{0}% of plan","{0}% dari rencana"
+No Work Orders,Tidak ada Perintah Produksi
+Live,Live
+"Updated {0}","Diperbarui {0}"
+Not updated yet,Belum diperbarui
+Zoom in,Perbesar
+Zoom out,Perkecil
+WO,PP
+A template covers all its variants; a variant's own row wins over its template's.,Template berlaku untuk semua variannya; baris milik varian menang atas baris template.
+Cavities,Kavitas
+Cavities must be at least 1.,Kavitas minimal 1.
+Computed,Hasil hitungan
+Cycle Time (s),Waktu Siklus (detik)
+Cycle time must be more than 0.,Waktu siklus harus lebih dari 0.
+Disabled,Nonaktif
+Grams per piece.,Gram per pcs.
+Grams per shot (sprue and runner).,Gram per tembakan (sprue dan runner).
+"How fast one machine makes one product: cycle time, cavities, weights and material. The target for Plan vs Actual and the source of the BOMs.","Seberapa cepat satu mesin membuat satu produk: waktu siklus, kavitas, berat dan bahan. Jadi target Rencana vs Aktual dan sumber BOM."
+Jenis,Jenis
+"Jenis can only be set on a template item, not on {0}.","Jenis hanya boleh diisi pada barang template, bukan pada {0}."
+Machine Capacity,Kapasitas Mesin
+Masterbatch,Masterbatch
+Masterbatch %,Masterbatch %
+"Masterbatch % must be from 0 up to, but not including, 100.",Masterbatch % harus dari 0 sampai di bawah 100.
+Material,Bahan
+Material per Piece (g),Bahan per Pcs (g)
+No variant of {0} has the Jenis {1}.,Tidak ada varian {0} dengan Jenis {1}.
+Of the total resin mix.,Dari total campuran resin.
+"Only with a template item: the row covers that template's variants of this Jenis (e.g. Super, DX).","Hanya untuk barang template: baris ini berlaku untuk varian template dengan Jenis ini (mis. Super, DX)."
+Part Weight (g),Berat Produk (g)
+Part weight must be more than 0.,Berat produk harus lebih dari 0.
+Pieces per Hour,Pcs per Jam
+Pieces per shot.,Pcs per tembakan.
+Reground and reused: the runner is not consumed material. Thrown away: it is.,Digiling dan dipakai lagi: runner bukan bahan terpakai. Dibuang: runner terpakai.
+Runner Reground,Runner Digiling
+Runner Weight (g),Berat Runner (g)
+Runner weight cannot be negative.,Berat runner tidak boleh negatif.
+Seconds per shot.,Detik per tembakan.
+Shot,Tembakan
+{0} already has a capacity row on {1}.,{0} sudah punya baris kapasitas di {1}.
+{0} must be a stock item counted in Kg.,{0} harus barang stok dengan satuan Kg.
+A machine that no longer runs this mould.,Mesin yang tidak lagi menjalankan cetakan ini.
+Make BOMs,Buat BOM
+"BOMs made: {0}, unchanged: {1}, switched off: {2}.","BOM dibuat: {0}, tetap: {1}, dinonaktifkan: {2}."
+Set the material of this row before making BOMs.,Isi bahan baris ini dulu sebelum membuat BOM.
+Apply,Terapkan
+Cavities must be a whole number.,Cavity harus bilangan bulat.
+Columns ignored: {0},Kolom diabaikan: {0}
+Excel or CSV file,File Excel atau CSV
+Import Machine Capacity,Impor Kapasitas Mesin
+Import from Excel,Impor dari Excel
+Item {0} does not exist.,Barang {0} tidak ada.
+Item {0} is disabled.,Barang {0} nonaktif.
+More than one item is named {0}.,Lebih dari satu barang bernama {0}.
+More than one machine has the number {0}.,Lebih dari satu mesin bernomor {0}.
+More than one product is named {0}.,Lebih dari satu produk bernama {0}.
+No item {0}.,Tidak ada barang {0}.
+No machine {0}.,Tidak ada mesin {0}.
+No product named {0}.,Tidak ada produk bernama {0}.
+Only .xlsx and .csv files can be imported.,Hanya file .xlsx dan .csv yang bisa diimpor.
+Preview,Pratinjau
+Reason,Alasan
+Result,Hasil
+Row,Baris
+Same product and machine as row {0}.,Produk dan mesinnya sama dengan baris {0}.
+The file has more than {0} rows.,File punya lebih dari {0} baris.
+The file is empty or larger than {0} MB.,File kosong atau lebih besar dari {0} MB.
+The file is empty.,File kosong.
+No header row found in the first {0} rows: it must name at least {1} known columns.,Baris judul kolom tidak ditemukan di {0} baris pertama: harus memuat minimal {1} kolom yang dikenal.
+The file is not a valid Excel file.,File ini bukan file Excel yang sah.
+The row names no machine.,Baris ini tidak menyebut mesin.
+The row names no material.,Baris ini tidak menyebut bahan.
+The row names no product.,Baris ini tidak menyebut produk.
+"Unexpected error, see the Error Log.","Terjadi kesalahan, lihat Error Log."
+You cannot read this file.,Kamu tidak boleh membaca file ini.
+"BOMs made: {0}, switched off: {1}.","BOM dibuat: {0}, dinonaktifkan: {1}."
+"{0} is ambiguous: write it with a comma for decimals, e.g. 1,25 or 1250.","{0} bisa dibaca dua cara: tulis desimal dengan koma, mis. 1,25 atau 1250."
+{0} is not a number.,{0} bukan angka.
+New,Baru
+Changed,Berubah
+Unchanged,Tidak berubah
+Refused,Ditolak
+"The capacity row {0} is switched off. Switch it on by hand, then import again.","Baris kapasitas {0} dinonaktifkan. Aktifkan dulu secara manual, lalu impor lagi."
+Production Entry,Hasil Produksi
+Production Entry Reject,Reject Hasil Produksi
+Reject Reason,Alasan Reject
+Record Output,Catat Hasil
+"What one machine made in one shift for one Work Order. Submit moves the stock: good pieces to the finished goods warehouse, rejects to the reject warehouse, material used for both.","Hasil satu mesin dalam satu shift untuk satu Perintah Produksi. Saat Submit stok bergerak sendiri: barang bagus ke gudang barang jadi, reject ke gudang reject, bahan terpakai untuk keduanya."
+"Why a moulded piece went to reject. Production Entry lists its rejects by these reasons.","Kenapa satu barang cetak jadi reject. Hasil Produksi mencatat reject-nya per alasan ini."
+"No longer offered on new Production Entries; old entries keep it.","Tidak ditawarkan lagi di Hasil Produksi baru; catatan lama tetap memakainya."
+Defaults to the Work Order's machine.,Otomatis mesin Perintah Produksi.
+Date,Tanggal
+Shift,Shift
+Shift 1,Shift 1
+Shift 2,Shift 2
+Shift 3,Shift 3
+Run Hours,Jam Jalan
+Hours the machine ran in this shift; defaults to the shift's length.,"Jam mesin jalan di shift ini; otomatis sepanjang shift."
+Output,Hasil
+Good Qty,Jumlah Bagus
+"Good pieces: they go to the finished goods warehouse and count toward the Work Order.","Barang bagus: masuk gudang barang jadi dan dihitung ke Perintah Produksi."
+Reject Qty,Jumlah Reject
+The total of the reject rows below.,Jumlah semua baris reject di bawah.
+Rejects,Reject
+"Rejected pieces by reason: they go to the reject warehouse and do not count toward the Work Order.","Barang reject per alasan: masuk gudang reject dan tidak dihitung ke Perintah Produksi."
+Notes,Catatan
+Stock Entries,Stock Entry
+Good Pieces Entry,Stock Entry Barang Bagus
+Reject Entry,Stock Entry Reject
+Amended From,Diamendemen Dari
+Production Entry {0},Hasil Produksi {0}
+Submit Work Order {0} first.,Submit dulu Perintah Produksi {0}.
+Work Order {0} takes no output: it is {1}.,Perintah Produksi {0} tidak bisa diberi hasil: statusnya {1}.
+"Work Order {0} belongs to {1}, not {2}.","Perintah Produksi {0} milik {1}, bukan {2}."
+Work Order {0} runs on {1}. Change the Work Order's machine first.,Perintah Produksi {0} jalan di {1}. Ganti dulu mesin di Perintah Produksi.
+Good qty cannot be negative.,Jumlah bagus tidak boleh minus.
+Row {0}: the reject qty must be more than 0.,Baris {0}: jumlah reject harus lebih dari 0.
+Row {0}: the reason {1} is disabled.,Baris {0}: alasan {1} sudah dinonaktifkan.
+Enter the good qty or at least one reject.,Isi jumlah bagus atau minimal satu reject.
+The date cannot be in the future.,Tanggal tidak boleh di masa depan.
+Run hours must be more than 0 and at most 24.,Jam jalan harus lebih dari 0 dan paling banyak 24.
+Set the Default Scrap Warehouse of {0} first.,Isi dulu Default Scrap Warehouse di {0}.
+Work Order {0} does not exist.,Perintah Produksi {0} tidak ada.
+Re-open Work Order {0} first.,Buka lagi dulu Perintah Produksi {0}.
+From Date cannot be after To Date.,Dari Tanggal tidak boleh setelah Sampai Tanggal.
+Unknown grouping {0}.,Pengelompokan {0} tidak dikenal.
+Unknown shift {0}.,Shift {0} tidak dikenal.
+Unknown target source {0}.,Sumber target {0} tidak dikenal.
+Target,Target
+Good,Bagus
+Reject,Reject
+Reject %,Reject %
+Achieved %,Tercapai %
+Note,Catatan
+No machine,Tanpa mesin
+No capacity,Tanpa kapasitas
+From Date,Dari Tanggal
+To Date,Sampai Tanggal
+Group by,Kelompokkan per
+Target from,Target dari
+A template matches all its variants.,Template mencakup semua variannya.
+Work Order: its quantity spread over its planned days. Capacity: pieces per hour × run hours.,Work Order: jumlahnya dibagi rata ke hari rencananya. Capacity: pcs per jam × jam jalan.
+Plan vs Actual,Rencana vs Aktual
+Machine + Day,Mesin + Hari
+Day,Hari
+Capacity,Kapasitas
+Raw Material,Bahan Baku
+Mould Storage,Gudang Cetakan
+QC Office,QC / Kantor
+Finished Goods,Barang Jadi
+Grinder,Penggiling
+Operators and parts are simulated,"Operator dan komponen adalah simulasi"
+Loading production floor…,Memuat lantai produksi…
+Needs attention,Perlu perhatian
+All machines running,Semua mesin berjalan
+Show attention list,Tampilkan daftar perhatian
+Hide attention list,Sembunyikan daftar perhatian
+"Name the company: {0} companies are run by this app.","Sebutkan perusahaannya: ada {0} perusahaan yang dijalankan aplikasi ini."
+Title,Judul
+"The machine can only be changed while the Work Order is Not Started or In Process.",Mesin hanya bisa diganti selama Work Order belum mulai atau sedang berjalan.

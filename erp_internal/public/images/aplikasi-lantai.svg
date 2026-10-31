@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Production Floor">
+	<!-- Apps screen tile of the Production Floor page: Delta blue (#1f4782, from delta-anugrah.svg) with a white glyph.
+	Glyph: Lucide "gauge" (as in Frappe's lucide/icons.svg, the sidebar link's icon), path data copied unchanged.
+	Lucide is ISC-licensed. -->
+	<rect width="48" height="48" rx="11" fill="#1f4782"/>
+	<g transform="translate(10 10) scale(1.1667)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		<path d="m12 14 4-4"/>
+		<path d="M3.34 19a10 10 0 1 1 17.32 0"/>
+	</g>
+</svg>

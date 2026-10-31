@@ -1,0 +1,63 @@
+{
+  "document_info": {
+    "title": "POLA PLASTIK TAHUN 2026",
+    "company": "DINDA HOUSE WARE",
+    "contacts": {"phone": "(021)-6670889", "fax": "(021)-6670156"},
+    "notes": "HARGA TIDAK MENGIKAT (SEWAKTU-WAKTU DAPAT BERUBAH)"
+  },
+  "products": [
+    {"name": "Gayung Lumba-Lumba", "dimensions": {"T": 120, "Q": 148}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 20500, "price_per_ball": 410000, "packaging": "1 Ball (20 Lusin)"},
+      {"type": "DX", "colors": ["Hijau", "Ungu", "Orange"], "price_per_lusin": 33000, "price_per_ball": 660000, "packaging": "1 Ball (20 Lusin)"}]},
+    {"name": "Gantungan Dinda", "dimensions": {"P": 360, "T": 180}, "variants": [
+      {"type": "Super", "colors": ["Biru", "Merah", "Hijau"], "price_per_gross": 87550, "price_per_dus": 262250, "packaging": "1 Dus (3 Gross)"},
+      {"type": "DX", "colors": ["Orange", "Kuning", "Hijau", "Pink"], "price_per_gross": 145500, "price_per_dus": 727500, "packaging": "1 Dus (5 Gross)"}]},
+    {"name": "Gantungan Pita", "dimensions": {"P": 360, "T": 170}, "variants": [
+      {"type": "Super", "colors": ["Biru", "Merah", "Hijau"], "price_per_gross": 118000, "price_per_dus": 354000, "packaging": "1 Dus (3 Gross)"},
+      {"type": "Hitam", "colors": ["Hitam"], "price_per_gross": 102000, "price_per_dus": 306000, "packaging": "1 Dus (3 Gross)"}]},
+    {"name": "Nampan Dinda", "dimensions": {"P": 350, "L": 270, "T": 60}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 46900, "price_per_dus": 469000, "packaging": "1 Dus = 10 Lusin"}]},
+    {"name": "Gayung Bajigur", "dimensions": {"T": 100, "Q": 125}, "variants": [
+      {"type": "DX", "colors": ["Ungu", "Hijau", "Pink", "Orange"], "price_per_lusin": 36000, "price_per_ball": 576000, "packaging": "1 Ball (16 Lusin)"},
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 25000, "price_per_ball": 400000, "packaging": "1 Ball (16 Lusin)"}]},
+    {"name": "Gantungan Flash", "dimensions": {"P": 400, "T": 200}, "variants": [
+      {"type": "Hitam", "colors": ["Hitam"], "price_per_gross": 90500, "price_per_ball": 362000, "packaging": "1 Ball (isi 4 Gross)"}]},
+    {"name": "Baskom Dinda 303", "dimensions": {"T": 60, "Q": 208}, "variants": [
+      {"type": "Super", "colors": ["Hijau", "Merah", "Biru"], "price_per_lusin": 18000, "price_per_ball": 324000, "packaging": "per ball (isi 18 lusin)"},
+      {"type": "DX", "colors": ["Orange", "Hijau", "Pink"], "price_per_lusin": 30250, "price_per_ball": 544500, "packaging": "per ball"}]},
+    {"name": "Baskom Dinda 306", "dimensions": {"T": 85, "Q": 270}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 34000, "price_per_ball": 476000, "packaging": "per ball (isi 14 lusin)"},
+      {"type": "DX", "colors": ["Hijau", "Orange", "Pink"], "price_per_lusin": 48250, "price_per_ball": 675500, "packaging": "per ball"}]},
+    {"name": "Ember Vincent 3 Galon", "dimensions": {"Q": 290}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 100500, "price_per_ball": 402000, "packaging": "Per Ball (isi 4 Lusin)"}]},
+    {"name": "Ember Vincent 4 Galon", "dimensions": {"T": 280, "Q": 320}, "variants": [
+      {"type": "Super", "colors": ["Hijau", "Merah", "Biru"], "price_per_lusin": 124550, "price_per_ball": 498200, "packaging": "Perball (isi 4 lusin)"}]},
+    {"name": "Piring Rotan", "dimensions": {"T": 30, "Q": 240}, "variants": [
+      {"type": "DX", "colors": ["Gold"], "price_per_lusin": 24500, "price_per_dus": 490000, "packaging": "per Dus (isi 20 lusin)"},
+      {"type": "Super & Dx warna", "colors": ["Merah", "Biru", "Coklat", "Hijau"], "price_per_lusin": 14250, "price_per_dus": 285000, "packaging": "per Dus (isi 20 lusin)"}]},
+    {"name": "Toples (UK: 1 1/2 KG)", "dimensions": {"T": 60, "Q": 140}, "variants": [
+      {"type": "Bening", "colors": ["Bening Transparan"], "price_per_lusin": 35000, "packaging": "Per Ikat (6 lusin)"}]},
+    {"name": "Garpu Makan", "dimensions": {}, "variants": [
+      {"type": "Standard", "colors": ["Putih Susu", "Bening"], "packaging": "per ball (isi 20 Gross)"}]},
+    {"name": "Sendok Makan", "dimensions": {"P": 160}, "variants": [
+      {"type": "Pack", "colors": ["Putih Susu", "Bening"], "price_per_pack": 6250, "packaging": "Perdus (isi 250 Pack)"},
+      {"type": "Ball", "colors": ["Putih Susu", "Bening"], "price_per_ball": 272000, "packaging": "per ball isi 20 Gross"}]},
+    {"name": "Gantungan Folding 20 Stick", "dimensions": {"T": 430, "Q": 180}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 139200, "price_per_dus": 417600, "packaging": "per dus (3 Lusin)"}]},
+    {"name": "Toples Dinda", "variants": [
+      {"size": "1 KG", "dimensions": {"T": 110, "Q": 130}, "colors": ["Bening"], "price_per_lusin": 36000, "packaging": "Per ball (12 lusin)"},
+      {"size": "1,5 KG", "dimensions": {"T": 140, "Q": 145}, "colors": ["Bening"], "price_per_lusin": 42000, "packaging": "per ball (10 lusin)"}]},
+    {"name": "Gantungan Baby Love", "dimensions": {"P": 360, "T": 160}, "variants": [
+      {"type": "Super", "colors": ["Hijau", "Merah", "Biru"], "price_per_gross": 86900, "price_per_dus": 521400, "packaging": "per dus (isi 6 Gross)"},
+      {"type": "DX", "colors": ["Pink", "Orens", "Hijau", "Kuning"], "price_per_gross": 127500, "price_per_dus": 765000, "packaging": "per dus (isi 6 Gross)"}]},
+    {"name": "Pot UK 25 CM", "dimensions": {"Diameter": "25 cm", "Tinggi": "17 cm"}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 48000, "price_per_ball": 480000, "packaging": "Perball (isi 10 Lusin)"},
+      {"type": "Hitam", "colors": ["Hitam"], "price_per_lusin": 45500, "price_per_ball": 455000, "packaging": "Perball"}]},
+    {"name": "Keranjang Sampah", "dimensions": {"Diameter": "107 mm", "Tinggi": "95 mm"}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 42500, "price_per_ball": 425000, "packaging": "Perball (isi 10 Lusin)"},
+      {"type": "Warna DX", "colors": ["Hijau", "Orange", "Ungu"], "price_per_lusin": 58500, "price_per_ball": 585000, "packaging": "Perball"}]},
+    {"name": "Baskom 20", "dimensions": {"Diameter": "20 cm", "Tinggi": "14.5 cm"}, "variants": [
+      {"type": "Super", "colors": ["Merah", "Biru", "Hijau"], "price_per_lusin": 58000, "price_per_ball": 290000, "packaging": "Perball (isi 5 Lusin)"},
+      {"type": "Hitam", "colors": ["Hitam"], "price_per_lusin": 56000, "price_per_ball": 280000, "packaging": "Perball"}]}
+  ]
+}

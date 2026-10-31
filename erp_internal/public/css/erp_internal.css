@@ -1,0 +1,67 @@
+/* Desk styles of erp_internal (hooks.py app_include_css). A plain file served from public/ as-is: no bundle,
+   so a change needs no `bench build` and no restart of `bench start`. */
+
+/* The profile avatar at the top right of the Apps screen opens the user menu: show it as clickable, like the
+   dock's own avatar button. */
+.desktop-avatar,
+.desktop-avatar .avatar {
+	cursor: pointer;
+}
+
+/* The module sidebar folds and opens with the arrow on its edge (Frappe's Sidebar.toggle_width; the state is
+   kept in localStorage "desk-sidebar-collapsed"). Frappe v16.53 shows that arrow only while the pointer is on
+   the panel's 8 px edge, so nobody found it. Keep it visible on a desktop; a phone uses Frappe's drawer. */
+@media (min-width: 768px) {
+	.body-sidebar-container .sidebar-collapse-arrow {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	/* With the panel folded all the way (dock mode, `.sidebar-hidden`), Frappe parks the arrow at left -12px,
+	   half under the dock (z-index 1030), so it could not be seen. Put it in the dock, centred above the
+	   profile avatar, as a real button: 32 px with a border and a shadow (Abel, 2026-10-29: the 24 px disc was
+	   too small to find). The container starts at the dock's 57 px edge, so -45px centres 32 px in it. */
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow {
+		left: -45px;
+		bottom: 60px;
+		z-index: 1031;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 8px;
+		border: 1px solid var(--border-color);
+		background: var(--fg-color);
+		color: var(--text-color);
+		box-shadow: var(--shadow-md);
+	}
+
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow:hover,
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow:focus-visible {
+		background: var(--btn-default-hover-bg, var(--fg-hover-color));
+	}
+
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow .icon {
+		width: 16px;
+		height: 16px;
+	}
+}
+
+/* A form whose name is a random hash (Sales History, Machine Capacity) shows its title; the hash under the
+   title in the form sidebar only raised questions (Abel, 2026-10-29: hide what users don't need). */
+body[data-route^="Form/Sales History/"] .form-name-container,
+body[data-route^="Form/Machine Capacity/"] .form-name-container {
+	display: none !important;
+}
+
+/* Apps screen tile titles wrap to a second line instead of an ellipsis: "Production Floor" read "Production …"
+   (Frappe's desktop.css keeps one line, and loads after this file: hence `.icons` for the specificity). Two lines
+   at most, centred under the icon. */
+body.desktop-page .icons .icon-title {
+	white-space: normal;
+	text-align: center;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+}

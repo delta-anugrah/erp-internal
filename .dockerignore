@@ -1,0 +1,13 @@
+# The image build context (deploy/Containerfile) is this repo minus what isn't the app.
+.git
+.github
+.claude
+.ruff_cache
+docs
+tools
+deploy
+**/node_modules
+**/__pycache__
+**/*.pyc
+erp_internal/public/dist
+.env

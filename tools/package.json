@@ -1,0 +1,12 @@
+{
+	"name": "erp-internal-tools",
+	"private": true,
+	"type": "module",
+	"description": "Browser checks for the erp_internal dev sites (tools/cek_layar.mjs).",
+	"scripts": {
+		"cek-layar": "node cek_layar.mjs"
+	},
+	"devDependencies": {
+		"playwright": "1.49.1"
+	}
+}
