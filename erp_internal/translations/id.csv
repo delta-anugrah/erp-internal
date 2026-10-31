@@ -203,7 +203,7 @@ Shot,Tembakan
 {0} must be a stock item counted in Kg.,{0} harus barang stok dengan satuan Kg.
 A machine that no longer runs this mould.,Mesin yang tidak lagi menjalankan cetakan ini.
 Make BOMs,Buat BOM
-"{0} BOMs made, {1} unchanged, {2} switched off.","{0} BOM dibuat, {1} tetap, {2} dinonaktifkan."
+"BOMs made: {0}, unchanged: {1}, switched off: {2}.","BOM dibuat: {0}, tetap: {1}, dinonaktifkan: {2}."
 Set the material of this row before making BOMs.,Isi bahan baris ini dulu sebelum membuat BOM.
 Apply,Terapkan
 Cavities must be a whole number.,Cavity harus bilangan bulat.
@@ -235,7 +235,7 @@ The row names no material.,Baris ini tidak menyebut bahan.
 The row names no product.,Baris ini tidak menyebut produk.
 "Unexpected error, see the Error Log.","Terjadi kesalahan, lihat Error Log."
 You cannot read this file.,Kamu tidak boleh membaca file ini.
-"{0} BOMs made, {1} switched off.","{0} BOM dibuat, {1} dinonaktifkan."
+"BOMs made: {0}, switched off: {1}.","BOM dibuat: {0}, dinonaktifkan: {1}."
 "{0} is ambiguous: write it with a comma for decimals, e.g. 1,25 or 1250.","{0} bisa dibaca dua cara: tulis desimal dengan koma, mis. 1,25 atau 1250."
 {0} is not a number.,{0} bukan angka.
 New,Baru

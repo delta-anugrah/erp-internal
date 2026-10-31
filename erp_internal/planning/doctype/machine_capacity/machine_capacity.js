@@ -16,7 +16,7 @@ frappe.ui.form.on("Machine Capacity", {
 				callback: (r) => {
 					const h = r.message || {};
 					frappe.show_alert({
-						message: __("{0} BOMs made, {1} unchanged, {2} switched off.", [
+						message: __("BOMs made: {0}, unchanged: {1}, switched off: {2}.", [
 							h.dibuat.length,
 							h.tetap.length,
 							h.nonaktif.length,

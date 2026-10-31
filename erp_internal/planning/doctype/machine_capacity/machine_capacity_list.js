@@ -90,13 +90,15 @@ function bukaImpor(listview) {
 				freeze: true,
 				callback(r) {
 					const h = r.message;
-					d.get_field("hasil").$wrapper.html(tabel(h));
-					$terapkan.hide();
 					frappe.show_alert({
-						message: __("{0} BOMs made, {1} switched off.", [h.bom.dibuat, h.bom.nonaktif]),
+						message: __("BOMs made: {0}, switched off: {1}.", [h.bom.dibuat, h.bom.nonaktif]),
 						indicator: "green",
 					});
 					listview.refresh();
+					// Done: close, unless a row was refused and its reason must stay readable.
+					if (!h.baris.some((b) => b.hasil === "Refused")) return d.hide();
+					d.get_field("hasil").$wrapper.html(tabel(h));
+					$terapkan.hide();
 				},
 			});
 		},

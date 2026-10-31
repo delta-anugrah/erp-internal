@@ -187,7 +187,8 @@ atas tabel. Daftar nama lain ada di `KOLOM_IMPOR` (`planning/impor_kapasitas.py`
 baris Unchanged tidak disentuh. Kalau satu baris gagal saat Apply (padahal lolos Preview), baris itu dibatalkan
 seluruhnya, ditandai Refused dengan pesan kesalahannya, dan baris lain jalan terus. File yang sama diimpor dua kali:
 kali kedua semuanya Unchanged dan tidak ada BOM baru. Baris kapasitas yang sudah dinonaktifkan tidak diaktifkan
-lagi oleh impor.
+lagi oleh impor. Selesai Apply, dialog tertutup sendiri, kecuali ada baris Refused: tabelnya tetap terbuka supaya
+alasannya bisa dibaca.
 
 ## Excel penjualan Samuel (`penjualan.py`)
 
