@@ -319,3 +319,4 @@ Show attention list,Tampilkan daftar perhatian
 Hide attention list,Sembunyikan daftar perhatian
 "Name the company: {0} companies are run by this app.","Sebutkan perusahaannya: ada {0} perusahaan yang dijalankan aplikasi ini."
 Title,Judul
+"The machine can only be changed while the Work Order is Not Started or In Process.",Mesin hanya bisa diganti selama Work Order belum mulai atau sedang berjalan.

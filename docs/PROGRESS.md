@@ -3,6 +3,10 @@
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
 ## 2026-10-31 (Abel's manual tests)
+- Wrap-up: a submitted Work Order's machine now changes only while Not Started or In Process (Abel's call;
+  `kapasitas.kunci_mesin`, the form's field read-only otherwise; `test_kunci_mesin`). Catalog against the paper list
+  (`data/katalog.json` vs `erp.localhost`): 228 matches, 0 differences. Production vs Idle by Playwright: clear.
+  `run-tests --app erp_internal`: 214 OK (13 unit + 201 integration).
 - Capacity import tested in the browser with a file built from the sample rows: New 1, Changed 1, Unchanged 9, one BOM made.
 - Fixed from it: the import dialog closes after Apply unless a row is Refused; BOM alerts read "BOMs made: N, ..." (id.csv);
   Production Entry Good Qty, Reject Qty and the reject rows' Qty have precision 0 (Indonesian "5,000" read as 5000).

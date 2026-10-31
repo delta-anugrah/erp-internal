@@ -114,7 +114,8 @@ Saat Submit stok bergerak sendiri (dua Stock Entry, kelihatan di bagian **Stock 
 
 Jadi Work Order baru **Completed** kalau barang **bagus**-nya sudah cukup; reject tidak ikut menghitung.
 
-Ditolak kalau: mesinnya beda dengan mesin di Work Order (ganti dulu mesin di Work Order, boleh juga setelah di-Submit), bagus dan reject
+Ditolak kalau: mesinnya beda dengan mesin di Work Order (ganti dulu mesin di Work Order, boleh juga setelah di-Submit selama
+Work Order-nya Not Started atau In Process), bagus dan reject
 dua-duanya 0, ada baris reject 0, tanggal di masa depan, jam jalan 0 atau lebih dari 24, Work Order belum di-submit
 atau sudah selesai/berhenti, atau alasan reject-nya sudah dinonaktifkan. Bahan kurang di gudang: Submit gagal dan
 tidak ada stok yang berubah. Work Order yang di-**Stop** tidak bisa di-Cancel hasilnya: **Re-open** dulu Work Order-nya.
@@ -166,7 +167,8 @@ mesin × hari × Work Order × shift, lalu dijumlahkan sesuai pilihan.
 - **Work Order** (bawaan): jumlah Work Order dibagi rata ke hari rencananya (Planned Start sampai Planned End, kalau
   kosong sampai Expected Delivery; kalau dua-duanya kosong, semua di hari mulai). Target masuk ke mesin di Work Order;
   Mengganti **Machine** di Work Order yang sudah di-Submit memindahkan seluruh targetnya (hari-hari yang sudah lewat
-  juga) ke mesin yang baru. Work Order tanpa mesin masuk baris **No machine** (hasilnya tetap tampil di mesin yang mencatat). Kalau dikelompokkan
+  juga) ke mesin yang baru. Mesin cuma bisa diganti selama Work Order-nya Not Started atau In Process; sesudah
+  Completed, Stopped atau Closed kolom **Machine** terkunci. Work Order tanpa mesin masuk baris **No machine** (hasilnya tetap tampil di mesin yang mencatat). Kalau dikelompokkan
   per Shift, target hari itu dibagi menurut jam jalan yang dicatat di tiap shift; hari tanpa catatan dibagi rata ke
   semua shift pabrik.
 - **Capacity**: pcs per jam dari Machine Capacity × jam jalan di Production Entry. Pasangan item-mesin tanpa data

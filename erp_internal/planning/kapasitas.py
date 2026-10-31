@@ -206,3 +206,16 @@ def pilih_bom(doc, method=None) -> None:
 		doc.set("required_items", [])
 		doc.set("operations", [])
 		doc.set_work_order_operations()
+
+
+# A submitted order's machine may change only while it still runs (a machine breaks down); a Completed, Stopped
+# or Closed order keeps the machine its output was made on.
+STATUS_GANTI_MESIN = ("Not Started", "In Process")
+
+
+def kunci_mesin(doc, method=None) -> None:
+	"""Refuse a change of a submitted Work Order's machine unless it is Not Started or In Process."""
+	lama = doc.get_doc_before_save()
+	if not lama or lama.erp_mesin == doc.erp_mesin or lama.status in STATUS_GANTI_MESIN:
+		return
+	frappe.throw(_("The machine can only be changed while the Work Order is Not Started or In Process."))

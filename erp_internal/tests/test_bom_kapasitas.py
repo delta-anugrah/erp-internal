@@ -3,7 +3,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from erp_internal.planning.kapasitas import baris_bom, buat_bom_kapasitas, pilih_bom, varian_tercakup
+from erp_internal.planning.kapasitas import baris_bom, buat_bom_kapasitas, kunci_mesin, pilih_bom, varian_tercakup
 from erp_internal.tampilan import ADMIN, USER
 from erp_internal.tests.utils import (
 	buat_barang,
@@ -169,3 +169,33 @@ class TestBomKapasitas(IntegrationTestCase):
 		self.assertEqual(b.bom_no, b1)
 		self.assertEqual(b.required_items[0].item_code, self.pp)
 		self.assertEqual(b.required_items[0].required_qty, 0.05194)
+
+	def test_kunci_mesin(self):
+		# A submitted order's machine changes while Not Started or In Process, never once it is done
+		gudang = frappe.db.get_value("Warehouse", {"company": self.pabrik, "is_group": 0})
+		self.buat(self.row(self.v[0], self.m1))
+		a = frappe.get_doc(
+			{
+				"doctype": "Work Order",
+				"company": self.pabrik,
+				"production_item": self.v[0],
+				"qty": 1,
+				"fg_warehouse": gudang,
+				"wip_warehouse": gudang,
+				"erp_mesin": self.m1,
+			}
+		).insert()
+		a.submit()
+		a.reload()
+		a.erp_mesin = self.m2
+		a.save()
+		self.assertEqual(frappe.db.get_value("Work Order", a.name, "erp_mesin"), self.m2)
+		for status in ("Completed", "Stopped", "Closed"):
+			a.db_set("status", status)
+			a.reload()
+			a.erp_mesin = self.m1
+			self.assertRaisesRegex(frappe.ValidationError, "machine can only be changed", a.save)
+		# the same machine passes on a closed order
+		a.reload()
+		a._doc_before_save = frappe.get_doc("Work Order", a.name)
+		kunci_mesin(a)
