@@ -24,8 +24,9 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
 - [ ] Optional: allow a Work Order's machine change only while Not Started / In Process (now any submitted order).
 - [ ] In the browser: Machine Capacity list → Import from Excel (Preview, Apply), Make BOMs, Record Output on a Work
       Order, Plan vs Actual in both target modes, in Indonesian too.
-- [ ] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill): `new-site` in the stack needs the
-      database root password, so it is yours to run (`deploy/server/README.md`). Can wait for the DigitalOcean go-live.
+- [x] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill), 2026-10-31 on the Mac with the
+      Makefile (the passwords generated into a local `.env`): fresh site, backup, restore drill with equal counts
+      (`deploy/server/README.md`). The same again on the DigitalOcean server at go-live.
 - [ ] Look at the screens in Indonesian once (switch the language in the user menu) and click Fill from History and
       Order Readiness in the browser: their server side ran in the dry runs, the buttons were not clicked.
 - [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang, plus `produksi-1`;
@@ -132,8 +133,8 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [~] Task 5: sales and purchasing flow (`test_alur_jual_beli` 5 OK; guide screenshots still to take)
 - [x] Task 6: import guide (`test_impor` 4 OK; Stock Reconciliation import allowed by `setup.IMPOR_BOLEH`; headers
       equal the site's Download Template)
-- [~] Task 7: server image, compose, backups (image built and checked; compose boot, backup and restore drill
-      waiting on Abel)
+- [~] Task 7: server image, compose, backups (image, compose boot, backup and restore drill done locally
+      2026-10-31; the server itself waits on Samuel's budget and domain)
 - [~] Task 8: go-live wave 1 (local dry run done 2026-10-28; the real go-live waits on Samuel: PT Delta Anugrah,
       tick `erp_aktif`, users as Admin or User)
 - [x] Revision 4: one company, three roles (`test_pengguna` 9 OK, `test_tampilan` 14 OK)

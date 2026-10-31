@@ -32,7 +32,13 @@ make cadangan                                     # then a restore drill (below)
 that exists or a finished wizard; `cron` adds its line once. `ping` checks the stack on `127.0.0.1:8080`; the public
 `https://` check needs the proxy of step 3. Dry run 2026-10-29 on a Mac with a fake `docker`/`bench`/`crontab`:
 every step ran, a second run skipped, a `:latest` image and a mode-644 `.env` were refused, `make setup` stopped at
-the first failing step.
+the first failing step. Real run 2026-10-31 on the Mac (Docker, image `erp-internal:v0.0.1`, steps `env` to `ping` and
+`cadangan`; `cek`, `pull` and `cron` left out: macOS time zone, a local image, Abel's own crontab): a fresh site in
+8 m 40 s, every step a no-op on a second run. It found two faults, both fixed: `tools` started before the
+configurator wrote the Redis config (now `depends_on` it), and a `site` step cut off halfway left a site that the
+next run skipped without its apps (now each missing app is installed). `bench execute erp_internal.contoh.buat_contoh`
+on such a site prints `name 'erp_internal' is not defined`: bench hides the real refusal ("Sample data is not
+allowed on a production site"), which a direct call shows.
 
 By hand:
 
@@ -122,7 +128,7 @@ A set is three files sharing one prefix: `…-database.sql.gz`, `…-files.tgz`,
 config (it holds the database password) stays on the server; the encryption key is kept with the secrets (below).
 
 **Monthly restore drill**, on a scratch stack (another folder, another compose project, its own `.env` with
-`SITE=erp-pulih.localhost` and another port), never on production:
+`SITE=erp-pulih.localhost` and `PORT=8081`, which `docker-compose.yml` and `make ping` read), never on production:
 
 ```bash
 rclone copy "$RCLONE_REMOTE" ./cadangan --include '<prefix>-*'
@@ -136,7 +142,7 @@ docker compose -p erp-pulih run --rm tools bash -c 'bench new-site "$SITE" --db-
   && bench --site "$SITE" set-config encryption_key "<from the secrets store>" \
   && bench --site "$SITE" migrate'
 docker compose -p erp-pulih up -d
-curl -fsS -H "Host: erp-pulih.localhost" http://127.0.0.1:<port>/api/method/ping
+make ping   # or: curl -fsS -H "Host: erp-pulih.localhost" http://127.0.0.1:8081/api/method/ping
 ```
 
 Pass when `ping` answers and `frappe.db.count("Item")` (and Customer, Stock Ledger Entry) equal the source's. Write
@@ -157,3 +163,4 @@ the date and the counts at the end of this file. Then `docker compose -p erp-pul
 
 | Date | Source counts (Item / Customer / SLE) | Restored counts | By |
 |---|---|---|---|
+| 2026-10-31 | local rehearsal, image `erp-internal:v0.0.1`, Samuel's catalog and sales loaded: Item 127, Item Price 164, Sales History 513, Workstation 14 (no customers or stock yet) | the same | Claude (Abel's Mac, not production) |

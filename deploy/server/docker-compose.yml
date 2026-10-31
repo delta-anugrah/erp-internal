@@ -101,7 +101,8 @@ services:
     volumes:
       - sites:/home/frappe/frappe-bench/sites
     ports:
-      - "127.0.0.1:8080:8080"
+      # PORT (default 8080): another one only for a restore drill stack beside production.
+      - "127.0.0.1:${PORT:-8080}:8080"
     depends_on:
       - backend
       - websocket
@@ -154,6 +155,11 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
       - ./cadangan:/home/frappe/cadangan
+    # Started right after `up -d`, it would read the image's default config (redis on 127.0.0.1:13311) before the
+    # configurator has written the real one (found by the first real `make setup`, 2026-10-31).
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
 
 volumes:
   sites:

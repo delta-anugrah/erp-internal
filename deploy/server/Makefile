@@ -26,6 +26,8 @@ export COMPANY ABBR TAHUN
 
 # SITE from .env, for the host-side commands (ping, messages); it is the only value read from it here.
 SITUS = $(shell sed -n 's/^SITE=//p' .env 2>/dev/null)
+# The stack's local port (PORT in .env, for a restore drill stack; default 8080).
+PORT_LOKAL = $(or $(shell sed -n 's/^PORT=//p' .env 2>/dev/null),8080)
 
 .DEFAULT_GOAL := help
 .PHONY: help setup cek env cek-env pull db site wizard aktif up ping cron cadangan
@@ -37,11 +39,11 @@ help:
 	@echo "  cek-env   .env is mode 600, has every key, ERP_IMAGE is an exact tag"
 	@echo "  pull      pull the image (needs docker login ghcr.io)"
 	@echo "  db        start mariadb, redis and the configurator"
-	@echo "  site      bench new-site with erpnext, hrms, erp_internal (skipped if the site exists)"
+	@echo "  site      bench new-site if missing, then install whichever of erpnext, hrms, erp_internal is missing"
 	@echo "  wizard    complete the setup wizard for COMPANY/ABBR (skipped if complete)"
 	@echo "  aktif     tick erp_aktif, migrate, host_name, erp_produksi, scheduler on"
 	@echo "  up        the whole stack"
-	@echo "  ping      the stack answers on 127.0.0.1:8080 as SITE"
+	@echo "  ping      the stack answers on 127.0.0.1:PORT (8080) as SITE"
 	@echo "  cron      the nightly backup line in deploy's crontab (added once)"
 	@echo "  cadangan  one backup by hand (README step 9; then do a restore drill)"
 
@@ -83,10 +85,14 @@ db:
 
 site:
 	$(TOOLS) 'set -euo pipefail; \
-		if [ -f "sites/$$SITE/site_config.json" ]; then echo "site $$SITE exists, skipped"; exit 0; fi; \
-		bench new-site "$$SITE" --db-root-username root --db-root-password "$$DB_ROOT_PASSWORD" \
-			--admin-password "$$ADMIN_PASSWORD" --mariadb-user-host-login-scope="%" \
-			--install-app erpnext --install-app hrms --install-app erp_internal'
+		if [ ! -f "sites/$$SITE/site_config.json" ]; then \
+			bench new-site "$$SITE" --db-root-username root --db-root-password "$$DB_ROOT_PASSWORD" \
+				--admin-password "$$ADMIN_PASSWORD" --mariadb-user-host-login-scope="%"; \
+		fi; \
+		for app in erpnext hrms erp_internal; do \
+			if bench --site "$$SITE" list-apps | grep -q "^$$app "; then echo "$$app installed, skipped"; \
+			else bench --site "$$SITE" install-app "$$app"; fi; \
+		done'
 
 wizard:
 	$(TOOLS) 'set -euo pipefail; \
@@ -114,8 +120,8 @@ up:
 # The stack itself, before DNS and TLS; the public check (https) is in README step 8.
 ping:
 	@$(KETAT) for i in $$(seq 1 30); do \
-		curl -fsS -H "Host: $(SITUS)" http://127.0.0.1:8080/api/method/ping 2>/dev/null | grep -q pong && { echo "ping OK"; exit 0; }; \
-		sleep 2; done; echo "no pong from 127.0.0.1:8080 in 60 s: docker compose logs frontend backend"; exit 1
+		curl -fsS -H "Host: $(SITUS)" http://127.0.0.1:$(PORT_LOKAL)/api/method/ping 2>/dev/null | grep -q pong && { echo "ping OK"; exit 0; }; \
+		sleep 2; done; echo "no pong from 127.0.0.1:$(PORT_LOKAL) in 60 s: docker compose logs frontend backend"; exit 1
 
 cron:
 	@$(KETAT) baris="0 2 * * * cd $(CURDIR) && ./cadangan.sh >> cadangan.log 2>&1"; \

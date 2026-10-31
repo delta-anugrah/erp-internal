@@ -2,6 +2,16 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-31 (real `make setup` and restore drill on the Mac)
+- Image `erp-internal:v0.0.1` built from `feat/lokal`, `deploy/check_image.sh` OK.
+- `make env`, `db`, `site`, `wizard`, `aktif`, `up`, `ping`, `cadangan` against it (compose project `erp-uji`, scratch
+  folder): all OK, fresh site 8 m 40 s, second run of `site`/`wizard` skipped. Fixed on the way: `tools` now waits for
+  the configurator (it read the image's default Redis port); `site` installs each missing app (a run cut off halfway
+  left a site the next run skipped with no apps); `PORT` in `.env` for a drill stack beside production.
+- Restore drill (project `erp-pulih`, port 8081) from the backup in the rclone remote, after `master.muat` and
+  `penjualan.muat` on the source: Item 127, Item Price 164, Sales History 513, Workstation 14, Company 1 on both;
+  `ping` OK. `buat_contoh` refused on the source (`erp_produksi`).
+
 ## 2026-10-30 (Abel's evening list, 8 items)
 - Committed the 2026-10-29 work (company rename + logo, Production vs Idle, `penjualan.py`) in 4 commits.
 - Production Floor: every row faces the camera (front row lamps visible); Problem blinks hard (1.25 Hz on/off); forklift
