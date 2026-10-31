@@ -98,7 +98,7 @@ operator.
    terisi sendiri dari Work Order.
 2. **Date**: tanggal shift-nya (tidak boleh besok). **Shift**: salah satu shift yang diatur untuk pabrik (bawaan tiga
    shift, masing-masing 8 jam). **Run Hours** terisi panjang shift itu; ganti kalau mesin cuma jalan sebagian.
-3. **Good Qty**: jumlah barang bagus.
+3. **Good Qty**: jumlah barang bagus, angka bulat (Good Qty, Reject Qty dan jumlah reject tampil tanpa koma).
 4. **Rejects**: satu baris per alasan (**Reason**, misalnya Short Shot, Flashing, Bubble) dan jumlahnya. **Reject
    Qty** dijumlah sendiri.
 5. **Save**, **Submit**.

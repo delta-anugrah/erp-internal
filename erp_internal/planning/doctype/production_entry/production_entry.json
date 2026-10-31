@@ -104,7 +104,8 @@
    "description": "Good pieces: they go to the finished goods warehouse and count toward the Work Order.",
    "fieldname": "good_qty",
    "fieldtype": "Float",
-   "label": "Good Qty"
+   "label": "Good Qty",
+   "precision": "0"
   },
   {
    "fieldname": "column_break_hasil",
@@ -115,7 +116,8 @@
    "fieldname": "reject_qty",
    "fieldtype": "Float",
    "label": "Reject Qty",
-   "read_only": 1
+   "read_only": 1,
+   "precision": "0"
   },
   {
    "description": "Rejected pieces by reason: they go to the reject warehouse and do not count toward the Work Order.",
@@ -170,7 +172,7 @@
  "index_web_pages_for_search": 0,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-30 19:05:00.000000",
+ "modified": "2026-10-31 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Planning",
  "name": "Production Entry",
