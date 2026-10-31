@@ -2,6 +2,11 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-10-31 (Abel's manual tests)
+- Capacity import tested in the browser with a file built from the sample rows: New 1, Changed 1, Unchanged 9, one BOM made.
+- Fixed from it: the import dialog closes after Apply unless a row is Refused; BOM alerts read "BOMs made: N, ..." (id.csv);
+  Production Entry Good Qty, Reject Qty and the reject rows' Qty have precision 0 (Indonesian "5,000" read as 5000).
+
 ## 2026-10-31 (real `make setup` and restore drill on the Mac)
 - Image `erp-internal:v0.0.1` built from `feat/lokal`, `deploy/check_image.sh` OK.
 - `make env`, `db`, `site`, `wizard`, `aktif`, `up`, `ping`, `cadangan` against it (compose project `erp-uji`, scratch

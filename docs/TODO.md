@@ -13,8 +13,9 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
 - [x] Task 4: Production Entry (stock entries, cancel; `test_hasil_produksi`)
 - [x] Task 5: Plan vs Actual report (`planning/report/plan_vs_actual/`, `test_plan_vs_actual`)
 - [x] Task 6: sample capacity, BOMs and production entries in `contoh.py` (`test_contoh` 7 OK), docs, full run
-- [ ] Abel, in the browser on `erp.localhost` (the sample data is there): Machine Capacity list, "Import from Excel"
-      with `erp_internal/tests/data/kapasitas.xlsx` (Preview, then Apply; check the BOMs it makes).
+- [x] Abel, in the browser on `erp.localhost` (the sample data is there): Machine Capacity list, "Import from Excel"
+      with `erp_internal/tests/data/kapasitas.xlsx` (Preview, then Apply; check the BOMs it makes). Done 2026-10-31 with a file of the sample rows (that test file
+      only refuses: its items exist only during tests); the dialog now closes after Apply unless a row is Refused.
 - [ ] Abel: open a Work Order and use its button to record output (good qty, rejects, shift); check the stock entries
       and the order's produced qty.
 - [ ] Abel: open Plan vs Actual in both target modes (a Work Order's planned days, and Machine Capacity when the order
