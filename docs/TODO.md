@@ -23,55 +23,59 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
 
 ## Waiting on Abel
 - [ ] Optional: allow a Work Order's machine change only while Not Started / In Process (now any submitted order).
-- [ ] In the browser: Machine Capacity list → Import from Excel (Preview, Apply), Make BOMs, Record Output on a Work
-      Order, Plan vs Actual in both target modes, in Indonesian too.
+- [x] In the browser: Machine Capacity list → Import from Excel (Preview, Apply), Make BOMs, Record Output on a Work
+      Order, Plan vs Actual in both target modes, in Indonesian too. Done 2026-10-31 (the three items above).
 - [x] Task 7 Steps 2-4 (compose boot, `cadangan.sh` against it, restore drill), 2026-10-31 on the Mac with the
       Makefile (the passwords generated into a local `.env`): fresh site, backup, restore drill with equal counts
       (`deploy/server/README.md`). The same again on the DigitalOcean server at go-live.
-- [ ] Look at the screens in Indonesian once (switch the language in the user menu) and click Fill from History and
-      Order Readiness in the browser: their server side ran in the dry runs, the buttons were not clicked.
+- [x] Look at the screens in Indonesian once (switch the language in the user menu) and click Fill from History and
+      Order Readiness in the browser: their server side ran in the dry runs, the buttons were not clicked. Playwright 2026-10-31 as `user@` in Indonesian: Fill from History (6 rows, message in Indonesian), Order Readiness (102 rows, no template), Sales Order, Work Order, Stock Balance, Production Entry: no dialog, no page error.
 - [x] Take the `docs/panduan/` screenshots (`docs/panduan/gambar/*.png`, 6 for penjualan, pembelian, gudang, plus `produksi-1`;
       retake with `ERP_SANDI=<password> node tools/panduan_gambar.mjs`). `absen.md` and `proyek.md`
       reference no picture yet; `produksi.md` has `produksi-1.png` (the Production Floor).
 - [ ] Try the phone check-in (`/hrms`, Add to Home Screen) as `user@example.com` on a real phone. The sample
       password is `SAMPLE_PASSWORD` in `~/Desktop/Projects/erp-internal-bench/.env`.
-- [ ] Sign in as `user@` and `admin@example.com`: User has no Settings, Admin does; full width.
-- [ ] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused).
-- [ ] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid.
+- [x] Sign in as `user@` and `admin@example.com`: User has no Settings, Admin does; full width. `cek_layar` 3 users OK 2026-10-31.
+- [x] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused). Playwright/API 2026-10-31: Developer refused (403, "You cannot give these roles").
+- [x] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid. API as `user@` 2026-10-31: SAL-ORD-2026-00007 → MAT-DN-2026-00003 → ACC-SINV-2026-00003 Paid (ACC-PAY-2026-00002). Found: the default price list was the empty Standard Selling (Rate 0), fixed in `master._harga_bawaan`.
 - [ ] Optional: the official vector logo from the designer. `delta-anugrah.svg` is our redraw of the 200 px JPEG;
       replace it under the same name and rerender the PNGs (no code change).
 - [ ] Add `127.0.0.1 erp.localhost` to `/etc/hosts` (sudo): Node's socket.io can't resolve `*.localhost` on macOS,
       so live updates (Production Floor) fall back to a 60 s poll without it.
-- [ ] Review and approve PR #1 (`feat/lokal` → `main`) and the Production Floor plan
+- [x] Review and approve PR #1 (`feat/lokal` → `main`) and the Production Floor plan (PR approved by Abel 2026-10-31)
       (`docs/superpowers/plans/2026-10-28-production-floor-plan.md`).
-- [ ] In the browser: the Delta Anugrah logo and the ERP/HR tiles, the HR home titled "HR", the sidebar arrow folds
-      and opens (and stays after a reload), the avatar shows a pointer.
+- [x] In the browser: the Delta Anugrah logo and the ERP/HR tiles, the HR home titled "HR", the sidebar arrow folds
+      and opens (and stays after a reload), the avatar shows a pointer. `cek_layar` (tiles, fold kept after reload, rail logo) + Playwright (HR home title "HR", avatar cursor pointer) 2026-10-31.
 - [ ] As `admin@`: open a few catalog items (e.g. Gayung Lumba-Lumba) and check variants, UOMs and the prices in
       `Harga Pola 2026` against Samuel's list.
 - [ ] After each Production Floor task that runs `bench build`: restart `bench start`, then look at the floor in your
       own Chrome and say whether it feels smooth.
-- [ ] Production Floor (`/desk/production-floor`, signed in as `user@example.com`):
-  - [ ] 14 machines in two rows: back 14 13 12 11 10 9 8, front 1 2 3 4 5 6 7.
+- [ ] Production Floor (`/desk/production-floor`, signed in as `user@example.com`): Ticked items: `lantai.mjs` 2026-10-31 (states, label, pilih,
+  status, live, reconnect, hud, perhatian, dekor-gelap, glass, memuat, strip, id, 13-machines, no-webgl, zona; all OK). perf
+  60 fps but 1.65-2 % frames over 25 ms (budget 1 %) with the Mac at load 12-20 from other Docker projects.
+  - [x] 14 machines in two rows: back 14 13 12 11 10 9 8, front 1 2 3 4 5 6 7.
   - [ ] Orbit (drag), zoom (scroll), pan (right drag), then the home button in the camera bar: smooth, no stutter, no error dialog.
   - [ ] They look like injection moulding machines; JSW, NISSEI and CHENDE in different colours.
-  - [ ] Set a machine's status in its Workstation form (Production, Problem, Maintenance, Off), reload the floor:
+  - [x] Set a machine's status in its Workstation form (Production, Problem, Maintenance, Off), reload the floor:
         green lamp + mould moving + breathing green ring + lit screen, red blinking, blue + dimmed, unlit + darker. Put the status back.
   - [ ] Go to another page and come back 5 times: still smooth, the laptop fan stays quiet.
-  - [ ] Labels like "03 · NISSEI 260T" show a status chip, and the Work Order item and progress when one runs.
-  - [ ] Click a machine: the camera flies to it and a side panel opens (a bottom sheet on a narrow window).
-  - [ ] Press one of the six status buttons in the panel: the machine changes. Put the status back.
-  - [ ] Change a status in the Workstation form: the floor follows without a reload (or within 60 s without
+  - [x] Labels like "03 · NISSEI 260T" show a status chip, and the Work Order item and progress when one runs.
+  - [x] Click a machine: the camera flies to it and a side panel opens (a bottom sheet on a narrow window).
+  - [x] Press one of the six status buttons in the panel: the machine changes. Put the status back.
+  - [x] Change a status in the Workstation form: the floor follows without a reload (or within 60 s without
         `/etc/hosts`).
-  - [ ] Top bar: company logo or initials and name, "Live" dot, date and a ticking clock; KPI cards (machines,
+  - [x] Top bar: company logo or initials and name, "Live" dot, date and a ticking clock; KPI cards (machines,
         running, problem, Work Orders running, output) match what you see.
-  - [ ] Machine table (top left, under the bar), with the "Needs attention" card under it: click a row, the camera flies to that machine and the panel opens; the arrow
+  - [x] Machine table (top left, under the bar), with the "Needs attention" card under it: click a row, the camera flies to that machine and the panel opens; the arrow
         folds it and it stays folded after a reload; +, − and home buttons work.
-  - [ ] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian. The building, truck and floor lettering turn dark too.
+  - [x] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian. The building, truck and floor lettering turn dark too.
   - [ ] Labels shrink to a chip where they would overlap and never sit under a card.
-  - [ ] A loading card shows until the floor is ready.
-  - [ ] Manufacturing in the rail: "Production Floor" is the first link in the sidebar and the first shortcut on
+        2026-10-31: `lantai.mjs label-rapi` fails one check: dollying out, four front labels change in two steps
+        (06 first, 03/05/07 on the next camera move) and the test reads the first step as a flip; nothing flips back.
+  - [x] A loading card shows until the floor is ready.
+  - [x] Manufacturing in the rail: "Production Floor" is the first link in the sidebar and the first shortcut on
         the home; it opens the floor.
-  - [ ] Go to a Work Order and come back (sidebar link and browser back): the floor fills the screen, no empty strip.
+  - [x] Go to a Work Order and come back (sidebar link and browser back): the floor fills the screen, no empty strip.
 
 ## Production Floor, next round (Abel, 2026-10-28 22:32)
 Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec Revision 2).
@@ -114,10 +118,10 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
       `erp.localhost`: 513 Sales History rows over 90 variants, 7 raw materials; `test_penjualan` 7 OK).
 - [ ] Ask Samuel `docs/menunggu-samuel.md` rows 13-14 (Ball Kecil and Pack contents, colours of the new types, which
       price is the selling price).
-- [ ] Abel: Sales History list (group by Month) and Order Readiness with the new minimum stock on `erp.localhost`.
+- [x] Abel: Sales History list (group by Month) and Order Readiness with the new minimum stock on `erp.localhost`. 2026-10-31: list in Indonesian, 9 months Jan-Sep 2026, 90 items with a minimum stock; Order Readiness above.
 
 ## Master data
-- [x] Samuel's catalog and machines (`erp_internal/master.py`, `test_master` 8 OK; run twice on `erp.localhost`,
+- [x] Samuel's catalog and machines (`erp_internal/master.py`, `test_master` 9 OK; run twice on `erp.localhost`,
       the second run writes nothing): 21 templates, 84 variants, 157 prices in `Harga Pola 2026`, `Mesin 01`..`14`.
 - [ ] Still from Samuel (`docs/menunggu-samuel.md` row 4): capacity per product per machine (cycle time, cavities),
       mould per machine, raw material per product (kg per pcs, PP/HDPE, masterbatch), minimum stock, spoons per

@@ -10,7 +10,8 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 
 1. Buka **Selling → Sales Order → + Add Sales Order**.
 2. Isi **Customer**, **Delivery Date** (tanggal kirim yang dijanjikan).
-3. Di tabel **Items**: pilih barang, isi **Quantity** dan **Rate** (harga satuan).
+3. Di tabel **Items**: pilih barang, isi **Quantity**. **Rate** (harga satuan) terisi sendiri dari daftar harga
+   `Harga Pola 2026`; ubah kalau harganya beda. Rate 0 berarti barang itu belum punya harga di daftar.
    Kalau pelanggan pesan per karton, pilih **UOM** `Karton`; sistem menghitung isinya sendiri.
 4. Klik **Save**, cek lagi, lalu **Submit**. Pesanan yang belum di-Submit belum dihitung.
 

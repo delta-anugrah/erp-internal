@@ -93,7 +93,7 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
 - Samuel's real master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
   execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin}.json` (templates with only the listed
-  variants, packings, price list `Harga Pola 2026`, Workstations `Mesin 01`..`14`); rerun after a new file
+  variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`); rerun after a new file
   (`docs/impor.md`, tested by `tests/test_master.py`).
 - Samuel's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
   reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw

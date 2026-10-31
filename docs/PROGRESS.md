@@ -9,6 +9,14 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Record Output on MFG-WO-2026-00004 (100 good, 5 Bubble, Shift 1): produced 7.548 → 7.648, MAT-STE-2026-00061/62.
 - Plan vs Actual checked by Playwright as `user@`: both target modes × six groupings, English and Indonesian, no
   error; today's entry shows only with To Date = today (the default ends yesterday, by design).
+- TODO browser items by Playwright/API (Abel away): Indonesian screens, Fill from History, Order Readiness, roles,
+  admin refusing Developer, the sales flow to Paid, tiles/HR title/avatar, Sales History per month: all OK. The sales
+  flow found Sales Orders defaulting to the empty Standard Selling list (Rate 0): `master.muat` now makes
+  `Harga Pola <year>` the default while it is still Standard Selling (`_harga_bawaan`, `test_daftar_harga_bawaan`,
+  `test_master` 9 OK).
+- `lantai.mjs` with the Mac loaded by other Docker projects (load 12-130): every functional case OK after reruns;
+  `label-rapi` fails its jiggle check (front labels settle in two camera moves), `perf` 1.65-2 % slow frames.
+  A case cut short under load left Mesin 06 at Problem; put back to Production.
 
 ## 2026-10-31 (real `make setup` and restore drill on the Mac)
 - Image `erp-internal:v0.0.1` built from `feat/lokal`, `deploy/check_image.sh` OK.
