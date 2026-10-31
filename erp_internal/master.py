@@ -8,7 +8,8 @@ Reads `data/katalog.json` (the price list "POLA PLASTIK TAHUN 2026", as Samuel s
 - one Item template per product in "Barang Jadi", brand "Dinda House Ware", with only the variants the list
   names (attributes Jenis, Warna, and Ukuran for Toples Dinda), never every combination;
 - the UOMs of each variant in Pcs (Lusin 12, Gross 144, and its Ball/Dus/Ikat from the packing text);
-- the selling Price List "Harga Pola <year>" with one Item Price per variant and packing the list prices;
+- the selling Price List "Harga Pola <year>" with one Item Price per variant and packing the list prices, and the
+  Sales Order default while that is still "Standard Selling";
 - one Workstation per machine, "Mesin 01".."Mesin 14", of type Injection Moulding.
 
 Idempotent: every record is looked up by its key and saved only when it differs, so a second run writes nothing.
@@ -127,6 +128,7 @@ def muat() -> dict:
 	hasil.simpan(
 		"Price List", daftar, {"price_list_name": daftar, "selling": 1, "buying": 0, "currency": "IDR"}
 	)
+	_harga_bawaan(daftar, hasil)
 
 	produk = produk_katalog(katalog)
 	_atribut(produk, hasil)
@@ -151,6 +153,14 @@ def muat() -> dict:
 		"ditulis": hasil.ditulis,
 		"catatan": hasil.catatan,
 	}
+
+
+def _harga_bawaan(daftar: str, hasil: "Hasil") -> None:
+	"""Make `daftar` the new Sales Order's price list while it is still ERPNext's empty "Standard Selling" (a
+	user's Sales Order otherwise came at price 0); a list someone chose stays."""
+	if frappe.db.get_single_value("Selling Settings", "selling_price_list") in (None, "", "Standard Selling"):
+		frappe.db.set_single_value("Selling Settings", "selling_price_list", daftar)
+		hasil.ditulis += 1
 
 
 class Hasil:

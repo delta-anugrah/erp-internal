@@ -236,7 +236,7 @@ Yang dibuat:
 |---|---|
 | Barang (template + varian) | satu template per produk di grup `Barang Jadi`, merek `Dinda House Ware`; varian **hanya** kombinasi yang ada di daftar (atribut `Jenis`, `Warna`, dan `Ukuran` untuk Toples Dinda). Kode: `GAYUNG-LUMBA` → `GAYUNG-LUMBA-SPR-MRH` |
 | Satuan | stok dalam `Pcs`; `Lusin` = 12, `Gross` = 144; `Ball`/`Dus`/`Ikat` per varian dari teks kemasan, misalnya "1 Ball (20 Lusin)" = 240 Pcs |
-| Daftar harga | `Harga Pola 2026` (jual, IDR), satu Item Price per varian per satuan yang ada harganya |
+| Daftar harga | `Harga Pola 2026` (jual, IDR), satu Item Price per varian per satuan yang ada harganya; jadi daftar harga bawaan Sales Order selama Selling Settings masih "Standard Selling" |
 | Mesin | Workstation `Mesin 01`..`Mesin 14`, tipe `Injection Moulding`; nomor urut lantai (`Machine No.`), merek, model, tonase, tahun, negara |
 
 Pilihan model:
@@ -257,7 +257,7 @@ Pilihan model:
    `master.KODE` dapat kode dari namanya (huruf besar); warna atau tipe baru tanpa singkatan di
    `master.SINGKATAN` dapat singkatan dari hurufnya. Tambahkan dulu ke tabel itu kalau mau kodenya rapi.
 2. Jalankan `muat` di atas, baca `catatan`.
-3. Judul file menentukan nama daftar harga: "... TAHUN 2027" membuat `Harga Pola 2027` baru, yang lama tetap ada.
+3. Judul file menentukan nama daftar harga: "... TAHUN 2027" membuat `Harga Pola 2027` baru, yang lama tetap ada. Daftar bawaan Sales Order tidak ikut pindah: ganti sendiri di Selling Settings.
    Harga di daftar itu yang sudah tidak ada di file dihapus.
 4. Yang **tidak** dihapus: barang dan mesin yang hilang dari file (mungkin sudah dipakai transaksi). Nonaktifkan
    manual (Item `Disabled`, Workstation status `Off`). Singkatan atribut yang sudah ada juga tidak diubah, karena

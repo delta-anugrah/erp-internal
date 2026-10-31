@@ -95,6 +95,13 @@ class TestMaster(IntegrationTestCase):
 		self.assertIn("Garpu Makan: no price in the list", self.hasil["catatan"])
 		self.assertIn("Gantungan Dinda Super: Dus 262,250 vs 3 x Gross = 262,650", self.hasil["catatan"])
 
+	def test_daftar_harga_bawaan(self):
+		self.assertEqual(frappe.db.get_single_value("Selling Settings", "selling_price_list"), self.daftar)
+		frappe.db.set_single_value("Selling Settings", "selling_price_list", "Harga Lain")
+		master.muat()
+		self.assertEqual(frappe.db.get_single_value("Selling Settings", "selling_price_list"), "Harga Lain")
+		frappe.db.set_single_value("Selling Settings", "selling_price_list", self.daftar)
+
 	def test_mesin(self):
 		self.assertEqual(frappe.db.count("Workstation", {"workstation_type": master.JENIS_MESIN}), MESIN)
 		self.assertEqual(
