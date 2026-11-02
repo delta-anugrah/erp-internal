@@ -8,7 +8,7 @@ from erp_internal import master, mesin_barang, penjualan
 from erp_internal.planning.kapasitas import kapasitas
 from erp_internal.tests.utils import buat_perusahaan
 
-PASANGAN, KAPASITAS = 32, 46
+PASANGAN, KAPASITAS = 31, 54
 
 
 class TestMesinBarang(IntegrationTestCase):
@@ -63,9 +63,14 @@ class TestMesinBarang(IntegrationTestCase):
 		self.assertEqual(bom.erp_kapasitas, row.name)
 		self.assertEqual([(i.item_code, i.qty) for i in bom.items], [("BB-PP-WARNA", 0.07)])
 
-	def test_belum_ada_barang(self):
-		for nama in ("Body PLN (Mesin 02)", "Stik Folding (Mesin 06)", "Gantungan DX (Mesin 04)"):
-			self.assertIn(f"{nama}: no product yet", self.hasil["catatan"])
+	def test_dinda_dx_dan_folding(self):
+		# "Gantungan DX" is Gantungan Dinda DX: ( 4 ) on Mesin 04, ( 2 ) on Mesin 05.
+		self.assertEqual(self.baris("GANTUNGAN-DINDA", "DX", "Mesin 04").cavities, 4)
+		self.assertEqual(self.baris("GANTUNGAN-DINDA", "DX", "Mesin 05").cavities, 2)
+		# Gantungan Folding is one item on the machine of its stick: 56 + 36 + 43 s a set.
+		b = self.baris("GANTUNGAN-FOLDING-20", "Soft", "Mesin 06")
+		self.assertEqual((b.cycle_time, b.cavities, b.part_weight), (135, 1, 325))
+		self.assertEqual(self.hasil["catatan"], [])
 
 	def test_mesin_tidak_aktif(self):
 		for n in (1, 7, 9, 14):

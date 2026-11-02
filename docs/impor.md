@@ -227,14 +227,16 @@ Yang dibuat (dijalankan dua kali = sama saja, `ditulis` 0):
 
 | Apa | Isi |
 |---|---|
-| Machine Capacity | satu baris per template + Jenis per mesin (32 pasangan di sheet = 46 baris di mesin 2, 3, 4, 5, 6, 8). Cycle time, berat per pcs (kg di Excel, disimpan gram) dan bahan dari `spesifikasi` di `penjualan_2026.json`; runner 0 karena belum ada angkanya |
+| Machine Capacity | satu baris per template + Jenis per mesin (31 pasangan di sheet = 54 baris di mesin 2, 3, 4, 5, 6, 8). Cycle time, berat per pcs (kg di Excel, disimpan gram) dan bahan dari `spesifikasi` di `penjualan_2026.json`; runner 0 karena belum ada angkanya |
 | Cavity | "( 4 )" di belakang nama = jumlah cavity cetakan di mesin itu, mengalahkan angka di spesifikasi; tanpa angka pakai spesifikasi |
 | BOM | `buat_bom_kapasitas` per baris: satu BOM per varian per mesin |
 
 - Nama di sheet dipetakan ke barang di bagian `barang` file JSON: `[template, Jenis, no spesifikasi]`. Nama yang
-  dipetakan ke `[]` belum punya barang dan muncul di `catatan`: Body PLN, Stik Folding (bagian Gantungan Folding;
-  Batok dan Tongkat-nya tidak ada di sheet), Gantungan DX (`docs/menunggu-samuel.md` baris 15).
-- Body dan Tutup Toples Nastar satu barang (`TOPLES-NASTAR`) di Mesin 05: satu baris, cycle time 30 + 10 = 40 detik.
+  dipetakan ke `[]` belum punya barang dan muncul di `catatan`. "Gantungan DX" = Gantungan Dinda DX; Body PLN
+  dibuang dari daftar, sudah tidak dibuat (Samuel 2026-11-02).
+- Barang dari beberapa bagian = satu barang di satu mesin, satu set per putaran (Samuel 2026-11-02): Toples Nastar
+  (body + tutup) di Mesin 05, 30 + 10 = 40 detik; Gantungan Folding di mesin yang mencetak stiknya (2, 3, 6),
+  stik + batok + tongkat = 56 + 36 + 43 = 135 detik.
 - Pasangan yang hilang dari file baru tidak dihapus: centang `Disabled` di baris Machine Capacity-nya.
 
 ## Data induk Samuel: katalog dan mesin (`master.py`)

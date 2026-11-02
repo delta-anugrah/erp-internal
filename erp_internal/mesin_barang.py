@@ -6,8 +6,9 @@ and their BOMs.
 Reads `data/mesin_barang.json` (sheet "Mesin & Kapasitas": each machine with the products it moulds) and makes
 one Machine Capacity row per template + Jenis and machine. The figures come from the sales Excel's
 specifications (`penjualan_2026.json` `spesifikasi`): cycle time, kg per piece (stored in grams) and material;
-"( n )" after a name is the mould's cavities on that machine and wins over the specification's. A product with
-parts on one machine (Toples Nastar: body and lid) takes the sum of the parts' cycle times. Then
+"( n )" after a name is the mould's cavities on that machine and wins over the specification's. A product made
+of parts (Toples Nastar: body and lid; Gantungan Folding: stick, head and pole) is one item on one machine: one set
+per round, the sum of the parts' cycle times (Samuel 2026-11-02). Then
 `buat_bom_kapasitas` makes each row's BOMs.
 
 Run after `master.muat` and `penjualan.muat` (the templates, Jenis and raw materials come from there).
@@ -78,7 +79,7 @@ def rencana(data: dict, penjualan_data: dict, hasil: master.Hasil) -> list[dict]
 					"jenis": jenis,
 					"workstation": mesin,
 					"cycle_time": sum(p["cycle_time"] for p in s["bagian"]) or s["cycle_time"],
-					"cavities": rongga or s["cavity"],
+					"cavities": rongga or (1 if s["bagian"] else s["cavity"]),
 					"part_weight": round(s["berat_kg"] * 1000, 3),
 					"material": s["bahan"],
 				}

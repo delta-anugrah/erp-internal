@@ -34,14 +34,15 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
 - [x] `data/mesin_barang.json` (the sheet; the xlsx itself was gone from Downloads, copied from the earlier
       session's dump) and `mesin_barang.muat`: 46 Machine Capacity rows + BOMs, idempotent, `test_mesin_barang` (8).
       Loaded on `erp.localhost` 2026-11-02 (168 records, second run 0).
-- [x] Names matched in the file's `barang`; Body PLN, Stik Folding, Gantungan DX have no item: `menunggu-samuel.md` row 15.
+- [x] Names matched in the file's `barang`. Samuel 2026-11-02 (via Abel): Gantungan DX = Gantungan Dinda DX, Folding
+      one item on the stick's machines (135 s a set), Body PLN dropped: 54 rows.
 - [x] Samuel 2026-11-02 (via Abel): machines 1, 7 and 9-14 are made inactive for now; "( 2 )"/"( 4 )" after a name is
       the mould's cavity count (so the same product may have other cavities on another machine).
 - [x] Machines 1, 7, 9-14: `mesin.json` `"aktif": false` → Workstation `disabled` + status Off (`master._mesin`);
       `kapasitas.mesin_aktif` refuses a new or moved Work Order on them; the Production Floor still shows them (Off).
       Sample data moved from Mesin 01/02 to 02/03. "( n )" read as `cavities`.
 - [x] Tonnage: `mesin.json` already has it and matches the sheet (2: 180, 3: 260, 4: 210, 5: 160, 6: 160, 8: 360).
-- [ ] Samuel: `menunggu-samuel.md` row 15 (Body PLN, Stik Folding parts, Gantungan DX, Toples Nastar 40 s, runner).
+- [ ] Optional, Samuel: Toples Nastar 40 s per set, runner weight per mould (`menunggu-samuel.md` row 15 d, e).
 - BS (reject) answered 2026-11-02: every reject is reground and moulded again, no material is counted as wasted. The
   current flow already counts the reject's material as used (Repack into Gudang Reject); nothing to change for now.
 

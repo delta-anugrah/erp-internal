@@ -6,7 +6,8 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Samuel's sheet "Mesin & Kapasitas" into `data/mesin_barang.json` (the xlsx was gone from Downloads; copied from
   the earlier session's dump of it) and `mesin_barang.muat`: 46 Machine Capacity rows (32 pairs on machines 2-6, 8)
   from `penjualan_2026.json` `spesifikasi`, "( n )" = the mould's cavities, Toples Nastar body + lid 40 s, then
-  their BOMs. Body PLN, Stik Folding, Gantungan DX have no item yet: `menunggu-samuel.md` row 15.
+  their BOMs. Samuel's answers the same day: Gantungan DX = Gantungan Dinda DX, Gantungan Folding one item on the
+  stick's machines (2, 3, 6; 135 s a set), Body PLN dropped: 54 rows, `test_mesin_barang` 8 OK.
 - Machines 1, 7, 9-14 inactive: `mesin.json` `aktif` → Workstation disabled + Off; `kapasitas.mesin_aktif` refuses
   a new or moved Work Order on them. `contoh.py` moved its sample capacity and orders from Mesin 01/02 to 02/03.
 - Dev site: `master.muat` (9 written), `mesin_barang.muat` (168 written, second run 0), `contoh.buat_contoh` rerun.
