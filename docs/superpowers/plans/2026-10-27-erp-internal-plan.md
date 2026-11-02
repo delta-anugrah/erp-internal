@@ -28,6 +28,8 @@ image on its own server.
 - Selling Settings `so_required` No (`test_surat_jalan_langsung` replaces `test_surat_jalan_wajib_dari_order`;
   `test_user_tetap_bisa_buat_surat_jalan` replaces `test_user_tetap_bisa_buat_order`). `cek_layar` and
   `panduan_gambar` (now as `admin@`) follow.
+- Sample data: `contoh.py` assigns the first Task of "Katalog Produk Online" to `admin@` (the User profile has no
+  Projects). Manufacturing's Sales Forecast and Item Lead Time come last (Admin only), so a User's home has no gap.
 
 ## Revision 4 (Mas Samuel, confirmed by Abel 2026-10-28): read this first, it overrides everything below
 
