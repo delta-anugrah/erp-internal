@@ -24,10 +24,6 @@ STATUS_TERBUKA = ("Not Started", "In Process")  # Work Order statuses that take 
 
 class ProductionEntry(Document):
 	def before_validate(self):
-		# Only on_submit fills the two entry links; a draft never keeps one sent by the client, or cancel would
-		# cancel someone else's Stock Entry (past batas_user's check).
-		if self.docstatus == 0:
-			self.manufacture_entry = self.reject_entry = None
 		order = frappe.db.get_value(
 			"Work Order", self.work_order, ["company", "erp_mesin", "production_item"], as_dict=True
 		)
@@ -99,6 +95,10 @@ class ProductionEntry(Document):
 		# All or nothing even outside a web request (bench execute, a test): undo the Manufacture if the
 		# Repack fails.
 		frappe.db.savepoint("hasil_produksi_submit")
+		# Only this method fills the two entry links (read only, not changeable after submit): one sent by the
+		# client, even with a straight submit, is dropped first, or cancel would cancel someone else's Stock
+		# Entry past batas_user's check.
+		self.db_set({"manufacture_entry": None, "reject_entry": None})
 		try:
 			if flt(self.good_qty) > 0:
 				se = frappe.get_doc(make_stock_entry(self.work_order, "Manufacture", flt(self.good_qty)))

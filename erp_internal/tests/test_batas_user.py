@@ -130,6 +130,22 @@ class TestBatasUser(IntegrationTestCase):
 		pe = buat_hasil(wo, good=5, reject_entry=lain.name)
 		self.assertIsNone(pe.reject_entry)
 		pe.cancel()
+		# Straight to submit (docstatus 1 on insert), as frappe.client.insert would take it.
+		langsung = frappe.get_doc(
+			{
+				"doctype": "Production Entry",
+				"work_order": wo,
+				"posting_date": today(),
+				"shift": "Shift 1",
+				"good_qty": 5,
+				"manufacture_entry": lain.name,
+				"reject_entry": lain.name,
+				"docstatus": 1,
+			}
+		).insert()
+		self.assertNotEqual(langsung.manufacture_entry, lain.name)
+		self.assertIsNone(langsung.reject_entry)
+		langsung.cancel()
 		self.assertEqual(frappe.db.get_value("Stock Entry", lain.name, "docstatus"), 1)
 
 	def test_surat_jalan(self):
