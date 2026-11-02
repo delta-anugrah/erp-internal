@@ -120,6 +120,18 @@ class TestBatasUser(IntegrationTestCase):
 				)
 			).insert()
 
+	def test_tautan_entri_dari_klien(self):
+		# A draft never keeps a Stock Entry link sent by the client: cancel would cancel that entry too.
+		frappe.set_user(self.admin)
+		lain = self.entri("Material Issue", s_warehouse=self.bahan).insert()
+		lain.submit()
+		wo = self.order()
+		frappe.set_user(self.user)
+		pe = buat_hasil(wo, good=5, reject_entry=lain.name)
+		self.assertIsNone(pe.reject_entry)
+		pe.cancel()
+		self.assertEqual(frappe.db.get_value("Stock Entry", lain.name, "docstatus"), 1)
+
 	def test_surat_jalan(self):
 		stok_awal(self.pabrik, JADI, 50, "Gudang Barang Jadi")
 		pelanggan = buat_pelanggan("_Uji Pelanggan")

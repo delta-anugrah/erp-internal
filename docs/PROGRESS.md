@@ -12,6 +12,9 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Tests: `test_batas_user` (new, 8); `test_surat_jalan_langsung`, `test_user_tetap_bisa_buat_surat_jalan`,
   `test_proyek` with an office worker (roles given directly). `run-tests --app erp_internal`: 222 OK (13 unit + 209
   integration). `cek_layar` 3 users OK (found and fixed: a gap on User's Manufacturing home, Sales Forecast moved last).
+- Security review fix: a draft Production Entry drops client-sent `manufacture_entry`/`reject_entry` (cancel would
+  have cancelled another Stock Entry past `batas_user`); `test_tautan_entri_dari_klien`. `test_batas_user` 9 OK,
+  `test_hasil_produksi` 14 OK.
 - Guides: new `docs/panduan/user.md`; gudang, penjualan, pembelian, admin, produksi, proyek, absen updated. Access PDF
   `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf`. Samuel (via Abel): machines 1, 7, 9-14 inactive for now;
   "( 2 )"/"( 4 )" is the cavity count.
