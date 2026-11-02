@@ -6,6 +6,38 @@ Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-t
 214 tests (13 unit + 201 integration, 2026-11-01), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
 `PINTASAN_MAKS` raised 10 to 12: Manufacturing has 12, Setup 11).
 
+## Next: a simpler User role (Samuel 2026-11-02)
+Samuel agreed: User records only the three daily jobs, everything else is view only; purchasing and selling are not
+used for now. Admin makes Work Orders, BOMs and master data (items, customers, machines).
+- [ ] User may create, edit and submit only: Production Entry (daily output), Delivery Note made directly (no Sales
+      Order), Stock Entry Material Receipt (raw material in, no Purchase Order). Today User can still make and delete
+      Work Orders, BOMs, Sales/Purchase Orders and more (the PDF Abel sent Samuel lists it).
+- [ ] User reads only: Production Floor, stock (Stock Balance, Stock Ledger, Item, Warehouse), Plan vs Actual, Order
+      Readiness, Work Order. Selling, Buying, Projects and HR leave User's rail.
+- [x] User may change a machine's status on the Production Floor (Samuel 2026-11-02): keep it as it is.
+- [ ] Check a Stock Entry limited to Material Receipt for User (ERPNext gives one permission for every Stock Entry
+      type; Production Entry makes its own Manufacture/Repack entries as the current user, so they must keep working).
+- [ ] Admin: Work Order, BOM, Item, Customer, Supplier, Workstation, Machine Capacity (unchanged, already full).
+- [ ] Guides: `docs/panduan/gudang.md` (raw material in by Stock Entry, delivery without Sales Order),
+      `penjualan.md`/`pembelian.md` marked "not used yet", a short User guide of the three jobs; `cek_layar` and the
+      role tests (`test_izin_per_profil`) follow.
+- [ ] Rebuild the access PDF (`Hak-Akses-ERP-Delta-Anugrah.pdf`) from the new permissions for Samuel.
+
+## Next: item-to-machine list into Machine Capacity (Samuel 2026-11-02)
+Samuel's Excel `Perhitungan & Penjualan Barang Plastik (1).xlsx` (Abel's Downloads, 2026-11-02) has a new sheet
+"Mesin & Kapasitas": No. Mesin, Kapasitas (tonnage), Barang Cetak; the machine cell is merged over its items.
+33 pairs on 6 machines: 2 (180 Ton), 3 (260 Ton), 4 (210 Ton), 5 (160 Ton), 6 (160 Ton), 8 (360 Ton). One item may
+run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycle time, cavities, kg per pcs and material.
+- [ ] Copy the sheet into `erp_internal/data/` (json, like `penjualan_2026.json`) and load it: one Machine Capacity row
+      per item and machine from the `spesifikasi` already kept, then `buat_bom_kapasitas`. Idempotent, with a test.
+- [ ] Match "Barang Cetak" names to our Item templates (e.g. "Gantungan Flash ( 2 )", "Body PLN", "Stik Folding",
+      "Body/Tutup Toples Nastar"); list the ones with no item for Samuel.
+- [ ] Ask Samuel (`docs/menunggu-samuel.md` row 12): machines 1, 7 and 9-14 are not in the list (idle, or not filled
+      in yet?); is "( 2 )"/"( 4 )" after a name the cavity count of that mould (cycle time and cavities may differ per machine)?
+- [ ] Workstation tonnage (`Kapasitas`) on Mesin 02..08 if `mesin.json` lacks it.
+- BS (reject) answered 2026-11-02: every reject is reground and moulded again, no material is counted as wasted. The
+  current flow already counts the reject's material as used (Repack into Gudang Reject); nothing to change for now.
+
 ## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)
 - [x] Task 1: Machine Capacity and the lookup (`kapasitas.py`, `test_kapasitas`)
 - [x] Task 2: BOMs from capacity (Make BOMs button)
@@ -115,9 +147,9 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
-- [ ] Plan vs Actual: shifts and reject types (`docs/menunggu-samuel.md` rows 9-10): no answer, keep the defaults
-      (editable lists). Runner: answered 2026-10-29, thrown away (default kept).
-- [ ] Capacity: which item runs on which machine (asked 2026-10-29). Samuel's Excel (2026-10-29) gave cycle time,
+- [ ] Plan vs Actual: reject types (`docs/menunggu-samuel.md` row 10): no answer, keep the defaults (editable list).
+      Shifts answered 2026-11-02: two of 12 h (done). Runner: answered 2026-10-29, thrown away (default kept).
+- [ ] Capacity: which item runs on which machine (asked 2026-10-29; 2026-11-02: each item has its machines, ask for the list). Samuel's Excel (2026-10-29) gave cycle time,
       cavities, kg per pcs (the "Gr" header is kg), material and its price per kg, and Jan-Sep 2026 sales per item.
 - [x] 2026-10-29: that Excel's sales history, raw materials with their price and minimum stock (`penjualan.muat`, run on
       `erp.localhost`: 513 Sales History rows over 90 variants, 7 raw materials; `test_penjualan` 7 OK).

@@ -100,7 +100,7 @@ KAPASITAS = (
 )
 # Open Work Orders (product, machine number, the Achieved % its sample output lands on). Each plans the seven
 # days of output, from the first entry day to yesterday: its quantity is the good pieces made divided by that
-# share (capacity x 8 h x 7 days times the yield), so the report shows green (100), orange (85 up to
+# share (capacity x a 12 h shift x 7 days times the yield), so the report shows green (100), orange (85 up to
 # 100) and red (below 85). An order takes no output past its quantity, so 100 is the most it can reach.
 ORDER_PRODUKSI = (
 	("CTH-EMBER-10L", 1, 1.0),
@@ -110,7 +110,7 @@ ORDER_PRODUKSI = (
 )
 HARI_PRODUKSI = 7  # days of Production Entries, ending yesterday
 # Resin and masterbatch received the day before the first entry (kg): the entries are back-dated and need stock.
-TERIMA_BAHAN = {"CTH-BIJI-PP": 20000, "CTH-BIJI-HDPE": 12000, "CTH-PEWARNA": 800}
+TERIMA_BAHAN = {"CTH-BIJI-PP": 30000, "CTH-BIJI-HDPE": 18000, "CTH-PEWARNA": 1200}
 CATATAN_TERIMA = f"{TANDA}: bahan baku untuk hasil produksi contoh"
 YIELD_HARIAN = (0.86, 0.92, 0.89, 0.95, 0.84, 0.9, 0.93)  # share of the machine's shift output actually made
 # Reject reasons by day (share of good pieces); a day lacks the reasons that are 0.

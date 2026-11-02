@@ -85,7 +85,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Shift",
-   "options": "\nShift 1\nShift 2\nShift 3",
+   "options": "\nShift 1\nShift 2",
    "reqd": 1
   },
   {

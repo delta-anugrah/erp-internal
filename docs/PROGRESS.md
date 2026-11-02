@@ -2,6 +2,15 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-02 (Samuel's answers)
+- Samuel: two factory shifts of 12 h (`setup.SHIFT_PABRIK` now Shift 1 and 2, 12 h; Production Entry options, id.csv,
+  `test_plan_vs_actual` follow); roles Admin and User are enough; each item is tied to particular machines (list
+  still to come). `docs/menunggu-samuel.md` rows 4b, 7, 9, 12 and the production guide updated.
+- Access PDF for Samuel (per section, CRUD/WRITE/READ per feature for Admin and User, read from `erp.localhost`
+  with the three sample users). Samuel then chose a simpler User role (TODO "Next: a simpler User role").
+- Sample resin receipts raised by half (`contoh.TERIMA_BAHAN`: 12 h shifts make more). `run-tests --app erp_internal`: 214 OK
+  (13 unit + 201 integration).
+
 ## 2026-10-31 (Abel's manual tests)
 - Wrap-up: a submitted Work Order's machine now changes only while Not Started or In Process (Abel's call;
   `kapasitas.kunci_mesin`, the form's field read-only otherwise; `test_kunci_mesin`). Catalog against the paper list

@@ -151,9 +151,9 @@ GUDANG_PRODUKSI = {
 	"default_scrap_warehouse": "Gudang Reject",
 }
 PENGATURAN_PRODUKSI = {"backflush_raw_materials_based_on": "BOM"}  # Manufacturing Settings
-# The factory's shifts (name, hours) for Production Entry: its Shift choices and the default run hours (until
-# Samuel says how many shifts and how long). Written as a Property Setter on Production Entry.shift.
-SHIFT_PABRIK = (("Shift 1", 8), ("Shift 2", 8), ("Shift 3", 8))
+# The factory's shifts (name, hours) for Production Entry: its Shift choices and the default run hours (Samuel
+# 2026-11-02: two shifts of 12 h). Written as a Property Setter on Production Entry.shift.
+SHIFT_PABRIK = (("Shift 1", 12), ("Shift 2", 12))
 # The Reject Reasons setup makes when missing (until Samuel lists his). Admin may add more; none is deleted.
 ALASAN_REJECT = (
 	"Short Shot",

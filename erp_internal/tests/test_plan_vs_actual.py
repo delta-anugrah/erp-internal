@@ -104,8 +104,8 @@ class TestPlanVsActual(IntegrationTestCase):
 
 	def test_bagi_shift(self):
 		self.assertEqual(bagi_shift(300, {"Shift 1": 8, "Shift 2": 4}), {"Shift 1": 200, "Shift 2": 100})
-		self.assertEqual(bagi_shift(300, {}), {"Shift 1": 100, "Shift 2": 100, "Shift 3": 100})
-		self.assertEqual(bagi_shift(300, {"Shift 1": 0}), {"Shift 1": 100, "Shift 2": 100, "Shift 3": 100})
+		self.assertEqual(bagi_shift(300, {}), {"Shift 1": 150, "Shift 2": 150})
+		self.assertEqual(bagi_shift(300, {"Shift 1": 0}), {"Shift 1": 150, "Shift 2": 150})
 
 	def test_mesin_hari(self):
 		wo = self.order()

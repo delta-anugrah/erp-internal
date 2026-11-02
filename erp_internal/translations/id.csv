@@ -255,7 +255,6 @@ Date,Tanggal
 Shift,Shift
 Shift 1,Shift 1
 Shift 2,Shift 2
-Shift 3,Shift 3
 Run Hours,Jam Jalan
 Hours the machine ran in this shift; defaults to the shift's length.,"Jam mesin jalan di shift ini; otomatis sepanjang shift."
 Output,Hasil
