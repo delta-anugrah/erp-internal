@@ -2,6 +2,15 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-03 (label jiggle)
+- `label-rapi 1440x900` flip found: at the dolly-out threshold 06 went compact and 03/05/07 full, or the reverse, on a
+  0.15 m camera move. Cause: the front row lies at one view depth when seen square on, so the nearest-first sort was
+  decided by float noise. `label.js`: labels within `SERI` (0.25 m) of each other in depth go full-last-frame first,
+  then floor order; `adegan.proyeksi` gives `dalam` as view depth in metres (was NDC z).
+- Tests as run: `lantai.mjs label-rapi` OK; `lantai.mjs` all cases OK (perf 60.0 fps, 0 dropped, 34 draw calls);
+  `node --test tools/denah.test.mjs` 6 OK. Machines back to disabled + Off.
+- Next: what Samuel answers (`docs/menunggu-samuel.md`), DigitalOcean server and go-live.
+
 ## 2026-11-02 (guide pictures)
 - `tools/panduan_gambar.mjs` retook all 9 pictures; new `gudang-2` (Material Receipt) and `gudang-3` (direct
   Delivery Note) taken as `user@` (an optional third item per picture names the user), shown in `gudang.md`.

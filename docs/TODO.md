@@ -98,7 +98,8 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
       Soft types from the sales Excel have no price yet (`docs/menunggu-samuel.md` row 14c).
 - [x] After each Production Floor task that runs `bench build`: restart `bench start`, then look at the floor in your
       own Chrome and say whether it feels smooth. Abel 2026-10-31: smooth in his Chrome.
-- [ ] Production Floor (`/desk/production-floor`, signed in as `user@example.com`): Ticked items: `lantai.mjs` 2026-10-31 (states, label, pilih,
+- [x] Production Floor (`/desk/production-floor`, signed in as `user@example.com`). 2026-11-03: `lantai.mjs` all cases OK,
+  perf 60.0 fps with 0 frames over 25 ms. Ticked items: `lantai.mjs` 2026-10-31 (states, label, pilih,
   status, live, reconnect, hud, perhatian, dekor-gelap, glass, memuat, strip, id, 13-machines, no-webgl, zona; all OK). perf
   60 fps but 1.65-2 % frames over 25 ms (budget 1 %) with the Mac at load 12-20 from other Docker projects.
   - [x] 14 machines in two rows: back 14 13 12 11 10 9 8, front 1 2 3 4 5 6 7.
@@ -117,8 +118,10 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
   - [x] Machine table (top left, under the bar), with the "Needs attention" card under it: click a row, the camera flies to that machine and the panel opens; the arrow
         folds it and it stays folded after a reload; +, − and home buttons work.
   - [x] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian. The building, truck and floor lettering turn dark too.
-  - [ ] Labels shrink to a chip where they would overlap and never sit under a card.
-        2026-11-03: `label-rapi 1440x900` fails "labels flipped while the camera jiggled by a few px" (no label code
+  - [x] Labels shrink to a chip where they would overlap and never sit under a card.
+        Fixed 2026-11-03: the front row has one depth seen square on, so float noise decided which label was placed
+        first; level labels now keep a fixed order (`label.js` `SERI`). `lantai.mjs` all cases OK.
+        Before: 2026-11-03: `label-rapi 1440x900` fails "labels flipped while the camera jiggled by a few px" (no label code
         changed since); every other `lantai.mjs` case OK.
         2026-10-31: `lantai.mjs label-rapi` fails one check: dollying out, four front labels change in two steps
         (06 first, 03/05/07 on the next camera move) and the test reads the first step as a flip; nothing flips back.
@@ -164,7 +167,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
 - [ ] Plan vs Actual: reject types (`docs/menunggu-samuel.md` row 10): no answer, keep the defaults (editable list).
       Shifts answered 2026-11-02: two of 12 h (done). Runner: answered 2026-10-29, thrown away (default kept).
-- [ ] Capacity: which item runs on which machine (asked 2026-10-29; 2026-11-02: each item has its machines, ask for the list). Samuel's Excel (2026-10-29) gave cycle time,
+- [x] Capacity: which item runs on which machine (asked 2026-10-29; list received 2026-11-02, loaded by `mesin_barang.muat`, see above). Samuel's Excel (2026-10-29) gave cycle time,
       cavities, kg per pcs (the "Gr" header is kg), material and its price per kg, and Jan-Sep 2026 sales per item.
 - [x] 2026-10-29: that Excel's sales history, raw materials with their price and minimum stock (`penjualan.muat`, run on
       `erp.localhost`: 513 Sales History rows over 90 variants, 7 raw materials; `test_penjualan` 7 OK).

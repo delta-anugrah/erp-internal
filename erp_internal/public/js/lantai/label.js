@@ -12,7 +12,8 @@
 // host-relative rectangles from hud.js and panel.js) is hidden. Every label caches its full and compact size, measured
 // only after its text changed (the camera rests then), so a frame reads no layout, and only a changed class or
 // visibility is written. A label flips between full and compact only when the overlap starts or ends by more
-// than HISTERESIS px, so it does not flicker at a boundary.
+// than HISTERESIS px, so it does not flicker at a boundary. Labels at the same depth (a row seen square on) keep a fixed
+// order: the one full last frame first, then floor order, so a camera move of a few px cannot swap who wins.
 
 // Label and chip layout. The card look (fill, light edge, radius, shadow) is `.kartu` from kaca.js, but without the
 // backdrop blur and with a denser fill: fourteen labels move with the camera and each blurred backdrop is redrawn
@@ -45,6 +46,7 @@ export const GAYA_LABEL = `
 
 const DIAM = 120; // ms the camera must rest before label text changes are written
 const HISTERESIS = 8; // px an overlap must start or end by before a label switches between full and compact
+const SERI = 0.25; // m: labels nearer to each other in depth than this count as level
 
 const dua = (n) => String(n).padStart(2, "0");
 const angka = (n) => (typeof format_number === "function" ? format_number(n, null, 0) : String(n));
@@ -123,7 +125,7 @@ export function buatLabel(root, adegan, mesin, { halangan = () => [] } = {}) {
 			ringkas: null, // null until first placed: the first decision has no hysteresis
 			ukur: true, // the sizes below are stale (text changed)
 			lp: 0, tp: 0, lr: 0, tr: 0, // full and compact box, px
-			px: 0, py: 0, dalam: 0, depan: false, // this frame's projection
+			px: 0, py: 0, dalam: 0, depan: false, urutan: 0, // this frame's projection, floor order
 			x0: 0, y0: 0, x1: 0, y1: 0, // the box placed this frame
 		};
 	}
@@ -214,7 +216,12 @@ export function buatLabel(root, adegan, mesin, { halangan = () => [] } = {}) {
 	}
 
 	const urut = []; // labels in front of the camera, placed in this order; reused every frame
-	const bandingkan = (a, b) => (a.nama === dipilih ? -1 : b.nama === dipilih ? 1 : a.dalam - b.dalam);
+	const bandingkan = (a, b) => {
+		if (a.nama === dipilih) return -1;
+		if (b.nama === dipilih) return 1;
+		if (Math.abs(a.dalam - b.dalam) >= SERI) return a.dalam - b.dalam;
+		return (a.ringkas === true) - (b.ringkas === true) || a.urutan - b.urutan;
+	};
 	const kosong = [];
 
 	// Places every label over its machine (just above the andon). Nearest first (the selected one before all): full
@@ -233,6 +240,7 @@ export function buatLabel(root, adegan, mesin, { halangan = () => [] } = {}) {
 			l.px = Math.round(titik.x);
 			l.py = Math.round(titik.y);
 			l.dalam = titik.dalam;
+			l.urutan = i;
 			if (l.depan) urut.push(l);
 			else tulisTampak(l, false);
 		}

@@ -363,13 +363,13 @@ const MARGIN_ATAS = 90; // px a label (with a Work Order) rises above its anchor
 			tandaiKotor();
 		},
 		// Screen pixels of a world point into `out` ({x, y, depan, dalam}); `depan` false when it is behind the
-		// camera, `dalam` the depth (smaller is nearer).
+		// camera, `dalam` the depth along the view in metres (smaller is nearer).
 		proyeksi(x, y, z, out) {
-			v0.set(x, y, z).project(kamera);
+			out.dalam = -v0.set(x, y, z).applyMatrix4(kamera.matrixWorldInverse).z;
+			v0.applyMatrix4(kamera.projectionMatrix);
 			out.x = ((v0.x + 1) / 2) * lebarLayar; // cached sizes: no layout read between label writes
 			out.y = ((1 - v0.y) / 2) * tinggiLayar;
 			out.depan = v0.z < 1;
-			out.dalam = v0.z;
 			return out;
 		},
 		reset() {
