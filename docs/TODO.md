@@ -23,8 +23,10 @@ used for now. Admin makes Work Orders, BOMs and master data (items, customers, m
 - [x] Access PDF rebuilt from the live permissions: `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` (Abel sends it).
 - [x] `cek_layar` 3 users 2026-11-02 (web only, no socket.io): User rail Stock + Manufacturing, Sales Forecast moved
       last in Manufacturing so User's home has no gap. `run-tests --app erp_internal`: 222 OK (13 unit + 209 integration).
-- [ ] Retake `docs/panduan/gambar/` with `tools/panduan_gambar.mjs` (now as `admin@`), and add pictures of a Material
-      Receipt and a direct Delivery Note for `gudang.md`/`user.md`.
+- [x] Retook `docs/panduan/gambar/` with `tools/panduan_gambar.mjs` (9 pictures, as `admin@`; `gudang-2` Material
+      Receipt and `gudang-3` direct Delivery Note as `user@`, in `gudang.md`). Found: User's forms hit 403 on Stock
+      Settings and Customer Group; read added (`setup.IZIN_TAMBAHAN`, `test_batas_user.test_baca_untuk_form`).
+      Save + Submit of both as `user@` in the browser OK 2026-11-02.
 
 ## Done: item-to-machine list into Machine Capacity (Samuel 2026-11-02)
 Samuel's Excel `Perhitungan & Penjualan Barang Plastik (1).xlsx` (Abel's Downloads, 2026-11-02) has a new sheet

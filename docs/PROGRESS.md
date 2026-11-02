@@ -2,6 +2,15 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-02 (guide pictures)
+- `tools/panduan_gambar.mjs` retook all 9 pictures; new `gudang-2` (Material Receipt) and `gudang-3` (direct
+  Delivery Note) taken as `user@` (an optional third item per picture names the user), shown in `gudang.md`.
+- Bug found by it: as User, filling a Material Receipt asked Stock Settings and a Delivery Note's customer asked
+  Customer Group, both 403 with an error dialog. `ERP User` now reads both (`setup.IZIN_TAMBAHAN`). In the browser
+  as `user@`: MAT-STE-2026-00121 and MAT-DN-2026-00004 saved and submitted, no console error.
+- `run-tests --module erp_internal.tests.test_batas_user`: 10 OK (new `test_baca_untuk_form`).
+- Next: push after PR #2 is merged (these commits are local), then the next open item in `docs/TODO.md`.
+
 ## 2026-11-02 (item-to-machine list)
 - Samuel's sheet "Mesin & Kapasitas" into `data/mesin_barang.json` (the xlsx was gone from Downloads; copied from
   the earlier session's dump of it) and `mesin_barang.muat`: 46 Machine Capacity rows (32 pairs on machines 2-6, 8)

@@ -24,6 +24,8 @@ Pembelian (Purchase Order) belum dipakai (Mas Samuel, 2026-11-02), jadi bahan ma
 2. **Default Target Warehouse**: `Gudang Bahan Baku`.
 3. Di **Items**: bahan (misalnya biji plastik) dan jumlahnya dalam Kg. **Save**, **Submit**: stok bertambah.
 
+![Material Receipt](gambar/gudang-2.png)
+
 User cuma bisa membuat jenis `Material Receipt`; jenis lain ditolak ("You may only record a Material Receipt").
 
 ### Kirim barang ke pelanggan
@@ -32,6 +34,8 @@ Surat jalan dibuat langsung, tanpa Sales Order (penjualan belum dipakai, Mas Sam
 2. **Customer**: pelanggannya (pelanggan baru dibuat Admin).
 3. Di **Items**: barang, jumlah, dan gudang asal `Gudang Barang Jadi`. **Save**, lalu **Submit** sebelum truk
    berangkat: stok langsung berkurang. Cetak: **Print**.
+
+![Delivery Note](gambar/gudang-3.png)
 
 Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minus.
 

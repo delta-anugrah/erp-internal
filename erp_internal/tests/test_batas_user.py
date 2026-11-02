@@ -186,6 +186,12 @@ class TestBatasUser(IntegrationTestCase):
 		frappe.set_user(self.admin)
 		permintaan.insert()
 
+	def test_baca_untuk_form(self):
+		# The Material Receipt and Delivery Note forms read these while being filled in (403 without).
+		frappe.set_user(self.user)
+		for dt in ("Stock Settings", "Customer Group"):
+			self.assertTrue(frappe.has_permission(dt, "read"), dt)
+
 	def test_hook_hanya_admin(self):
 		hooks = frappe.get_hooks("has_permission")
 		for dt in HANYA_ADMIN:
