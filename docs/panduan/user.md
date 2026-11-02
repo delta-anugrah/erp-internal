@@ -15,6 +15,7 @@ di tampilan bahasa Inggris.
 | Bahan baku masuk | **Stock → Stock Entry**, jenis `Material Receipt` | `gudang.md`, "Terima bahan baku" |
 
 User juga boleh ganti **status mesin** (Production, Idle, Problem, dan lainnya) di **Production Floor**.
+Mesin yang tidak aktif (1, 7, 9-14) tetap Off: tombolnya menolak dengan catatan, minta Admin mengaktifkannya.
 
 ## Yang cuma dilihat
 

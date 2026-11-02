@@ -28,6 +28,7 @@ def buat_mesin(nama: str, nomor: int, status: str = "Idle", **field) -> str:
 		"erp_tahun": 2010 + nomor,
 		"erp_negara": "CHINA",
 		"status": status,
+		"disabled": 0,
 		**field,
 	}
 	if frappe.db.exists("Workstation", nama):
@@ -212,6 +213,13 @@ class TestLantai(IntegrationTestCase):
 		frappe.set_user(self.operator)
 		self.assertRaises(frappe.ValidationError, set_status, mesin, "Problem")
 		self.assertEqual(frappe.db.get_value("Workstation", mesin, "status"), "Idle")
+
+	def test_set_status_mesin_tidak_aktif(self):
+		# ERPNext keeps a disabled Workstation Off on save; set_status says so instead of a silent no-op.
+		mesin = buat_mesin("A", 1, "Off", disabled=1)
+		frappe.set_user(self.operator)
+		self.assertRaises(frappe.ValidationError, set_status, mesin, "Production")
+		self.assertEqual(frappe.db.get_value("Workstation", mesin, "status"), "Off")
 
 	def test_set_status_baris_dengan_wo(self):
 		mesin = buat_mesin("A", 1, "Idle")

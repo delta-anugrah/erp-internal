@@ -2,7 +2,9 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integration), 231 OK + 1 fixed and rerun.
+Last full run (2026-11-03, guide pictures): 233 tests (13 unit + 220 integration), all OK; since then
+`test_set_status_mesin_tidak_aktif` (module `test_production_floor` 16 OK, twice).
+Before that (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integration), 231 OK + 1 fixed and rerun.
 Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
@@ -15,7 +17,8 @@ used for now. Admin makes Work Orders, BOMs and master data (items, customers, m
 - [x] User reads: Production Floor, Stock Balance, Stock Ledger, Item, Warehouse, Plan vs Actual, Order Readiness,
       Work Order. Rail: Stock and Manufacturing only; Delivery Note moved into Stock's sidebar and home.
 - [x] User may change a machine's status on the Production Floor (Samuel 2026-11-02): `set_status` lets `ERP User`
-      change the status only (Workstation stays read only).
+      change the status only (Workstation stays read only); an inactive machine is refused with a note
+      (`test_set_status_mesin_tidak_aktif`).
 - [x] Production Entry still makes its Manufacture/Repack entries as the User (flag `FLAG_HASIL`), and cancels them.
 - [x] Admin unchanged. Projects and HR are Admin's now (`test_proyek` uses an office worker with the roles given directly).
 - [x] Guides: `docs/panduan/user.md` (new), `gudang.md` (raw material in, direct delivery), `penjualan.md`/
@@ -115,6 +118,8 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
         folds it and it stays folded after a reload; +, − and home buttons work.
   - [x] Switch Desk to dark (user menu): the cards, labels and text stay readable; same in Indonesian. The building, truck and floor lettering turn dark too.
   - [ ] Labels shrink to a chip where they would overlap and never sit under a card.
+        2026-11-03: `label-rapi 1440x900` fails "labels flipped while the camera jiggled by a few px" (no label code
+        changed since); every other `lantai.mjs` case OK.
         2026-10-31: `lantai.mjs label-rapi` fails one check: dollying out, four front labels change in two steps
         (06 first, 03/05/07 on the next camera move) and the test reads the first step as a flip; nothing flips back.
   - [x] A loading card shows until the floor is ready.

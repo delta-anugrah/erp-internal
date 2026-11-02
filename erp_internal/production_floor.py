@@ -55,6 +55,9 @@ def set_status(machine: str, status: str) -> dict:
 	doc = frappe.get_doc("Workstation", machine)
 	if not (doc.get("erp_nomor") or 0) > 0:
 		frappe.throw(_("{0} is not a numbered machine.").format(machine), frappe.ValidationError)
+	# ERPNext keeps an inactive (disabled) machine Off on every save, so a change would silently not stick.
+	if doc.disabled:
+		frappe.throw(_("{0} is inactive. An Admin can turn it on in its Workstation.").format(machine))
 	if status not in _pilihan_status():
 		frappe.throw(_("Unknown machine status: {0}").format(status), frappe.ValidationError)
 	doc.status = status

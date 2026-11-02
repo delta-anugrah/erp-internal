@@ -77,7 +77,7 @@ Browser check of each role's screens (needs `bench start` and the sample users `
 `tools/lantai.mjs` checks the Production Floor page (`/desk/production-floor`, Manufacturing's first link) the same
 way: the 14 machines in floor order, status lamps, labels, the side panel and its status buttons, live updates, the
 info bar, the attention card, the loading screen, the dark decor, the glass look in light and dark, a plain table without WebGL, and the smoothness budget (frame rate,
-dropped frames, long tasks, draw calls) in a visible browser; the header of `tools/lantai.mjs` lists the cases; `.claude/rules/lantai.md` has the budget and the lessons. If
+dropped frames, long tasks, draw calls) in a visible browser; the header of `tools/lantai.mjs` lists the cases (it turns the inactive machines on during the run and back off at exit, so run it on `erp.localhost` only); `.claude/rules/lantai.md` has the budget and the lessons. If
 `bench build` ran while `bench start` was up, restart `bench start` first: the web process keeps the old
 `assets.json` and the desk loads blank. If `bench start` stops at once with "Address already in use" on 11002 or
 13002, a Redis from an earlier run is still up: `lsof -nP -iTCP:11002 -iTCP:13002 -sTCP:LISTEN`, stop those
