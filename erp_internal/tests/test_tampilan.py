@@ -9,6 +9,7 @@ from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
+from erp_internal.batas_user import HANYA_ADMIN
 from erp_internal.tampilan import (
 	ADMIN,
 	APLIKASI,
@@ -74,8 +75,25 @@ _BUILD = [
 	"User Permission",
 	"Data Import",
 ]
+# User (Samuel, 2026-11-02) creates only the three daily jobs; batas_user.py narrows Stock Entry to a Material
+# Receipt and keeps Stock User's other documents read only (test_batas_user).
+_USER_BUAT = ["Production Entry", "Delivery Note", "Stock Entry"]
 IZIN = {
-	USER: ([*_HARIAN, "Employee Checkin", "Leave Application"], [*_KELOLA, *_BUILD, "Server Script"]),
+	USER: (
+		_USER_BUAT,
+		[
+			# HANYA_ADMIN DocTypes pass a check without a document; batas_user refuses their save.
+			*(dt for dt in _HARIAN if dt not in _USER_BUAT and dt not in HANYA_ADMIN),
+			"BOM",
+			"Workstation",
+			"Machine Capacity",
+			"Employee Checkin",
+			"Leave Application",
+			*_KELOLA,
+			*_BUILD,
+			"Server Script",
+		],
+	),
 	ADMIN: ([*_HARIAN, *_KELOLA, "Project", "Master Production Schedule"], [*_BUILD, "Server Script"]),
 	DEVELOPER: ([*_KELOLA, *_BUILD], []),
 }
@@ -326,7 +344,8 @@ class TestTampilan(IntegrationTestCase):
 
 		for profil, boleh in MODUL_BOLEH.items():
 			ikon = {module_of_shell(k) for k, siapa in IKON.items() if profil in siapa}
-			self.assertEqual(ikon | set(MODUL_TANPA_IKON), set(boleh), profil)
+			tanpa_ikon = set(MODUL_TANPA_IKON) if profil == ADMIN else set()  # User has no invoices or leave
+			self.assertEqual(ikon | tanpa_ikon, set(boleh), profil)
 
 	def test_rumah_sama_dengan_sidebar(self):
 		# Each module home lists only its sidebar's links, as shortcuts and nothing else: no number card, link
@@ -366,8 +385,8 @@ class TestTampilan(IntegrationTestCase):
 			self.assertNotIn(shell, [i["link_to"] for i in items])
 			self.assertTrue(frappe.db.exists("Workspace", shell))
 		self.assertEqual(frappe.translate.get_all_translations("id").get("HR"), "SDM")
-		pages = {p["name"] for p in get_workspaces_pengguna(pengguna_profil(USER, "rumah"))}
-		self.assertIn("HR", pages)
+		pages = {p["name"] for p in get_workspaces_pengguna(pengguna_profil(ADMIN, "rumah"))}
+		self.assertIn("HR", pages)  # HR is Admin's (Samuel, 2026-11-02)
 
 	def test_rel_pendek(self):
 		# The rail: at most seven modules, no Accounts or Leaves icon; Settings for Admin only.
@@ -375,8 +394,8 @@ class TestTampilan(IntegrationTestCase):
 		self.assertFalse({"Accounts", "Leaves"} & set(IKON))
 		self.assertEqual(IKON["Setup"], (ADMIN,))
 
-	def test_user_tetap_bisa_buat_order(self):
-		# a Module Profile must not break link fields on a kept form
+	def test_user_tetap_bisa_buat_surat_jalan(self):
+		# a Module Profile must not break link fields on a kept form (a direct Delivery Note, Samuel 2026-11-02)
 		pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
 		u = buat_pengguna("_uji.user.pabrik@example.com", USER, USER, pabrik)
 		pelanggan = buat_pelanggan("_Uji Pelanggan")
@@ -384,19 +403,17 @@ class TestTampilan(IntegrationTestCase):
 		harga = daftar_harga("_Uji Harga Jual", jual=True)  # IDR: the test site's own lists are INR
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
-		so = frappe.get_doc(
+		dn = frappe.get_doc(
 			{
-				"doctype": "Sales Order",
+				"doctype": "Delivery Note",
 				"company": pabrik,
 				"customer": pelanggan,
 				"currency": "IDR",
 				"selling_price_list": harga,
-				"transaction_date": today(),
-				"delivery_date": add_days(today(), 7),
 				"items": [{"item_code": barang, "qty": 10, "rate": 10000}],
 			}
 		)
-		so.insert()
+		dn.insert()
 
 	def test_izin_order_readiness(self):
 		# User and Admin open Order Readiness; a user without a profile does not.

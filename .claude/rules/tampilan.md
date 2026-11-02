@@ -17,8 +17,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
 - Short screens (Samuel, 2026-10-28): each home's shortcuts point at exactly its sidebar's links
-  (`test_rumah_sama_dengan_sidebar`), taken from the guides' flows (`docs/panduan/`). Rail: Stock, Selling, Buying,
-  Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), and Settings for Admin. Accounts and Leaves have no
+  (`test_rumah_sama_dengan_sidebar`), taken from the guides' flows (`docs/panduan/`). Rail (Admin): Stock, Selling, Buying,
+  Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), Settings; User: Stock and Manufacturing. Accounts and Leaves have no
   icon: invoices and payments sit in Selling and Buying, leave in HR. Their modules stay allowed
   (`MODUL_TANPA_IKON`) with a short sidebar and home, for a page Frappe opens in its own module. Admin-only
   shortcuts go last, so a User's home (which drops what they cannot read) has no gap. Stock Reconciliation
@@ -52,17 +52,26 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.
 - Reference code: `frappe/desk/doctype/{dock,sidebar,custom_sidebar,custom_workspace}/`, `frappe/desk/layers.py`.
-- Three Role Profiles (`PROFIL_PERAN`): User, Admin, Developer. Admin holds the manager roles plus the User roles
+- Three Role Profiles (`PROFIL_PERAN`): User, Admin, Developer. Admin holds the manager roles plus ERPNext's *User roles (`_PERAN_USER`, not `ERP User`)
   (Stock Manager alone reads neither Company nor Stock Balance in v16) and `PERAN_ADMIN` ("ERP Admin"). Every
   profile must read Company (`test_izin_per_profil`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
+- User (Samuel, 2026-11-02) is Stock User plus `PERAN_USER` ("ERP User"): rail Stock and Manufacturing only (`IKON`,
+  `MODUL_BOLEH`, no Accounts or Leaves). `PERAN_USER` holds Production Entry (its JSON), reads Machine Capacity,
+  Reject Reason, Sales History (JSON; Order Readiness is built on it), Workstation, Price List and Account
+  (`IZIN_TAMBAHAN`; a Delivery Note checks the customer's account), opens the Production Floor, Plan vs Actual and
+  Order Readiness, and sets a machine's status through `production_floor.set_status` only. `batas_user.py`:
+  Stock Entry `validate`/`before_cancel` allow a User only `TUJUAN_USER` (Material Receipt) unless the entry carries
+  `FLAG_HASIL` (Production Entry's own Manufacture and Repack); the `has_permission` hook on `HANYA_ADMIN` keeps Stock
+  User's other documents read only. Delivery Note without a Sales Order: `setup.PENGATURAN_ALUR` `so_required` No.
+  Frappe resaves a changed profile's users in a background job; `_pengguna_profil` does it at migrate.
 - Admin's rail adds `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons; its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Developer only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on
   1). `pengguna.py` limits it: only roles in `PERAN_BOLEH_ADMIN` (Guest, All and Desk User pass; Administrator never does, though Frappe lists it in `AUTOMATIC_ROLES`), nothing that controls a Developer's or
   Administrator's access (`FIELD_AKSES`, roles, password, rename). Frappe's `populate_role_profile_roles` drops any
-  role ticked outside a user's Role Profiles by itself. An Admin-profile user never keeps the Employee role (the
-  profile drops it); HR Manager covers their attendance.
+  role ticked outside a user's Role Profiles by itself. An Admin- or User-profile user never keeps the Employee role (neither
+  profile has it; ERPNext adds it with an Employee record, hence its place in `PERAN_BOLEH_ADMIN`); HR Manager covers their attendance.
 - Branding (`setup.MEREK`, `_pengaturan`): Website Settings `app_name`, `app_logo`, `splash_image`, `favicon` and
   Navbar Settings `app_logo` point at `/assets/erp_internal/images/` (public files, served through the
   `sites/assets` symlink, no build); System Settings `app_name` is "Delta Anugrah". Login uses `get_app_logo`

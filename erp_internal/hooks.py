@@ -5,6 +5,8 @@ app_description = "ERP for the plastic factory and the office"
 app_email = "marcoabel25@gmail.com"
 app_license = "mit"
 
+from erp_internal.batas_user import HANYA_ADMIN
+
 # Apps
 # ------------------
 
@@ -84,7 +86,11 @@ doc_events = {
 		"on_change": "erp_internal.production_floor.siarkan",
 		# before_validate, not validate: ERPNext builds the required items in validate, from the BOM then set.
 		"before_validate": "erp_internal.planning.kapasitas.pilih_bom",
-		"before_update_after_submit": "erp_internal.planning.kapasitas.kunci_mesin",
+		"validate": "erp_internal.planning.kapasitas.mesin_aktif",
+		"before_update_after_submit": [
+			"erp_internal.planning.kapasitas.kunci_mesin",
+			"erp_internal.planning.kapasitas.mesin_aktif",
+		],
 	},
 	"User": {
 		"before_validate": "erp_internal.pengguna.cek_user_awal",
@@ -94,8 +100,17 @@ doc_events = {
 		"before_insert": "erp_internal.pengguna.cek_peran",
 		"validate": "erp_internal.pengguna.cek_peran",
 	},
+	# batas_user.py: a User makes only a Material Receipt by hand.
+	"Stock Entry": {
+		"validate": "erp_internal.batas_user.cek_stock_entry",
+		"before_cancel": "erp_internal.batas_user.cek_stock_entry",
+	},
 }
-has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
+# batas_user.HANYA_ADMIN: Stock User's other documents, read only for a User.
+has_permission = {
+	"User": "erp_internal.pengguna.boleh_ubah",
+	**dict.fromkeys(HANYA_ADMIN, "erp_internal.batas_user.boleh_ubah"),
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

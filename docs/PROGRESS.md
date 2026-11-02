@@ -2,6 +2,45 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-02 (item-to-machine list)
+- Samuel's sheet "Mesin & Kapasitas" into `data/mesin_barang.json` (the xlsx was gone from Downloads; copied from
+  the earlier session's dump of it) and `mesin_barang.muat`: 46 Machine Capacity rows (32 pairs on machines 2-6, 8)
+  from `penjualan_2026.json` `spesifikasi`, "( n )" = the mould's cavities, Toples Nastar body + lid 40 s, then
+  their BOMs. Samuel's answers the same day: Gantungan DX = Gantungan Dinda DX, Gantungan Folding one item on the
+  stick's machines (2, 3, 6; 135 s a set), Body PLN dropped: 54 rows, `test_mesin_barang` 8 OK.
+- Machines 1, 7, 9-14 inactive: `mesin.json` `aktif` → Workstation disabled + Off; `kapasitas.mesin_aktif` refuses
+  a new or moved Work Order on them. `contoh.py` moved its sample capacity and orders from Mesin 01/02 to 02/03.
+- Dev site: `master.muat` (9 written), `mesin_barang.muat` (168 written, second run 0), `contoh.buat_contoh` rerun.
+- Tests: `test_mesin_barang` (8 OK), `test_bom_kapasitas.test_mesin_tidak_aktif`. Full run 232 (13 unit + 219
+  integration): 231 OK, 1 error in the new `test_mesin_tidak_aktif` (it edited a field locked after submit); fixed
+  to call `mesin_aktif` directly, `test_bom_kapasitas` rerun 9 OK.
+
+## 2026-11-02 (a simpler User role)
+- Samuel: User records only daily output, deliveries and raw material in; the rest is read only. User = Stock User +
+  `ERP User` (`tampilan.PERAN_USER`); `batas_user.py` keeps a User to a Material Receipt Stock Entry (Production
+  Entry's own entries pass by `FLAG_HASIL`) and makes Stock User's other documents read only (`HANYA_ADMIN`).
+  `ERP User` reads Workstation, Price List, Account, Machine Capacity, Reject Reason, Sales History; sets a machine's
+  status only. Rail Stock + Manufacturing; Delivery Note in Stock; `so_required` No (direct Delivery Note).
+  `tampilan._pengguna_profil` resaves users whose roles lag behind their profile at migrate.
+- Tests: `test_batas_user` (new, 8); `test_surat_jalan_langsung`, `test_user_tetap_bisa_buat_surat_jalan`,
+  `test_proyek` with an office worker (roles given directly). `run-tests --app erp_internal`: 222 OK (13 unit + 209
+  integration). `cek_layar` 3 users OK (found and fixed: a gap on User's Manufacturing home, Sales Forecast moved last).
+- Security review fix: Production Entry `on_submit` empties client-sent `manufacture_entry`/`reject_entry` before
+  filling them (cancel would have cancelled another Stock Entry past `batas_user`; a straight submit too); `test_tautan_entri_dari_klien`. `test_batas_user` 9 OK,
+  `test_hasil_produksi` 14 OK.
+- Guides: new `docs/panduan/user.md`; gudang, penjualan, pembelian, admin, produksi, proyek, absen updated. Access PDF
+  `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf`. Samuel (via Abel): machines 1, 7, 9-14 inactive for now;
+  "( 2 )"/"( 4 )" is the cavity count.
+
+## 2026-11-02 (Samuel's answers)
+- Samuel: two factory shifts of 12 h (`setup.SHIFT_PABRIK` now Shift 1 and 2, 12 h; Production Entry options, id.csv,
+  `test_plan_vs_actual` follow); roles Admin and User are enough; each item is tied to particular machines (list
+  still to come). `docs/menunggu-samuel.md` rows 4b, 7, 9, 12 and the production guide updated.
+- Access PDF for Samuel (per section, CRUD/WRITE/READ per feature for Admin and User, read from `erp.localhost`
+  with the three sample users). Samuel then chose a simpler User role (TODO "Next: a simpler User role").
+- Sample resin receipts raised by half (`contoh.TERIMA_BAHAN`: 12 h shifts make more). `run-tests --app erp_internal`: 214 OK
+  (13 unit + 201 integration).
+
 ## 2026-10-31 (Abel's manual tests)
 - Wrap-up: a submitted Work Order's machine now changes only while Not Started or In Process (Abel's call;
   `kapasitas.kunci_mesin`, the form's field read-only otherwise; `test_kunci_mesin`). Catalog against the paper list

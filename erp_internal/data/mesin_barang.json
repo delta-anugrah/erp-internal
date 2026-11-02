@@ -1,0 +1,32 @@
+{
+  "sumber": "Excel Mas Samuel 2026-11-02 \"Perhitungan & Penjualan Barang Plastik (1).xlsx\", sheet \"Mesin & Kapasitas\": No. Mesin, Kapasitas, Barang Cetak (sel mesin di-merge ke barangnya). \"( n )\" setelah nama = jumlah cavity cetakan di mesin itu (Samuel 2026-11-02, lewat Abel). Body PLN (Mesin 02) dibuang dari daftar: sudah tidak dibuat (Samuel 2026-11-02).",
+  "mesin": [
+    {"no": 2, "kapasitas": "180 Ton", "barang": ["Gayung Lumba", "Pot Bunga", "Stik Folding", "Gantungan Flash ( 2 )"]},
+    {"no": 3, "kapasitas": "260 Ton", "barang": ["Gayung Bajigur", "Stik Folding", "Gantungan Pita ( 4 )", "Gantungan Baby Love"]},
+    {"no": 4, "kapasitas": "210 Ton", "barang": ["Gantungan Pita ( 4 )", "Gantungan DX ( 4 )", "Baskom 306", "Gayung Bajigur", "Pot Bunga", "Gantungan Baby Love"]},
+    {"no": 5, "kapasitas": "160 Ton", "barang": ["Gantungan Flash ", "Gantungan Pita ( 2 )", "Piring Rotan", "Body Toples Nastar", "Tutup Toples Nastar", "Gantungan DX ( 2 )"]},
+    {"no": 6, "kapasitas": "160 Ton", "barang": ["Nampan", "Pot Bunga", "Gantungan Baby Love", "Stik Folding", "Baskom 303"]},
+    {"no": 8, "kapasitas": "360 Ton", "barang": ["Ember 4 Galon", "Ember 3 Galon", "Tempat Sampah", "Baskom 20", "Nampan", "Gantungan Pita ( 4 )"]}
+  ],
+  "catatan_barang": "Nama di sheet (tanpa \"( n )\") -> [template, Jenis, no baris spesifikasi di penjualan_2026.json]. Jenis kosong = template tanpa Jenis. Nama yang dipetakan ke daftar kosong belum punya barang: ditanyakan ke Samuel. Body dan Tutup Toples Nastar satu barang (TOPLES-NASTAR), dicetak di mesin yang sama: satu baris, cycle time body + tutup. Gantungan Folding (Stik, Batok, Tongkat) juga satu barang di mesin yang mencetak stiknya (Samuel 2026-11-02): satu set per jumlah cycle time ketiga bagian. Gantungan DX = Gantungan Dinda DX (Samuel 2026-11-02).",
+  "barang": {
+    "Gayung Lumba": [["GAYUNG-LUMBA", "Super", 4], ["GAYUNG-LUMBA", "DX", 19], ["GAYUNG-LUMBA", "Soft", 30]],
+    "Pot Bunga": [["POT-25", "Super", 15], ["POT-25", "Hitam", 29]],
+    "Gantungan Flash": [["GANTUNGAN-FLASH", "Hitam", 26]],
+    "Gayung Bajigur": [["GAYUNG-BAJIGUR", "Super", 5], ["GAYUNG-BAJIGUR", "DX", 20], ["GAYUNG-BAJIGUR", "DX Soft", 31]],
+    "Gantungan Pita": [["GANTUNGAN-PITA", "Super", 2], ["GANTUNGAN-PITA", "Hitam", 27]],
+    "Gantungan Baby Love": [["GANTUNGAN-BABY-LOVE", "Super", 3], ["GANTUNGAN-BABY-LOVE", "DX", 18]],
+    "Baskom 306": [["BASKOM-306", "Super", 9], ["BASKOM-306", "DX", 21]],
+    "Piring Rotan": [["PIRING-ROTAN", "Super & DX", 12], ["PIRING-ROTAN", "DX", 23]],
+    "Body Toples Nastar": [["TOPLES-NASTAR", "", 34]],
+    "Tutup Toples Nastar": [["TOPLES-NASTAR", "", 34]],
+    "Nampan": [["NAMPAN-DINDA", "Super", 11]],
+    "Baskom 303": [["BASKOM-303", "Super", 8], ["BASKOM-303", "DX", 22]],
+    "Ember 4 Galon": [["EMBER-VINCENT-4G", "Super", 7]],
+    "Ember 3 Galon": [["EMBER-VINCENT-3G", "Super", 6]],
+    "Tempat Sampah": [["KERANJANG-SAMPAH", "Super", 16], ["KERANJANG-SAMPAH", "DX", 24]],
+    "Baskom 20": [["BASKOM-20", "Super", 10], ["BASKOM-20", "Hitam", 28]],
+    "Stik Folding": [["GANTUNGAN-FOLDING-20", "Super", 14], ["GANTUNGAN-FOLDING-20", "Soft", 32]],
+    "Gantungan DX": [["GANTUNGAN-DINDA", "DX", 17]]
+  }
+}

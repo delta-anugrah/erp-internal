@@ -255,7 +255,6 @@ Date,Tanggal
 Shift,Shift
 Shift 1,Shift 1
 Shift 2,Shift 2
-Shift 3,Shift 3
 Run Hours,Jam Jalan
 Hours the machine ran in this shift; defaults to the shift's length.,"Jam mesin jalan di shift ini; otomatis sepanjang shift."
 Output,Hasil
@@ -320,3 +319,6 @@ Hide attention list,Sembunyikan daftar perhatian
 "Name the company: {0} companies are run by this app.","Sebutkan perusahaannya: ada {0} perusahaan yang dijalankan aplikasi ini."
 Title,Judul
 "The machine can only be changed while the Work Order is Not Started or In Process.",Mesin hanya bisa diganti selama Work Order belum mulai atau sedang berjalan.
+"You may only record a Material Receipt. Ask an Admin for a {0}.","Kamu cuma bisa mencatat Material Receipt (bahan masuk). Minta Admin untuk {0}."
+ERP User,Pengguna ERP
+"{0} is not in use. Choose another machine.",{0} sedang tidak dipakai. Pilih mesin lain.

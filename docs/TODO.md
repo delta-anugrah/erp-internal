@@ -2,9 +2,49 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-test.localhost run-tests --app erp_internal`:
-214 tests (13 unit + 201 integration, 2026-11-01), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
-`PINTASAN_MAKS` raised 10 to 12: Manufacturing has 12, Setup 11).
+Last full run (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integration), 231 OK + 1 fixed and rerun.
+Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
+222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+
+## Done: a simpler User role (Samuel 2026-11-02)
+Samuel agreed: User records only the three daily jobs, everything else is view only; purchasing and selling are not
+used for now. Admin makes Work Orders, BOMs and master data (items, customers, machines).
+- [x] User = Stock User + our role `ERP User` (`tampilan.PERAN_USER`): creates only Production Entry, a Delivery Note
+      made directly (`so_required` No) and a Material Receipt Stock Entry (`batas_user.py`); Stock User's other
+      documents (`HANYA_ADMIN`) and Work Orders, BOMs, items, customers are read only. `test_batas_user`.
+- [x] User reads: Production Floor, Stock Balance, Stock Ledger, Item, Warehouse, Plan vs Actual, Order Readiness,
+      Work Order. Rail: Stock and Manufacturing only; Delivery Note moved into Stock's sidebar and home.
+- [x] User may change a machine's status on the Production Floor (Samuel 2026-11-02): `set_status` lets `ERP User`
+      change the status only (Workstation stays read only).
+- [x] Production Entry still makes its Manufacture/Repack entries as the User (flag `FLAG_HASIL`), and cancels them.
+- [x] Admin unchanged. Projects and HR are Admin's now (`test_proyek` uses an office worker with the roles given directly).
+- [x] Guides: `docs/panduan/user.md` (new), `gudang.md` (raw material in, direct delivery), `penjualan.md`/
+      `pembelian.md` "not used yet", `admin.md`, `produksi.md`, `proyek.md`, `absen.md`.
+- [x] Access PDF rebuilt from the live permissions: `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` (Abel sends it).
+- [x] `cek_layar` 3 users 2026-11-02 (web only, no socket.io): User rail Stock + Manufacturing, Sales Forecast moved
+      last in Manufacturing so User's home has no gap. `run-tests --app erp_internal`: 222 OK (13 unit + 209 integration).
+- [ ] Retake `docs/panduan/gambar/` with `tools/panduan_gambar.mjs` (now as `admin@`), and add pictures of a Material
+      Receipt and a direct Delivery Note for `gudang.md`/`user.md`.
+
+## Done: item-to-machine list into Machine Capacity (Samuel 2026-11-02)
+Samuel's Excel `Perhitungan & Penjualan Barang Plastik (1).xlsx` (Abel's Downloads, 2026-11-02) has a new sheet
+"Mesin & Kapasitas": No. Mesin, Kapasitas (tonnage), Barang Cetak; the machine cell is merged over its items.
+33 pairs on 6 machines: 2 (180 Ton), 3 (260 Ton), 4 (210 Ton), 5 (160 Ton), 6 (160 Ton), 8 (360 Ton). One item may
+run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycle time, cavities, kg per pcs and material.
+- [x] `data/mesin_barang.json` (the sheet; the xlsx itself was gone from Downloads, copied from the earlier
+      session's dump) and `mesin_barang.muat`: 46 Machine Capacity rows + BOMs, idempotent, `test_mesin_barang` (8).
+      Loaded on `erp.localhost` 2026-11-02 (168 records, second run 0).
+- [x] Names matched in the file's `barang`. Samuel 2026-11-02 (via Abel): Gantungan DX = Gantungan Dinda DX, Folding
+      one item on the stick's machines (135 s a set), Body PLN dropped: 54 rows.
+- [x] Samuel 2026-11-02 (via Abel): machines 1, 7 and 9-14 are made inactive for now; "( 2 )"/"( 4 )" after a name is
+      the mould's cavity count (so the same product may have other cavities on another machine).
+- [x] Machines 1, 7, 9-14: `mesin.json` `"aktif": false` → Workstation `disabled` + status Off (`master._mesin`);
+      `kapasitas.mesin_aktif` refuses a new or moved Work Order on them; the Production Floor still shows them (Off).
+      Sample data moved from Mesin 01/02 to 02/03. "( n )" read as `cavities`.
+- [x] Tonnage: `mesin.json` already has it and matches the sheet (2: 180, 3: 260, 4: 210, 5: 160, 6: 160, 8: 360).
+- [ ] Optional, Samuel: Toples Nastar 40 s per set, runner weight per mould (`menunggu-samuel.md` row 15 d, e).
+- BS (reject) answered 2026-11-02: every reject is reground and moulded again, no material is counted as wasted. The
+  current flow already counts the reject's material as used (Repack into Gudang Reject); nothing to change for now.
 
 ## Plan vs Actual (docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md)
 - [x] Task 1: Machine Capacity and the lookup (`kapasitas.py`, `test_kapasitas`)
@@ -115,9 +155,9 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
-- [ ] Plan vs Actual: shifts and reject types (`docs/menunggu-samuel.md` rows 9-10): no answer, keep the defaults
-      (editable lists). Runner: answered 2026-10-29, thrown away (default kept).
-- [ ] Capacity: which item runs on which machine (asked 2026-10-29). Samuel's Excel (2026-10-29) gave cycle time,
+- [ ] Plan vs Actual: reject types (`docs/menunggu-samuel.md` row 10): no answer, keep the defaults (editable list).
+      Shifts answered 2026-11-02: two of 12 h (done). Runner: answered 2026-10-29, thrown away (default kept).
+- [ ] Capacity: which item runs on which machine (asked 2026-10-29; 2026-11-02: each item has its machines, ask for the list). Samuel's Excel (2026-10-29) gave cycle time,
       cavities, kg per pcs (the "Gr" header is kg), material and its price per kg, and Jan-Sep 2026 sales per item.
 - [x] 2026-10-29: that Excel's sales history, raw materials with their price and minimum stock (`penjualan.muat`, run on
       `erp.localhost`: 513 Sales History rows over 90 variants, 7 raw materials; `test_penjualan` 7 OK).

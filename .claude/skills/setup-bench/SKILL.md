@@ -30,4 +30,4 @@ bpt.localhost, cloud.localhost, onprem.localhost.
    (`bench --site erp.localhost set-config erp_sandi_contoh <password>`; never print it), then
    `bench --site erp.localhost execute erp_internal.contoh.buat_contoh`. A site with `erp_produksi` (the server)
    refuses it. The sample company is PT Delta Anugrah (CPL) with its logo (`contoh._logo`). Samuel's real data:
-   `bench --site erp.localhost execute erp_internal.master.muat`, then `erp_internal.penjualan.muat` (`docs/impor.md`).
+   `bench --site erp.localhost execute erp_internal.master.muat`, then `erp_internal.penjualan.muat`, then `erp_internal.mesin_barang.muat` (`docs/impor.md`).

@@ -1,6 +1,6 @@
 # Panduan Admin
 
-Untuk **Admin**. Admin bisa semua yang dikerjakan User (panduan lain), ditambah: barang, pemasok, resep (BOM),
+Untuk **Admin**. Admin bisa semua yang dikerjakan User (`user.md`), ditambah: perintah produksi (Work Order), barang, pemasok, resep (BOM),
 stok awal dan stok opname, HR, akun pengguna, dan pengaturan usaha. Akun pengguna, stok awal dan opname, dan
 pengaturan ada di ikon **Settings** di rel kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
 Manufacturing); HR di aplikasi **HR**.
@@ -9,8 +9,8 @@ Ada tiga peran (**Role Profile**):
 
 | Peran | Untuk siapa | Bisa |
 |---|---|---|
-| **User** | semua karyawan | kerja harian: stok, pesanan, surat jalan, terima barang, faktur (catatan), produksi, timesheet, absen dan cuti sendiri |
-| **Admin** | pemilik dan kepala | semua yang User bisa, plus data induk, HR, akun pengguna, pengaturan usaha |
+| **User** | orang pabrik dan gudang | tiga kerjaan harian: hasil produksi, surat jalan, bahan baku masuk; status mesin; selebihnya cuma lihat (`user.md`) |
+| **Admin** | pemilik dan kepala | semua yang User bisa, plus Work Order, BOM, data induk, penjualan, pembelian, proyek, HR, akun pengguna, pengaturan usaha |
 | **Developer** | tim IT | semuanya, termasuk Build dan System Settings |
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti

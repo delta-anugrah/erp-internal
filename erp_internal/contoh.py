@@ -85,32 +85,32 @@ ORDER = (
 )
 
 # Machine Capacity rows: (product, machine number, cycle seconds, cavities, part g, runner g, resin,
-# masterbatch or None, masterbatch percent). Mesin 02 is the older, slower machine.
+# masterbatch or None, masterbatch percent). Mesin 03 is the faster machine; Mesin 01 is not in use (master.py).
 KAPASITAS = (
-	("CTH-EMBER-10L", 1, 45, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-EMBER-10L", 3, 45, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
 	("CTH-EMBER-10L", 2, 55, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
-	("CTH-BASKOM-40", 1, 40, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-BASKOM-40", 3, 40, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
 	("CTH-BASKOM-40", 2, 48, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
-	("CTH-GAYUNG", 1, 20, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
+	("CTH-GAYUNG", 3, 20, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
 	("CTH-GAYUNG", 2, 24, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
-	("CTH-TOPLES-1L", 1, 30, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
+	("CTH-TOPLES-1L", 3, 30, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
 	("CTH-TOPLES-1L", 2, 36, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
-	("CTH-KURSI", 1, 70, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
+	("CTH-KURSI", 3, 70, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
 	("CTH-KURSI", 2, 85, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
 )
 # Open Work Orders (product, machine number, the Achieved % its sample output lands on). Each plans the seven
 # days of output, from the first entry day to yesterday: its quantity is the good pieces made divided by that
-# share (capacity x 8 h x 7 days times the yield), so the report shows green (100), orange (85 up to
+# share (capacity x a 12 h shift x 7 days times the yield), so the report shows green (100), orange (85 up to
 # 100) and red (below 85). An order takes no output past its quantity, so 100 is the most it can reach.
 ORDER_PRODUKSI = (
-	("CTH-EMBER-10L", 1, 1.0),
-	("CTH-GAYUNG", 1, 1.0),
+	("CTH-EMBER-10L", 3, 1.0),
+	("CTH-GAYUNG", 3, 1.0),
 	("CTH-BASKOM-40", 2, 0.72),
 	("CTH-KURSI", 2, 0.95),
 )
 HARI_PRODUKSI = 7  # days of Production Entries, ending yesterday
 # Resin and masterbatch received the day before the first entry (kg): the entries are back-dated and need stock.
-TERIMA_BAHAN = {"CTH-BIJI-PP": 20000, "CTH-BIJI-HDPE": 12000, "CTH-PEWARNA": 800}
+TERIMA_BAHAN = {"CTH-BIJI-PP": 30000, "CTH-BIJI-HDPE": 18000, "CTH-PEWARNA": 1200}
 CATATAN_TERIMA = f"{TANDA}: bahan baku untuk hasil produksi contoh"
 YIELD_HARIAN = (0.86, 0.92, 0.89, 0.95, 0.84, 0.9, 0.93)  # share of the machine's shift output actually made
 # Reject reasons by day (share of good pieces); a day lacks the reasons that are 0.
@@ -133,7 +133,8 @@ KARYAWAN = (
 	("Eka", "Putri", "Female", None),
 )
 PROYEK = "Katalog Produk Online"
-TUGAS = ("Desain halaman katalog", "Foto dan data produk", "Uji dan rilis")  # the first goes to the User
+# The first task goes to the Admin (the User profile has no Projects since 2026-11-02).
+TUGAS = ("Desain halaman katalog", "Foto dan data produk", "Uji dan rilis")
 
 # Every DocType this file writes, for the summary and the idempotency test.
 DIBUAT = (
@@ -351,7 +352,7 @@ def _kantor(company: str, pengguna: dict[str, str], hari_ini: date) -> None:
 			)
 		tandai("Task", tugas)
 
-	karyawan = pengguna.get(USER)
+	karyawan = pengguna.get(ADMIN)
 	pertama = frappe.db.get_value("Task", {"subject": TUGAS[0], "project": proyek})
 	if karyawan and not frappe.db.exists(
 		"ToDo",

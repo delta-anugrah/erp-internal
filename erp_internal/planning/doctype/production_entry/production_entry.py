@@ -16,6 +16,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, nowtime, today
 
+from erp_internal.batas_user import FLAG_HASIL
 from erp_internal.setup import jam_shift
 
 STATUS_TERBUKA = ("Not Started", "In Process")  # Work Order statuses that take output
@@ -94,6 +95,10 @@ class ProductionEntry(Document):
 		# All or nothing even outside a web request (bench execute, a test): undo the Manufacture if the
 		# Repack fails.
 		frappe.db.savepoint("hasil_produksi_submit")
+		# Only this method fills the two entry links (read only, not changeable after submit): one sent by the
+		# client, even with a straight submit, is dropped first, or cancel would cancel someone else's Stock
+		# Entry past batas_user's check.
+		self.db_set({"manufacture_entry": None, "reject_entry": None})
 		try:
 			if flt(self.good_qty) > 0:
 				se = frappe.get_doc(make_stock_entry(self.work_order, "Manufacture", flt(self.good_qty)))
@@ -113,7 +118,9 @@ class ProductionEntry(Document):
 	def on_cancel(self):
 		for nama in (self.reject_entry, self.manufacture_entry):
 			if nama and frappe.db.get_value("Stock Entry", nama, "docstatus") == 1:
-				frappe.get_doc("Stock Entry", nama).cancel()
+				se = frappe.get_doc("Stock Entry", nama)
+				se.flags[FLAG_HASIL] = True  # a User cancels it with this entry (batas_user)
+				se.cancel()
 
 	def _ajukan(self, se):
 		"""Date the Stock Entry on this entry's date, then insert and submit it."""
@@ -121,6 +128,7 @@ class ProductionEntry(Document):
 		se.posting_date = self.posting_date
 		se.posting_time = nowtime()
 		se.remarks = _("Production Entry {0}").format(self.name)
+		se.flags[FLAG_HASIL] = True  # a User makes it through this entry only (batas_user)
 		se.insert()
 		se.submit()
 		return se
