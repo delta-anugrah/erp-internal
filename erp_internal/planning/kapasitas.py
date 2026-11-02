@@ -219,3 +219,14 @@ def kunci_mesin(doc, method=None) -> None:
 	if not lama or lama.erp_mesin == doc.erp_mesin or lama.status in STATUS_GANTI_MESIN:
 		return
 	frappe.throw(_("The machine can only be changed while the Work Order is Not Started or In Process."))
+
+
+def mesin_aktif(doc, method=None) -> None:
+	"""Refuse a Work Order on an inactive machine (Workstation disabled, Samuel 2026-11-02). A submitted order
+	already on that machine keeps running; a new, draft or moved order is refused."""
+	if not doc.erp_mesin or not frappe.db.get_value("Workstation", doc.erp_mesin, "disabled"):
+		return
+	lama = doc.get_doc_before_save()
+	if lama and lama.docstatus == 1 and lama.erp_mesin == doc.erp_mesin:
+		return
+	frappe.throw(_("{0} is not in use. Choose another machine.").format(frappe.bold(doc.erp_mesin)))

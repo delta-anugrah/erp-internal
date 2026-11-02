@@ -101,6 +101,10 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   materials with their price per kg, Sales History January-September 2026 (spread evenly over the colours) and each
   variant's `safety_stock` (half an average month) (`docs/impor.md` "Excel penjualan Samuel", tested by
   `tests/test_penjualan.py`).
+- Samuel's item-to-machine list (2026-11-02), after `penjualan.muat`: `bench --site erp.localhost execute
+  erp_internal.mesin_barang.muat` reads `erp_internal/data/mesin_barang.json` and makes a Machine Capacity row per
+  template + Jenis and machine ("( n )" = the mould's cavities) and their BOMs (`docs/impor.md` "Daftar barang per
+  mesin Samuel", tested by `tests/test_mesin_barang.py`). Machines 1, 7, 9-14 are inactive (`mesin.json` `aktif`).
 - Production (`erp_internal/planning/`, module Planning): the company's Work Orders default to its Gudang
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted

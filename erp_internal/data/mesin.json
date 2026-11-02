@@ -1,18 +1,19 @@
 {
+  "catatan": "aktif false: tidak dipakai untuk sementara (Samuel 2026-11-02), Workstation disabled dan status Off.",
   "machines": [
-    {"no": 1, "mesin": "JSW", "tonase": "220 TON", "country": "JAPAN", "year": 1989, "model": "JSW J220 SSA II"},
+    {"no": 1, "mesin": "JSW", "tonase": "220 TON", "country": "JAPAN", "year": 1989, "model": "JSW J220 SSA II", "aktif": false},
     {"no": 2, "mesin": "NISSEI", "tonase": "180 TON", "country": "JAPAN", "year": 1992, "model": "FS180S50ASE"},
     {"no": 3, "mesin": "NISSEI", "tonase": "260 TON", "country": "JAPAN", "year": 1990, "model": "FE260S71ASE"},
     {"no": 4, "mesin": "NISSEI", "tonase": "210 TON", "country": "JAPAN", "year": 1992, "model": "FE210S50ASE"},
     {"no": 5, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1992, "model": "FP 160"},
     {"no": 6, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1994, "model": "FS160S36ASE"},
-    {"no": 7, "mesin": "NISSEI", "tonase": "120 TON", "country": "JAPAN", "year": 1991, "model": "FE120S25ASEK"},
+    {"no": 7, "mesin": "NISSEI", "tonase": "120 TON", "country": "JAPAN", "year": 1991, "model": "FE120S25ASEK", "aktif": false},
     {"no": 8, "mesin": "NISSEI", "tonase": "360 TON", "country": "JAPAN", "year": 1996, "model": "FE360S100ASE"},
-    {"no": 9, "mesin": "NISSEI", "tonase": "150 TON", "country": "JAPAN", "year": 1983, "model": "FS 150355 SE"},
-    {"no": 10, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1992, "model": "FS 16036 ANE"},
-    {"no": 11, "mesin": "JSW", "tonase": "150 TON", "country": "JAPAN", "year": 1988, "model": "J150 SA II"},
-    {"no": 12, "mesin": "CHENDE", "tonase": "250 TON", "country": "HONGKONG", "year": 2009, "model": "EM 250 - V"},
-    {"no": 13, "mesin": "NISSEI", "tonase": "260 TON", "country": "JAPAN", "year": 1995, "model": "FE260S71ASE"},
-    {"no": 14, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1994, "model": "FE 160S36ASE"}
+    {"no": 9, "mesin": "NISSEI", "tonase": "150 TON", "country": "JAPAN", "year": 1983, "model": "FS 150355 SE", "aktif": false},
+    {"no": 10, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1992, "model": "FS 16036 ANE", "aktif": false},
+    {"no": 11, "mesin": "JSW", "tonase": "150 TON", "country": "JAPAN", "year": 1988, "model": "J150 SA II", "aktif": false},
+    {"no": 12, "mesin": "CHENDE", "tonase": "250 TON", "country": "HONGKONG", "year": 2009, "model": "EM 250 - V", "aktif": false},
+    {"no": 13, "mesin": "NISSEI", "tonase": "260 TON", "country": "JAPAN", "year": 1995, "model": "FE260S71ASE", "aktif": false},
+    {"no": 14, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1994, "model": "FE 160S36ASE", "aktif": false}
   ]
 }

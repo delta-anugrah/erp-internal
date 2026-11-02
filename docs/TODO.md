@@ -2,7 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
+Last full run (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integration), 231 OK + 1 fixed and rerun.
+Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
 ## Done: a simpler User role (Samuel 2026-11-02)
@@ -25,20 +26,22 @@ used for now. Admin makes Work Orders, BOMs and master data (items, customers, m
 - [ ] Retake `docs/panduan/gambar/` with `tools/panduan_gambar.mjs` (now as `admin@`), and add pictures of a Material
       Receipt and a direct Delivery Note for `gudang.md`/`user.md`.
 
-## Next: item-to-machine list into Machine Capacity (Samuel 2026-11-02)
+## Done: item-to-machine list into Machine Capacity (Samuel 2026-11-02)
 Samuel's Excel `Perhitungan & Penjualan Barang Plastik (1).xlsx` (Abel's Downloads, 2026-11-02) has a new sheet
 "Mesin & Kapasitas": No. Mesin, Kapasitas (tonnage), Barang Cetak; the machine cell is merged over its items.
 33 pairs on 6 machines: 2 (180 Ton), 3 (260 Ton), 4 (210 Ton), 5 (160 Ton), 6 (160 Ton), 8 (360 Ton). One item may
 run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycle time, cavities, kg per pcs and material.
-- [ ] Copy the sheet into `erp_internal/data/` (json, like `penjualan_2026.json`) and load it: one Machine Capacity row
-      per item and machine from the `spesifikasi` already kept, then `buat_bom_kapasitas`. Idempotent, with a test.
-- [ ] Match "Barang Cetak" names to our Item templates (e.g. "Gantungan Flash ( 2 )", "Body PLN", "Stik Folding",
-      "Body/Tutup Toples Nastar"); list the ones with no item for Samuel.
+- [x] `data/mesin_barang.json` (the sheet; the xlsx itself was gone from Downloads, copied from the earlier
+      session's dump) and `mesin_barang.muat`: 46 Machine Capacity rows + BOMs, idempotent, `test_mesin_barang` (8).
+      Loaded on `erp.localhost` 2026-11-02 (168 records, second run 0).
+- [x] Names matched in the file's `barang`; Body PLN, Stik Folding, Gantungan DX have no item: `menunggu-samuel.md` row 15.
 - [x] Samuel 2026-11-02 (via Abel): machines 1, 7 and 9-14 are made inactive for now; "( 2 )"/"( 4 )" after a name is
       the mould's cavity count (so the same product may have other cavities on another machine).
-- [ ] Make machines 1, 7, 9-14 inactive (check what v16 Workstation offers: a disabled flag or status "Off"; the
-      Production Floor and `master.py` must keep them out of new Work Orders) and read "( n )" as `cavities`.
-- [ ] Workstation tonnage (`Kapasitas`) on Mesin 02..08 if `mesin.json` lacks it.
+- [x] Machines 1, 7, 9-14: `mesin.json` `"aktif": false` → Workstation `disabled` + status Off (`master._mesin`);
+      `kapasitas.mesin_aktif` refuses a new or moved Work Order on them; the Production Floor still shows them (Off).
+      Sample data moved from Mesin 01/02 to 02/03. "( n )" read as `cavities`.
+- [x] Tonnage: `mesin.json` already has it and matches the sheet (2: 180, 3: 260, 4: 210, 5: 160, 6: 160, 8: 360).
+- [ ] Samuel: `menunggu-samuel.md` row 15 (Body PLN, Stik Folding parts, Gantungan DX, Toples Nastar 40 s, runner).
 - BS (reject) answered 2026-11-02: every reject is reground and moulded again, no material is counted as wasted. The
   current flow already counts the reject's material as used (Repack into Gudang Reject); nothing to change for now.
 

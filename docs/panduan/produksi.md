@@ -37,6 +37,8 @@ Floor** (pilihan paling atas).
   status mesin itu (sama dengan mengubah **Status** di formulir Workstation-nya); **Open machine** membuka
   formulirnya. User cuma bisa lewat tombol ini; formulir Workstation cuma bisa dilihat.
 - **Work Order di mesin mana?** Isi **Machine** di Work Order. Tanpa itu Work Order tidak muncul di lantai.
+  Mesin yang tidak dipakai (1, 7, 9-14: Disabled, status Off) tidak bisa dipilih untuk Work Order baru; tetap
+  tampil di lantai sebagai Off.
 - Kalau browser tidak bisa menampilkan 3D, halaman menampilkan tabel biasa dengan isi yang sama.
 
 ## Sekali per produk
@@ -169,7 +171,7 @@ mesin × hari × Work Order × shift, lalu dijumlahkan sesuai pilihan.
   kosong sampai Expected Delivery; kalau dua-duanya kosong, semua di hari mulai). Target masuk ke mesin di Work Order;
   Mengganti **Machine** di Work Order yang sudah di-Submit memindahkan seluruh targetnya (hari-hari yang sudah lewat
   juga) ke mesin yang baru. Mesin cuma bisa diganti selama Work Order-nya Not Started atau In Process; sesudah
-  Completed, Stopped atau Closed kolom **Machine** terkunci. Work Order tanpa mesin masuk baris **No machine** (hasilnya tetap tampil di mesin yang mencatat). Kalau dikelompokkan
+  Completed, Stopped atau Closed kolom **Machine** terkunci. Work Order tidak bisa dipindah ke mesin yang tidak dipakai; yang sudah jalan di mesin itu dibiarkan. Work Order tanpa mesin masuk baris **No machine** (hasilnya tetap tampil di mesin yang mencatat). Kalau dikelompokkan
   per Shift, target hari itu dibagi menurut jam jalan yang dicatat di tiap shift; hari tanpa catatan dibagi rata ke
   semua shift pabrik.
 - **Capacity**: pcs per jam dari Machine Capacity × jam jalan di Production Entry. Pasangan item-mesin tanpa data

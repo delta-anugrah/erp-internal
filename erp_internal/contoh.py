@@ -85,17 +85,17 @@ ORDER = (
 )
 
 # Machine Capacity rows: (product, machine number, cycle seconds, cavities, part g, runner g, resin,
-# masterbatch or None, masterbatch percent). Mesin 02 is the older, slower machine.
+# masterbatch or None, masterbatch percent). Mesin 03 is the faster machine; Mesin 01 is not in use (master.py).
 KAPASITAS = (
-	("CTH-EMBER-10L", 1, 45, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-EMBER-10L", 3, 45, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
 	("CTH-EMBER-10L", 2, 55, 2, 750, 50, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
-	("CTH-BASKOM-40", 1, 40, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
+	("CTH-BASKOM-40", 3, 40, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
 	("CTH-BASKOM-40", 2, 48, 2, 380, 30, "CTH-BIJI-PP", "CTH-PEWARNA", 2),
-	("CTH-GAYUNG", 1, 20, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
+	("CTH-GAYUNG", 3, 20, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
 	("CTH-GAYUNG", 2, 24, 4, 140, 20, "CTH-BIJI-PP", "CTH-PEWARNA", 3),
-	("CTH-TOPLES-1L", 1, 30, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
+	("CTH-TOPLES-1L", 3, 30, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
 	("CTH-TOPLES-1L", 2, 36, 2, 190, 20, "CTH-BIJI-HDPE", None, 0),
-	("CTH-KURSI", 1, 70, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
+	("CTH-KURSI", 3, 70, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
 	("CTH-KURSI", 2, 85, 1, 1450, 80, "CTH-BIJI-HDPE", "CTH-PEWARNA", 2),
 )
 # Open Work Orders (product, machine number, the Achieved % its sample output lands on). Each plans the seven
@@ -103,8 +103,8 @@ KAPASITAS = (
 # share (capacity x a 12 h shift x 7 days times the yield), so the report shows green (100), orange (85 up to
 # 100) and red (below 85). An order takes no output past its quantity, so 100 is the most it can reach.
 ORDER_PRODUKSI = (
-	("CTH-EMBER-10L", 1, 1.0),
-	("CTH-GAYUNG", 1, 1.0),
+	("CTH-EMBER-10L", 3, 1.0),
+	("CTH-GAYUNG", 3, 1.0),
 	("CTH-BASKOM-40", 2, 0.72),
 	("CTH-KURSI", 2, 0.95),
 )

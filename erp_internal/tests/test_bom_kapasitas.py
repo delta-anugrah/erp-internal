@@ -7,6 +7,7 @@ from erp_internal.planning.kapasitas import (
 	baris_bom,
 	buat_bom_kapasitas,
 	kunci_mesin,
+	mesin_aktif,
 	pilih_bom,
 	varian_tercakup,
 )
@@ -205,3 +206,30 @@ class TestBomKapasitas(IntegrationTestCase):
 		a.reload()
 		a._doc_before_save = frappe.get_doc("Work Order", a.name)
 		kunci_mesin(a)
+
+	def test_mesin_tidak_aktif(self):
+		# An inactive machine takes no new order, and no order moves onto it; one already running there goes on
+		gudang = frappe.db.get_value("Warehouse", {"company": self.pabrik, "is_group": 0})
+		self.buat(self.row(self.v[0], self.m1))
+		a = frappe.get_doc(
+			{
+				"doctype": "Work Order",
+				"company": self.pabrik,
+				"production_item": self.v[0],
+				"qty": 1,
+				"fg_warehouse": gudang,
+				"wip_warehouse": gudang,
+				"erp_mesin": self.m1,
+			}
+		).insert()
+		a.submit()
+		frappe.db.set_value("Workstation", self.m2, "disabled", 1)
+		a.reload()
+		a.erp_mesin = self.m2
+		self.assertRaisesRegex(frappe.ValidationError, "is not in use", a.save)
+		frappe.db.set_value("Workstation", self.m1, "disabled", 1)
+		a.reload()
+		a._doc_before_save = frappe.get_doc("Work Order", a.name)
+		mesin_aktif(a)  # the machine it already runs on, now off: left alone
+		b = frappe.copy_doc(a)
+		self.assertRaisesRegex(frappe.ValidationError, "is not in use", b.insert)

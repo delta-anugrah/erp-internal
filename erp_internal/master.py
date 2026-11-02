@@ -10,7 +10,8 @@ Reads `data/katalog.json` (the price list "POLA PLASTIK TAHUN 2026", as Samuel s
 - the UOMs of each variant in Pcs (Lusin 12, Gross 144, and its Ball/Dus/Ikat from the packing text);
 - the selling Price List "Harga Pola <year>" with one Item Price per variant and packing the list prices, and the
   Sales Order default while that is still "Standard Selling";
-- one Workstation per machine, "Mesin 01".."Mesin 14", of type Injection Moulding.
+- one Workstation per machine, "Mesin 01".."Mesin 14", of type Injection Moulding; a machine with `"aktif": false`
+  is disabled and Off (no new Work Order on it, `kapasitas.mesin_aktif`).
 
 Idempotent: every record is looked up by its key and saved only when it differs, so a second run writes nothing.
 Rerun it after Samuel sends a new file (docs/impor.md). It removes nothing but the price list's own prices that
@@ -448,6 +449,7 @@ def _harga(daftar: str, harga: dict, hasil: Hasil) -> None:
 def _mesin(m: dict, hasil: Hasil) -> None:
 	nama = f"Mesin {cint(m['no']):02d}"
 	tonase = cint(re.sub(r"\D", "", str(m["tonase"])))
+	aktif = m.get("aktif", True)  # false: not in use for now (Samuel 2026-11-02); no new Work Order on it
 	hasil.simpan(
 		"Workstation",
 		nama,
@@ -460,6 +462,9 @@ def _mesin(m: dict, hasil: Hasil) -> None:
 			"erp_tahun": cint(m["year"]),
 			"erp_negara": m["country"],
 			"description": f"{m['mesin']} {m['model']}, {tonase} ton, {m['country']} {m['year']}.",
+			"disabled": 0 if aktif else 1,
+			# An inactive machine stands still: Off on the Production Floor. An active one keeps its status.
+			**({} if aktif else {"status": "Off"}),
 		},
 		{"workstation_name": nama},
 	)

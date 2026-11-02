@@ -213,6 +213,30 @@ Cek: total per baris Excel per bulan sama dengan jumlah Sales History varian-var
 Baris **Total** di Excel tidak menghitung baris 1 (Gantungan Dinda Super); di sini semua baris dihitung.
 Angka baru dari Samuel: ubah file JSON-nya, jalankan lagi.
 
+## Daftar barang per mesin Samuel (`mesin_barang.py`)
+
+Sheet "Mesin & Kapasitas" dari Excel Samuel 2026-11-02 (mesin mana mencetak barang apa) ada di
+`erp_internal/data/mesin_barang.json`. Jalankan **sesudah** `master.muat` dan `penjualan.muat`:
+
+```bash
+cd ~/Desktop/Projects/erp-internal-bench
+bench --site erp.localhost execute erp_internal.mesin_barang.muat
+```
+
+Yang dibuat (dijalankan dua kali = sama saja, `ditulis` 0):
+
+| Apa | Isi |
+|---|---|
+| Machine Capacity | satu baris per template + Jenis per mesin (32 pasangan di sheet = 46 baris di mesin 2, 3, 4, 5, 6, 8). Cycle time, berat per pcs (kg di Excel, disimpan gram) dan bahan dari `spesifikasi` di `penjualan_2026.json`; runner 0 karena belum ada angkanya |
+| Cavity | "( 4 )" di belakang nama = jumlah cavity cetakan di mesin itu, mengalahkan angka di spesifikasi; tanpa angka pakai spesifikasi |
+| BOM | `buat_bom_kapasitas` per baris: satu BOM per varian per mesin |
+
+- Nama di sheet dipetakan ke barang di bagian `barang` file JSON: `[template, Jenis, no spesifikasi]`. Nama yang
+  dipetakan ke `[]` belum punya barang dan muncul di `catatan`: Body PLN, Stik Folding (bagian Gantungan Folding;
+  Batok dan Tongkat-nya tidak ada di sheet), Gantungan DX (`docs/menunggu-samuel.md` baris 15).
+- Body dan Tutup Toples Nastar satu barang (`TOPLES-NASTAR`) di Mesin 05: satu baris, cycle time 30 + 10 = 40 detik.
+- Pasangan yang hilang dari file baru tidak dihapus: centang `Disabled` di baris Machine Capacity-nya.
+
 ## Data induk Samuel: katalog dan mesin (`master.py`)
 
 Barang jadi Dinda House Ware, daftar harganya dan mesin injection tidak lewat CSV, tapi lewat importer sendiri
@@ -237,7 +261,7 @@ Yang dibuat:
 | Barang (template + varian) | satu template per produk di grup `Barang Jadi`, merek `Dinda House Ware`; varian **hanya** kombinasi yang ada di daftar (atribut `Jenis`, `Warna`, dan `Ukuran` untuk Toples Dinda). Kode: `GAYUNG-LUMBA` → `GAYUNG-LUMBA-SPR-MRH` |
 | Satuan | stok dalam `Pcs`; `Lusin` = 12, `Gross` = 144; `Ball`/`Dus`/`Ikat` per varian dari teks kemasan, misalnya "1 Ball (20 Lusin)" = 240 Pcs |
 | Daftar harga | `Harga Pola 2026` (jual, IDR), satu Item Price per varian per satuan yang ada harganya; jadi daftar harga bawaan Sales Order dan Delivery Note selama Selling Settings masih "Standard Selling" |
-| Mesin | Workstation `Mesin 01`..`Mesin 14`, tipe `Injection Moulding`; nomor urut lantai (`Machine No.`), merek, model, tonase, tahun, negara |
+| Mesin | Workstation `Mesin 01`..`Mesin 14`, tipe `Injection Moulding`; nomor urut lantai (`Machine No.`), merek, model, tonase, tahun, negara. Mesin dengan `"aktif": false` di `mesin.json` (1, 7, 9-14, Samuel 2026-11-02) jadi `Disabled` dan status `Off`: tidak bisa dipilih untuk Work Order baru |
 
 Pilihan model:
 
@@ -260,7 +284,7 @@ Pilihan model:
 3. Judul file menentukan nama daftar harga: "... TAHUN 2027" membuat `Harga Pola 2027` baru, yang lama tetap ada. Daftar bawaan Sales Order dan Delivery Note tidak ikut pindah: ganti sendiri di Selling Settings.
    Harga di daftar itu yang sudah tidak ada di file dihapus.
 4. Yang **tidak** dihapus: barang dan mesin yang hilang dari file (mungkin sudah dipakai transaksi). Nonaktifkan
-   manual (Item `Disabled`, Workstation status `Off`). Singkatan atribut yang sudah ada juga tidak diubah, karena
+   manual (Item `Disabled`); mesin yang tidak dipakai: `"aktif": false` di `mesin.json`, lalu jalankan lagi. Singkatan atribut yang sudah ada juga tidak diubah, karena
    mengubahnya mengganti kode semua varian.
 
 ## Kalau ada yang salah

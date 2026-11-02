@@ -16,7 +16,7 @@ Reads `data/penjualan_2026.json` (both tables of the Excel, as Abel pasted them)
 
 Run `master.muat` first: the templates and their variants come from there. Idempotent like `master.muat`: a
 second run writes nothing. The Excel's specifications (cycle time, cavities, kg per pcs, material) are kept in
-the file for the Machine Capacity rows, which wait for Samuel's item-to-machine list.
+the file for the Machine Capacity rows that `mesin_barang.py` makes from Samuel's item-to-machine list.
 """
 
 import frappe

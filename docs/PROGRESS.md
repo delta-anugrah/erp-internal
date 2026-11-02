@@ -2,6 +2,18 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-02 (item-to-machine list)
+- Samuel's sheet "Mesin & Kapasitas" into `data/mesin_barang.json` (the xlsx was gone from Downloads; copied from
+  the earlier session's dump of it) and `mesin_barang.muat`: 46 Machine Capacity rows (32 pairs on machines 2-6, 8)
+  from `penjualan_2026.json` `spesifikasi`, "( n )" = the mould's cavities, Toples Nastar body + lid 40 s, then
+  their BOMs. Body PLN, Stik Folding, Gantungan DX have no item yet: `menunggu-samuel.md` row 15.
+- Machines 1, 7, 9-14 inactive: `mesin.json` `aktif` → Workstation disabled + Off; `kapasitas.mesin_aktif` refuses
+  a new or moved Work Order on them. `contoh.py` moved its sample capacity and orders from Mesin 01/02 to 02/03.
+- Dev site: `master.muat` (9 written), `mesin_barang.muat` (168 written, second run 0), `contoh.buat_contoh` rerun.
+- Tests: `test_mesin_barang` (8 OK), `test_bom_kapasitas.test_mesin_tidak_aktif`. Full run 232 (13 unit + 219
+  integration): 231 OK, 1 error in the new `test_mesin_tidak_aktif` (it edited a field locked after submit); fixed
+  to call `mesin_aktif` directly, `test_bom_kapasitas` rerun 9 OK.
+
 ## 2026-11-02 (a simpler User role)
 - Samuel: User records only daily output, deliveries and raw material in; the rest is read only. User = Stock User +
   `ERP User` (`tampilan.PERAN_USER`); `batas_user.py` keeps a User to a Material Receipt Stock Entry (Production
