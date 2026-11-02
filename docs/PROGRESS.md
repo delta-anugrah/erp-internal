@@ -18,7 +18,8 @@ Newest first. One entry per working session: what changed, test results as run, 
   `--module erp_internal.tests.test_production_floor` 16 OK twice; `test_bahasa` 6 OK; `cek_layar` 3 users OK;
   `node --test tools/denah.test.mjs` OK; `lantai.mjs` all cases OK except `label-rapi 1440x900` (labels flip while
   the camera jiggles; open item in TODO), `wo xss` rerun OK after the docstatus fix. Machines back to disabled + Off.
-- PR #2 merged 2026-11-03 (Abel approved).
+- PR #2 and PR #3 (these fixes) merged 2026-11-03 (Abel approved).
+- Next: `label-rapi 1440x900` (labels flip while the camera jiggles), then what Samuel answers.
 - Next: push after PR #2 is merged (these commits are local), then the next open item in `docs/TODO.md`.
 
 ## 2026-11-02 (item-to-machine list)
