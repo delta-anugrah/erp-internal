@@ -38,7 +38,9 @@ Floor** (pilihan paling atas).
   formulirnya. User cuma bisa lewat tombol ini; formulir Workstation cuma bisa dilihat.
 - **Work Order di mesin mana?** Isi **Machine** di Work Order. Tanpa itu Work Order tidak muncul di lantai.
   Mesin yang tidak dipakai (1, 7, 9-14: Disabled, status Off) tidak bisa dipilih untuk Work Order baru; tetap
-  tampil di lantai sebagai Off.
+  tampil di lantai sebagai Off. Statusnya juga tidak bisa diganti lewat tombol di panel: muncul catatan "Mesin NN
+  tidak aktif. Admin bisa mengaktifkannya di Workstation-nya." Admin mengaktifkan mesin dengan menghapus centang
+  **Disabled** di Workstation-nya.
 - Kalau browser tidak bisa menampilkan 3D, halaman menampilkan tabel biasa dengan isi yang sama.
 
 ## Sekali per produk

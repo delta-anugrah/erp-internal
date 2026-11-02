@@ -6,6 +6,8 @@
 // Asserts: one canvas in the shadow root, no message dialog, one WebGL context after leaving and coming back
 // 5 times, and 14 slot markers in floor order (front row 1..7, back row 14..8, left to right, back row above the
 // front row on screen). Screenshot in tools/hasil/ (gitignored). Exit code 1 on any failure.
+// Before any case it turns every disabled numbered machine (mesin.json "aktif": false) on for the run and back to
+// disabled + Off on exit (Ctrl-C too); set_status refuses them otherwise.
 //
 // Then, with the machines (pass case names to run only some: `node tools/lantai.mjs states perf`):
 //   states       six statuses set through set_status on Mesin 01-06; lamps, pulse, dimming, screen, ring breath and motion read back
@@ -32,7 +34,8 @@
 //   status       the Problem button: spinner and disabled until the answer, the server's status (get_value), the
 //                chip, the lamp; a refused change is an inline note; an unchanged refetch touches no machine
 //   wo, xss      a submitted In Process Work Order (40 produced) on Mesin 03: label item and progress, panel link;
-//                then an item name and a model of <img src=x onerror=...> show as text (Work Order removed after)
+//                then an item name and a model of <img src=x onerror=...> show as text (Work Order made and submitted
+//                through bench execute as Administrator, removed after)
 //   set_value    frappe.db.set_value on a status (no event) with ?poll=3: the view follows
 //   poll         /socket.io blocked, ?poll=3: a status change still shows
 //   live         realtime on, default 60 s poll: a change from another tab shows within 5 s
@@ -92,6 +95,19 @@ mkdirSync(HASIL, { recursive: true });
 
 const gagal = [];
 const cek = (syarat, pesan) => syarat || gagal.push(pesan);
+
+// Inactive machines (mesin.json "aktif": false) are kept Off by ERPNext and refused by set_status, but the cases
+// set statuses on any machine: turn them on for the run (db.set_value, no controller) and back off at the end.
+const bench = (...args) => execFileSync("bench", ["--site", SITUS, ...args], { cwd: BENCH, encoding: "utf8" });
+const MATI = JSON.parse(
+	bench("execute", "frappe.get_all", "--kwargs", JSON.stringify({ doctype: "Workstation", filters: { disabled: 1, erp_nomor: [">", 0] }, pluck: "name" })).trim().split("\n").pop()
+);
+for (const m of MATI) bench("execute", "frappe.db.set_value", "--args", JSON.stringify(["Workstation", m, "disabled", 0]));
+const pulihkanMati = () => {
+	for (const m of MATI) bench("execute", "frappe.db.set_value", "--args", JSON.stringify(["Workstation", m, { disabled: 1, status: "Off" }]));
+};
+process.on("exit", pulihkanMati);
+process.on("SIGINT", () => process.exit(130));
 
 const browser = await chromium.launch({ args: ARGS_GL });
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -253,7 +269,6 @@ const api = (p, metode, args = {}, post = true) =>
 		},
 		{ metode, args, post }
 	);
-const bench = (...args) => execFileSync("bench", ["--site", SITUS, ...args], { cwd: BENCH, encoding: "utf8" });
 const dialog = async (p) => p.locator(".modal.show.msgprint-dialog, .modal.show .msgprint").count();
 
 async function bukaLantai(ctx, { tunggu = true } = {}) {
@@ -752,11 +767,11 @@ if (jalankan("wo") || jalankan("xss")) await kasus("wo/xss", async () => {
 		// Four BOM batches, so no raw material row turns fractional.
 		const q = Number(bom.quantity) || 1;
 		const QTY = q * Math.max(4, Math.ceil(100 / q)); // whole BOM batches, and more than the 40 produced
-		const baru = await api(p, "frappe.client.insert", {
-			doc: { doctype: "Work Order", production_item: bom.item, bom_no: bom.name, qty: QTY, company: await p.evaluate(() => frappe.defaults.get_default("company")), erp_mesin: "Mesin 03" },
-		});
+		// Made by Administrator through bench execute: the sample User may not create Work Orders (2026-11-02).
+		const company = await p.evaluate(() => frappe.defaults.get_default("company"));
+		const doc = { doctype: "Work Order", production_item: bom.item, bom_no: bom.name, qty: QTY, company, erp_mesin: "Mesin 03", docstatus: 1 };
+		const baru = JSON.parse(bench("execute", "frappe.client.insert", "--args", JSON.stringify([doc])).trim().split("\n").pop());
 		wo = baru.name;
-		const kirim = await api(p, "frappe.client.submit", { doc: baru });
 		diajukan = true;
 		setNilai("Work Order", wo, "status", "In Process");
 		setNilai("Work Order", wo, "produced_qty", 40);
@@ -766,7 +781,7 @@ if (jalankan("wo") || jalankan("xss")) await kasus("wo/xss", async () => {
 			const ok = await tunggu(p, () => erp.lantai.aktif.host.shadowRoot.querySelector('.label[data-mesin="Mesin 03"] .wo')?.hidden === false, null, 5000);
 			cek(ok, "wo: Mesin 03's label shows no Work Order");
 			const l = await labelDari(p, "Mesin 03");
-			cek(l?.wo?.includes(kirim.item_name || bom.item), `wo: label Work Order text ${JSON.stringify(l?.wo)}`);
+			cek(l?.wo?.includes(baru.item_name || bom.item), `wo: label Work Order text ${JSON.stringify(l?.wo)}`);
 			const qtyTeks = await p.evaluate((n) => format_number(n, null, 0), QTY);
 			cek(new RegExp(`40\\s*/\\s*${qtyTeks.replace(/\./g, "\\.")}`).test(l?.wo || ""), `wo: label progress text ${JSON.stringify(l?.wo)}, wanted 40 / ${qtyTeks}`);
 			cek(l?.bar === `${Math.round((40 / QTY) * 100)}%`, `wo: progress bar width ${l?.bar}, wanted ${Math.round((40 / QTY) * 100)}%`);

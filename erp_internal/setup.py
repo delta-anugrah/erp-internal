@@ -224,6 +224,9 @@ IZIN_TAMBAHAN = (
 	("Workstation", tampilan.PERAN_USER, 0, ("read",)),
 	("Price List", tampilan.PERAN_USER, 0, ("read",)),
 	("Account", tampilan.PERAN_USER, 0, ("read",)),
+	# The forms of a Material Receipt and a direct Delivery Note read these while being filled in.
+	("Stock Settings", tampilan.PERAN_USER, 0, ("read",)),
+	("Customer Group", tampilan.PERAN_USER, 0, ("read",)),
 )
 
 

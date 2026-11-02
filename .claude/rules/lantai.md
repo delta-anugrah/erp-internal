@@ -44,7 +44,7 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 - Record text (item names, models, company) goes in by `textContent` only; a company logo only from same-origin `/files/`.
 - Desk caches page scripts in the browser until `bench clear-cache`, so the page script stays small; logic is in the bundle.
 - The page hides Desk's sidebar, which Desk does at its own pace after the page's show: a `ResizeObserver` on the page body and the sidebar calls `wrapper.fit()` whenever the layout moves (no timers: Desk's timing varies), or the host keeps the old sidebar's width as an empty strip (`strip` case, which delays the hide by 1.2 s).
-- Manufacturing User and `ERP User` open the page (Administrator too): both read Workstation (`ERP User` through `setup.IZIN_TAMBAHAN`); another role would get an empty floor. `set_status` needs Workstation write, or `ERP User` plus read (status only, `_boleh_status`, saved with `ignore_permissions`). The nudge `production_floor` has an empty payload and is not sent for a Workstation that is no numbered machine; `set_status` answers a missing and a forbidden machine alike; the company name and logo only for a user who may read that Company.
+- Manufacturing User and `ERP User` open the page (Administrator too): both read Workstation (`ERP User` through `setup.IZIN_TAMBAHAN`); another role would get an empty floor. `set_status` needs Workstation write, or `ERP User` plus read (status only, `_boleh_status`, saved with `ignore_permissions`). The nudge `production_floor` has an empty payload and is not sent for a Workstation that is no numbered machine; `set_status` answers a missing and a forbidden machine alike; it refuses a disabled Workstation ("{0} is inactive…"), because ERPNext's `disabled_workstation` forces Off on every save and the change would silently not stick; the company name and logo only for a user who may read that Company.
 - **Nudges (hooks.py).** Workstation `on_update`, Work Order `on_change`. ERPNext writes a Work Order's `produced_qty` and
   status with `db_set` (stock entry, `update_status`), which fires only `before_change`/`on_change`, never `on_update`; `on_change` also runs after
   save, submit, cancel and update-after-submit (`document.py` `run_post_save_methods`). Job Card writes a Workstation's status with
@@ -118,6 +118,9 @@ ERP_SANDI=... node tools/lantai.mjs perf hud glass                              
 ```
 
 Needs `bench start` and the sample users. `perf` and `adaptive` open a visible browser (headless frame timing is not
-representative). The header of `tools/lantai.mjs` lists every case. It sets and restores machine statuses and, for a few
-cases, makes and removes a Work Order: run it on `erp.localhost`, never on a real site. Also run `tools/cek_layar.mjs`
+representative). The header of `tools/lantai.mjs` lists every case. It turns every disabled numbered machine on for
+the run (`frappe.db.set_value` disabled 0, no controller) and back to disabled + Off when it exits (also on Ctrl-C; after
+a SIGKILL rerun `master.muat`). It sets and restores machine statuses, and for wo/xss makes, submits and removes a Work
+Order through `bench execute` as Administrator (the sample User may not create Work Orders since 2026-11-02): run it on
+`erp.localhost`, never on a real site. Also run `tools/cek_layar.mjs`
 (the Manufacturing link) after a navigation change.

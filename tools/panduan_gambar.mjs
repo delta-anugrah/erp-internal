@@ -4,7 +4,8 @@
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs produksi-1   # only the named pictures
 //
-// Each picture is taken as the sample Admin (User opens no Selling or Buying since 2026-11-02), at 1440x900. A screen with a sample record opens that
+// Each picture is taken as the sample Admin (User opens no Selling or Buying since 2026-11-02), the User's own
+// screens as the sample User, at 1440x900. A screen with a sample record opens that
 // record; one without (no Purchase Order or Purchase Receipt in the sample data, no Material Transfer) opens a new
 // form and fills it in the browser without saving, so nothing is written. Exit code 1 on an error dialog or a
 // console error.
@@ -56,9 +57,11 @@ const buka = (page, dt) =>
 
 const besok = () => new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
 
-const USER = "admin@example.com"; // since 2026-11-02 User opens no Selling or Buying
+const ADMIN = "admin@example.com"; // since 2026-11-02 User opens no Selling or Buying
+const USER = "user@example.com";
 
-// file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it]
+// file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it,
+// the user (Admin when left out)]
 const GAMBAR_LIST = {
 	// The Production Floor: open from the Manufacturing home, wait until the 3D scene and the info bar have drawn.
 	"produksi-1": [
@@ -117,6 +120,29 @@ const GAMBAR_LIST = {
 						.evaluate((el) => el.scrollIntoView({ block: "start" }))
 				),
 	],
+	// The User's two stock jobs: raw material in, and a Delivery Note made directly (no Sales Order).
+	"gudang-2": [
+		"Stock",
+		(p) =>
+			isi_baru(
+				p,
+				"Stock Entry",
+				{ stock_entry_type: "Material Receipt", to_warehouse: "Gudang Bahan Baku - CPL" },
+				"items",
+				{ item_code: "BB-PP-BENING-ORI", qty: 500 }
+			),
+		USER,
+	],
+	"gudang-3": [
+		"Stock",
+		(p) =>
+			isi_baru(p, "Delivery Note", { customer: "Toko Contoh Sejahtera" }, "items", {
+				item_code: "CTH-GAYUNG",
+				qty: 200,
+				warehouse: "Gudang Barang Jadi - CPL",
+			}),
+		USER,
+	],
 };
 
 if (!SANDI) {
@@ -129,7 +155,7 @@ const gagal = [];
 const browser = await chromium.launch();
 
 const PILIH = process.argv.slice(2);
-for (const [nama, [rumah, ke]] of Object.entries(GAMBAR_LIST)) {
+for (const [nama, [rumah, ke, pengguna = ADMIN]] of Object.entries(GAMBAR_LIST)) {
 	if (PILIH.length && !PILIH.includes(nama)) continue;
 	const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 	const page = await context.newPage();
@@ -138,10 +164,10 @@ for (const [nama, [rumah, ke]] of Object.entries(GAMBAR_LIST)) {
 	page.on("pageerror", (e) => galat.push(String(e)));
 
 	const masuk = await page.request.post(`${URL}/api/method/login`, {
-		form: { usr: USER, pwd: SANDI },
+		form: { usr: pengguna, pwd: SANDI },
 	});
 	if (!masuk.ok()) {
-		gagal.push(`${nama}: login as ${USER} failed (${masuk.status()})`);
+		gagal.push(`${nama}: login as ${pengguna} failed (${masuk.status()})`);
 		await context.close();
 		continue;
 	}

@@ -136,6 +136,7 @@ Made In,Buatan
 "Order on the factory floor, 1 is the first machine.","Urutan di lantai pabrik, 1 = mesin pertama."
 Machine,Mesin
 "Unknown machine status: {0}","Status mesin tidak dikenal: {0}"
+"{0} is inactive. An Admin can turn it on in its Workstation.","{0} tidak aktif. Admin bisa mengaktifkannya di Workstation-nya."
 "{0} is not a numbered machine.","{0} bukan mesin bernomor."
 Not permitted,Tidak diizinkan
 Production Floor,Lantai Produksi
