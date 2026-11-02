@@ -1,4 +1,6 @@
-"""Projects on stock ERPNext: the Activity Types and the project → task → timesheet flow, Admin to User."""
+"""Projects on stock ERPNext: the Activity Types and the project → task → timesheet flow, Admin to an office
+worker. Since 2026-11-02 the User profile has no Projects or Employee role (Samuel: three daily jobs only), so the
+worker holds those two roles without a profile."""
 
 from datetime import datetime, timedelta
 
@@ -8,8 +10,15 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import get_time, getdate, today
 
 from erp_internal.setup import JENIS_KEGIATAN, pastikan_setup
-from erp_internal.tampilan import ADMIN, USER
+from erp_internal.tampilan import ADMIN
 from erp_internal.tests.utils import buat_karyawan, buat_pengguna, buat_perusahaan
+
+
+def pekerja_kantor(email: str, company: str) -> str:
+	"""A user with Projects User and Employee, and no Role Profile."""
+	u = buat_pengguna(email, None, None, company)
+	frappe.get_doc("User", u).add_roles("Projects User", "Employee")
+	return u
 
 
 class TestProyek(IntegrationTestCase):
@@ -28,7 +37,7 @@ class TestProyek(IntegrationTestCase):
 
 	def test_alur_proyek(self):
 		manajer = buat_pengguna("_uji.manajer@example.com", ADMIN, ADMIN, self.company)
-		pekerja = buat_pengguna("_uji.pekerja@example.com", USER, USER, self.company)
+		pekerja = pekerja_kantor("_uji.kantor@example.com", self.company)
 		emp = buat_karyawan("_Uji Pekerja", self.company, user=pekerja)
 		self.addCleanup(frappe.set_user, "Administrator")
 
@@ -98,13 +107,13 @@ class TestProyek(IntegrationTestCase):
 		self.assertEqual(hitung(), sebelum)
 
 	def test_timesheet_orang_lain_ditolak(self):
-		# Security review 2026-10-28: a User may submit, but only a timesheet booked to their own Employee.
-		# A User with ERPNext's own-Employee User Permission cannot even create one for someone else; one
+		# Security review 2026-10-28: an employee may submit, but only a timesheet booked to their own Employee.
+		# One with ERPNext's own-Employee User Permission cannot even create one for someone else; one
 		# without it (left off by hand) can, and `proyek.cek_pemilik_timesheet` refuses the submit.
 		lain = buat_karyawan("_Uji Orang Lain", self.company)
 		self.addCleanup(frappe.set_user, "Administrator")
 		for nomor, izin_sendiri in ((2, True), (3, False)):
-			pekerja = buat_pengguna(f"_uji.pekerja{nomor}@example.com", USER, USER, self.company)
+			pekerja = pekerja_kantor(f"_uji.kantor{nomor}@example.com", self.company)
 			buat_karyawan(f"_Uji Pekerja {nomor}", self.company, user=pekerja, izin_sendiri=izin_sendiri)
 			frappe.set_user(pekerja)
 			kemarin = getdate(today()) - timedelta(days=1)

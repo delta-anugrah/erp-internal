@@ -85,7 +85,8 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
 
 ## Factory flow and data import
 
-- Every Delivery Note and Purchase Receipt comes from an order, stock never goes negative, stock posts no journal
+- A Delivery Note is made directly (Samuel 2026-11-02: no Sales Orders for now), every Purchase Receipt comes from
+  an order, stock never goes negative, stock posts no journal
   entries, and the company gets PPN templates that are never the default (not PKP: invoices only record) (`setup._alur_jual_beli`). Staff guides:
   `docs/panduan/{penjualan,pembelian,gudang}.md`.
 - Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
@@ -119,7 +120,7 @@ shortcuts to the same links as its sidebar, nothing else:
 
 | Rail icon | Home and sidebar |
 |---|---|
-| Stock | Item, Stock Entry, Warehouse, Stock Balance, Stock Ledger |
+| Stock | Stock Entry, Delivery Note, Item, Warehouse, Stock Balance, Stock Ledger |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
 | Manufacturing | Production Floor, Sales History, Sales Forecast, Master Production Schedule, MRP, Work Orders in Process (Work Order), Production Entry, Order Readiness, Plan vs Actual, BOM, Machine Capacity, Item Lead Time |
@@ -130,16 +131,19 @@ shortcuts to the same links as its sidebar, nothing else:
 The sidebar folds into the rail and opens again with the round arrow at the panel's bottom edge (when the panel is folded, in the dock above the profile avatar); the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible).
 
-A User sees only what their roles read (no Holiday List or Leave Allocation). A direct URL to another permitted
+The table is Admin's view. A User's rail has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
 doctype or report still opens.
 
 ## Roles
 
 Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one company:
 
-- **User**: daily work in every used module (stock entries, orders, deliveries, receipts, invoices, work orders,
-  timesheets, own check-ins and leave). No settings, no users.
-- **Admin**: also the manager roles (items, suppliers, BOMs, stock reconciliation, HR), users and the business
+- **User** (Samuel 2026-11-02): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
+  directly and Material Receipt stock entries, sets a machine's status on the Production Floor, and reads stock,
+  items, Work Orders, BOMs and the production reports; rail Stock and Manufacturing (`erp_internal/batas_user.py`).
+  Guide: `docs/panduan/user.md`.
+- **Admin**: also the manager roles (Work Orders, items, suppliers, BOMs, stock reconciliation, selling, buying,
+  projects, HR), users and the business
   settings (rail entry Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and User roles and
   never change a Developer's account. Guide: `docs/panduan/admin.md`.
 - **Developer**: Admin plus System Manager (Build, System Settings).
@@ -149,8 +153,8 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
 - Attendance by phone with location on stock HRMS (`setup._kantor`): one shift "Kantor" 08:00-17:00 with auto
   attendance (`SHIFT_KANTOR`), Saturday and Sunday off in a yearly "Libur <abbr> <year>" list assigned to the
   company, leave types Cuti Tahunan (12), Sakit, Izin. Staff guide: `docs/panduan/absen.md`.
-- Projects (`setup._proyek`): Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; a
-  User submits only their own timesheets (`erp_internal/proyek.py`); Admin and Developer can submit
+- Projects (`setup._proyek`): Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; an
+  employee (Projects User and Employee roles, outside the User profile) submits only their own timesheets (`erp_internal/proyek.py`); Admin and Developer can submit
   anyone's. Staff guide: `docs/panduan/proyek.md`.
 
 ## Sample data

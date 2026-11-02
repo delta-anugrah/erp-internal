@@ -6,7 +6,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
 from erp_internal.setup import ALASAN_REJECT, SHIFT_PABRIK, gudang, jam_shift
-from erp_internal.tampilan import USER
+from erp_internal.tampilan import ADMIN, USER
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
@@ -77,15 +77,16 @@ class TestHasilProduksi(IntegrationTestCase):
 		self.assertFalse(frappe.db.get_value("Stock Entry", pe.manufacture_entry, "process_loss_qty"))
 
 	def test_mesin_diganti_setelah_submit(self):
-		# A submitted order's machine can change (a breakdown); output then goes on the new machine only.
+		# A submitted order's machine can change (a breakdown, Admin's call); a User's output then goes on the new
+		# machine only.
 		wo = self.order()
-		pegawai = buat_pengguna("_uji.pe.user@example.com", USER, USER, self.pabrik)
-		frappe.set_user(pegawai)
+		frappe.set_user(buat_pengguna("_uji.pe.admin@example.com", ADMIN, ADMIN, self.pabrik))
 		doc = frappe.get_doc("Work Order", wo)
 		doc.erp_mesin = self.mesin_lain
 		doc.save()
 		self.assertEqual(frappe.db.get_value("Work Order", wo, "erp_mesin"), self.mesin_lain)
 		self.assertEqual(frappe.db.get_value("Work Order", wo, "docstatus"), 1)
+		frappe.set_user(buat_pengguna("_uji.pe.user@example.com", USER, USER, self.pabrik))
 		pe = buat_hasil(wo, good=5)
 		self.assertEqual(pe.workstation, self.mesin_lain)
 		self.assertEqual(pe.docstatus, 1)

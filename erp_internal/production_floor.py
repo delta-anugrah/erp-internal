@@ -8,6 +8,8 @@ again, so what it shows is always what that user may read.
 import frappe
 from frappe import _
 
+from erp_internal.tampilan import PERAN_USER
+
 EVENT = "production_floor"
 SIARAN_RUANG = frappe.realtime.get_doctype_room("Workstation")  # "doctype:Workstation"
 FIELD_MESIN = (
@@ -44,9 +46,10 @@ def get_data() -> dict:
 @frappe.whitelist(methods=["POST"])
 def set_status(machine: str, status: str) -> dict:
 	"""Set a machine's status (one of the Workstation's own options) and return its row as `get_data()` does."""
-	# A missing name and a forbidden one answer the same: no way to probe which Workstations exist.
-	if not frappe.db.exists("Workstation", machine) or not frappe.has_permission(
-		"Workstation", "write", doc=machine
+	# A missing name and a forbidden one answer the same: no way to probe which Workstations exist. A User
+	# (PERAN_USER, Samuel 2026-11-02) reads machines only, yet sets their status here.
+	if not frappe.db.exists("Workstation", machine) or not (
+		frappe.has_permission("Workstation", "write", doc=machine) or _boleh_status(machine)
 	):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 	doc = frappe.get_doc("Workstation", machine)
@@ -56,8 +59,13 @@ def set_status(machine: str, status: str) -> dict:
 		frappe.throw(_("Unknown machine status: {0}").format(status), frappe.ValidationError)
 	doc.status = status
 	# Tests skip the Version log by default; the status change should always leave a row in it.
-	doc.save(ignore_version=False)
+	doc.save(ignore_version=False, ignore_permissions=_boleh_status(machine))
 	return _baris(doc, _pekerjaan([doc.name]))
+
+
+def _boleh_status(machine: str) -> bool:
+	"""Whether the session user holds PERAN_USER and may read `machine`."""
+	return PERAN_USER in frappe.get_roles() and frappe.has_permission("Workstation", "read", doc=machine)
 
 
 def siarkan(doc, method=None) -> None:

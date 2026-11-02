@@ -25,7 +25,8 @@ const IKON_TILE = {
 };
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
-// Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on.
+// Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on. User
+// has Stock and Manufacturing only (Samuel, 2026-11-02).
 const KERJA = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance"];
 // Rail module → its home Workspace (tampilan.PINTASAN keys). Every home is shortcuts only, at most PINTASAN_MAKS.
 const RUMAH = { Setup: "Home", "Shift & Attendance": "HR" };
@@ -33,7 +34,7 @@ const PINTASAN_MAKS = 12; // was 10: Plan vs Actual added 3 shortcuts to Manufac
 const PROFIL = {
 	Developer: { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
 	Admin: { modul: [...KERJA, "Setup"], build: false, rumah: "Home", form: "User" },
-	User: { modul: KERJA, build: false, rumah: "Selling", form: "Sales Order" },
+	User: { modul: ["Stock", "Manufacturing"], build: false, rumah: "Stock", form: "Delivery Note" },
 };
 const APLIKASI = ["erpnext", "hrms"]; // the apps whose rails tampilan.py arranges
 

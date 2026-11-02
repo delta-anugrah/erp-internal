@@ -1,6 +1,7 @@
 # Panduan Gudang
 
-Untuk **User** yang pegang stok. Stok opname (Stock Reconciliation) cuma bisa **Admin**. Pabrik punya empat
+Untuk **User** yang pegang stok: User mengisi bahan baku masuk dan surat jalan (`user.md`); pindah gudang dan
+stok opname (Stock Reconciliation) dikerjakan **Admin**. Pabrik punya empat
 gudang:
 
 | Gudang | Isinya |
@@ -17,15 +18,24 @@ di tampilan bahasa Inggris.
 
 ## Harian
 
-### Terima barang dari pemasok
-Buka Purchase Order-nya: **Create → Purchase Receipt**, isi jumlah yang datang, **Save**, **Submit**
-(`docs/panduan/pembelian.md`, langkah 3).
+### Terima bahan baku
+Pembelian (Purchase Order) belum dipakai (Mas Samuel, 2026-11-02), jadi bahan masuk dicatat langsung:
+1. **Stock → Stock Entry → + Add Stock Entry**, **Stock Entry Type** `Material Receipt`.
+2. **Default Target Warehouse**: `Gudang Bahan Baku`.
+3. Di **Items**: bahan (misalnya biji plastik) dan jumlahnya dalam Kg. **Save**, **Submit**: stok bertambah.
+
+User cuma bisa membuat jenis `Material Receipt`; jenis lain ditolak ("You may only record a Material Receipt").
 
 ### Kirim barang ke pelanggan
-Delivery Note dibuat dari pesanan (`docs/panduan/penjualan.md`). Yang pegang gudang menyiapkan barang sesuai surat jalan, lalu memastikan
-Delivery Note sudah di-**Submit** sebelum truk berangkat.
+Surat jalan dibuat langsung, tanpa Sales Order (penjualan belum dipakai, Mas Samuel 2026-11-02):
+1. **Stock → Delivery Note → + Add Delivery Note**.
+2. **Customer**: pelanggannya (pelanggan baru dibuat Admin).
+3. Di **Items**: barang, jumlah, dan gudang asal `Gudang Barang Jadi`. **Save**, lalu **Submit** sebelum truk
+   berangkat: stok langsung berkurang. Cetak: **Print**.
 
-### Pindah barang antar gudang
+Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minus.
+
+### Pindah barang antar gudang (Admin)
 1. **Stock → Stock Entry → + Add Stock Entry**, **Stock Entry Type** `Material Transfer`.
 2. Isi **Default Source Warehouse** dan **Default Target Warehouse** (misalnya Bahan Baku ke Produksi).
 3. Di **Items**: barang dan jumlah. **Save**, **Submit**.

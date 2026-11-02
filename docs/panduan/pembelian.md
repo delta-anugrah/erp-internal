@@ -1,7 +1,9 @@
 # Panduan Pembelian
 
-Untuk **User** dan **Admin**; pemasok baru (Supplier) dibuat Admin. Urutannya: **Material Request → Purchase
-Order → Purchase Receipt → Purchase Invoice**.
+> **Belum dipakai** (Mas Samuel, 2026-11-02): bahan baku masuk dicatat dengan Stock Entry `Material Receipt`
+> (`gudang.md`, "Terima bahan baku"). Panduan ini untuk nanti, dan cuma **Admin** yang bisa membuka menu Buying.
+
+Untuk **Admin**. Urutannya: **Material Request → Purchase Order → Purchase Receipt → Purchase Invoice**.
 Barang tidak bisa diterima tanpa Purchase Order; sistem menolaknya.
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti

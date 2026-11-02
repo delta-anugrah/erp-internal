@@ -22,18 +22,21 @@ APLIKASI = ("erpnext", "hrms")  # the apps whose docks and modules this file arr
 # rights, users, business settings), Developer also has System Manager (Build, System Settings).
 DEVELOPER, ADMIN, USER = "Developer", "Admin", "User"
 PERAN_ADMIN = "ERP Admin"  # our role: user management (setup.IZIN_TAMBAHAN), checked by pengguna.py
+# Our role for the User profile: Production Entry, the machine status, and the reads Stock User lacks
+# (setup.IZIN_TAMBAHAN). batas_user.py keeps its holder to the three daily jobs.
+PERAN_USER = "ERP User"
 
 # Dock entry (the module's sidebar name) → the profiles that see it. System Manager sees every kept one.
 # Order is the rail's order. Every other entry of the APLIKASI docks is hidden for everyone. Kept short (Samuel,
 # 2026-10-28): invoices and payments live in Selling and Buying, leave in HR, so Accounts and Leaves have no
-# icon of their own.
+# icon of their own. User keeps Stock and Manufacturing only (Samuel, 2026-11-02: three daily jobs, the rest read).
 IKON = {
 	"Stock": (ADMIN, USER),
-	"Selling": (ADMIN, USER),
-	"Buying": (ADMIN, USER),
+	"Selling": (ADMIN,),
+	"Buying": (ADMIN,),
 	"Manufacturing": (ADMIN, USER),
-	"Projects": (ADMIN, USER),
-	"Shift & Attendance": (ADMIN, USER),
+	"Projects": (ADMIN,),
+	"Shift & Attendance": (ADMIN,),
 	"Setup": (ADMIN,),
 }
 
@@ -50,7 +53,7 @@ LABEL = {"Accounts": "Invoicing", "Setup": "Settings", "Shift & Attendance": "HR
 # Reconciliation, Admin only), the business settings and the reject reasons; System Settings and Build stay
 # with System Manager.
 SIDEBAR = {
-	"Stock": ["Item", "Stock Entry", "Warehouse", "Stock Balance", "Stock Ledger"],
+	"Stock": ["Stock Entry", "Delivery Note", "Item", "Warehouse", "Stock Balance", "Stock Ledger"],
 	"Selling": [
 		"Customer",
 		"Sales Order",
@@ -63,7 +66,6 @@ SIDEBAR = {
 	"Manufacturing": [
 		"production-floor",
 		"Sales History",
-		"Sales Forecast",
 		"Master Production Schedule",
 		"Material Requirements Planning Report",
 		"Work Order",
@@ -72,6 +74,7 @@ SIDEBAR = {
 		"Plan vs Actual",
 		"BOM",
 		"Machine Capacity",
+		"Sales Forecast",  # Admin only from here: last, so a User's home has no gap
 		"Item Lead Time",
 	],
 	"Accounts": ["Sales Invoice", "Purchase Invoice", "Payment Entry"],
@@ -144,8 +147,8 @@ IKON_LINK = {
 
 # Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
 # erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the modules of that profile's
-# IKON entries plus MODUL_TANPA_IKON (`test_profil_modul_ikut_ikon`). Developer has no Module Profile: it sees
-# everything.
+# IKON entries plus MODUL_TANPA_IKON for Admin (`test_profil_modul_ikut_ikon`); User has no invoices or leave.
+# Developer has no Module Profile: it sees everything.
 MODUL_TANPA_IKON = ("Accounts", "Leaves")  # their documents show in other sidebars; allowed, no rail icon
 _MODUL_KERJA = (
 	"Stock",
@@ -156,13 +159,14 @@ _MODUL_KERJA = (
 	"Shift and Attendance",
 	*MODUL_TANPA_IKON,
 )
-MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), USER: _MODUL_KERJA}
+MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), USER: ("Stock", "Manufacturing")}
 
 # Role Profile → standard ERPNext/HRMS roles. Read from the v16 DocPerms (`test_izin_per_profil`):
-# - User: the *User roles, which create and submit the daily documents, and Employee for their own check-ins,
-#   leave and timesheets (ERPNext drops Employee from a user without an Employee record). Items, suppliers,
-#   stock reconciliations, BOMs and settings need a manager role, so they stay with Admin.
-# - Admin: every manager role of the used modules plus the User roles (Stock Manager alone reads neither Company
+# - User (Samuel, 2026-11-02): Stock User (Stock Entry, Delivery Note, and reads stock, items, Work Orders and
+#   BOMs) plus PERAN_USER (Production Entry, machine status). `batas_user.py` keeps them to Production Entry,
+#   Delivery Note and a Material Receipt Stock Entry; everything else is read only. No Employee or Projects User:
+#   HR and Projects are Admin's.
+# - Admin: every manager role of the used modules plus the *User roles (Stock Manager alone reads neither Company
 #   nor Stock Balance), and PERAN_ADMIN for users. No Employee: HR Manager covers attendance.
 # - Developer: Admin plus System Manager.
 _PERAN_USER = (
@@ -191,12 +195,13 @@ _PERAN_ADMIN = (
 PROFIL_PERAN = {
 	DEVELOPER: ("System Manager", *_PERAN_ADMIN),
 	ADMIN: _PERAN_ADMIN,
-	USER: (*_PERAN_USER, "Employee"),
+	USER: ("Stock User", PERAN_USER),
 }
-# The roles an Admin may hand out (`pengguna.cek_user`): those of the Admin and User profiles, and the approver
-# roles HRMS adds itself when HR names someone a department's leave or expense approver.
+# The roles an Admin may hand out (`pengguna.cek_user`): those of the Admin and User profiles, the approver
+# roles HRMS adds itself when HR names someone a department's leave or expense approver, and Employee, which
+# ERPNext adds when an Employee record names the user (a profile then drops it again).
 PERAN_BOLEH_ADMIN = frozenset(
-	(*PROFIL_PERAN[ADMIN], *PROFIL_PERAN[USER], "Leave Approver", "Expense Approver")
+	(*PROFIL_PERAN[ADMIN], *PROFIL_PERAN[USER], "Leave Approver", "Expense Approver", "Employee")
 )
 
 
@@ -214,8 +219,9 @@ def _p(link_to: str, label: str | None = None, jenis: str = "DocType", **lain) -
 # shortcut shows a count. A shortcut whose target does not exist on the site is left out (`pintasan_aktif`).
 PINTASAN = {
 	"Stock": (
-		_p("Item"),
 		_p("Stock Entry"),
+		_p("Delivery Note"),
+		_p("Item"),
 		_p("Warehouse"),
 		_p("Stock Balance", jenis="Report"),
 		_p("Stock Ledger", jenis="Report"),
@@ -258,7 +264,6 @@ PINTASAN = {
 	"Manufacturing": (
 		_p("production-floor", "Production Floor", "Page"),
 		_p("Sales History"),
-		_p("Sales Forecast"),
 		_p("Master Production Schedule"),
 		_p("Material Requirements Planning Report", "MRP", "Report"),
 		_p(
@@ -273,6 +278,7 @@ PINTASAN = {
 		_p("Plan vs Actual", jenis="Report"),
 		_p("BOM"),
 		_p("Machine Capacity"),
+		_p("Sales Forecast"),
 		_p("Item Lead Time"),
 	),
 	"Accounting": (_p("Sales Invoice"), _p("Purchase Invoice"), _p("Payment Entry")),
@@ -507,11 +513,13 @@ def merek_aplikasi(bootinfo) -> None:
 
 
 def pastikan_peran() -> None:
-	"""The PERAN_ADMIN role, with desk access. Safe before the setup wizard (Role Profiles link to it)."""
-	if not frappe.db.exists("Role", PERAN_ADMIN):
-		frappe.get_doc({"doctype": "Role", "role_name": PERAN_ADMIN, "desk_access": 1}).insert(
-			ignore_permissions=True
-		)
+	"""Our roles PERAN_ADMIN and PERAN_USER, with desk access. Safe before the setup wizard (Role Profiles link to
+	them)."""
+	for peran in (PERAN_ADMIN, PERAN_USER):
+		if not frappe.db.exists("Role", peran):
+			frappe.get_doc({"doctype": "Role", "role_name": peran, "desk_access": 1}).insert(
+				ignore_permissions=True
+			)
 
 
 def pintasan_aktif(workspace: str) -> list[dict]:
@@ -724,6 +732,26 @@ def _profil_peran() -> None:
 			doc.role_profile = nama
 		doc.set("roles", [{"role": r} for r in peran])
 		doc.save(ignore_permissions=True)
+	_pengguna_profil()
+
+
+def _pengguna_profil() -> None:
+	"""Resave each user of a Role Profile whose roles differ from their profiles'. Frappe does it from a
+	background job when a profile changes; a migrate should leave the users right at once."""
+	from frappe.permissions import AUTOMATIC_ROLES
+
+	profil = {}
+	for r in frappe.get_all("User Role Profile", ["parent", "role_profile"]):
+		profil.setdefault(r.parent, set()).add(r.role_profile)
+	for user, nama in profil.items():
+		harap = {
+			p
+			for n in nama
+			for p in frappe.get_all("Has Role", {"parent": n, "parenttype": "Role Profile"}, pluck="role")
+		}
+		punya = set(frappe.get_all("Has Role", {"parent": user, "parenttype": "User"}, pluck="role"))
+		if punya - set(AUTOMATIC_ROLES) != harap and user not in frappe.STANDARD_USERS:
+			frappe.get_doc("User", user).save(ignore_permissions=True)
 
 
 def _profil_modul() -> None:

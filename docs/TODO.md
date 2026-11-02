@@ -2,26 +2,28 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-10-29, after the sample data rerun fix): `bench --site erp-test.localhost run-tests --app erp_internal`:
-214 tests (13 unit + 201 integration, 2026-11-01), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only (cap
-`PINTASAN_MAKS` raised 10 to 12: Manufacturing has 12, Setup 11).
+Last full run (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
+222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
-## Next: a simpler User role (Samuel 2026-11-02)
+## Done: a simpler User role (Samuel 2026-11-02)
 Samuel agreed: User records only the three daily jobs, everything else is view only; purchasing and selling are not
 used for now. Admin makes Work Orders, BOMs and master data (items, customers, machines).
-- [ ] User may create, edit and submit only: Production Entry (daily output), Delivery Note made directly (no Sales
-      Order), Stock Entry Material Receipt (raw material in, no Purchase Order). Today User can still make and delete
-      Work Orders, BOMs, Sales/Purchase Orders and more (the PDF Abel sent Samuel lists it).
-- [ ] User reads only: Production Floor, stock (Stock Balance, Stock Ledger, Item, Warehouse), Plan vs Actual, Order
-      Readiness, Work Order. Selling, Buying, Projects and HR leave User's rail.
-- [x] User may change a machine's status on the Production Floor (Samuel 2026-11-02): keep it as it is.
-- [ ] Check a Stock Entry limited to Material Receipt for User (ERPNext gives one permission for every Stock Entry
-      type; Production Entry makes its own Manufacture/Repack entries as the current user, so they must keep working).
-- [ ] Admin: Work Order, BOM, Item, Customer, Supplier, Workstation, Machine Capacity (unchanged, already full).
-- [ ] Guides: `docs/panduan/gudang.md` (raw material in by Stock Entry, delivery without Sales Order),
-      `penjualan.md`/`pembelian.md` marked "not used yet", a short User guide of the three jobs; `cek_layar` and the
-      role tests (`test_izin_per_profil`) follow.
-- [ ] Rebuild the access PDF (`Hak-Akses-ERP-Delta-Anugrah.pdf`) from the new permissions for Samuel.
+- [x] User = Stock User + our role `ERP User` (`tampilan.PERAN_USER`): creates only Production Entry, a Delivery Note
+      made directly (`so_required` No) and a Material Receipt Stock Entry (`batas_user.py`); Stock User's other
+      documents (`HANYA_ADMIN`) and Work Orders, BOMs, items, customers are read only. `test_batas_user`.
+- [x] User reads: Production Floor, Stock Balance, Stock Ledger, Item, Warehouse, Plan vs Actual, Order Readiness,
+      Work Order. Rail: Stock and Manufacturing only; Delivery Note moved into Stock's sidebar and home.
+- [x] User may change a machine's status on the Production Floor (Samuel 2026-11-02): `set_status` lets `ERP User`
+      change the status only (Workstation stays read only).
+- [x] Production Entry still makes its Manufacture/Repack entries as the User (flag `FLAG_HASIL`), and cancels them.
+- [x] Admin unchanged. Projects and HR are Admin's now (`test_proyek` uses an office worker with the roles given directly).
+- [x] Guides: `docs/panduan/user.md` (new), `gudang.md` (raw material in, direct delivery), `penjualan.md`/
+      `pembelian.md` "not used yet", `admin.md`, `produksi.md`, `proyek.md`, `absen.md`.
+- [x] Access PDF rebuilt from the live permissions: `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` (Abel sends it).
+- [x] `cek_layar` 3 users 2026-11-02 (web only, no socket.io): User rail Stock + Manufacturing, Sales Forecast moved
+      last in Manufacturing so User's home has no gap. `run-tests --app erp_internal`: 222 OK (13 unit + 209 integration).
+- [ ] Retake `docs/panduan/gambar/` with `tools/panduan_gambar.mjs` (now as `admin@`), and add pictures of a Material
+      Receipt and a direct Delivery Note for `gudang.md`/`user.md`.
 
 ## Next: item-to-machine list into Machine Capacity (Samuel 2026-11-02)
 Samuel's Excel `Perhitungan & Penjualan Barang Plastik (1).xlsx` (Abel's Downloads, 2026-11-02) has a new sheet
@@ -32,8 +34,10 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
       per item and machine from the `spesifikasi` already kept, then `buat_bom_kapasitas`. Idempotent, with a test.
 - [ ] Match "Barang Cetak" names to our Item templates (e.g. "Gantungan Flash ( 2 )", "Body PLN", "Stik Folding",
       "Body/Tutup Toples Nastar"); list the ones with no item for Samuel.
-- [ ] Ask Samuel (`docs/menunggu-samuel.md` row 12): machines 1, 7 and 9-14 are not in the list (idle, or not filled
-      in yet?); is "( 2 )"/"( 4 )" after a name the cavity count of that mould (cycle time and cavities may differ per machine)?
+- [x] Samuel 2026-11-02 (via Abel): machines 1, 7 and 9-14 are made inactive for now; "( 2 )"/"( 4 )" after a name is
+      the mould's cavity count (so the same product may have other cavities on another machine).
+- [ ] Make machines 1, 7, 9-14 inactive (check what v16 Workstation offers: a disabled flag or status "Off"; the
+      Production Floor and `master.py` must keep them out of new Work Orders) and read "( n )" as `cavities`.
 - [ ] Workstation tonnage (`Kapasitas`) on Mesin 02..08 if `mesin.json` lacks it.
 - BS (reject) answered 2026-11-02: every reject is reground and moulded again, no material is counted as wasted. The
   current flow already counts the reject's material as used (Repack into Gudang Reject); nothing to change for now.

@@ -4,7 +4,7 @@
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs produksi-1   # only the named pictures
 //
-// Each picture is taken as the sample User (the daily-work role the guides are for), at 1440x900. A screen with a sample record opens that
+// Each picture is taken as the sample Admin (User opens no Selling or Buying since 2026-11-02), at 1440x900. A screen with a sample record opens that
 // record; one without (no Purchase Order or Purchase Receipt in the sample data, no Material Transfer) opens a new
 // form and fills it in the browser without saving, so nothing is written. Exit code 1 on an error dialog or a
 // console error.
@@ -56,7 +56,7 @@ const buka = (page, dt) =>
 
 const besok = () => new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
 
-const USER = "user@example.com";
+const USER = "admin@example.com"; // since 2026-11-02 User opens no Selling or Buying
 
 // file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it]
 const GAMBAR_LIST = {

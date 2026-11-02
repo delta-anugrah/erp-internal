@@ -19,6 +19,16 @@ image on its own server.
 **Spec:** `docs/superpowers/specs/2026-10-27-erp-internal-design.md`. Until Task 1 moves it, it is at
 `~/.claude/plans/2026-10-27-erp-internal-design.md`. Section numbers (§) below refer to the spec.
 
+## Revision 5 (Mas Samuel, 2026-11-02): overrides Revision 4's User role
+
+- User = Stock User + `ERP User`: creates only Production Entry, a Delivery Note made directly and a Material Receipt
+  Stock Entry, sets a machine's status; everything else read only (`erp_internal/batas_user.py`, `test_batas_user`).
+- User's rail: Stock and Manufacturing. Selling, Buying, Projects and HR are Admin's; timesheets go to accounts given
+  Projects User and Employee directly (`proyek.PERAN_ATASAN` unchanged).
+- Selling Settings `so_required` No (`test_surat_jalan_langsung` replaces `test_surat_jalan_wajib_dari_order`;
+  `test_user_tetap_bisa_buat_surat_jalan` replaces `test_user_tetap_bisa_buat_order`). `cek_layar` and
+  `panduan_gambar` (now as `admin@`) follow.
+
 ## Revision 4 (Mas Samuel, confirmed by Abel 2026-10-28): read this first, it overrides everything below
 
 Samuel's answers are in `docs/menunggu-samuel.md` ("Answers").

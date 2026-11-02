@@ -1,7 +1,7 @@
 # Panduan Produksi
 
-Untuk **User** dan **Admin**; lama produksi (Item Lead Time) diisi **Admin**. **Sales History** juga
-ada di menu **Selling**.
+Untuk **Admin** (perkiraan, jadwal, resep, perintah produksi) dan **User** (catat hasil produksi, lihat Work
+Order dan laporan; `user.md`). **Sales History** juga ada di menu **Selling**.
 Alurnya:
 
 1. sekali per produk: **lama produksi** dan **resep (BOM)**;
@@ -35,7 +35,7 @@ Floor** (pilihan paling atas).
 - **Tampilan gelap**: gedung, truk, dan tulisan di lantai ikut menjadi gelap kalau Desk dipasang ke tema gelap.
 - **Klik satu mesin**: panel di kanan menunjukkan detailnya dan link ke Work Order-nya. Enam tombol status mengubah
   status mesin itu (sama dengan mengubah **Status** di formulir Workstation-nya); **Open machine** membuka
-  formulirnya.
+  formulirnya. User cuma bisa lewat tombol ini; formulir Workstation cuma bisa dilihat.
 - **Work Order di mesin mana?** Isi **Machine** di Work Order. Tanpa itu Work Order tidak muncul di lantai.
 - Kalau browser tidak bisa menampilkan 3D, halaman menampilkan tabel biasa dengan isi yang sama.
 
@@ -81,16 +81,17 @@ terbuka di tab Sales Orders (**Get Sales Orders**) lalu **Get Actual Demand**. *
 sendiri) dan **Warehouse** gudang induk perusahaan. Laporan menunjukkan berapa yang harus dibuat dan bahan yang harus
 dibeli, per hari. Centang baris yang mau dibuat, klik **Make Purchase / Work Order**.
 
-### 4. Perintah produksi (Work Order)
+### 4. Perintah produksi (Work Order, Admin)
 Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, hasil ke Gudang Barang Jadi.
 1. Buka Work Order-nya, **Submit**.
 2. Bahan diambil ke mesin: **Start** (Material Transfer for Manufacture), **Submit** Stock Entry-nya.
 3. Produk selesai: **Finish** (Manufacture), isi jumlah yang jadi, **Submit**. Stok barang jadi bertambah, bahan
    berkurang sesuai BOM. Untuk mesin cetak, lebih enak lewat **Catat hasil produksi** (di bawah): sekali isi,
-   barang bagus dan reject langsung tercatat.
+   barang bagus dan reject langsung tercatat. **Start** dan **Finish** cuma Admin; User mencatat hasil lewat
+   Production Entry.
 
 ## Catat hasil produksi
-Tiap mesin, tiap shift, tiap Work Order: satu **Production Entry** (Hasil Produksi). Diisi admin pabrik dari catatan
+Tiap mesin, tiap shift, tiap Work Order: satu **Production Entry** (Hasil Produksi). Diisi **User** (petugas pabrik) dari catatan
 operator.
 
 1. Buka Work Order yang sudah di-**Submit** dan belum selesai, klik **Record Output**. (Atau **Manufacturing →

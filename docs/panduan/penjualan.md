@@ -1,7 +1,9 @@
 # Panduan Penjualan
 
-Untuk **User** dan **Admin**. Urutannya selalu: **Sales Order → Delivery Note → Sales Invoice → Payment Entry**.
-Surat jalan dan faktur tidak bisa dibuat tanpa pesanan; sistem menolaknya.
+> **Belum dipakai** (Mas Samuel, 2026-11-02): surat jalan dibuat langsung tanpa Sales Order (`gudang.md`, "Kirim
+> barang ke pelanggan"). Panduan ini untuk nanti, dan cuma **Admin** yang bisa membuka menu Selling.
+
+Untuk **Admin**. Urutannya: **Sales Order → Delivery Note → Sales Invoice → Payment Entry**.
 
 Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok kanan atas, pilih
 **Bahasa Indonesia**. Nama tombol di panduan ini ditulis seperti di tampilan bahasa Inggris.

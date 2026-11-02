@@ -16,6 +16,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, nowtime, today
 
+from erp_internal.batas_user import FLAG_HASIL
 from erp_internal.setup import jam_shift
 
 STATUS_TERBUKA = ("Not Started", "In Process")  # Work Order statuses that take output
@@ -113,7 +114,9 @@ class ProductionEntry(Document):
 	def on_cancel(self):
 		for nama in (self.reject_entry, self.manufacture_entry):
 			if nama and frappe.db.get_value("Stock Entry", nama, "docstatus") == 1:
-				frappe.get_doc("Stock Entry", nama).cancel()
+				se = frappe.get_doc("Stock Entry", nama)
+				se.flags[FLAG_HASIL] = True  # a User cancels it with this entry (batas_user)
+				se.cancel()
 
 	def _ajukan(self, se):
 		"""Date the Stock Entry on this entry's date, then insert and submit it."""
@@ -121,6 +124,7 @@ class ProductionEntry(Document):
 		se.posting_date = self.posting_date
 		se.posting_time = nowtime()
 		se.remarks = _("Production Entry {0}").format(self.name)
+		se.flags[FLAG_HASIL] = True  # a User makes it through this entry only (batas_user)
 		se.insert()
 		se.submit()
 		return se

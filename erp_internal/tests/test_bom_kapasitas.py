@@ -3,7 +3,13 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from erp_internal.planning.kapasitas import baris_bom, buat_bom_kapasitas, kunci_mesin, pilih_bom, varian_tercakup
+from erp_internal.planning.kapasitas import (
+	baris_bom,
+	buat_bom_kapasitas,
+	kunci_mesin,
+	pilih_bom,
+	varian_tercakup,
+)
 from erp_internal.tampilan import ADMIN, USER
 from erp_internal.tests.utils import (
 	buat_barang,

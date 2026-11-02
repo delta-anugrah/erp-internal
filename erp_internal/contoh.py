@@ -133,7 +133,8 @@ KARYAWAN = (
 	("Eka", "Putri", "Female", None),
 )
 PROYEK = "Katalog Produk Online"
-TUGAS = ("Desain halaman katalog", "Foto dan data produk", "Uji dan rilis")  # the first goes to the User
+# The first task goes to the Admin (the User profile has no Projects since 2026-11-02).
+TUGAS = ("Desain halaman katalog", "Foto dan data produk", "Uji dan rilis")
 
 # Every DocType this file writes, for the summary and the idempotency test.
 DIBUAT = (
@@ -351,7 +352,7 @@ def _kantor(company: str, pengguna: dict[str, str], hari_ini: date) -> None:
 			)
 		tandai("Task", tugas)
 
-	karyawan = pengguna.get(USER)
+	karyawan = pengguna.get(ADMIN)
 	pertama = frappe.db.get_value("Task", {"subject": TUGAS[0], "project": proyek})
 	if karyawan and not frappe.db.exists(
 		"ToDo",

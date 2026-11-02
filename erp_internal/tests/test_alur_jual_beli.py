@@ -91,7 +91,8 @@ class TestAlurJualBeli(IntegrationTestCase):
 		self.assertEqual(si.grand_total, 1_110_000)
 		self.assertEqual(si.items[0].sales_order, so.name)
 
-	def test_surat_jalan_wajib_dari_order(self):
+	def test_surat_jalan_langsung(self):
+		# Samuel 2026-11-02: a Delivery Note is made directly, without a Sales Order (setup.PENGATURAN_ALUR).
 		stok_awal(self.pabrik, self.ember, 500, "Gudang Barang Jadi")
 		dn = frappe.get_doc(
 			{
@@ -103,8 +104,9 @@ class TestAlurJualBeli(IntegrationTestCase):
 				"items": [{"item_code": self.ember, "qty": 10, "rate": 10000, "warehouse": self.jadi}],
 			}
 		)
-		with self.assertRaisesRegex(frappe.ValidationError, "Sales Order"):
-			dn.insert()
+		dn.insert()
+		dn.submit()
+		self.assertEqual(stok(self.ember, self.jadi), 490)
 
 	def test_alur_pembelian(self):
 		sebelum = stok(self.biji, self.bahan)

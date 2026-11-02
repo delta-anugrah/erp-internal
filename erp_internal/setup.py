@@ -121,10 +121,10 @@ SATUAN_PECAHAN = ("Kg",)  # every other UOM takes whole numbers only
 PENGATURAN_VARIAN = {"allow_different_uom": 1}  # Item Variant Settings
 GUDANG_PABRIK = ("Gudang Bahan Baku", "Gudang Produksi", "Gudang Barang Jadi", "Gudang Reject")
 
-# The sales and purchasing flow: every delivery and every receipt starts from an order; stock never goes
-# negative and is valued FIFO.
+# The sales and purchasing flow: a Delivery Note is made directly (Samuel 2026-11-02: no Sales Orders for now),
+# every purchase receipt starts from an order; stock never goes negative and is valued FIFO.
 PENGATURAN_ALUR = {
-	"Selling Settings": {"so_required": "Yes", "dn_required": "No"},
+	"Selling Settings": {"so_required": "No", "dn_required": "No"},
 	"Buying Settings": {"po_required": "Yes", "pr_required": "No"},
 	"Stock Settings": {"allow_negative_stock": 0, "valuation_method": "FIFO"},
 }
@@ -210,6 +210,9 @@ JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")
 #   defaults ("No permission for Company" on a new Stock Entry, seen by tools/cek_layar.mjs).
 # - The Admin role manages users (roles sit on permlevel 1) and reads the profiles it hands out; what it may give
 #   is limited by `pengguna.cek_user`. Projects Settings is System Manager's only in v16.
+# - The User role (PERAN_USER, next to Stock User) reads the machines (the Production Floor, a Production Entry's
+#   machine; `production_floor.set_status` changes only the status), and the price lists and accounts a Delivery
+#   Note uses (ERPNext checks the customer's receivable account).
 IZIN_TAMBAHAN = (
 	("Timesheet", "Employee", 0, ("submit",)),
 	("Company", "Manufacturing User", 0, ("read",)),
@@ -218,6 +221,9 @@ IZIN_TAMBAHAN = (
 	("Role Profile", tampilan.PERAN_ADMIN, 0, ("read",)),
 	("Module Profile", tampilan.PERAN_ADMIN, 0, ("read",)),
 	("Projects Settings", "Projects Manager", 0, ("read", "write")),
+	("Workstation", tampilan.PERAN_USER, 0, ("read",)),
+	("Price List", tampilan.PERAN_USER, 0, ("read",)),
+	("Account", tampilan.PERAN_USER, 0, ("read",)),
 )
 
 

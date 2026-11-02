@@ -2,6 +2,20 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-02 (a simpler User role)
+- Samuel: User records only daily output, deliveries and raw material in; the rest is read only. User = Stock User +
+  `ERP User` (`tampilan.PERAN_USER`); `batas_user.py` keeps a User to a Material Receipt Stock Entry (Production
+  Entry's own entries pass by `FLAG_HASIL`) and makes Stock User's other documents read only (`HANYA_ADMIN`).
+  `ERP User` reads Workstation, Price List, Account, Machine Capacity, Reject Reason, Sales History; sets a machine's
+  status only. Rail Stock + Manufacturing; Delivery Note in Stock; `so_required` No (direct Delivery Note).
+  `tampilan._pengguna_profil` resaves users whose roles lag behind their profile at migrate.
+- Tests: `test_batas_user` (new, 8); `test_surat_jalan_langsung`, `test_user_tetap_bisa_buat_surat_jalan`,
+  `test_proyek` with an office worker (roles given directly). `run-tests --app erp_internal`: 222 OK (13 unit + 209
+  integration). `cek_layar` 3 users OK (found and fixed: a gap on User's Manufacturing home, Sales Forecast moved last).
+- Guides: new `docs/panduan/user.md`; gudang, penjualan, pembelian, admin, produksi, proyek, absen updated. Access PDF
+  `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf`. Samuel (via Abel): machines 1, 7, 9-14 inactive for now;
+  "( 2 )"/"( 4 )" is the cavity count.
+
 ## 2026-11-02 (Samuel's answers)
 - Samuel: two factory shifts of 12 h (`setup.SHIFT_PABRIK` now Shift 1 and 2, 12 h; Production Entry options, id.csv,
   `test_plan_vs_actual` follow); roles Admin and User are enough; each item is tied to particular machines (list
