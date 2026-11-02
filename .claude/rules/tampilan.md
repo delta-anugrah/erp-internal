@@ -57,8 +57,9 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   profile must read Company (`test_izin_per_profil`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
 - User (Samuel, 2026-11-02) is Stock User plus `PERAN_USER` ("ERP User"): rail Stock and Manufacturing only (`IKON`,
   `MODUL_BOLEH`, no Accounts or Leaves). `PERAN_USER` holds Production Entry (its JSON), reads Machine Capacity,
-  Reject Reason, Sales History (JSON; Order Readiness is built on it), Workstation, Price List and Account
-  (`IZIN_TAMBAHAN`; a Delivery Note checks the customer's account), opens the Production Floor, Plan vs Actual and
+  Reject Reason, Sales History (JSON; Order Readiness is built on it), Workstation, Price List, Account,
+  Stock Settings and Customer Group (`IZIN_TAMBAHAN`; a Delivery Note checks the customer's account, the Material
+  Receipt and Delivery Note forms read the last two, `test_baca_untuk_form`), opens the Production Floor, Plan vs Actual and
   Order Readiness, and sets a machine's status through `production_floor.set_status` only. `batas_user.py`:
   Stock Entry `validate`/`before_cancel` allow a User only `TUJUAN_USER` (Material Receipt) unless the entry carries
   `FLAG_HASIL` (Production Entry's own Manufacture and Repack); the `has_permission` hook on `HANYA_ADMIN` keeps Stock

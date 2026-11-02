@@ -73,7 +73,7 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 
 Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@example.com` of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
-(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`).
+(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`; Admin's screens as `admin@`, the User's `gudang-2`/`gudang-3` as `user@`).
 `tools/lantai.mjs` checks the Production Floor page (`/desk/production-floor`, Manufacturing's first link) the same
 way: the 14 machines in floor order, status lamps, labels, the side panel and its status buttons, live updates, the
 info bar, the attention card, the loading screen, the dark decor, the glass look in light and dark, a plain table without WebGL, and the smoothness budget (frame rate,
