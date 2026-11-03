@@ -307,6 +307,12 @@ row → `deploy/server/akun.sh`, `tools/setup_lokal.sh`, `wizard.py`; Commands b
 - Task 4: `.local/siap` is written by `tools/setup_lokal.sh` at the very end; the wizard check is the root
   Makefile's own `wizard-selesai`, the last line `tools/setup_lokal.sh --pesan`; the generated `ADMIN_PASSWORD` also
   leaves `.local/.env`. `PROYEK ?= erp-local` names the compose project, so a test stack runs beside a real one.
+- Final review (`e368a26`): `setup.sh` checks `docker info` before the token and stops on a non-auth `docker
+  login` error; address, version and backup answers are validated before `make env`; `lanjut` is no longer chained
+  to `wizard configure` (Task 3 step 10) nor in `setup-local` (Task 4): `setup.sh` and `setup_lokal.sh` (through
+  the new root `lanjut` target) run it once the wizard is done, until `.lanjut-siap` / `.local/lanjut-siap`, so
+  Task 4's dry run now counts 0; `wizard.selesai` keeps the account in global default `erp_wizard_developer`;
+  `lanjutkan` runs under the site filelock `erp_lanjutkan`; the `ERP_AKUN` message names `make start`/`make setup`.
 - Task 5: run beside Abel's stack (`~/Desktop/coba-erp`, project `erp-local`) instead of wiping it: projects
   `erp-tanya` (automatic, port 8081) and `erp-tangan` (by hand, port 8082), image `erp-internal:uji-setup`. The
   name `erp-uji` was taken by the 10-31 rehearsal's volumes.

@@ -40,11 +40,15 @@ make setup
 `setup.sh` asks (each with a suggestion that Enter takes, each skipped when already answered):
 
 1. GitHub user name and token (`read:packages` only) for `docker login ghcr.io`, on stdin; skipped when already
-   signed in. A refused token is asked again.
-2. The site address, exactly as typed in the browser (`https://` and a trailing path are dropped).
+   signed in. Docker must answer first, else `Docker does not answer for <user>: install Docker and add <user> to
+   the docker group (README step 1).` and it stops. A refused token is asked again; any other login error prints
+   `Could not reach ghcr.io: <error>` and stops.
+2. The site address, exactly as typed in the browser (`https://` and a trailing path are dropped, lower case);
+   not a host name, asked again. These answers are checked before `.env` is written: a rerun never asks again.
 3. The app version: the newest `vX.Y.Z` tag of the image is suggested (read with the token through `curl -K -`);
-   no release yet, no suggestion.
-4. The backup destination (an rclone remote) or `skip`.
+   no release yet, no suggestion; asked again unless `vX.Y.Z` (a `v` is added).
+4. The backup destination (an rclone remote `name:bucket/path`, a folder starting with `/`) or `skip`; anything
+   else is asked again.
 5. The setup wizard: automatic (default) or by hand in the browser, the company name and abbreviation (kept in
    `.wizard`, never asked again).
 6. The accounts: Administrator's password and, with the automatic wizard, optional Developer / Admin / User

@@ -134,6 +134,7 @@ Repo root (`Makefile`, on your computer):
 | `make stop` | Stops the stack; the data stays. |
 | `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done (used for the last line). |
+| `make lanjut` | After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
 | `make dev` | For coding (not Docker): starts `erp-mariadb` and `bench start` in the bench of `tools/setup_bench.sh` (Python reloads, JS/CSS rebuild; a DocType change needs `bench migrate`). Without the bench it says so. |
 
 `setup-local` is `check-local`, `env-local`, `image-local`, then the server Makefile's `db`, `site` (also sets
@@ -355,8 +356,12 @@ It asks, each with a suggestion in `[brackets]` (Enter takes it), and skips what
 
 1. **GitHub user name and token**, to download the app: a token with only `read:packages`. A wrong token says
    `That token did not work (it needs read:packages), try again.` Skipped when the server is already signed in.
-2. **Site address**: exactly what people type in the browser, e.g. `app.deltaanugrah.com`.
-3. **App version**: the newest release is suggested (`vX.Y.Z`); without a release yet, type the version.
+   If Docker does not answer it stops with `Docker does not answer for <user>: install Docker and add <user> to the
+   docker group (README step 1).`
+2. **Site address**: exactly what people type in the browser, e.g. `app.deltaanugrah.com` (anything else is asked
+   again).
+3. **App version**: the newest release is suggested (`vX.Y.Z`); without a release yet, type the version. Not three
+   numbers: `A version has three numbers, like v0.1.0, try again.`
 4. **Backup destination**: an rclone remote like `r2:erp-backup/erp`, or Enter to `skip`. Skipped, the nightly
    backup still runs and stays in `~/erp/cadangan` on the server only; add `RCLONE_REMOTE=...` to `.env` (and
    install rclone) later to copy it off the server.
