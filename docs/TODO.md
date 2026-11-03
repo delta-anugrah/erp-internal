@@ -39,7 +39,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 ## Done: run it on a laptop with only Docker (2026-11-03)
 - [x] Root `Makefile`: `make start-local` (first time `setup-local`: check-local, env-local, image-local, the server
       Makefile's `db site wizard`, configure-local, data-local, up; then ping-local and the accounts once; later runs
-      only start the containers), `stop`, `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
+      only start the containers), `stop` (now `down`), `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
       makes later accounts and resets passwords in the app. Compose project `erp-local`, `.local/`
       git-ignored, image `erp-internal:local` built from the repo or a released `ERP_IMAGE`.
 - [x] `tools/akun.sh` checklist (Administrator always; Developer, Admin, User optional), Administrator password only; Developer, Admin, User each email + password, typed twice,
@@ -47,7 +47,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] `deploy/server/Makefile` targets in English: check, check-env, configure, backup. `.gitattributes` LF everywhere.
 - [x] Real run on the Mac 2026-11-03 from an empty `.local` and no volumes: setup 7 min 40 s (image already built,
       a build is 10-20 min), 127 items, 54 Machine Capacity rows, 513 Sales History rows; the account picker (Admin + User,
-      every refusal tried), logins by API 200 (wrong password 401), `make down`, `make start-local` again in 24 s.
+      every refusal tried), logins by API 200 (wrong password 401), `make stop` (now `make down`), `make start-local` again in 24 s.
 - [ ] Samuel: a fresh clone on his Mac. Not tried yet: Windows + WSL, `make update-local`.
 
 ## Done: a simpler User role (Samuel 2026-11-02)

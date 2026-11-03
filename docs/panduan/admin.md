@@ -11,13 +11,14 @@ Ada tiga peran (**Role Profile**):
 |---|---|---|
 | **User** | orang pabrik dan gudang | tiga kerjaan harian: hasil produksi, surat jalan, bahan baku masuk; status mesin; selebihnya cuma lihat (`user.md`) |
 | **Admin** | pemilik dan kepala | semua yang User bisa, plus Work Order, BOM, data induk, penjualan, pembelian, proyek, HR, akun pengguna, pengaturan usaha |
-| **Developer** | tim IT | semuanya, termasuk Build dan System Settings |
+| **Developer** | tim IT | semuanya kecuali modul yang dikunci, termasuk Build dan System Settings |
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 Modul yang tidak dipakai (CRM, Assets, Quality, Support, Payroll, dan lain-lain) dikunci: tidak ada di menu, tidak
-muncul di pencarian, dan tidak bisa dibuka lewat alamat. Kalau suatu hari dibutuhkan, minta tim IT membukanya.
+muncul di pencarian, dan tidak bisa dibuka lewat alamat. Kalau suatu hari dibutuhkan, tim IT membukanya
+(hapus dari daftar di kode, lalu migrate).
 
 Versi aplikasi (misalnya `v0.0.1`) ada di bawah kotak login dan di bagian bawah menu kiri **My Settings**. Sebut
 versinya kalau melaporkan masalah.

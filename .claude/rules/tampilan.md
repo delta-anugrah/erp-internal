@@ -30,11 +30,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   Attendance, `PINTASAN["HR"]` written into it), first in the Shift & Attendance sidebar; a standard Workspace keeps
   its app's title and `Custom Workspace` has no title field. So the page title, breadcrumb and tab read "HR"
   ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
-- Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
+- Our module `Planning` has no Dock entry or Sidebar and stays blocked in the Admin and User Module Profiles (Developer's blocks only `MODUL_MATI`); its Sales History
   is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and the Planning
   DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Entry (after Work
   Order), Plan vs Actual (after Order Readiness), Machine Capacity (after BOM); Reject Reason sits in Setup after
-  Manufacturing Settings. The Planning module itself stays blocked.
+  Manufacturing Settings. The Planning module itself stays blocked for Admin and User.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the

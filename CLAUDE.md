@@ -89,7 +89,7 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - A report that reads with `get_all` checks the caller's Company/Warehouse permission itself (Order Readiness).
 - Unused modules are locked, not only hidden (Abel 2026-11-04): `tampilan.MODUL_MATI` (CRM, Assets, Quality, Support,
   Subcontracting, Maintenance, Payroll, ...) gets one Custom DocPerm for the Administrator role per DocType, every
-  profile (Developer too) blocks those modules, and `saring_modul_mati` drops them from every boot; only
+  profile (Developer too) blocks those modules, and `saring_modul_mati` (`extend_bootinfo`, after `saring_aplikasi`, `merek_aplikasi`, `menu_samping`) drops them from every boot; only
   Administrator still opens them by URL. Remove a module from the list and migrate to unlock it. `test_modul_mati`.
 - Hide what users don't need (Abel, 2026-10-29). A DocType named by hash (Sales History, Machine Capacity) shows a
   title instead: `show_title_field_in_link`, `hide_name_column`/`hide_name_filter` in its `*_list.js`, and the form

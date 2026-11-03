@@ -236,7 +236,8 @@ run the existing Makefile steps.
     `WIZARD=otomatis`; `configure-local` drops the `erp_aktif` and `erp_produksi` lines; `data-local` is deleted
     (the one-time seed is `lanjutkan`), so `update-local` no longer reloads data.
   - New `start`: the same as `start-local` (Abel 2026-11-03: the short name people type; `start-local` stays).
-    `help` lists `make start` first.
+    `help` lists `make start` first (deviation, Abel 2026-11-04: `make up` is the main name, `make start` and
+    `make start-local` stay aliases until the real server is live; `make stop` is now `make down`).
   - New `dev`: `BENCH ?= $(HOME)/Desktop/Projects/erp-internal-bench`; when `$(BENCH)/apps/erp_internal` is
     missing print "No bench at BENCH: run tools/setup_bench.sh first." and exit 1; else `docker start
     erp-mariadb >/dev/null` and `cd $(BENCH) && bench start`. `help` lists it: "make dev  code on the bench:
@@ -254,7 +255,7 @@ run the existing Makefile steps.
 ### Task 5: End-to-end runs (needs Abel's OK: wipes the local stack)
 
 The local stack in `.local/` holds a site. Before this task, ask Abel whether it may be removed
-(`make stop; docker compose -p erp-local --project-directory .local -f deploy/server/docker-compose.yml down -v; rm -rf .local`).
+(`make down; docker compose -p erp-local --project-directory .local -f deploy/server/docker-compose.yml down -v; rm -rf .local`).
 
 - [x] **Step 1: Automatic path, local.** `make start-local`, Enter on every suggestion, Administrator + one Admin
   account. Expected: ends with "Ready", sign in as Administrator and as the Admin works, Item count > 0
