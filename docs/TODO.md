@@ -11,6 +11,13 @@ Before that (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integra
 Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
+## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
+- [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
+- [ ] Abel approves the spec, then the plan (superpowers:writing-plans), then build.
+- [ ] After that, a small task: show the app version (e.g. `v0.1.3`) on the login screen and in the Settings
+      dialog's left menu; `erp_internal.__version__` follows the release tag (now `0.0.1`).
+- [ ] Then the same setup work for BPT, then the sawit autoerp, one at a time in their own sessions.
+
 ## Done: one labelled menu instead of the icon rail (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-sidebar-accordion-design.md`, plan `docs/superpowers/plans/2026-11-03-sidebar-accordion-plan.md`.
 - [x] `tampilan.menu_samping` (`erp_menu` in boot), `IKON_MODUL`, `IKON_RUMAH`, link icons that no longer repeat their
