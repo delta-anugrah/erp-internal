@@ -47,6 +47,22 @@ class TestModulMati(IntegrationTestCase):
 			tampilan._kunci_modul()
 		self.assertEqual(len(custom("Call Log")), 1)
 
+	def test_kunci_tangan_tidak_disentuh(self):
+		# A DocType someone restricted to Administrator by hand is no lock of ours: a run leaves it.
+		dt = "Note"
+		frappe.get_doc(
+			{
+				"doctype": "Custom DocPerm",
+				"parent": dt,
+				"parenttype": "DocType",
+				"parentfield": "permissions",
+				"role": PERAN_KUNCI,
+				"read": 1,
+			}
+		).insert(ignore_permissions=True)
+		tampilan._kunci_modul()
+		self.assertEqual(len(custom(dt)), 1)
+
 	def test_blok_menu(self):
 		# Developer's Module Profile and Administrator's own blocks hide the modules from every menu.
 		semua = set(tampilan.modul_aplikasi())

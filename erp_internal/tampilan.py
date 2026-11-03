@@ -208,6 +208,9 @@ MODUL_MATI = (
 	"Portal",
 )
 PERAN_KUNCI = "Administrator"  # the one role a locked DocType's Custom DocPerm names
+KUNCI_GLOBAL = (
+	"erp_modul_terkunci"  # global default: the DocTypes _kunci_modul locked (JSON), the only ones it unlocks
+)
 
 # Role Profile → standard ERPNext/HRMS roles. Read from the v16 DocPerms (`test_izin_per_profil`):
 # - User (Samuel, 2026-11-02): Stock User (Stock Entry, Delivery Note, and reads stock, items, Work Orders and
@@ -917,12 +920,18 @@ def doctype_mati() -> list[str]:
 
 def _kunci_modul() -> None:
 	"""One Custom DocPerm, for PERAN_KUNCI, on each DocType of MODUL_MATI (a DocType with Custom DocPerms ignores its
-	standard ones). A DocType whose only Custom DocPerm is that row and that left MODUL_MATI gets its own back."""
+	standard ones). Only a DocType this function locked before (KUNCI_GLOBAL) and that left MODUL_MATI gets its own
+	permissions back: a Custom DocPerm someone set by hand on another DocType is never touched."""
 	kunci = set(doctype_mati())
+	dulu = set(frappe.parse_json(frappe.db.get_global(KUNCI_GLOBAL) or "[]"))
 	baris = {}
-	for r in frappe.get_all("Custom DocPerm", ["name", "parent", "role", "permlevel"]):
+	for r in frappe.get_all(
+		"Custom DocPerm",
+		["name", "parent", "role", "permlevel"],
+		{"parent": ("in", list(kunci | dulu) or [""])},
+	):
 		baris.setdefault(r.parent, []).append(r)
-	for dt in sorted(kunci | set(baris)):
+	for dt in sorted(kunci | dulu):
 		ada = baris.get(dt, [])
 		kita = len(ada) == 1 and ada[0].role == PERAN_KUNCI and not ada[0].permlevel
 		if dt in kunci and not kita:
@@ -943,6 +952,8 @@ def _kunci_modul() -> None:
 		elif dt not in kunci and kita:
 			frappe.delete_doc("Custom DocPerm", ada[0].name, ignore_permissions=True)
 			frappe.clear_cache(doctype=dt)
+	if kunci != dulu:
+		frappe.db.set_global(KUNCI_GLOBAL, frappe.as_json(sorted(kunci)))
 
 
 # ---------------------------------------------------------------------------------------------------------

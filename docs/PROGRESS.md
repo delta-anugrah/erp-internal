@@ -28,6 +28,8 @@ Newest first. One entry per working session: what changed, test results as run, 
   all OK; `lantai.mjs` all OK (60 fps, 0 dropped). An earlier `lantai.mjs` run cut off by a session restart had left
   machines 1, 7, 9-14 enabled on `erp.localhost`: restored by `master.muat`; `lantai.mjs` now also copes with no
   disabled machine.
+- Security review: unlocking now touches only DocTypes `_kunci_modul` locked itself (global default
+  `erp_modul_terkunci`), never a hand-set Administrator-only Custom DocPerm; `test_modul_mati` 7 OK.
 - Next: push + PR; HR's unused DocTypes.
 
 ## 2026-11-03 (one-command setup, built)
