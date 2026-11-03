@@ -107,7 +107,7 @@ still holds). Earlier plan: `docs/superpowers/plans/2026-10-28-production-floor-
   gate.
 - [ ] **Step 5:** Commit `feat(lantai): labels declutter, step aside for cards, default view in the free area`.
 
-**Deviations:** `aturRuang` runs without saveState; the fit scale is 0.4 to 1; the panel shifts with the fit.
+**Deviations:** `aturRuang` runs without saveState; the fit scale is 0.4 to 1; the panel shifts with the fit. 2026-11-03: labels within `SERI` (0.25 m) of depth keep a fixed order (full last frame first, then floor order), and `proyeksi`'s `dalam` is view depth in metres, not NDC z; the pure depth order let float noise flip the front row (`label-rapi` jiggle).
 
 ### Task 2: The floor plan module, the building and the outside
 

@@ -138,7 +138,7 @@ straight away, without a design round, so every choice below is **our call** unl
 BPT Live reads as a working BPT, while every machine figure stays true.
 
 **Labels that never collide or hide behind a card.**
-- Labels are decluttered on screen: nearest machine first; a label whose box would overlap one already placed shows
+- Labels are decluttered on screen: nearest machine first, and machines level in depth (within 0.25 m, e.g. the front row seen square on) in a fixed order: the label full last frame first, then floor order, so a few px of camera move cannot swap them; a label whose box would overlap one already placed shows
   as a compact chip (number and status dot only). The selected label is always full. A label does not flip between
   full and compact on every frame (hysteresis: it changes only when the overlap starts or ends by more than 8 px).
 - A label under a fixed card (top bar, KPI row, attention card, machine table, side panel, camera bar) is hidden.

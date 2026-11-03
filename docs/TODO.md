@@ -99,9 +99,9 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
 - [x] After each Production Floor task that runs `bench build`: restart `bench start`, then look at the floor in your
       own Chrome and say whether it feels smooth. Abel 2026-10-31: smooth in his Chrome.
 - [x] Production Floor (`/desk/production-floor`, signed in as `user@example.com`). 2026-11-03: `lantai.mjs` all cases OK,
-  perf 60.0 fps with 0 frames over 25 ms. Ticked items: `lantai.mjs` 2026-10-31 (states, label, pilih,
-  status, live, reconnect, hud, perhatian, dekor-gelap, glass, memuat, strip, id, 13-machines, no-webgl, zona; all OK). perf
-  60 fps but 1.65-2 % frames over 25 ms (budget 1 %) with the Mac at load 12-20 from other Docker projects.
+  perf 60.0 fps with 0 frames over 25 ms. Earlier, 2026-10-31: `lantai.mjs` (states, label, pilih,
+  status, live, reconnect, hud, perhatian, dekor-gelap, glass, memuat, strip, id, 13-machines, no-webgl, zona; all OK), perf then
+  1.65-2 % frames over 25 ms (budget 1 %) with the Mac at load 12-20 from other Docker projects; fixed by the 2026-11-03 run.
   - [x] 14 machines in two rows: back 14 13 12 11 10 9 8, front 1 2 3 4 5 6 7.
   - [x] Orbit (drag), zoom (scroll), pan (right drag), then the home button in the camera bar: smooth, no stutter, no error dialog. Abel 2026-10-31.
   - [x] They look like injection moulding machines; JSW, NISSEI and CHENDE in different colours. Abel 2026-10-31: layout fine.
