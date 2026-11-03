@@ -285,6 +285,15 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	const hp = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: undefined });
 	const ph = await hp.newPage();
 	await ph.request.post(`${URL}/api/method/login`, { form: { usr: surel(profil), pwd: SANDI } });
+	// A Stock page with no link of its own in the menu lights nothing: the drawer still opens on Stock.
+	await ph.goto(`${URL}/desk/stock/batch`);
+	await ph.waitForLoadState("networkidle");
+	await ph.locator(".sidebar-toggle-btn").first().click();
+	await ph.waitForTimeout(600);
+	cek(
+		await ph.locator('.section-item[data-id="Stock"] > .nested-container:not(.hidden) .item-anchor').first().isVisible(),
+		"phone drawer on a Stock page with no menu link: Stock not open"
+	);
 	await ph.goto(`${URL}/desk/stock/item`);
 	await ph.waitForLoadState("networkidle");
 	await ph.locator(".sidebar-toggle-btn").first().click();

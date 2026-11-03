@@ -102,7 +102,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   Order wrench, Purchase Order clipboard-list, Project folder-open, the settings sliders); each home row is
   `IKON_RUMAH` house; every icon we name must exist in the sprite (`test_ikon_ada`). `cek_layar` checks the headers per
   profile, the open and lit module, a link into another module, an Accounts page (Admin), Build's rail (Developer),
-  the folded rail and the phone drawer.
+  the folded rail and the phone drawer (also on a Stock page the menu does not list, which lights nothing).
 - Our CSS is one plain file, `public/css/erp_internal.css` (`hooks.app_include_css`, served as-is: no build, no
   `bench start` restart, only `clear-cache` after a hooks change). It gives the Apps screen avatar a pointer and
   keeps the sidebar's fold arrow visible on a desktop. Frappe v16.53 folds the module sidebar with that arrow
