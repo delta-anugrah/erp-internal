@@ -37,6 +37,8 @@ const PROFIL = {
 	User: { modul: ["Stock", "Manufacturing"], build: false, rumah: "Stock", form: "Delivery Note" },
 };
 const APLIKASI = ["erpnext", "hrms"]; // the apps whose rails tampilan.py arranges
+// tampilan.LABEL: the menu header of a module shown under another name.
+const LABEL = { "Shift & Attendance": "HR", Setup: "Settings" };
 
 const surel = (profil) => `${profil.toLowerCase()}@example.com`;
 // frappe.router.shell_slug: lower case, "&" spelled out, spaces to dashes
@@ -146,7 +148,13 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			await panah.click();
 			await page.waitForTimeout(700);
 			const tutup = await lebar();
-			// Folded, the arrow is a 32 px button in the dock and nothing covers its centre (Abel, 2026-10-29).
+			// Folded, the menu is a rail of module icons only (public/css/erp_internal.css), and the arrow is a
+			// 32 px button nothing covers (Abel, 2026-10-29).
+			const ikon_lipat = await page.evaluate(() => ({
+				kepala: [...document.querySelectorAll(".section-item .section-break .sidebar-item-icon")].filter((e) => e.offsetParent).length,
+				tautan: [...document.querySelectorAll(".section-item .nested-container .item-anchor")].filter((e) => e.offsetParent).length,
+			}));
+			cek(ikon_lipat.kepala === harap.modul.length && ikon_lipat.tautan === 0, `folded menu: ${JSON.stringify(ikon_lipat)}`);
 			const lipat = await panah.evaluate((e) => {
 				const r = e.getBoundingClientRect();
 				return { w: r.width, h: r.height, atas: e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)) };
@@ -164,9 +172,68 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 				`sidebar fold: open ${buka}, folded ${tutup}, after reload ${setelah_muat}, reopened ${buka_lagi}`
 			);
 			await page.screenshot({ path: join(HASIL, `${slug(profil)}-sidebar.png`) });
-			// The rail's top slot shows the icon of the app the module belongs to.
-			const atas = await page.locator(".dock-logo .header-logo img").first().getAttribute("src");
-			cek(Object.values(IKON_TILE).some((i) => atas?.endsWith(i)), `rail top logo: ${atas}`);
+			// The sidebar header shows the icon of the app the module belongs to (Frappe's dock-less header).
+			const atas = await page.locator(".sidebar-header .header-logo img").first().getAttribute("src");
+			cek(Object.values(IKON_TILE).some((i) => atas?.endsWith(i)), `sidebar header logo: ${atas}`);
+		}
+		if (nama === "form") {
+			// One labelled menu instead of the rail (public/js/menu_samping.js, Abel 2026-11-03): no dock, the
+			// profile's modules as headers in rail order, each with an icon, the page's module open with its link lit
+			// (on a list: Admin's new User form is a dialog over the desk, which lights nothing).
+			await page.goto(`${URL}/desk/stock/stock-entry`);
+			await page.waitForLoadState("networkidle");
+			await page.waitForTimeout(800);
+			const menu = await page.evaluate(() => ({
+				dok: !!document.querySelector("#desk-dock:not(.hidden)"),
+				kelas: document.body.classList.contains("erp-menu"),
+				kepala: [...document.querySelectorAll(".section-item")]
+					.filter((e) => e.querySelector(":scope > .standard-sidebar-item .section-break"))
+					.map((e) => ({
+						label: e.dataset.id,
+						ikon: !!e.querySelector(".section-break .sidebar-item-icon svg"),
+						buka: !e.querySelector(":scope > .nested-container").classList.contains("hidden"),
+						aktif: !!e.querySelector(".active-sidebar"),
+					})),
+			}));
+			const label = harap.modul.map((m) => LABEL[m] || m);
+			cek(!menu.dok && menu.kelas, `menu page still shows the dock (${menu.dok}) or lacks erp-menu (${menu.kelas})`);
+			cek(JSON.stringify(menu.kepala.map((k) => k.label)) === JSON.stringify(label), `menu headers: ${menu.kepala.map((k) => k.label)}`);
+			cek(menu.kepala.every((k) => k.ikon), "a menu header has no icon");
+			const lit = menu.kepala.filter((k) => k.aktif);
+			cek(lit.length === 1 && lit[0].label === "Stock" && lit[0].buka, `Stock not open and lit: ${JSON.stringify(lit)}`);
+			await page.screenshot({ path: join(HASIL, `${slug(profil)}-menu.png`) });
+			// Another module's link opens in its own shell, with that module open and only that link lit. Delivery
+			// Note sits under both Stock and Selling; the User has no Selling, so it goes Stock → Manufacturing.
+			const [dari, ke, link] = harap.modul.includes("Selling") ? ["Stock", "Selling", "Delivery Note"] : ["Stock", "Manufacturing", "Work Order"];
+			await page.evaluate((s) => frappe.set_route("Workspaces", s), dari);
+			await page.waitForLoadState("networkidle");
+			await page.waitForTimeout(800);
+			const kepala_ke = page.locator(`.section-item[data-id="${LABEL[ke] || ke}"]`);
+			if (await kepala_ke.locator(":scope > .nested-container.hidden").count()) await kepala_ke.locator(".section-break").first().click();
+			await kepala_ke.locator(".nested-container .item-anchor", { hasText: link }).first().click();
+			await page.waitForLoadState("networkidle");
+			await page.waitForTimeout(1000);
+			cek(page.url().includes(`/desk/${slug(ke)}/${slug(link)}`), `${ke} ▸ ${link} opened ${page.url()}`);
+			const lit2 = await page.evaluate(() =>
+				[...document.querySelectorAll(".active-sidebar")].map((e) => e.closest(".section-item")?.dataset.id)
+			);
+			cek(lit2.length === 1 && lit2[0] === (LABEL[ke] || ke), `lit after ${ke} ▸ ${link}: ${lit2}`);
+			if (profil === "Admin") {
+				// Accounts has no header; a page Frappe opens there still shows the menu.
+				await page.goto(`${URL}/desk/accounts/sales-invoice`);
+				await page.waitForLoadState("networkidle");
+				await page.waitForTimeout(800);
+				const n = await page.locator(".section-item .section-break").count();
+				cek(n === label.length, `Accounts page menu headers: ${n}`);
+			}
+			if (profil === "Developer") {
+				// Frappe's own System app keeps its rail.
+				await page.goto(`${URL}/desk/build`);
+				await page.waitForLoadState("networkidle");
+				await page.waitForTimeout(800);
+				cek(await page.locator("#desk-dock:not(.hidden)").count(), "Build lost its rail");
+				cek(!(await page.evaluate(() => document.body.classList.contains("erp-menu"))), "Build shows the ERP menu");
+			}
 		}
 	}
 	// Every module home on this user's rail: shortcuts only (no link card, number card, chart or onboarding),
@@ -184,6 +251,13 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			};
 		});
 		cek(pintasan > 0 && pintasan <= PINTASAN_MAKS && lain === 0, `home ${modul}: ${pintasan} shortcuts, ${lain} other widgets`);
+		// The menu opens on the module whose home this is.
+		const buka = await page.evaluate(() =>
+			[...document.querySelectorAll(".section-item")]
+				.filter((e) => e.querySelector(":scope > .nested-container:not(.hidden) .item-anchor"))
+				.map((e) => e.dataset.id)
+		);
+		cek(buka.includes(LABEL[modul] || modul), `home ${modul}: open menu sections [${buka}]`);
 		const pesan = page.locator(".modal.show.msgprint-dialog, .modal.show .msgprint");
 		cek((await pesan.count()) === 0, `home ${modul}: a message dialog is open`);
 	}
@@ -206,6 +280,24 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	cek(page.url().includes("/manufacturing/production-floor"), `floor after a Work Order list: ${page.url()}`);
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
 	await context.close();
+
+	// Phone width: Frappe's drawer shows the same menu and shuts after a link click.
+	const hp = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: undefined });
+	const ph = await hp.newPage();
+	await ph.request.post(`${URL}/api/method/login`, { form: { usr: surel(profil), pwd: SANDI } });
+	await ph.goto(`${URL}/desk/stock/item`);
+	await ph.waitForLoadState("networkidle");
+	await ph.locator(".sidebar-toggle-btn").first().click();
+	await ph.waitForTimeout(600);
+	const n_hp = await ph.locator(".section-item .section-break:visible").count();
+	cek(n_hp === harap.modul.length, `phone drawer menu headers: ${n_hp}`);
+	await ph.screenshot({ path: join(HASIL, `${slug(profil)}-menu-hp.png`) });
+	await ph.locator('.section-item[data-id="Stock"] .nested-container .item-anchor', { hasText: "Warehouse" }).click();
+	// The router writes the shell into the URL a moment after the click.
+	await ph.waitForURL(/\/desk\/stock\/warehouse/, { timeout: 5000 }).catch(() => {});
+	cek(ph.url().includes("/desk/stock/warehouse"), `phone link opened ${ph.url()}`);
+	cek(!(await ph.locator(".body-sidebar-container.expanded").count()), "phone drawer still open after a link");
+	await hp.close();
 }
 
 await browser.close();

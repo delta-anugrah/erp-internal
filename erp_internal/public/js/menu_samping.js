@@ -63,6 +63,15 @@ tambal(frappe.ui.Sidebar, "load_sidebar_data", function (asli, args) {
 	this.nest_section_items();
 });
 
+// The page's own module opens too, not only the one holding a lit link: a module home lights nothing, and Frappe
+// opens nothing in a phone's shut drawer. Folded to the rail, CSS hides the links anyway.
+tambal(frappe.ui.Sidebar, "make_sidebar", function (asli, args) {
+	asli.apply(this, args);
+	if (!pakai_menu(this.current_module)) return;
+	const bagian = this.items.find((i) => i.item?.erp_shell === this.current_module && i.open);
+	if (bagian?.collapsed) bagian.open();
+});
+
 // No dock on our pages: the menu is the switcher.
 tambal(frappe.ui.Sidebar, "dock_enabled", function (asli, args) {
 	return pakai_menu(this.current_module) ? false : asli.apply(this, args);

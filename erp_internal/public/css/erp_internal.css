@@ -25,6 +25,12 @@
 		left: -45px;
 		bottom: 60px;
 		z-index: 1031;
+	}
+
+	/* The same 32 px button, wherever the folded panel leaves it: in the dock, or on the edge of the menu's rail
+	   of icons (ERP and HR pages, no dock). */
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow,
+	body.erp-menu .body-sidebar-container:not(.expanded) .sidebar-collapse-arrow {
 		width: 32px;
 		height: 32px;
 		display: flex;
@@ -38,11 +44,14 @@
 	}
 
 	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow:hover,
-	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow:focus-visible {
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow:focus-visible,
+	body.erp-menu .body-sidebar-container:not(.expanded) .sidebar-collapse-arrow:hover,
+	body.erp-menu .body-sidebar-container:not(.expanded) .sidebar-collapse-arrow:focus-visible {
 		background: var(--btn-default-hover-bg, var(--fg-hover-color));
 	}
 
-	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow .icon {
+	.body-sidebar-container.sidebar-hidden .sidebar-collapse-arrow .icon,
+	body.erp-menu .body-sidebar-container:not(.expanded) .sidebar-collapse-arrow .icon {
 		width: 16px;
 		height: 16px;
 	}
