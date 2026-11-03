@@ -69,8 +69,10 @@ body.erp-menu .section-break {
 	gap: 8px !important;
 }
 
-body.erp-menu .section-break .sidebar-item-label {
+body.erp-menu .section-break .sidebar-item-label,
+body.erp-menu .sidebar-items > .sidebar-item-container:not(.section-item) .sidebar-item-label {
 	font-weight: 600;
+	color: var(--ink-gray-8);
 }
 
 body.erp-menu .section-item > .nested-container {

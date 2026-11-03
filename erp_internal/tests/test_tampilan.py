@@ -344,6 +344,8 @@ class TestTampilan(IntegrationTestCase):
 			finally:
 				frappe.set_user("Administrator")
 			self.assertEqual([m["shell"] for m in boot.erp_menu], shells, profil)
+			# Production Floor is a menu entry of its own, not under Manufacturing (Abel 2026-11-03).
+			self.assertEqual(boot.erp_menu_atas, ["production-floor"], profil)
 			m = {m["shell"]: m for m in boot.erp_menu}
 			self.assertEqual(m["Stock"], {"shell": "Stock", "label": "Stock", "icon": "warehouse"})
 			if "Setup" in m:

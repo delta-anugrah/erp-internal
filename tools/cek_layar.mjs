@@ -268,6 +268,12 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.waitForTimeout(800);
 	const atas = await page.locator(".body-sidebar .sidebar-item-label", { hasText: "Production Floor" }).count();
 	cek(atas === 1, `Manufacturing sidebar: ${atas} Production Floor links`);
+	// A menu entry of its own, first, not under Manufacturing (tampilan.MENU_ATAS, Abel 2026-11-03).
+	const lantai_menu = await page.evaluate(() => {
+		const a = [...document.querySelectorAll(".sidebar-items .item-anchor")].find((e) => e.textContent.includes("Production Floor"));
+		return { sub: !!a?.closest(".nested-container"), pertama: document.querySelector(".sidebar-items > *")?.contains(a) };
+	});
+	cek(!lantai_menu.sub && lantai_menu.pertama, `Production Floor menu entry: ${JSON.stringify(lantai_menu)}`);
 	await page.locator(".layout-main-section .shortcut-widget-box", { hasText: "Production Floor" }).first().click();
 	await page.waitForLoadState("networkidle");
 	await page.waitForTimeout(1500);

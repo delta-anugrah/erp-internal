@@ -20,13 +20,19 @@ function pakai_menu(shell) {
 	return m.some((x) => x.shell === shell) || (m.length > 0 && TANPA_IKON.includes(shell));
 }
 
-// The menu as one sidebar item list: per module a Section Break, then its links as children routed into the
-// module's own shell. A module's own Section Breaks and spacers are dropped (Frappe nests one level only).
-erp_internal.menu_samping.gabung = function (menu, sidebars) {
+// The menu as one sidebar item list: first the `atas` links (tampilan.MENU_ATAS) as entries of their own, then per
+// module a Section Break with its other links as children, each routed into the module's own shell. A module's own
+// Section Breaks and spacers are dropped (Frappe nests one level only).
+erp_internal.menu_samping.gabung = function (menu, sidebars, atas = []) {
 	const items = [];
+	for (const tujuan of atas) {
+		const m = menu.find((x) => (sidebars[x.shell]?.items || []).some((i) => i.link_to === tujuan));
+		const i = m && sidebars[m.shell].items.find((i) => i.link_to === tujuan);
+		if (i) items.push({ ...i, child: 0, erp_shell: m.shell });
+	}
 	for (const m of menu) {
 		const isi = (sidebars[m.shell]?.items || []).filter(
-			(i) => i.type !== "Section Break" && i.type !== "Spacer"
+			(i) => i.type !== "Section Break" && i.type !== "Spacer" && !atas.includes(i.link_to)
 		);
 		if (!isi.length) continue;
 		items.push({
@@ -59,7 +65,11 @@ tambal(frappe.ui.Sidebar, "load_sidebar_data", function (asli, args) {
 	const pakai = pakai_menu(this.current_module);
 	$("body").toggleClass("erp-menu", pakai);
 	if (!pakai) return;
-	this.sidebar_items = erp_internal.menu_samping.gabung(menu(), frappe.boot.module_sidebars);
+	this.sidebar_items = erp_internal.menu_samping.gabung(
+		menu(),
+		frappe.boot.module_sidebars,
+		frappe.boot.erp_menu_atas || []
+	);
 	this.nest_section_items();
 });
 

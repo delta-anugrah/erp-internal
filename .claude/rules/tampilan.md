@@ -34,7 +34,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Entry (after Work
   Order), Plan vs Actual (after Order Readiness), Machine Capacity (after BOM); Reject Reason sits in Setup after
   Manufacturing Settings. The Planning module itself stays blocked.
-- Production Floor (page `production-floor`, `lantai.md`) is the first link of Manufacturing's sidebar after Home and
+- Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
   sidebar on purpose; coming back to it from a Work Order stays under `/desk/manufacturing/` (`cek_layar`).
@@ -95,7 +95,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `bench build`) patches Frappe's `Sidebar` on a shell named there, or on Accounts/Leaves (`MODUL_TANPA_IKON`): its
   items become one `Section Break` per module (icon drawn by us, open/closed state under one key `erp_menu`) with that
   module's resolved items as children, each routed into its own shell (`TypeLink.get_path`); the page's module
-  opens by itself (`make_sidebar`). `Sidebar.dock_enabled` returns false there, so Frappe runs dock-less: search,
+  opens by itself (`make_sidebar`). `MENU_ATAS` links (Production Floor) are entries of their own above the headers
+  (`erp_menu_atas`), still in `SIDEBAR` so their module's home and route stay. `Sidebar.dock_enabled` returns false there, so Frappe runs dock-less: search,
   notifications and the user menu sit in the sidebar, the header shows the app's icon and the module, and folding
   leaves a rail of module icons (our CSS hides the links). Every patch falls back to Frappe's own code on an error.
   Frappe's System app (Build) keeps its rail. No link repeats its module's header icon (`test_ikon_sidebar`: Work

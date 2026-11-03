@@ -55,6 +55,10 @@ IKON_MODUL = {
 	"Setup": "settings",
 }
 IKON_RUMAH = "house"  # each module's home row
+# Sidebar links shown as menu entries of their own, above the module headers, instead of under their module
+# (Abel, 2026-11-03: the Production Floor is a place, not a Manufacturing document). They stay in SIDEBAR, so their
+# module's home and route (`/desk/manufacturing/production-floor`) are unchanged.
+MENU_ATAS = ("production-floor",)
 
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
@@ -508,7 +512,7 @@ def saring_aplikasi(bootinfo) -> None:
 
 def menu_samping(bootinfo) -> None:
 	"""extend_bootinfo: `erp_menu`, the user's modules in IKON order as {shell, label, icon}, for the one labelled
-	sidebar (`public/js/menu_samping.js`). ERP and HR share it. A module whose sidebar Frappe left out of this
+	sidebar (`public/js/menu_samping.js`), and `erp_menu_atas`, the MENU_ATAS links this user's menu has. ERP and HR share it. A module whose sidebar Frappe left out of this
 	user's boot (blocked, or nothing they can open) is skipped. Boot must never fail."""
 	try:
 		sidebars = bootinfo.get("module_sidebars") or {}
@@ -520,6 +524,12 @@ def menu_samping(bootinfo) -> None:
 				for i in (sidebars.get(shell) or {}).get("items") or []
 			)
 		]
+		ada = {
+			i.get("link_to")
+			for m in bootinfo.erp_menu
+			for i in (sidebars.get(m["shell"]) or {}).get("items") or []
+		}
+		bootinfo.erp_menu_atas = [t for t in MENU_ATAS if t in ada]
 	except Exception:
 		frappe.log_error("erp_internal: menu_samping")
 
