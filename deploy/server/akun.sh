@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # The first accounts, asked once in the terminal by setup.sh (server) and tools/setup_lokal.sh (local). Sourced
 # after tanya.sh, never run. Pick the accounts (Administrator always), then a password for Administrator and an
 # email and password for each. Everyone after that gets an account from an Admin in the app, which also resets a

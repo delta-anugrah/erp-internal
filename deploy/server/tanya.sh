@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Terminal questions shared by setup.sh (server), tools/setup_lokal.sh (local), akun.sh and wizard.sh. Sourced,
 # never run. Every question is one plain line saying what it is for, with a suggested answer that Enter accepts;
 # options and values one per line. Passwords are typed blind, one * per character. macOS bash 3.2 and Linux / WSL.

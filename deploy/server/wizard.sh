@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # The setup wizard question, asked once by setup.sh (server) and tools/setup_lokal.sh (local). Sourced after
 # tanya.sh, never run. Automatic: the Makefile's `wizard` step fills it with the values below. By hand: the person
 # fills it in the browser with the same values, printed by petunjuk_wizard. The values match deploy/server/Makefile
