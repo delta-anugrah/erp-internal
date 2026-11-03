@@ -1,4 +1,4 @@
-"""The first accounts of a site, asked once by `make start` (local) or `make setup` (server).
+"""The first accounts of a site, asked once by `make up` (local) or `make setup` (server).
 
 The terminal asks for the accounts and passwords (`deploy/server/akun.sh`) and hands them over in the environment variable
 `ERP_AKUN` (JSON), never on a command line, so no password shows in a process list or the shell history:
@@ -44,7 +44,7 @@ def _masukan() -> dict:
 	"""The JSON in `ERP_AKUN`."""
 	isi = os.environ.get("ERP_AKUN")
 	if not isi:
-		frappe.throw(_("ERP_AKUN is not set: run make start (or make setup on the server)."))
+		frappe.throw(_("ERP_AKUN is not set: run make up (or make setup on the server)."))
 	return json.loads(isi)
 
 
@@ -96,8 +96,7 @@ def _buat(data: dict) -> list[str]:
 	for a in akun:
 		profil, email = a["profil"], a["email"]
 		ada = frappe.db.exists("User", email)
-		modul = profil if profil in MODUL_BOLEH else None
-		utils.buat_pengguna(email, profil, modul, None if profil == DEVELOPER else company)
+		utils.buat_pengguna(email, profil, profil, None if profil == DEVELOPER else company)
 		update_password(email, a["sandi"])
 		hasil.append(f"{profil}: {email} {'updated' if ada else 'created'}")
 	return hasil

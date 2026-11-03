@@ -28,10 +28,10 @@ it runs the same stack as the server. One command sets it up the first time and 
    cd erp-internal
    ```
 
-### First time: `make start`
+### First time: `make up`
 
 ```bash
-make start
+make up
 ```
 
 It asks a few questions first, then works by itself for 10-30 minutes (building the image is most of it). Every
@@ -85,7 +85,7 @@ When it ends:
 
 - **Automatic**: `Ready: open http://localhost:8080 and sign in as Administrator or with an account made here.`
   Samuel's catalog, sales and machines are already loaded.
-- **By hand**: it prints the last steps, the same every time you run `make start` until the wizard is done:
+- **By hand**: it prints the last steps, the same every time you run `make up` until the wizard is done:
   1. open http://localhost:8080 and sign in as `Administrator` with the password you typed;
   2. fill in the wizard with the values printed under it. Two things the wizard does differently: its Chart of
      Accounts suggests "Indonesia - Chart of Accounts", pick **Standard**; its "A little about you" step (kind of
@@ -98,29 +98,29 @@ When it ends:
 
 | You want to | Type |
 |---|---|
-| Start it | `make start` (seconds; no questions again) |
-| Stop it (the data stays) | `make stop` |
+| Start it | `make up` (seconds; no questions again) |
+| Stop it (the data stays) | `make down` |
 | Get the newest version | `git pull`, then `make update-local` (rebuilds and migrates; your data and your edits stay; Samuel's data is never loaded twice) |
-| Use another port | the very first time only: `make start PORT=8090` (kept in `.local/.env`) |
+| Use another port | the very first time only: `make up PORT=8090` (kept in `.local/.env`) |
 | A new person's account, or a forgotten password | an Admin in the app: Users. Everyone changes their own password under their avatar, My Settings, Change Password. |
 
-`make start-local` is the same as `make start`. Everything local is in `.local/` (git-ignored: generated passwords,
+`make start` and `make start-local` are the same as `make up` (`make start` goes once the real server is live). Everything local is in `.local/` (git-ignored: generated passwords,
 the wizard answer, the backups folder); the data is in Docker volumes of the compose project `erp-local`.
 
 ### When something goes wrong
 
 | The terminal says | Do this |
 |---|---|
-| `missing: docker` (or `curl`, `openssl`) | Install it (step "What you need"), then `make start` again. |
-| `Docker does not answer: start Docker Desktop and try again` | Start Docker Desktop, wait for it, `make start` again. |
-| `This asks a few questions: run it in a terminal.` | Run `make start` in a terminal window, not from a script. |
-| `no answer on http://localhost:8080 in 2 minutes` | Docker may still be busy: `make start` again. Still failing: the line shows the `docker compose ... logs` command to see why. |
-| `port is already allocated` | Something else uses port 8080: `make stop` in the other copy, or start this one with `PORT=8090` the first time. |
-| Any other error during the first setup | Run `make start` again: every step skips what is done and goes on where it stopped; the questions are not asked again. |
+| `missing: docker` (or `curl`, `openssl`) | Install it (step "What you need"), then `make up` again. |
+| `Docker does not answer: start Docker Desktop and try again` | Start Docker Desktop, wait for it, `make up` again. |
+| `This asks a few questions: run it in a terminal.` | Run `make up` in a terminal window, not from a script. |
+| `no answer on http://localhost:8080 in 2 minutes` | Docker may still be busy: `make up` again. Still failing: the line shows the `docker compose ... logs` command to see why. |
+| `port is already allocated` | Something else uses port 8080: `make down` in the other copy, or start this one with `PORT=8090` the first time. |
+| Any other error during the first setup | Run `make up` again: every step skips what is done and goes on where it stopped; the questions are not asked again. |
 
 Starting over from nothing (this **deletes all data** of this copy):
-`make stop`, then `docker compose -p erp-local --project-directory .local -f deploy/server/docker-compose.yml down -v`
-and `rm -rf .local`, then `make start`.
+`make down`, then `docker compose -p erp-local --project-directory .local -f deploy/server/docker-compose.yml down -v`
+and `rm -rf .local`, then `make up`.
 
 ## Make commands
 
@@ -129,9 +129,9 @@ Repo root (`Makefile`, on your computer):
 | Command | What it does |
 |---|---|
 | `make help` | Lists these commands. |
-| `make start` | Same as `make start-local`. |
+| `make up` | Same as `make start-local`. `make start` is the same too, until the real server is live. |
 | `make start-local` | The first time (no `.local/siap`): `tools/setup_lokal.sh` asks the wizard question (kept in `.local/wizard`) and the accounts, then runs `setup-local`, waits for the stack, makes the accounts (`.local/akun-siap`; the generated `ADMIN_PASSWORD` then leaves `.local/.env`) and prints where to go. Afterwards it only starts the containers, waits for them and prints the same last line. |
-| `make stop` | Stops the stack; the data stays. |
+| `make down` | Stops the stack; the data stays. |
 | `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done (used for the last line). |
 | `make lanjut` | After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
@@ -143,7 +143,7 @@ Repo root (`Makefile`, on your computer):
 company's `erp_aktif` and, in a background job and again through `make lanjut` (run by `setup_lokal.sh` until
 `.local/lanjut-siap`), makes the wizard's own account a Developer and loads Samuel's data once (marker
 `erp_data_samuel`). `ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
-on the first `make start` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
+on the first `make up` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
 image is private). `PROYEK=<name>` (with another `PORT` and `ERP_IMAGE`) runs a second stack beside the first, for
 a test.
 

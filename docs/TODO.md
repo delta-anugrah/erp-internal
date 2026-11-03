@@ -2,8 +2,9 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-03, app version): `run-tests --app erp_internal` 252 tests (13 unit + 239 integration), all
-OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
+Last full run (2026-11-04, module lock): `run-tests --app erp_internal` 258 tests (13 unit + 245 integration), all
+OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
+(2026-11-03, app version): 252 tests, all OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
 Before that (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
 all OK; `cek_layar` 3 users OK (menu checks included); `lantai.mjs` all OK (pilih and perf rerun alone: during the
 full run they failed on load); `denah.test.mjs` 6 OK.
@@ -15,14 +16,17 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 
 ## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
-- [x] Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md`, built (Tasks 1-6): `make start`, `make setup`,
+- [x] Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md`, built (Tasks 1-6): `make up`, `make setup`,
       `make dev`, `erp_internal/wizard.py`; end to end on the Mac, automatic and by hand (PROGRESS 2026-11-03).
-- [ ] Abel: try `make start` from a fresh clone (Mac now, Samuel's Windows/WSL later).
+- [ ] Abel: try `make up` from a fresh clone (Mac now, Samuel's Windows/WSL later).
 - [ ] On the real server: `make setup` (needs the server, Samuel question 6).
 - [x] The app version (`v0.0.1`) under the login card and at the foot of the Settings dialog's left menu
       (`erp_internal/versi.py`, `public/js/versi.js`); the image workflow refuses a tag other than
       `v` + `erp_internal.__version__`. Tests `test_versi`, `cek_layar` checks both.
 - [ ] Abel: look at the version on the login page and in Settings (avatar menu, My Settings).
+- [x] Unused modules locked (`tampilan.MODUL_MATI`, Abel 2026-11-04): no menu, search or URL for anyone but Administrator.
+- [ ] HR's unused DocTypes (Recruitment, Appraisal, Training, Expense, Travel, ...) locked the same way, DocType by
+      DocType (HR also holds Attendance, Shift and Leave, which are in use).
 - [ ] Then the same setup work for BPT, then the sawit autoerp, one at a time in their own sessions.
 
 ## Done: one labelled menu instead of the icon rail (Abel, 2026-11-03)
@@ -43,7 +47,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] `deploy/server/Makefile` targets in English: check, check-env, configure, backup. `.gitattributes` LF everywhere.
 - [x] Real run on the Mac 2026-11-03 from an empty `.local` and no volumes: setup 7 min 40 s (image already built,
       a build is 10-20 min), 127 items, 54 Machine Capacity rows, 513 Sales History rows; the account picker (Admin + User,
-      every refusal tried), logins by API 200 (wrong password 401), `make stop`, `make start-local` again in 24 s.
+      every refusal tried), logins by API 200 (wrong password 401), `make down`, `make start-local` again in 24 s.
 - [ ] Samuel: a fresh clone on his Mac. Not tried yet: Windows + WSL, `make update-local`.
 
 ## Done: a simpler User role (Samuel 2026-11-02)

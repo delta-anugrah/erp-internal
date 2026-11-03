@@ -13,7 +13,22 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Wizard prompt: company name and abbreviation now come already typed in (`tanya.sh` `tanya_isi`; Abel during his
   first `make start`). Tested through a pty with macOS `/bin/bash` 3.2 (Enter, Backspace, Ctrl+U, empty, arrows,
   terminal mode restored); shellcheck and `bash -n` clean.
-- Next: Abel tries `make start` and looks at the version; then push + PR.
+- 2026-11-04 (Abel after his `make start`, all fine): Production Floor back button (top left, arrow, to
+  `/desk/manufacturing`; `cek_layar` clicks it for each role); `make up` (main name; `make start` kept as the same
+  until the real server is live) and `make down` (was `make stop`); docs and the `ERP_AKUN` message say `make up`.
+- Audit of unused modules (CRM, Assets, Quality, Support, Subcontracting, Payroll, ...): they were only hidden from
+  the menu for Admin/User; their documents still opened by search and URL, and Developer saw them all. Now locked
+  (Abel's yes): `tampilan.MODUL_MATI`, one Custom DocPerm for the Administrator role per DocType (91), a Developer
+  Module Profile, Administrator's own blocks, `saring_modul_mati` on every boot. Bulk Transaction left open (bulk
+  actions log there); HR next, DocType by DocType.
+- Tests as run: `test_modul_mati` 6 OK, `test_tampilan` 25 OK, `test_akun` 3 OK; `cek_layar` 3 users OK (now also the
+  floor's back button, the unused modules: boot, menu, `/desk/lead`, `/api/resource/Lead` 403); 16 used forms opened
+  per role in a browser with no popup, 403 or error (User's popups only on forms it never had: Quotation, Sales
+  Invoice, Employee). Full run 258 tests (13 unit + 245 integration),
+  all OK; `lantai.mjs` all OK (60 fps, 0 dropped). An earlier `lantai.mjs` run cut off by a session restart had left
+  machines 1, 7, 9-14 enabled on `erp.localhost`: restored by `master.muat`; `lantai.mjs` now also copes with no
+  disabled machine.
+- Next: push + PR; HR's unused DocTypes.
 
 ## 2026-11-03 (one-command setup, built)
 - Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md` (deviations at its end), built inline:

@@ -1,0 +1,68 @@
+"""Modules nobody uses (tampilan.MODUL_MATI): locked by permission for everyone but Administrator, and off the menus
+and the search bar."""
+
+from unittest.mock import patch
+
+import frappe
+from frappe.boot import get_bootinfo
+from frappe.tests import IntegrationTestCase
+
+from erp_internal import tampilan
+from erp_internal.tampilan import ADMIN, DEVELOPER, MODUL_MATI, PERAN_KUNCI, USER, saring_modul_mati
+from erp_internal.tests.test_tampilan import pengguna_profil
+
+# One DocType per kind of module: CRM, Assets, Quality, Support, Payroll (HRMS).
+CONTOH_MATI = ("Lead", "Opportunity", "Asset", "Quality Goal", "Issue", "Salary Slip")
+# Used DocTypes each profile still reads.
+TETAP = {DEVELOPER: "Sales Order", ADMIN: "Sales Order", USER: "Delivery Note"}
+
+
+def custom(dt: str) -> list:
+	return frappe.get_all("Custom DocPerm", {"parent": dt}, ["role", "permlevel", "read"])
+
+
+class TestModulMati(IntegrationTestCase):
+	def test_terkunci_kecuali_administrator(self):
+		for profil in (DEVELOPER, ADMIN, USER):
+			u = pengguna_profil(profil, "mati")
+			for dt in CONTOH_MATI:
+				self.assertFalse(frappe.has_permission(dt, "read", user=u), f"{profil} {dt}")
+			self.assertTrue(frappe.has_permission(TETAP[profil], "read", user=u), profil)
+		for dt in CONTOH_MATI:
+			self.assertTrue(frappe.has_permission(dt, "read", user="Administrator"), dt)
+
+	def test_satu_baris_kunci(self):
+		for dt in tampilan.doctype_mati():
+			self.assertEqual([(r.role, r.permlevel, r.read) for r in custom(dt)], [(PERAN_KUNCI, 0, 1)], dt)
+		self.assertNotIn("Bulk Transaction Log", tampilan.doctype_mati())
+
+	def test_lepas_kunci(self):
+		# A module taken out of MODUL_MATI gets its own permissions back on the next run; put back, locked again.
+		tanpa = tuple(m for m in MODUL_MATI if m != "Telephony")
+		try:
+			with patch.object(tampilan, "MODUL_MATI", tanpa):
+				tampilan._kunci_modul()
+			self.assertEqual(custom("Call Log"), [])
+		finally:
+			tampilan._kunci_modul()
+		self.assertEqual(len(custom("Call Log")), 1)
+
+	def test_blok_menu(self):
+		# Developer's Module Profile and Administrator's own blocks hide the modules from every menu.
+		semua = set(tampilan.modul_aplikasi())
+		for user in (pengguna_profil(DEVELOPER, "mati"), "Administrator"):
+			blok = {b.module for b in frappe.get_doc("User", user).block_modules}
+			self.assertTrue(set(MODUL_MATI) & semua <= blok, user)
+
+	def test_boot_tanpa_modul_mati(self):
+		# Even Administrator's boot offers no locked DocType or its reports to the search bar.
+		boot = get_bootinfo()
+		saring_modul_mati(boot)
+		mati = set(tampilan.doctype_mati())
+		self.assertFalse(mati & set(boot.user.can_read))
+		self.assertFalse(mati & set(boot.user.can_search))
+		self.assertFalse(any((v or {}).get("ref_doctype") in mati for v in boot.allowed_reports.values()))
+		self.assertIn("Sales Order", boot.user.can_read)
+
+	def test_boot_tak_pernah_gagal(self):
+		saring_modul_mati(frappe._dict(user=None))

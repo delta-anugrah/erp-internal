@@ -7,7 +7,7 @@
 //
 // For each user it opens the apps screen, the module home and one new form, and asserts: the page is full
 // width, the ERPNext and HRMS rails show only that profile's modules, Frappe's own tile (Build) shows for
-// Developer only, the app version shows on the login page and in Settings, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
+// Developer only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
 
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -294,6 +294,10 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.waitForTimeout(1500);
 	// The floor page hides the sidebar on purpose (full-bleed); coming back must still name Manufacturing.
 	cek(page.url().includes("/manufacturing/production-floor"), `floor after a Work Order list: ${page.url()}`);
+	// Its back button (top left) leads to Manufacturing's home without the browser's Back.
+	await page.locator(".kembali").click();
+	await page.waitForURL(/\/desk\/manufacturing\/?$/, { timeout: 5000 }).catch(() => {});
+	cek(/\/desk\/manufacturing\/?$/.test(page.url()), `floor back button opened ${page.url()}`);
 	// The user's Settings dialog (avatar menu > My Settings) ends its left menu with the app version (public/js/versi.js).
 	await page.evaluate(() => frappe.require("user_settings_dialog.bundle.js").then(() => frappe.ui.show_user_settings("profile")));
 	const versi = page.locator(".settings-dialog-sidebar .erp-versi");
@@ -303,6 +307,20 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.screenshot({ path: join(HASIL, `${slug(profil)}-settings.png`) });
 	await page.keyboard.press("Escape");
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
+	// Modules nobody uses (tampilan.MODUL_MATI): not in the search bar or a menu, refused by URL. After the console
+	// check: the refusal logs a 403.
+	const mati = await page.evaluate(() => ({
+		cari: ["Lead", "Asset", "Issue", "Quality Goal", "Salary Slip"].filter((d) => frappe.boot.user.can_read.includes(d)),
+		menu: Object.keys(frappe.boot.module_sidebars || {}).filter((s) => /^(CRM|Assets|Quality|Support|Payroll)$/.test(s)),
+	}));
+	cek(!mati.cari.length && !mati.menu.length, `unused modules still offered: ${JSON.stringify(mati)}`);
+	await page.goto(`${URL}/desk/lead`);
+	await page.waitForLoadState("networkidle");
+	await page.waitForTimeout(800);
+	// Not permitted, or Not found for Developer (System Manager reads Page, so the route falls through to a 404).
+	cek(/Not permitted|Not found/i.test(await page.locator("body").innerText()), "/desk/lead opened");
+	const api = await page.request.get(`${URL}/api/resource/Lead?limit=1`);
+	cek(api.status() === 403, `/api/resource/Lead: ${api.status()}`);
 	await context.close();
 
 	// Phone width: Frappe's drawer shows the same menu and shuts after a link click.

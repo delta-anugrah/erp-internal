@@ -10,7 +10,7 @@ shared with BPT or the sawit server.
 | `.env.example` | The shape of `.env` (chmod 600, written by `make setup` on the server, never in git): `ERP_IMAGE`, `SITE`, `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD` (until the typed password replaces it), `RCLONE_REMOTE` (optional). |
 | `Makefile` | The first install as `make` targets (below): one per step; `make setup` runs `setup.sh`; every step skips what is done; no secret in the file. |
 | `setup.sh` | `make setup`: the questions (GitHub token, site address, app version, backup destination, setup wizard, accounts), `.env`, then the steps in order, stopping at the first error. Markers `.wizard`, `.akun-siap`, `.siap`. |
-| `tanya.sh`, `akun.sh`, `wizard.sh` | The terminal questions, shared with `make start` on a computer (`tools/setup_lokal.sh`): plain prompts with a suggestion, blind passwords, the account checklist, the wizard question and its by-hand instructions. |
+| `tanya.sh`, `akun.sh`, `wizard.sh` | The terminal questions, shared with `make up` on a computer (`tools/setup_lokal.sh`): plain prompts with a suggestion, blind passwords, the account checklist, the wizard question and its by-hand instructions. |
 | `cadangan.sh` | Nightly backup: `bench backup --with-files --compress`, the newest set to `./cadangan` and, when set, `$RCLONE_REMOTE`; sets older than 14 days deleted on both. Without `RCLONE_REMOTE` it says the set stays on the server. Exits non-zero on any failure. |
 
 The image comes from `.github/workflows/image.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
@@ -53,7 +53,7 @@ make setup
 5. The setup wizard: automatic (default) or by hand in the browser, the company name and abbreviation (kept in
    `.wizard`, never asked again).
 6. The accounts: Administrator's password and, with the automatic wizard, optional Developer / Admin / User
-   accounts (`akun.sh`, the same checklist as `make start`); asked once (`.akun-siap`).
+   accounts (`akun.sh`, the same checklist as `make up`); asked once (`.akun-siap`).
 
 Then `make env` (from the answers, passwords from `openssl rand`), `langkah` (`check check-env pull db site`),
 `wizard configure` (automatic) or `configure` (by hand), the accounts (the generated `ADMIN_PASSWORD` then

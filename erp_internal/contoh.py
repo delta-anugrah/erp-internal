@@ -287,12 +287,11 @@ def _jual_beli(company: str, hari_ini: date) -> None:
 
 
 def _pengguna(company: str, sandi: str) -> dict[str, str]:
-	"""One user per Role Profile, with its Module Profile (Developer has none) and, for Admin and User, a
+	"""One user per Role Profile, with the Module Profile of the same name and, for Admin and User, a
 	default permission on the company; all share `sandi`."""
 	pengguna = {}
 	for profil in PROFIL_PERAN:
-		modul = profil if profil in MODUL_BOLEH else None
-		email = utils.buat_pengguna(surel(profil), profil, modul, None if profil == DEVELOPER else company)
+		email = utils.buat_pengguna(surel(profil), profil, profil, None if profil == DEVELOPER else company)
 		update_password(email, sandi)
 		pengguna[profil] = tandai("User", email)
 	return pengguna

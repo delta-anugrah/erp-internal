@@ -186,6 +186,7 @@ extend_bootinfo = [
 	"erp_internal.tampilan.saring_aplikasi",
 	"erp_internal.tampilan.merek_aplikasi",
 	"erp_internal.tampilan.menu_samping",
+	"erp_internal.tampilan.saring_modul_mati",
 ]
 
 # Frappe's workspace writes answer with a fresh `app_data` that skips extend_bootinfo; ours run Frappe's and then

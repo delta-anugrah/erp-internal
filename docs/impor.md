@@ -192,7 +192,7 @@ alasannya bisa dibaca.
 
 ## Excel penjualan Samuel (`penjualan.py`)
 
-Di situs asli (server `make setup`, atau lokal `make start`; README "Run it on your computer"), tiga pemuat Samuel
+Di situs asli (server `make setup`, atau lokal `make up`; README "Run it on your computer"), tiga pemuat Samuel
 (`master`, `penjualan`, `mesin_barang`) jalan otomatis **sekali**, begitu setup wizard selesai (otomatis atau diisi
 sendiri di browser; `erp_internal.wizard.lanjutkan`, penanda `erp_data_samuel`). Update berikutnya (`make
 update-local`, versi baru di server) tidak memuat ulang, jadi editan di aplikasi aman. Memuat ulang setelah Samuel

@@ -2,9 +2,10 @@
 # with Samuel's real catalog, sales and machines loaded. Needs only Docker (Docker Desktop on a Mac; on Windows,
 # Docker Desktop with WSL and this repo cloned inside the WSL Ubuntu terminal). README.md "Run it on your computer".
 #
-#   make start          first time: a few questions, then the setup (10-30 min); afterwards it only starts the
-#                       containers again (seconds). `make start-local` is the same.
-#   make stop           stop it (the data stays)
+#   make up             first time: a few questions, then the setup (10-30 min); afterwards it only starts the
+#                       containers again (seconds). `make start` and `make start-local` are the same (`start` goes
+#                       once the real server is live).
+#   make down           stop it (the data stays)
 #   make dev            for coding: the bench (tools/setup_bench.sh), not this Docker stack
 #
 # Everything local lives in .local/ (git-ignored): .env with generated passwords, the wizard answer (wizard), the
@@ -31,18 +32,21 @@ SERVER := $(MAKE) --no-print-directory -f deploy/server/Makefile COMPOSE='$(COMP
 PORT_ENV = $(or $(shell sed -n 's/^PORT=//p' $(LOKAL)/.env 2>/dev/null),$(PORT))
 
 .DEFAULT_GOAL := help
-.PHONY: help start start-local setup-local stop update-local check-local env-local image-local configure-local \
+.PHONY: help up start start-local setup-local down update-local check-local env-local image-local configure-local \
 	ping-local wizard-selesai lanjut dev
 
 help:
 	@echo "On your computer (README.md \"Run it on your computer\"):"
-	@echo "  make start          first time: a few questions, then the setup; later just starts it again"
-	@echo "                      (http://localhost:$(PORT_ENV)); make start-local is the same"
-	@echo "  make stop           stop it; the data stays"
+	@echo "  make up             first time: a few questions, then the setup; later just starts it again"
+	@echo "                      (http://localhost:$(PORT_ENV)); make start is the same for now"
+	@echo "  make down           stop it; the data stays"
 	@echo "  make update-local   after git pull: rebuild the image, then start; your data stays"
 	@echo "  make dev            code on the bench: Python reloads, JS/CSS rebuild; a DocType change needs bench migrate"
 	@echo "On the server: make -C deploy/server help"
 
+up: start-local
+
+# The old name of `up`, kept until the real server is live (Abel 2026-11-04).
 start: start-local
 
 # The first time (no .local/siap) tools/setup_lokal.sh asks and runs the whole setup; afterwards only the
@@ -67,7 +71,8 @@ lanjut:
 wizard-selesai:
 	@$(SERVER) -s wizard-selesai
 
-stop:
+# Stops the containers (not `docker compose down`: the stack comes back as it was, the data stays either way).
+down:
 	$(COMPOSE) stop
 
 # The new code: rebuild (or pull again) and migrate. Samuel's data is never reloaded: edits made in the app stay.

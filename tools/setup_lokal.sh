@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# `make start` (= `make start-local`) the first time, on your own computer (README.md "Run it on your computer"):
+# `make up` (= `make start-local`) the first time, on your own computer (README.md "Run it on your computer"):
 # the setup wizard question and the accounts, then the whole Docker setup. The same questions as the server's
 # `make setup` (deploy/server/setup.sh), without its site address, version and backup: locally the site is
 # erp.localhost on http://localhost:8080 and the image is built from this repo.
@@ -8,7 +8,7 @@
 #   .local/akun-siap  the accounts were made: a rerun never touches live passwords
 #   .local/lanjut-siap  `lanjut` ran after the wizard (our setup, the wizard's account as Developer, Samuel's data);
 #                     until then every start tries it, so a job that failed after a by-hand wizard is repaired
-#   .local/siap       a run went through to the end; afterwards `make start` only starts the containers
+#   .local/siap       a run went through to the end; afterwards `make up` only starts the containers
 #
 #   tools/setup_lokal.sh --pesan   only the last line: where to go, or what is left of a wizard filled by hand
 set -euo pipefail
@@ -20,7 +20,7 @@ cd "$(dirname "$0")/.."
 # shellcheck source=deploy/server/wizard.sh
 . deploy/server/wizard.sh
 
-: "${COMPOSE:?run this through make start}"
+: "${COMPOSE:?run this through make up}"
 LOKAL=.local
 PORT=$(sed -n 's/^PORT=//p' $LOKAL/.env 2>/dev/null)
 PORT=${PORT:-8080}

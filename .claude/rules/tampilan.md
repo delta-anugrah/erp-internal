@@ -13,7 +13,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 | Menu (ERP and HR pages) | none | `menu_samping` (`extend_bootinfo`, `erp_menu`) + `public/js/menu_samping.js`: every module of the user as a collapsible header |
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
 | Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards) |
-| Per user | none | `User.block_modules` from the Module Profile (`MODUL_BOLEH`: Admin, User; Developer has none) |
+| Per user | none | `User.block_modules` from the Module Profile of the same name (`blok_profil`: Admin and User outside `MODUL_BOLEH`, Developer only `MODUL_MATI`; `_modul_pengguna` keeps each profile's users on it, and Administrator's own blocks on `MODUL_MATI`) |
+| Unused modules | DocPerm | `MODUL_MATI` (`_kunci_modul`): one Custom DocPerm for the Administrator role per DocType, so no other user reads, searches or opens them by URL; `saring_modul_mati` (`extend_bootinfo`) drops them and their reports from every boot (Administrator's search). Administrator still opens one by URL |
 
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
@@ -122,3 +123,9 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (12). It reads the version on /login
   as a guest and in each user's Settings dialog (`.settings-dialog-sidebar .erp-versi` = `v` +
   `frappe.boot.versions.erp_internal`).
+- Unused modules (Abel 2026-11-04, `MODUL_MATI`): a Module Profile block only hides the way in (`frappe.utils.modules`
+  says so: never a security boundary), so a blocked module's documents still opened by search and URL. The lock is
+  a Custom DocPerm for the Administrator role on each of their DocTypes (a DocType with Custom DocPerms ignores its
+  standard ones); `_kunci_modul` removes it again when a module leaves the list (a DocType whose only Custom DocPerm
+  is that row). Bulk Transaction stays open (list bulk actions log there). HR is mixed and comes next, DocType by
+  DocType. `test_modul_mati`; `cek_layar` checks the boot, the menu, `/desk/lead` and `/api/resource/Lead` (403).
