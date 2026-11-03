@@ -125,7 +125,7 @@ transparent), `favicon-32.png` and `favicon-192.png`. Settings point at the SVG;
 The Apps screen tiles are named ERP (ERPNext), HR (Frappe HR), Production Floor (the floor page, for Manufacturing
 User) and System (Frappe, Developer only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
 (ISC licence): `aplikasi-erp.svg` (factory), `aplikasi-hr.svg` (users), `aplikasi-sistem.svg` (settings), `aplikasi-lantai.svg` (gauge). The
-rail's top slot inside an app shows that app's icon. That is `tampilan.merek_aplikasi` (`extend_bootinfo`, the boot
+sidebar header inside an app shows that app's icon (System app: the rail's top slot). That is `tampilan.merek_aplikasi` (`extend_bootinfo`, the boot
 copy of `app_data` only); a workspace saved from the desk keeps them (`erp_internal/ruang_kerja.py`).
 
 ## Language
@@ -189,10 +189,13 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
 
 ## Screens
 
+On ERP and HR pages the left side is one labelled menu instead of Frappe's icon rail (`erp_internal/public/js/menu_samping.js`,
+`tampilan.menu_samping`): a collapsible header per module, with its icon (`IKON_MODUL`), and the module's links under it. The
+page's module opens by itself; several can be open at once. Frappe's own System app keeps its rail.
 Every module shows only what the guides' flows use (`tampilan.IKON`, `SIDEBAR`, `PINTASAN`); each home is a row of
-shortcuts to the same links as its sidebar, nothing else:
+shortcuts to the same links as its menu entries, nothing else:
 
-| Rail icon | Home and sidebar |
+| Menu header | Home and links |
 |---|---|
 | Stock | Stock Entry, Delivery Note, Item, Warehouse, Stock Balance, Stock Ledger |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
@@ -202,10 +205,10 @@ shortcuts to the same links as its sidebar, nothing else:
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |
 
-The sidebar folds into the rail and opens again with the round arrow at the panel's bottom edge (when the panel is folded, in the dock above the profile avatar); the browser
-remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible).
+The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
+remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.
 
-The table is Admin's view. A User's rail has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
+The table is Admin's view. A User's menu has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
 doctype or report still opens.
 
 ## Roles
@@ -214,11 +217,11 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
 
 - **User** (decided 2026-11-02): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
   directly and Material Receipt stock entries, sets a machine's status on the Production Floor, and reads stock,
-  items, Work Orders, BOMs and the production reports; rail Stock and Manufacturing (`erp_internal/batas_user.py`).
+  items, Work Orders, BOMs and the production reports; menu Stock and Manufacturing (`erp_internal/batas_user.py`).
   Guide: `docs/panduan/user.md`.
 - **Admin**: also the manager roles (Work Orders, items, suppliers, BOMs, stock reconciliation, selling, buying,
   projects, HR), users and the business
-  settings (rail entry Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and User roles and
+  settings (menu header Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and User roles and
   never change a Developer's account. Guide: `docs/panduan/admin.md`.
 - **Developer**: Admin plus System Manager (Build, System Settings).
 

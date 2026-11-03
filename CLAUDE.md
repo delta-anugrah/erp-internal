@@ -6,7 +6,7 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
 Status 2026-11-03: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
-company and three roles (plan "Revision 4"): 233 tests (13 unit + 220 integration, 2026-11-03, all OK; one more since and `test_akun` (2), their modules OK; `run-tests --app erp_internal`, incl. `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (shortcut-only homes, at most 12 each; Plan vs Actual raised the cap from 10), `lantai.mjs` all cases OK (2026-11-03, perf 60 fps, 0 frames over 25 ms), sample
+company and three roles (plan "Revision 4"): 239 tests (13 unit + 226 integration, 2026-11-03 after the accordion menu, all OK; `run-tests --app erp_internal`, incl. `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (shortcut-only homes, at most 12 each; Plan vs Actual raised the cap from 10), `lantai.mjs` all cases OK (2026-11-03, perf 60 fps, 0 frames over 25 ms), sample
 data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
 the plan). Task 7's compose boot, backup and restore drill ran locally 2026-10-31 (`make setup`). Root `Makefile`: `make start-local` runs the same stack locally with only Docker and Samuel's real data (README "Run it on your computer"). Open: the DigitalOcean server and the
 real go-live with Samuel.
@@ -78,8 +78,8 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - One company: setup builds for each Company with `erp_aktif` ticked (`setup.perusahaan()`); a real site has one.
 - Three Role Profiles (`tampilan.PROFIL_PERAN`): User (Samuel 2026-11-02: Stock User + our role `ERP User`; creates
   only Production Entry, a Delivery Note made directly and a Material Receipt Stock Entry, sets a machine's status,
-  reads the rest; rail Stock and Manufacturing; `batas_user.py`, `test_batas_user`), Admin (manager roles, Work
-  Orders, BOMs, users, business settings under the Settings rail entry; role `ERP Admin`), Developer (Admin plus
+  reads the rest; menu Stock and Manufacturing; `batas_user.py`, `test_batas_user`), Admin (manager roles, Work
+  Orders, BOMs, users, business settings under the Settings menu header; role `ERP Admin`), Developer (Admin plus
   System Manager). A changed profile's users are resaved at migrate (`tampilan._pengguna_profil`). `pengguna.py`
   keeps an Admin from handing out any role outside Admin and User or touching a Developer account (User
   validate/has_permission, Has Role insert); `test_pengguna` tries every path.
@@ -90,8 +90,10 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
   (`sales_history.judul`, set in validate; old rows filled by `patches/judul_riwayat.py`). Document numbers people
   quote (Production Entry `PE-…`, Work Order, BOM) stay visible. Company (one company, fills itself) is off our
   forms and filters: `depends_on: eval:!doc.company` on Sales History and Production Entry, so it shows only if empty.
-- `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with nothing on that user's rail; it
-  must never fail boot. `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
+- `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with nothing in that user's modules (the Dock layer, `IKON`); it
+  must never fail boot. `tampilan.menu_samping` (`extend_bootinfo`) sends `erp_menu`, the user's modules in `IKON`
+  order with `IKON_MODUL` icons, which `public/js/menu_samping.js` turns into one labelled, collapsible menu on ERP and
+  HR pages instead of the icon rail (Abel 2026-11-03; `.claude/rules/tampilan.md`). `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
 - `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Admin and Developer
   (`PERAN_ATASAN`) submit someone else's timesheet; `setup.IZIN_TAMBAHAN` gives Employee `submit`, and `ERP User` read on Workstation, Price List, Account, Stock Settings and Customer Group
   (the last two read by the Material Receipt and Delivery Note forms).

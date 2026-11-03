@@ -41,10 +41,10 @@ Timebox 1 hour. Nothing from this task is committed except the notes appended to
 
 **Files:** scratch only (paste into the browser console on `http://erp.localhost:8002` as `admin@example.com`).
 
-- [ ] **Step 1:** In the console, patch `frappe.ui.Sidebar.prototype.load_sidebar_data` as Task 3 describes (merged list for the shells Stock, Selling, Buying, Manufacturing, Projects, Shift & Attendance, Setup), patch `frappe.ui.sidebar_item.TypeLink.prototype.get_path` to use `this.item.erp_shell || this.current_module`, then `frappe.app.sidebar.setup(frappe.app.sidebar.current_module)`.
-- [ ] **Step 2:** Answer and write down: (a) do sections render collapsible and open the current module (`expand_parent_section`)? (b) do hrefs of another module's links carry that module's shell, and does clicking one land with that module open and the link highlighted? (c) does section open/closed state (`section_breaks_state`, localStorage) behave per shell or need one shared key? (d) is `app_include_js` loaded before the desk's first `Sidebar.setup` (reload with the patch in the bundle via a temporary local edit, not committed)?
-- [ ] **Step 3:** Dock and fold. Hide `#desk-dock` with CSS and check what disappears with it: search, notifications (Frappe already draws both in the sidebar's `.standard-items-band`?), the user avatar menu (`.dock-user-button`), the app logo (`.dock-logo`). Then fold the sidebar: with the dock hidden, does `hides_when_collapsed()` (true while the dock is pinned) slide it shut, and what makes it fold to icons instead (setting `frappe.app.sidebar.dock.is_pinned = false`, or overriding `hides_when_collapsed` on our shells)? Pick the smallest way to keep: avatar menu reachable at the bottom left, ERP logo on top, fold to icons.
-- [ ] **Step 4:** Append "Spike notes" at the end of this plan: the answers, the chosen dock/fold method, and any change to Tasks 3-4 they force. Commit only the plan: `git commit -m "docs(plan): sidebar accordion spike notes"`.
+- [x] **Step 1:** In the console, patch `frappe.ui.Sidebar.prototype.load_sidebar_data` as Task 3 describes (merged list for the shells Stock, Selling, Buying, Manufacturing, Projects, Shift & Attendance, Setup), patch `frappe.ui.sidebar_item.TypeLink.prototype.get_path` to use `this.item.erp_shell || this.current_module`, then `frappe.app.sidebar.setup(frappe.app.sidebar.current_module)`.
+- [x] **Step 2:** Answer and write down: (a) do sections render collapsible and open the current module (`expand_parent_section`)? (b) do hrefs of another module's links carry that module's shell, and does clicking one land with that module open and the link highlighted? (c) does section open/closed state (`section_breaks_state`, localStorage) behave per shell or need one shared key? (d) is `app_include_js` loaded before the desk's first `Sidebar.setup` (reload with the patch in the bundle via a temporary local edit, not committed)?
+- [x] **Step 3:** Dock and fold. Hide `#desk-dock` with CSS and check what disappears with it: search, notifications (Frappe already draws both in the sidebar's `.standard-items-band`?), the user avatar menu (`.dock-user-button`), the app logo (`.dock-logo`). Then fold the sidebar: with the dock hidden, does `hides_when_collapsed()` (true while the dock is pinned) slide it shut, and what makes it fold to icons instead (setting `frappe.app.sidebar.dock.is_pinned = false`, or overriding `hides_when_collapsed` on our shells)? Pick the smallest way to keep: avatar menu reachable at the bottom left, ERP logo on top, fold to icons.
+- [x] **Step 4:** Append "Spike notes" at the end of this plan: the answers, the chosen dock/fold method, and any change to Tasks 3-4 they force. Commit only the plan: `git commit -m "docs(plan): sidebar accordion spike notes"`.
 
 ### Task 2: Server: the menu in boot, header icons, fixed link icons
 
@@ -57,7 +57,7 @@ Timebox 1 hour. Nothing from this task is committed except the notes appended to
 **Interfaces:**
 - Produces: `IKON_MODUL: dict[str, str]` (dock/sidebar name → Lucide name, keys exactly `IKON`'s); `IKON_RUMAH = "house"`; `menu_samping(bootinfo) -> None` sets `bootinfo.erp_menu = [{"shell": str, "label": str, "icon": str}, ...]`: `IKON` order, only shells present in `bootinfo.module_sidebars` with at least one item of type Link besides the home Workspace, `label` = `LABEL.get(shell, shell)` (untranslated; the client calls `__()`), `icon` = `IKON_MODUL[shell]`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_menu_samping_per_profil(self):
@@ -95,10 +95,10 @@ def test_ikon_ada(self):
 
 Extend `test_ikon_sidebar`: the first Link of each `SIDEBAR` shell (the home Workspace) has icon `IKON_RUMAH`; no shown link's icon equals its own module's `IKON_MODUL` icon.
 
-- [ ] **Step 2:** Run `cd ~/Desktop/Projects/erp-internal-bench && bench --site erp-test.localhost run-tests --module erp_internal.tests.test_tampilan`. Expected: the new tests fail (ImportError on `IKON_MODUL`/`menu_samping`).
-- [ ] **Step 3: Implement.** `IKON_MODUL` with the Global Constraints icons. `IKON_LINK`: add Stock Entry `arrow-left-right`, Delivery Note `truck`; Warehouse must not repeat Stock's `warehouse`: use `building-2` (check it exists, the sprite test will); Settings links must not repeat `settings`: use `sliders-horizontal` for all `* Settings` rows. `_baris_sidebar`: the home row (the base `beranda` and the `RUMAH_SENDIRI` row) gets `IKON_RUMAH`, under the same "only where it differs from the base" rule. `menu_samping` wrapped in `try/except Exception: frappe.log_error("erp_internal: menu_samping")`. Comment above `IKON_MODUL` says why (Abel 2026-11-03, labelled one menu). Add the hook.
-- [ ] **Step 4:** Run the module again, then `bench --site erp.localhost migrate` twice and confirm `test_idempoten` passes (a second `terapkan` writes nothing). Expected: all `test_tampilan` tests pass.
-- [ ] **Step 5:** Commit `feat(tampilan): erp_menu in boot and module icons for the accordion sidebar`.
+- [x] **Step 2:** Run `cd ~/Desktop/Projects/erp-internal-bench && bench --site erp-test.localhost run-tests --module erp_internal.tests.test_tampilan`. Expected: the new tests fail (ImportError on `IKON_MODUL`/`menu_samping`).
+- [x] **Step 3: Implement.** `IKON_MODUL` with the Global Constraints icons. `IKON_LINK`: add Stock Entry `arrow-left-right`, Delivery Note `truck`; Warehouse must not repeat Stock's `warehouse`: use `building-2` (check it exists, the sprite test will); Settings links must not repeat `settings`: use `sliders-horizontal` for all `* Settings` rows. `_baris_sidebar`: the home row (the base `beranda` and the `RUMAH_SENDIRI` row) gets `IKON_RUMAH`, under the same "only where it differs from the base" rule. `menu_samping` wrapped in `try/except Exception: frappe.log_error("erp_internal: menu_samping")`. Comment above `IKON_MODUL` says why (Abel 2026-11-03, labelled one menu). Add the hook.
+- [x] **Step 4:** Run the module again, then `bench --site erp.localhost migrate` twice and confirm `test_idempoten` passes (a second `terapkan` writes nothing). Expected: all `test_tampilan` tests pass.
+- [x] **Step 5:** Commit `feat(tampilan): erp_menu in boot and module icons for the accordion sidebar`.
 
 ### Task 3: Client: the accordion
 
@@ -111,11 +111,11 @@ Extend `test_ikon_sidebar`: the first Link of each `SIDEBAR` shell (the home Wor
 - Consumes: `frappe.boot.erp_menu` (Task 2), `frappe.boot.module_sidebars[shell].items`, the Spike notes' dock/fold method.
 - Produces: `erp_internal.menu_samping.gabung(menu, sidebars) -> Array<item>` (pure, exported on `erp_internal.menu_samping` for the console and cek_layar): for each menu entry a `{type: "Section Break", label: __(m.label), icon: m.icon, collapsible: 1, erp_shell: m.shell}` followed by copies of that shell's items with `child: 1` and `erp_shell: m.shell`; a shell's own Section Breaks are dropped (one level of nesting only), its children kept flat under the module. Body class `erp-menu` while the sidebar shows our menu.
 
-- [ ] **Step 1: Implement `gabung` and the patches.** Patch `frappe.ui.Sidebar.prototype.load_sidebar_data`: call the original; if `erp_menu` names `this.current_module`, or the current module is `Accounts`/`Leaves` (`MODUL_TANPA_IKON`: show the menu with no section forced open), set `this.sidebar_items = gabung(...)` and run `this.nest_section_items()`; toggle `body.erp-menu`. Patch `frappe.ui.sidebar_item.TypeLink.prototype.get_path` to pass `this.item.erp_shell || this.current_module`. Draw the header icon on our Section Breaks (Frappe's template draws none for a non-indented one): after `make_sidebar`, prepend `frappe.utils.icon(icon, "sm")` to each `.section-item[data-id=<label>] .section-break`. Section state: as the spike found (one shared key if per-shell state makes sections jump). Keep the file's comments to the why, like `erp_internal.bundle.js`.
-- [ ] **Step 2: Fallback.** Wrap each patched body in `try { … } catch (e) { console.error("erp_internal menu_samping", e); return original result; }` so Frappe's own list shows.
-- [ ] **Step 3: Header and CSS.** Under `body.erp-menu` the sidebar header (`sidebar_header.js`, today the module name with its switcher) shows the ERP tile's icon and title (`app_logo_url`/`app_title` of the `erpnext` entry in `frappe.boot.app_data`, set by `merek_aplikasi`) linking to `/desk`, on HR pages too. Then: hide the dock per the spike's method; section headers read as menu rows (normal weight 600, 13 px, same padding as links, chevron right/down), not small grey captions; folded sidebar shows header icons only with `title` tooltips; move the fold arrow rule that parks it in the dock (`.sidebar-hidden … left: -45px`) so it applies only when the dock shows (`body:not(.erp-menu)`), and place it at the sidebar's bottom edge otherwise, still >= 32 px.
-- [ ] **Step 4: Check by hand** on `erp.localhost` after `bench build --app erp_internal` and a hard reload, as admin@: Stock Entry page shows seven headers with Stock open; a click on Selling ▸ Sales Order lands on `/desk/selling/sales-order` with Selling open and the link highlighted; Accounts page: open a Sales Invoice from Selling, the accordion shows; fold, reload, unfold; System app (developer@, Build tile) shows Frappe's rail. Temporarily throw inside `gabung` and confirm the old dock + sidebar show, then remove the throw.
-- [ ] **Step 5:** Commit `feat(desk): one labelled accordion sidebar on ERP and HR pages`.
+- [x] **Step 1: Implement `gabung` and the patches.** Patch `frappe.ui.Sidebar.prototype.load_sidebar_data`: call the original; if `erp_menu` names `this.current_module`, or the current module is `Accounts`/`Leaves` (`MODUL_TANPA_IKON`: show the menu with no section forced open), set `this.sidebar_items = gabung(...)` and run `this.nest_section_items()`; toggle `body.erp-menu`. Patch `frappe.ui.sidebar_item.TypeLink.prototype.get_path` to pass `this.item.erp_shell || this.current_module`. Draw the header icon on our Section Breaks (Frappe's template draws none for a non-indented one): after `make_sidebar`, prepend `frappe.utils.icon(icon, "sm")` to each `.section-item[data-id=<label>] .section-break`. Section state: as the spike found (one shared key if per-shell state makes sections jump). Keep the file's comments to the why, like `erp_internal.bundle.js`.
+- [x] **Step 2: Fallback.** Wrap each patched body in `try { … } catch (e) { console.error("erp_internal menu_samping", e); return original result; }` so Frappe's own list shows.
+- [x] **Step 3: Header and CSS.** Under `body.erp-menu` the sidebar header (`sidebar_header.js`, today the module name with its switcher) shows the ERP tile's icon and title (`app_logo_url`/`app_title` of the `erpnext` entry in `frappe.boot.app_data`, set by `merek_aplikasi`) linking to `/desk`, on HR pages too. Then: hide the dock per the spike's method; section headers read as menu rows (normal weight 600, 13 px, same padding as links, chevron right/down), not small grey captions; folded sidebar shows header icons only with `title` tooltips; move the fold arrow rule that parks it in the dock (`.sidebar-hidden … left: -45px`) so it applies only when the dock shows (`body:not(.erp-menu)`), and place it at the sidebar's bottom edge otherwise, still >= 32 px.
+- [x] **Step 4: Check by hand** on `erp.localhost` after `bench build --app erp_internal` and a hard reload, as admin@: Stock Entry page shows seven headers with Stock open; a click on Selling ▸ Sales Order lands on `/desk/selling/sales-order` with Selling open and the link highlighted; Accounts page: open a Sales Invoice from Selling, the accordion shows; fold, reload, unfold; System app (developer@, Build tile) shows Frappe's rail. Temporarily throw inside `gabung` and confirm the old dock + sidebar show, then remove the throw.
+- [x] **Step 5:** Commit `feat(desk): one labelled accordion sidebar on ERP and HR pages`.
 
 ### Task 4: cek_layar per role
 
@@ -125,10 +125,10 @@ Extend `test_ikon_sidebar`: the first Link of each `SIDEBAR` shell (the home Wor
 **Interfaces:**
 - Consumes: `erp_internal.menu_samping.gabung`, `body.erp-menu`, `.section-item`, the menu labels.
 
-- [ ] **Step 1: Replace the rail checks** (the per-app rail module list and the folded-arrow-in-dock check, around lines 100-170) with, per profile (`PROFIL[p].modul`, same order as `IKON`): `#desk-dock` not visible on an ERP page; the section headers' text equals the profile's labels (`LABEL` names: HR, Settings) in order; each header has an icon; clicking a closed header shows its links; the module of the page opened is open on arrival; fold → icons only and the arrow >= 32 px with nothing over its centre, reload keeps it folded, unfold.
-- [ ] **Step 2: Cross-module and edge checks:** from Stock click Selling ▸ Delivery Note: URL `/desk/selling/delivery-note`, exactly one `.active-sidebar` (or Frappe's active class, as found in the spike) and it sits under Selling; Admin: open `/desk/selling/sales-invoice/new`, the accordion shows; Developer: Build tile shows `#desk-dock` (Frappe's rail kept); at 390x844 the drawer opens with the same headers and closes after a link click. Screenshot `<profile>-menu.png` and `<profile>-menu-lipat.png` in `tools/hasil/`.
-- [ ] **Step 3:** Run `ERP_SANDI=<SAMPLE_PASSWORD> node tools/cek_layar.mjs` (bench running, after `bench build --app erp_internal`). Expected: exit 0, all three users OK.
-- [ ] **Step 4:** Commit `test(cek_layar): the accordion sidebar per role`.
+- [x] **Step 1: Replace the rail checks** (the per-app rail module list and the folded-arrow-in-dock check, around lines 100-170) with, per profile (`PROFIL[p].modul`, same order as `IKON`): `#desk-dock` not visible on an ERP page; the section headers' text equals the profile's labels (`LABEL` names: HR, Settings) in order; each header has an icon; clicking a closed header shows its links; the module of the page opened is open on arrival; fold → icons only and the arrow >= 32 px with nothing over its centre, reload keeps it folded, unfold.
+- [x] **Step 2: Cross-module and edge checks:** from Stock click Selling ▸ Delivery Note: URL `/desk/selling/delivery-note`, exactly one `.active-sidebar` (or Frappe's active class, as found in the spike) and it sits under Selling; Admin: open `/desk/selling/sales-invoice/new`, the accordion shows; Developer: Build tile shows `#desk-dock` (Frappe's rail kept); at 390x844 the drawer opens with the same headers and closes after a link click. Screenshot `<profile>-menu.png` and `<profile>-menu-lipat.png` in `tools/hasil/`.
+- [x] **Step 3:** Run `ERP_SANDI=<SAMPLE_PASSWORD> node tools/cek_layar.mjs` (bench running, after `bench build --app erp_internal`). Expected: exit 0, all three users OK.
+- [x] **Step 4:** Commit `test(cek_layar): the accordion sidebar per role`.
 
 ### Task 5: Docs, guide screenshots, full run
 
@@ -138,7 +138,22 @@ Extend `test_ikon_sidebar`: the first Link of each `SIDEBAR` shell (the home Wor
 - Modify: `docs/panduan/*.md` wording about the icon rail; retake every `docs/panduan/gambar/*.png` that shows the sidebar
 - Modify: `docs/TODO.md`, `docs/PROGRESS.md`
 
-- [ ] **Step 1:** `grep -rn -i "rail\|dock\|icon" CLAUDE.md README.md docs/panduan .claude/rules` and fix every line the change made wrong. Retake the guide screenshots the way they were made (see `docs/panduan/` and PROGRESS for the script used last time).
-- [ ] **Step 2:** Run `bench --site erp-test.localhost run-tests --app erp_internal`, `node --test tools/denah.test.mjs`, `ERP_SANDI=… node tools/lantai.mjs` (Production Floor still full screen). Expected: all pass.
-- [ ] **Step 3:** Run the `docs-sync` agent with the changed files; fix what it finds.
-- [ ] **Step 4:** Commit `docs: the accordion sidebar in the rules, guides and screenshots`.
+- [x] **Step 1:** `grep -rn -i "rail\|dock\|icon" CLAUDE.md README.md docs/panduan .claude/rules` and fix every line the change made wrong. Retake the guide screenshots the way they were made (see `docs/panduan/` and PROGRESS for the script used last time).
+- [x] **Step 2:** Run `bench --site erp-test.localhost run-tests --app erp_internal`, `node --test tools/denah.test.mjs`, `ERP_SANDI=… node tools/lantai.mjs` (Production Floor still full screen). Expected: all pass.
+- [x] **Step 3:** Run the `docs-sync` agent with the changed files; fix what it finds.
+- [x] **Step 4:** Commit `docs: the accordion sidebar in the rules, guides and screenshots`.
+
+## Execution notes (2026-11-03)
+
+- Task 1 (spike) was folded into Task 3: Frappe's dock-less mode already gives search, notifications, the user menu
+  and fold-to-icons, so the only point to prove was the patch itself, done directly in the browser.
+- The dock is not hidden by CSS: `menu_samping.js` makes `Sidebar.dock_enabled` return false on our shells, and the
+  header is Frappe's own dock-less header (the app's icon and the module, with its switcher), not "ERP" everywhere.
+- Section state: one shared key `erp_menu` (patch on `TypeSectionBreak.prepare`); headers are `keep_closed`, and a
+  `make_sidebar` patch opens the page's own module even when no link is lit (a module home, a phone's shut drawer).
+- Icons beyond the plan: Purchase Order `clipboard-list`, Work Order `wrench`, Project `folder-open`, since their base
+  icons equal their module's header icon. `_baris_sidebar` keys base icons by `item_key` (a home Workspace shares its
+  `link_to` with other rows, which broke idempotence).
+- `cek_layar` checks the lit and open module on `/desk/stock/stock-entry` (Admin's new User form is a dialog that
+  lights nothing) and writes `<profile>-menu.png` and `<profile>-menu-hp.png`; the folded view stays in
+  `<profile>-sidebar.png`'s fold steps, no separate `-menu-lipat.png`.

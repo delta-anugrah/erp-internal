@@ -9,7 +9,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 | Surface | App's row (read only) | Our site layer |
 |---|---|---|
 | Apps screen | `add_to_apps_screen` hook (erpnext: any desk user; hrms: Employee read) | `saring_aplikasi` (`extend_bootinfo`): a tile with no visible rail entry for the user is hidden |
-| Rail of modules | `<app>/dock/<app>/<app>.json` (`Dock`, standard 1) | `Dock` with blank `user`: `IKON` order, rest `hidden` 1, title from `LABEL` |
+| Rail of modules | `<app>/dock/<app>/<app>.json` (`Dock`, standard 1) | `Dock` with blank `user`: `IKON` order, rest `hidden` 1, title from `LABEL`; not shown on ERP and HR pages (the menu below) |
+| Menu (ERP and HR pages) | none | `menu_samping` (`extend_bootinfo`, `erp_menu`) + `public/js/menu_samping.js`: every module of the user as a collapsible header |
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
 | Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards) |
 | Per user | none | `User.block_modules` from the Module Profile (`MODUL_BOLEH`: Admin, User; Developer has none) |
@@ -17,7 +18,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
 - Short screens (Samuel, 2026-10-28): each home's shortcuts point at exactly its sidebar's links
-  (`test_rumah_sama_dengan_sidebar`), taken from the guides' flows (`docs/panduan/`). Rail (Admin): Stock, Selling, Buying,
+  (`test_rumah_sama_dengan_sidebar`), taken from the guides' flows (`docs/panduan/`). Modules (Admin): Stock, Selling, Buying,
   Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), Settings; User: Stock and Manufacturing. Accounts and Leaves have no
   icon: invoices and payments sit in Selling and Buying, leave in HR. Their modules stay allowed
   (`MODUL_TANPA_IKON`) with a short sidebar and home, for a page Frappe opens in its own module. Admin-only
@@ -55,7 +56,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Three Role Profiles (`PROFIL_PERAN`): User, Admin, Developer. Admin holds the manager roles plus ERPNext's *User roles (`_PERAN_USER`, not `ERP User`)
   (Stock Manager alone reads neither Company nor Stock Balance in v16) and `PERAN_ADMIN` ("ERP Admin"). Every
   profile must read Company (`test_izin_per_profil`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
-- User (Samuel, 2026-11-02) is Stock User plus `PERAN_USER` ("ERP User"): rail Stock and Manufacturing only (`IKON`,
+- User (Samuel, 2026-11-02) is Stock User plus `PERAN_USER` ("ERP User"): modules (menu headers) Stock and Manufacturing only (`IKON`,
   `MODUL_BOLEH`, no Accounts or Leaves). `PERAN_USER` holds Production Entry (its JSON), reads Machine Capacity,
   Reject Reason, Sales History (JSON; Order Readiness is built on it), Workstation, Price List, Account,
   Stock Settings and Customer Group (`IZIN_TAMBAHAN`; a Delivery Note checks the customer's account, the Material
@@ -65,7 +66,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `FLAG_HASIL` (Production Entry's own Manufacture and Repack); the `has_permission` hook on `HANYA_ADMIN` keeps Stock
   User's other documents read only. Delivery Note without a Sales Order: `setup.PENGATURAN_ALUR` `so_required` No.
   Frappe resaves a changed profile's users in a background job; `_pengguna_profil` does it at migrate.
-- Admin's rail adds `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons; its home is
+- Admin's modules (menu headers) add `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons; its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Developer only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on
@@ -78,7 +79,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `sites/assets` symlink, no build); System Settings `app_name` is "Delta Anugrah". Login uses `get_app_logo`
   (Website Settings first), the Apps screen top left Navbar Settings. `setup.LOGO` is `delta-anugrah.svg`, hand-drawn
   from the original JPEG; the PNGs (512 px logo, favicons) are rendered from it, the favicon stays PNG.
-- App tiles and the rail's top slot: `tampilan.merek_aplikasi` (second `extend_bootinfo`, after `saring_aplikasi`)
+- App tiles, the sidebar header on ERP/HR pages and the rail's top slot on System pages: `tampilan.merek_aplikasi` (second `extend_bootinfo`, after `saring_aplikasi`)
   sets `app_title` from `NAMA_APLIKASI` (erpnext ERP, hrms HR, frappe System) and `app_logo_url` from
   `IKON_APLIKASI` (`public/images/aplikasi-*.svg`: Delta blue #1f4782 rounded square, white Lucide glyph, path data
   copied from lucide-static 1.47.0, ISC). The names are in `id.csv` and `test_layar_diterjemahkan`. The Delta logo
@@ -88,13 +89,28 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `update_workspace_settings`, `delete_page`, `set_workspace_module`, `restore_workspace_edits`) to
   `erp_internal/ruang_kerja.py`: Frappe's function runs unchanged, then `saring_aplikasi` and `merek_aplikasi` on
   the reply (`test_ruang_kerja`).
+- One labelled menu instead of the rail (Abel, 2026-11-03: nobody knew what the bare icons meant). `menu_samping`
+  sends `erp_menu`: the user's modules in `IKON` order that have a link in their boot sidebar, `{shell, label
+  (LABEL), icon (IKON_MODUL)}`; ERP and HR share it. `public/js/menu_samping.js` (in `erp_internal.bundle.js`, needs
+  `bench build`) patches Frappe's `Sidebar` on a shell named there, or on Accounts/Leaves (`MODUL_TANPA_IKON`): its
+  items become one `Section Break` per module (icon drawn by us, open/closed state under one key `erp_menu`) with that
+  module's resolved items as children, each routed into its own shell (`TypeLink.get_path`); the page's module
+  opens by itself (`make_sidebar`). `Sidebar.dock_enabled` returns false there, so Frappe runs dock-less: search,
+  notifications and the user menu sit in the sidebar, the header shows the app's icon and the module, and folding
+  leaves a rail of module icons (our CSS hides the links). Every patch falls back to Frappe's own code on an error.
+  Frappe's System app (Build) keeps its rail. No link repeats its module's header icon (`test_ikon_sidebar`: Work
+  Order wrench, Purchase Order clipboard-list, Project folder-open, the settings sliders); each home row is
+  `IKON_RUMAH` house; every icon we name must exist in the sprite (`test_ikon_ada`). `cek_layar` checks the headers per
+  profile, the open and lit module, a link into another module, an Accounts page (Admin), Build's rail (Developer),
+  the folded rail and the phone drawer.
 - Our CSS is one plain file, `public/css/erp_internal.css` (`hooks.app_include_css`, served as-is: no build, no
   `bench start` restart, only `clear-cache` after a hooks change). It gives the Apps screen avatar a pointer and
   keeps the sidebar's fold arrow visible on a desktop. Frappe v16.53 folds the module sidebar with that arrow
-  (or the 8 px edge), but shows the arrow only on hover. Beside the pinned dock a folded sidebar slides shut and
+  (or the 8 px edge), but shows the arrow only on hover. On Frappe's own pages (System app), beside the pinned dock a folded sidebar slides shut and
   the dock stays as the rail; Frappe then parks the arrow half under the dock (z-index 1030), so our CSS moves
   it into the dock above the profile avatar as a 32 px button with border and shadow (`.sidebar-hidden`: left
-  -45px, bottom 60px, z-index 1031; Abel 2026-10-29: the 24 px disc was too small). The choice is kept in
+  -45px, bottom 60px, z-index 1031; Abel 2026-10-29: the 24 px disc was too small). On the menu's folded rail it is the
+  same 32 px button at its edge. The choice is kept in
   localStorage `desk-sidebar-collapsed`. `cek_layar` folds, checks the folded arrow is >= 32 px and on top at its
   centre, reloads and reopens it for each user.
 - `setup.IMPOR_BOLEH` (`_impor_boleh`) sets `allow_import` 1 on Stock Reconciliation so Data Import loads opening stock.
