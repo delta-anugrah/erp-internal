@@ -43,6 +43,19 @@ IKON = {
 # A kept module shown under another name, on its rail button and its sidebar header.
 LABEL = {"Accounts": "Invoicing", "Setup": "Settings", "Shift & Attendance": "HR"}
 
+# Dock entry → its icon as a header of the one labelled sidebar (Abel, 2026-11-03: nobody knew what the bare rail
+# icons meant, so every module is a named, collapsible header with its links under it). Keys are IKON's.
+IKON_MODUL = {
+	"Stock": "warehouse",
+	"Selling": "receipt",
+	"Buying": "shopping-cart",
+	"Manufacturing": "factory",
+	"Projects": "folder-kanban",
+	"Shift & Attendance": "users",
+	"Setup": "settings",
+}
+IKON_RUMAH = "house"  # each module's home row
+
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
 # guides' flows use (docs/panduan/): each module home shows the same links as shortcuts (`PINTASAN`,
@@ -110,7 +123,7 @@ NAMA_LINK = {"production-floor": "Production Floor"}
 
 # A SIDEBAR link → its icon (Frappe's lucide set, `/assets/frappe/icons/lucide/icons.svg`), set on every sidebar
 # that shows it. Our own links and the ERPNext ones whose sidebar row has none, so no link shows the plain list
-# icon (Abel, 2026-10-29). A link whose base icon already fits (Work Order's factory, BOM's tree) is left out.
+# icon (Abel, 2026-10-29). A link whose base icon already fits (BOM's tree) is left out; none repeats its module's `IKON_MODUL` icon.
 IKON_LINK = {
 	"production-floor": "gauge",
 	"Sales History": "history",
@@ -123,6 +136,11 @@ IKON_LINK = {
 	"Machine Capacity": "cog",
 	"Item Lead Time": "hourglass",
 	"Item": "package",
+	"Stock Entry": "arrow-left-right",
+	"Delivery Note": "truck",
+	"Purchase Order": "clipboard-list",  # its base icon is Buying's own header icon
+	"Work Order": "wrench",  # same: its base factory is Manufacturing's header icon
+	"Warehouse": "building-2",
 	"Stock Balance": "boxes",
 	"Stock Ledger": "book-open",
 	"Payment Entry": "banknote",
@@ -133,16 +151,17 @@ IKON_LINK = {
 	"Shift Type": "sun-moon",
 	"Shift Assignment": "calendar-days",
 	"Holiday List": "calendar-x",
+	"Project": "folder-open",  # its base folder-kanban is Projects' header icon
 	"Timesheet": "clock",
 	"Reject Reason": "ban",
 	"Stock Reconciliation": "scale",
-	"Stock Settings": "settings",
-	"Selling Settings": "settings",
-	"Buying Settings": "settings",
-	"Manufacturing Settings": "settings",
-	"Accounts Settings": "settings",
-	"Projects Settings": "settings",
-	"HR Settings": "settings",
+	"Stock Settings": "sliders-horizontal",  # not Settings' own header icon
+	"Selling Settings": "sliders-horizontal",
+	"Buying Settings": "sliders-horizontal",
+	"Manufacturing Settings": "sliders-horizontal",
+	"Accounts Settings": "sliders-horizontal",
+	"Projects Settings": "sliders-horizontal",
+	"HR Settings": "sliders-horizontal",
 }
 
 # Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
@@ -487,6 +506,24 @@ def saring_aplikasi(bootinfo) -> None:
 		frappe.log_error("erp_internal: saring_aplikasi")
 
 
+def menu_samping(bootinfo) -> None:
+	"""extend_bootinfo: `erp_menu`, the user's modules in IKON order as {shell, label, icon}, for the one labelled
+	sidebar (`public/js/menu_samping.js`). ERP and HR share it. A module whose sidebar Frappe left out of this
+	user's boot (blocked, or nothing they can open) is skipped. Boot must never fail."""
+	try:
+		sidebars = bootinfo.get("module_sidebars") or {}
+		bootinfo.erp_menu = [
+			{"shell": shell, "label": LABEL.get(shell, shell), "icon": IKON_MODUL[shell]}
+			for shell in IKON
+			if any(
+				i.get("type") == "Link" and i.get("link_type") != "Workspace"
+				for i in (sidebars.get(shell) or {}).get("items") or []
+			)
+		]
+	except Exception:
+		frappe.log_error("erp_internal: menu_samping")
+
+
 # App → the name and icon its Apps screen tile and its rail's top slot show (Abel, 2026-10-28). Each icon is a
 # Delta-blue rounded square with a white Lucide glyph (`public/images/aplikasi-*.svg`). Frappe's tile ("System")
 # shows for Developer only. The Delta Anugrah logo itself stays on the navbar, login, splash and favicon.
@@ -637,7 +674,7 @@ def _baris_sidebar(shell: str, modul: str, link: list[str]) -> list[dict]:
 	baris, dipakai = [], set()
 	if shell in RUMAH_SENDIRI:
 		ws = RUMAH_SENDIRI[shell]
-		baris.append({**_tambahan(ws), "label": "Home", "link_type": "Workspace", "icon": "home"})
+		baris.append({**_tambahan(ws), "label": "Home", "link_type": "Workspace", "icon": IKON_RUMAH})
 		if beranda:
 			baris.append(_rujukan(beranda, 1))
 			dipakai.add(item_key(beranda))
@@ -655,10 +692,12 @@ def _baris_sidebar(shell: str, modul: str, link: list[str]) -> list[dict]:
 			baris.append(_rujukan(r, 1))
 			dipakai.add(item_key(r))
 	# The icon as an override, only where it differs from the base row's (Frappe stores no override equal to it).
-	ikon_dasar = {r.get("link_to"): r.get("icon") for r in dasar if r.get("link_to")}
+	# Keyed by the whole identity: a module's home Workspace shares its `link_to` with other rows.
+	ikon_dasar = {item_key(r): r.get("icon") for r in dasar}
+	rumah = next((r for r in baris if not r["hidden"]), None)
 	for r in baris:
-		ikon = IKON_LINK.get(r.get("link_to"))
-		if not r["hidden"] and ikon and ikon != ikon_dasar.get(r["link_to"]):
+		ikon = IKON_RUMAH if r is rumah else IKON_LINK.get(r.get("link_to"))
+		if not r["hidden"] and ikon and ikon != ikon_dasar.get(item_key(r)):
 			r["icon"] = ikon
 	return baris
 
