@@ -11,3 +11,4 @@ deploy
 **/*.pyc
 erp_internal/public/dist
 .env
+.local

@@ -192,6 +192,10 @@ alasannya bisa dibaca.
 
 ## Excel penjualan Samuel (`penjualan.py`)
 
+Di stack lokal Docker (`make start-local`, README "Run it on your computer"), tiga pemuat Samuel (`master`,
+`penjualan`, `mesin_barang`) jalan otomatis saat setup pertama dan saat `make update-local`, atau sendiri dengan
+`make data-local`.
+
 Excel Samuel 2026-10-29 (penjualan Januari-September 2026 dan spesifikasi barang) ada di
 `erp_internal/data/penjualan_2026.json`. Jalankan **sesudah** `master.muat` (barangnya dari sana):
 
