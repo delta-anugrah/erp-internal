@@ -11,7 +11,7 @@ perlu_terminal() {
 		echo "This asks a few questions: run it in a terminal." >&2
 		exit 1
 	fi
-	trap 'stty echo 2>/dev/null || true; printf "\033[?25h"' EXIT
+	trap 'stty echo icanon 2>/dev/null || true; printf "\033[?25h"' EXIT
 }
 
 # tanya LABEL SARAN [KETERANGAN] → JAWAB. Enter keeps SARAN; without SARAN an answer is required.
@@ -26,6 +26,47 @@ tanya() {
 			read -rp "  $label: " JAWAB
 		fi
 		# Spaces around the answer are never meant
+		JAWAB=$(printf '%s' "$JAWAB" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+		[ -n "$JAWAB" ] && return
+		echo "  An answer is needed here."
+	done
+}
+
+# tanya_isi LABEL ISI [KETERANGAN] → JAWAB. The answer starts filled in with ISI, as if typed: Enter keeps it,
+# Backspace changes it from the end, Ctrl+U clears it (macOS bash 3.2 has no `read -i` to do this). Arrow keys are
+# ignored. An empty answer is asked again.
+tanya_isi() {
+	local label=$1 isi=$2 keterangan=${3:-} c simpan
+	[ -z "$keterangan" ] || echo "  $label: $keterangan"
+	while true; do
+		JAWAB=$isi
+		printf '  %s: %s' "$label" "$JAWAB"
+		# Key by key, outside the terminal's line editing: bash 3.2's `read -n1` keeps it, and the terminal's own
+		# Backspace can only erase what was typed, never the filled-in text.
+		simpan=$(stty -g)
+		stty -echo -icanon min 1 time 0
+		while IFS= read -rsn1 c; do
+			if [ -z "$c" ]; then
+				break # Enter
+			elif [ "$c" = $'\177' ] || [ "$c" = $'\b' ]; then
+				if [ -n "$JAWAB" ]; then
+					JAWAB=${JAWAB%?}
+					printf '\b \b'
+				fi
+			elif [ "$c" = $'\025' ]; then
+				while [ -n "$JAWAB" ]; do
+					JAWAB=${JAWAB%?}
+					printf '\b \b'
+				done
+			elif [ "$c" = $'\e' ]; then
+				read -rsn2 -t 1 c || true # an arrow key: ignored
+			else
+				JAWAB+=$c
+				printf '%s' "$c"
+			fi
+		done
+		stty "$simpan"
+		printf '\n'
 		JAWAB=$(printf '%s' "$JAWAB" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
 		[ -n "$JAWAB" ] && return
 		echo "  An answer is needed here."

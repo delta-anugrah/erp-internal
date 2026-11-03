@@ -316,3 +316,9 @@ row → `deploy/server/akun.sh`, `tools/setup_lokal.sh`, `wizard.py`; Commands b
 - Task 5: run beside Abel's stack (`~/Desktop/coba-erp`, project `erp-local`) instead of wiping it: projects
   `erp-tanya` (automatic, port 8081) and `erp-tangan` (by hand, port 8082), image `erp-internal:uji-setup`. The
   name `erp-uji` was taken by the 10-31 rehearsal's volumes.
+- After Abel's first `make start` (2026-11-03): the company name and abbreviation come already typed in
+  (`tanya_isi` in `tanya.sh`: Enter keeps, Backspace and Ctrl+U change, arrows ignored) instead of `[brackets]`, so it
+  is plain which value Enter keeps. macOS bash 3.2 has no `read -i`, and its `read -n1` leaves the terminal's line
+  editing on (its Backspace could not erase the filled-in text): `tanya_isi` sets `-icanon` itself and restores the
+  saved mode; the EXIT trap also restores `icanon`. Driven through a pty with `/bin/bash` 3.2: Enter, Backspace,
+  Ctrl+U, an empty answer asked again, arrows ignored, the mode restored.

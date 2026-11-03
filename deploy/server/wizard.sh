@@ -34,15 +34,15 @@ tanya_wizard() {
 	if [ "$PILIHAN" = 1 ]; then
 		WIZARD=otomatis
 		echo
-		echo "Automatic values (Enter keeps each one):"
+		echo "Automatic values. The first two are filled in: Enter keeps them, Backspace changes them."
 	else
 		WIZARD=tangan
 		echo
-		echo "Values to type in the wizard later (Enter keeps each one):"
+		echo "Values to type in the wizard later. The first two are filled in: Enter keeps them, Backspace changes them."
 	fi
-	tanya "Company name" "$COMPANY" "on invoices, reports and every document"
+	tanya_isi "Company name" "$COMPANY" "on invoices, reports and every document"
 	COMPANY=$JAWAB
-	tanya "Abbreviation" "$ABBR" "short code added to account and warehouse names"
+	tanya_isi "Abbreviation" "$ABBR" "short code added to account and warehouse names"
 	ABBR=$JAWAB
 	nilai_tetap
 	export WIZARD COMPANY ABBR TAHUN

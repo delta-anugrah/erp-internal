@@ -46,15 +46,15 @@ question shows a suggestion in `[brackets]`: press **Enter** to take it.
      Your choice [1]:
    ```
 
-   Then the values, one per line with what each is for. Only the company name and its abbreviation can be changed;
-   Enter keeps them:
+   Then the values, one per line with what each is for. Only the company name and its abbreviation can be changed:
+   they are already typed in, so Enter keeps them, Backspace changes them (Ctrl+U clears the line):
 
    ```text
-   Automatic values (Enter keeps each one):
+   Automatic values. The first two are filled in: Enter keeps them, Backspace changes them.
      Company name: on invoices, reports and every document
-     Company name [PT Delta Anugrah]:
+     Company name: PT Delta Anugrah
      Abbreviation: short code added to account and warehouse names
-     Abbreviation [DAN]:
+     Abbreviation: DAN
      Fiscal year:       2026                 (the bookkeeping year, 1 January to 31 December)
      Country:           Indonesia            (tax and address formats)
      Time zone:         Asia/Jakarta         (the clock of every document)

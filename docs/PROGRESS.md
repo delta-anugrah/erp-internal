@@ -10,6 +10,9 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Tests as run: `test_versi` 4 OK; `cek_layar` 3 users OK; ruff clean; full run 252 tests (13 unit + 239 integration),
   all OK. Checked in a browser
   (Playwright): login page and the User's Settings dialog show `v0.0.1`.
+- Wizard prompt: company name and abbreviation now come already typed in (`tanya.sh` `tanya_isi`; Abel during his
+  first `make start`). Tested through a pty with macOS `/bin/bash` 3.2 (Enter, Backspace, Ctrl+U, empty, arrows,
+  terminal mode restored); shellcheck and `bash -n` clean.
 - Next: Abel tries `make start` and looks at the version; then push + PR.
 
 ## 2026-11-03 (one-command setup, built)
