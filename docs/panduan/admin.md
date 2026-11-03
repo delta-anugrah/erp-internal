@@ -2,8 +2,8 @@
 
 Untuk **Admin**. Admin bisa semua yang dikerjakan User (`user.md`), ditambah: perintah produksi (Work Order), barang, pemasok, resep (BOM),
 stok awal dan stok opname, HR, akun pengguna, dan pengaturan usaha. Akun pengguna, stok awal dan opname, dan
-pengaturan ada di ikon **Settings** di rel kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
-Manufacturing); HR di aplikasi **HR**.
+pengaturan ada di menu **Settings** di kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
+Manufacturing); HR di menu **HR**.
 
 Ada tiga peran (**Role Profile**):
 

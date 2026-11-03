@@ -179,7 +179,11 @@ standard_navbar_items = [
 # Site setup, re-applied on every install and migrate (erp_internal/setup.py).
 # Hide an Apps screen tile whose app has nothing on this user's rail (tampilan.saring_aplikasi), then put our
 # mark and names on the tiles and the rail's top slot (tampilan.merek_aplikasi).
-extend_bootinfo = ["erp_internal.tampilan.saring_aplikasi", "erp_internal.tampilan.merek_aplikasi"]
+extend_bootinfo = [
+	"erp_internal.tampilan.saring_aplikasi",
+	"erp_internal.tampilan.merek_aplikasi",
+	"erp_internal.tampilan.menu_samping",
+]
 
 # Frappe's workspace writes answer with a fresh `app_data` that skips extend_bootinfo; ours run Frappe's and then
 # the same two layers on the reply (erp_internal/ruang_kerja.py).

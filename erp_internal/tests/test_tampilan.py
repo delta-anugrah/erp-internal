@@ -16,6 +16,8 @@ from erp_internal.tampilan import (
 	DEVELOPER,
 	IKON,
 	IKON_LINK,
+	IKON_MODUL,
+	IKON_RUMAH,
 	MODUL_BOLEH,
 	PINTASAN,
 	PROFIL_PERAN,
@@ -319,6 +321,48 @@ class TestTampilan(IntegrationTestCase):
 			for link, ikon in IKON_LINK.items():
 				if link in items:
 					self.assertEqual(items[link]["icon"], ikon, f"{shell}: {link}")
+			# The home row is a house, and no link repeats its module's header icon (the accordion shows both).
+			rumah = next(iter(items.values()))
+			self.assertEqual(rumah["icon"], IKON_RUMAH, shell)
+			if shell in IKON_MODUL:
+				for link, i in items.items():
+					self.assertNotEqual(i["icon"], IKON_MODUL[shell], f"{shell}: {link}")
+
+	def test_menu_samping_per_profil(self):
+		# One menu for ERP and HR (Abel 2026-11-03): IKON order, only the profile's modules.
+		from frappe.boot import get_bootinfo
+
+		from erp_internal.tampilan import menu_samping
+
+		semua = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance", "Setup"]
+		harap = {DEVELOPER: semua, ADMIN: semua, USER: ["Stock", "Manufacturing"]}
+		for profil, shells in harap.items():
+			frappe.set_user(pengguna_profil(profil, "menu"))
+			try:
+				boot = get_bootinfo()
+				menu_samping(boot)
+			finally:
+				frappe.set_user("Administrator")
+			self.assertEqual([m["shell"] for m in boot.erp_menu], shells, profil)
+			# Production Floor is a menu entry of its own, not under Manufacturing (Abel 2026-11-03).
+			self.assertEqual(boot.erp_menu_atas, ["production-floor"], profil)
+			m = {m["shell"]: m for m in boot.erp_menu}
+			self.assertEqual(m["Stock"], {"shell": "Stock", "label": "Stock", "icon": "warehouse"})
+			if "Setup" in m:
+				self.assertEqual(m["Setup"]["label"], "Settings")
+		self.assertEqual(set(IKON_MODUL), set(IKON))
+
+	def test_menu_samping_tak_pernah_gagal(self):
+		from erp_internal.tampilan import menu_samping
+
+		menu_samping(frappe._dict(module_sidebars=None))  # logged, boot goes on
+
+	def test_ikon_ada(self):
+		# Every icon we name exists in Frappe's Lucide sprite.
+		with open(frappe.get_app_path("frappe", "public", "icons", "lucide", "icons.svg")) as f:
+			sprite = f.read()
+		for ikon in {*IKON_MODUL.values(), *IKON_LINK.values(), IKON_RUMAH}:
+			self.assertIn(f'id="icon-{ikon}"', sprite, ikon)
 
 	def test_production_floor_in_manufacturing(self):
 		# The floor page is the first link after Manufacturing's home, labelled by name (a Page is named by its

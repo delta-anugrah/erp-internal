@@ -3,6 +3,8 @@
 // The language switch itself is two user-menu rows from `standard_navbar_items` in hooks.py, shown by
 // `frappe.boot.lang`; their action calls `erp_internal.ganti_bahasa` below.
 
+import "./menu_samping";
+
 frappe.provide("erp_internal");
 
 erp_internal.ganti_bahasa = function (lang) {

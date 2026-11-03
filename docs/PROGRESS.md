@@ -2,6 +2,25 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-03 (setup design)
+- Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md`: `make setup` (server) as one command
+  with plain questions (token, address, version, backup skippable, wizard automatic by default or by hand,
+  accounts), the same wizard question in `make start-local`, a `setup_wizard_complete` hook (erp_aktif,
+  pastikan_setup, Samuel's data once on a real site, the wizard's own account into Developer), `make dev`.
+  Builder check done; Abel's answers in. No code yet; not committed.
+- Next: Abel approves the spec, then the plan.
+
+## 2026-11-03 (accordion menu)
+- PR #7 merged. The icon rail on ERP and HR pages is one labelled menu: a collapsible header per module (icon + name,
+  `IKON_MODUL`), the module's links under it, the page's module open, folds to a rail of module icons, phone drawer
+  the same. `tampilan.menu_samping` sends `erp_menu`; `public/js/menu_samping.js` patches Frappe's Sidebar (falls back
+  to Frappe's own on an error); Frappe's System app keeps its rail. Link icons fixed (Stock Entry, Delivery Note,
+  Warehouse, Purchase Order, Work Order, Project, settings rows, Home).
+- Tests: `run-tests --app erp_internal` 239 (13 unit + 226 integration) OK; `test_tampilan` 25 OK; `cek_layar` 3 users
+  OK (one earlier run failed on Developer homes from the 800 ms home wait, rerun clean); `lantai.mjs` OK (pilih and
+  perf failed while the full run loaded the machine, OK alone); `denah.test.mjs` 6 OK; `panduan_gambar` 9 retaken.
+- Next: Abel tries it, then PR to main.
+
 ## 2026-11-03 (local stack with only Docker)
 - Root `Makefile` for Samuel's laptop (Mac, or Windows through WSL): `make start-local` runs the server compose stack as
   project `erp-local` (`--project-directory .local`, git-ignored and in .dockerignore), builds `erp-internal:local` or

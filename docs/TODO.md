@@ -2,11 +2,28 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-03, guide pictures): 233 tests (13 unit + 220 integration), all OK; since then
+Last full run (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
+all OK; `cek_layar` 3 users OK (menu checks included); `lantai.mjs` all OK (pilih and perf rerun alone: during the
+full run they failed on load); `denah.test.mjs` 6 OK.
+Before that (2026-11-03, guide pictures): 233 tests (13 unit + 220 integration), all OK; since then
 `test_set_status_mesin_tidak_aktif` (module `test_production_floor` 16 OK, twice) and `test_akun` 2 OK.
 Before that (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integration), 231 OK + 1 fixed and rerun.
 Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+
+## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
+- [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
+- [ ] Abel approves the spec, then the plan (superpowers:writing-plans), then build.
+- [ ] After that, a small task: show the app version (e.g. `v0.1.3`) on the login screen and in the Settings
+      dialog's left menu; `erp_internal.__version__` follows the release tag (now `0.0.1`).
+- [ ] Then the same setup work for BPT, then the sawit autoerp, one at a time in their own sessions.
+
+## Done: one labelled menu instead of the icon rail (Abel, 2026-11-03)
+- [x] Spec `docs/superpowers/specs/2026-11-03-sidebar-accordion-design.md`, plan `docs/superpowers/plans/2026-11-03-sidebar-accordion-plan.md`.
+- [x] `tampilan.menu_samping` (`erp_menu` in boot), `IKON_MODUL`, `IKON_RUMAH`, link icons that no longer repeat their
+  module's icon; `public/js/menu_samping.js` (one collapsible header per module, ERP and HR share it, dock-less);
+  `cek_layar` checks it per role; guide pictures retaken (9).
+- [ ] Abel: try it in the browser (`bench build --app erp_internal` already run; hard reload), incl. a phone.
 
 ## Done: run it on a laptop with only Docker (2026-11-03)
 - [x] Root `Makefile`: `make start-local` (first time `setup-local`: check-local, env-local, image-local, the server
