@@ -24,6 +24,11 @@ Newest first. One entry per working session: what changed, test results as run, 
   with a fake make/docker: wrong token asked again, `https://` dropped, `v` added, backup skipped (no
   `RCLONE_REMOTE`), `ADMIN_PASSWORD` removed, steps in order. Not run: a real server (none yet), `make
   update-local` on the test stack (covered by `make -n` and the marker).
+- Final review (fresh reviewer): no critical; 3 important fixed (`e368a26`): a docker problem no longer looks like
+  a wrong token, answers are checked before `.env` is written, and the drivers run `lanjut` until it has run once
+  after the wizard (the hook keeps the wizard's account in `erp_wizard_developer`; a file lock keeps the queued job
+  and `make lanjut` apart). 12 minors deferred (ledger list in the final message). Full run after the fixes:
+  248 OK (13 unit + 235 integration).
 - Next: Abel tries `make start` himself; the version display task.
 
 ## 2026-11-03 (setup design)

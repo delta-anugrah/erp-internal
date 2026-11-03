@@ -6,7 +6,7 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
 Status 2026-11-03: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
-company and three roles (plan "Revision 4"): 246 tests (13 unit + 233 integration, 2026-11-03 after the one-command setup, all OK; `run-tests --app erp_internal`, incl. `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (shortcut-only homes, at most 12 each; Plan vs Actual raised the cap from 10), `lantai.mjs` all cases OK (2026-11-03, perf 60 fps, 0 frames over 25 ms), sample
+company and three roles (plan "Revision 4"): 248 tests (13 unit + 235 integration, 2026-11-03 after the one-command setup and its review fixes, all OK; `run-tests --app erp_internal`, incl. `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (shortcut-only homes, at most 12 each; Plan vs Actual raised the cap from 10), `lantai.mjs` all cases OK (2026-11-03, perf 60 fps, 0 frames over 25 ms), sample
 data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
 the plan). Task 7's compose boot, backup and restore drill ran locally 2026-10-31 (`make setup`). Root `Makefile`: `make start` (= `start-local`) runs the same stack locally with only Docker and Samuel's real data (README "Run it on your computer"). Open: the DigitalOcean server and the
 real go-live with Samuel.
