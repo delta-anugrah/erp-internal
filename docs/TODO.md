@@ -2,7 +2,9 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
+Last full run (2026-11-03, app version): `run-tests --app erp_internal` 252 tests (13 unit + 239 integration), all
+OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
+Before that (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
 all OK; `cek_layar` 3 users OK (menu checks included); `lantai.mjs` all OK (pilih and perf rerun alone: during the
 full run they failed on load); `denah.test.mjs` 6 OK.
 Before that (2026-11-03, guide pictures): 233 tests (13 unit + 220 integration), all OK; since then
@@ -17,8 +19,10 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       `make dev`, `erp_internal/wizard.py`; end to end on the Mac, automatic and by hand (PROGRESS 2026-11-03).
 - [ ] Abel: try `make start` from a fresh clone (Mac now, Samuel's Windows/WSL later).
 - [ ] On the real server: `make setup` (needs the server, Samuel question 6).
-- [ ] After that, a small task: show the app version (e.g. `v0.1.3`) on the login screen and in the Settings
-      dialog's left menu; `erp_internal.__version__` follows the release tag (now `0.0.1`).
+- [x] The app version (`v0.0.1`) under the login card and at the foot of the Settings dialog's left menu
+      (`erp_internal/versi.py`, `public/js/versi.js`); the image workflow refuses a tag other than
+      `v` + `erp_internal.__version__`. Tests `test_versi`, `cek_layar` checks both.
+- [ ] Abel: look at the version on the login page and in Settings (avatar menu, My Settings).
 - [ ] Then the same setup work for BPT, then the sawit autoerp, one at a time in their own sessions.
 
 ## Done: one labelled menu instead of the icon rail (Abel, 2026-11-03)

@@ -15,7 +15,8 @@ shared with BPT or the sawit server.
 
 The image comes from `.github/workflows/image.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
 from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`), checks it with
-`deploy/check_image.sh` and pushes it. Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
+`deploy/check_image.sh` and pushes it. The workflow refuses a tag that is not `v` + `erp_internal.__version__`
+(the version shown on the login page and in Settings). Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
 `latest`.
 
 ## First install
@@ -82,7 +83,8 @@ refusal ("Sample data is not allowed on a production site"), which a direct call
 
 ## New version
 
-1. Abel approves; tag `vX.Y.Z` on `main`; wait for the image workflow to pass.
+1. Abel approves; set `__version__ = "X.Y.Z"` in `erp_internal/__init__.py` (merged to `main`), tag `vX.Y.Z` on
+   `main`; wait for the image workflow to pass.
 2. `make backup` first.
 3. Set `ERP_IMAGE` in `.env` to the new tag, then:
 

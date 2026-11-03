@@ -52,8 +52,11 @@ add_to_apps_screen = [
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = "/assets/erp_internal/css/erp_internal.css"  # public/css: avatar cursor, sidebar fold arrow
-app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: the language switch
+app_include_css = "/assets/erp_internal/css/erp_internal.css"  # public/css: avatar cursor, sidebar fold arrow, Settings version
+app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: language switch, menu, version
+
+# The app version under the login card (erp_internal/versi.py; Desk shows it in the Settings dialog, public/js/versi.js).
+update_website_context = "erp_internal.versi.di_login"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/erp_internal/css/erp_internal.css"

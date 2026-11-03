@@ -16,6 +16,9 @@ Ada tiga peran (**Role Profile**):
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
+Versi aplikasi (misalnya `v0.0.1`) ada di bawah kotak login dan di bagian bawah menu kiri **My Settings**. Sebut
+versinya kalau melaporkan masalah.
+
 ## Akun pengguna
 
 ### Tambah orang

@@ -2,6 +2,16 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-03 (app version on screen)
+- `erp_internal/versi.py` (`di_login`, hooks `update_website_context`): `v0.0.1` under the login card;
+  `public/js/versi.js`: the same at the foot of the Settings dialog's left menu (the user's Settings only). The image
+  workflow's tag check now also refuses a tag other than `v` + `erp_internal.__version__`; runbook "New version"
+  says to bump it first. `tools/cek_layar.mjs` checks both (login as a guest, Settings per role).
+- Tests as run: `test_versi` 4 OK; `cek_layar` 3 users OK; ruff clean; full run 252 tests (13 unit + 239 integration),
+  all OK. Checked in a browser
+  (Playwright): login page and the User's Settings dialog show `v0.0.1`.
+- Next: Abel tries `make start` and looks at the version; then push + PR.
+
 ## 2026-11-03 (one-command setup, built)
 - Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md` (deviations at its end), built inline:
   `erp_internal/wizard.py` (`setup_wizard_complete` hook: erp_aktif, queue `lanjutkan`; `lanjutkan`: setup, the

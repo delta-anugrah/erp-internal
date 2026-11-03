@@ -863,13 +863,15 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
   `frappe.db.count("Item")` equals the source's.
 - [x] **Step 5: Write `deploy/server/README.md`** with these sections:
   - first install: server, DNS, reverse proxy with TLS, `.env`, `up -d`, new site, wizard values, set Jenis;
-  - new version: tag, image, pull, `migrate`;
+  - new version: bump `__version__`, tag, image, pull, `migrate`;
   - backup and restore: the cron line and a monthly restore drill;
   - who holds which secret.
 - [x] **Step 6: Commit** `feat(deploy): pinned image, compose stack, nightly off-site backup, runbook`. Tag `v0.1.0`
   only with Abel's approval (not tagged).
 
 **Task 7 deviations (2026-10-28):**
+- 2026-11-03: `image.yml` also refuses a tag other than `v` + `erp_internal.__version__` (shown on the login page
+  and in Settings); bump `erp_internal/__init__.py` first. The first tag is `v0.0.1` unless `__version__` is bumped.
 - `frappe/build` has no `v16.53.0` tag; its tags follow the frappe_docker release. `BUILD_IMAGE` is
   `frappe/build:v16.52.1` and `BASE_IMAGE` `frappe/base:v16.53.0`, both pinned by index digest, both from the
   2026-10-27 release (same Python 3.14.10). The base already ships Node 24.22.1, so bpt's Node swap is dropped.

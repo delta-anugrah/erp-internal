@@ -106,7 +106,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   the folded rail and the phone drawer (also on a Stock page the menu does not list, which lights nothing).
 - Our CSS is one plain file, `public/css/erp_internal.css` (`hooks.app_include_css`, served as-is: no build, no
   `bench start` restart, only `clear-cache` after a hooks change). It gives the Apps screen avatar a pointer and
-  keeps the sidebar's fold arrow visible on a desktop. Frappe v16.53 folds the module sidebar with that arrow
+  keeps the sidebar's fold arrow visible on a desktop, and styles the version line at the foot of the Settings
+  dialog (`public/js/versi.js`, in the same bundle as `menu_samping.js`: wraps `SettingsDialog.render_sidebar`). Frappe v16.53 folds the module sidebar with that arrow
   (or the 8 px edge), but shows the arrow only on hover. On Frappe's own pages (System app), beside the pinned dock a folded sidebar slides shut and
   the dock stays as the rail; Frappe then parks the arrow half under the dock (z-index 1030), so our CSS moves
   it into the dock above the profile avatar as a 32 px button with border and shadow (`.sidebar-hidden`: left
@@ -118,4 +119,6 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen
   (`app_data[].on_apps_screen`), failing on a tile with nothing behind it. It also opens every home on the user's
-  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (12).
+  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (12). It reads the version on /login
+  as a guest and in each user's Settings dialog (`.settings-dialog-sidebar .erp-versi` = `v` +
+  `frappe.boot.versions.erp_internal`).

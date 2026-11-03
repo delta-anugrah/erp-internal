@@ -7,7 +7,7 @@
 //
 // For each user it opens the apps screen, the module home and one new form, and asserts: the page is full
 // width, the ERPNext and HRMS rails show only that profile's modules, Frappe's own tile (Build) shows for
-// Developer only, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
+// Developer only, the app version shows on the login page and in Settings, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
 
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -52,6 +52,16 @@ mkdirSync(HASIL, { recursive: true });
 
 const gagal = [];
 const browser = await chromium.launch();
+
+// The app version under the login card (erp_internal/versi.py), read as a guest.
+{
+	const tamu = await browser.newPage();
+	await tamu.goto(`${URL}/login`);
+	const versi = await tamu.locator(".for-login .erp-versi").innerText().catch(() => "");
+	if (!/^v\d+\.\d+\.\d+$/.test(versi)) gagal.push(`login page: version "${versi}"`);
+	await tamu.screenshot({ path: join(HASIL, "login.png") });
+	await tamu.close();
+}
 
 for (const [profil, harap] of Object.entries(PROFIL)) {
 	const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -284,6 +294,14 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.waitForTimeout(1500);
 	// The floor page hides the sidebar on purpose (full-bleed); coming back must still name Manufacturing.
 	cek(page.url().includes("/manufacturing/production-floor"), `floor after a Work Order list: ${page.url()}`);
+	// The user's Settings dialog (avatar menu > My Settings) ends its left menu with the app version (public/js/versi.js).
+	await page.evaluate(() => frappe.require("user_settings_dialog.bundle.js").then(() => frappe.ui.show_user_settings("profile")));
+	const versi = page.locator(".settings-dialog-sidebar .erp-versi");
+	await versi.waitFor({ timeout: 5000 }).catch(() => {});
+	const harap_versi = await page.evaluate(() => `v${frappe.boot.versions.erp_internal}`);
+	cek((await versi.count()) === 1 && (await versi.innerText()) === harap_versi, `Settings dialog: no version ${harap_versi}`);
+	await page.screenshot({ path: join(HASIL, `${slug(profil)}-settings.png`) });
+	await page.keyboard.press("Escape");
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
 	await context.close();
 
