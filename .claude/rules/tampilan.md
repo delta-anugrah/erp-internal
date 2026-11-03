@@ -127,5 +127,9 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   says so: never a security boundary), so a blocked module's documents still opened by search and URL. The lock is
   a Custom DocPerm for the Administrator role on each of their DocTypes (a DocType with Custom DocPerms ignores its
   standard ones); `_kunci_modul` removes it again when a module leaves the list, only for a DocType it locked itself
-  (global default `erp_modul_terkunci`): a Custom DocPerm set by hand elsewhere is never touched. Bulk Transaction stays open (list bulk actions log there). HR is mixed and comes next, DocType by
+  (global default `erp_modul_terkunci`): a Custom DocPerm set by hand elsewhere is never touched. A
+  report of those modules can read an open DocType (Lead Conversion Time reads Communication, the VAT reports GL
+  Entry), so `_matikan_laporan` disables every report of `MODUL_MATI` (refused even by URL, Administrator too) and
+  enables again only those it disabled (`erp_laporan_mati`). `saring_modul_mati` also drops reports, pages and
+  dashboards whose module is locked. Bulk Transaction stays open (list bulk actions log there). HR is mixed and comes next, DocType by
   DocType. `test_modul_mati`; `cek_layar` checks the boot, the menu, `/desk/lead` and `/api/resource/Lead` (403).

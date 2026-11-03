@@ -140,6 +140,8 @@ export const GAYA_HUD = `
 	.sel .judul .pendek{display:inline}
 	.sel .nilai{font-size:16px}
 	.sel .nilai small{font-size:11px}
+	/* The output cell's "/ plan" goes under the figure on a phone: on one line it ran past the screen's edge. */
+	.sel[data-kpi="hasil"] .nilai small{display:block;line-height:1.1;overflow:hidden;text-overflow:ellipsis}
 	.sel .ket{display:none}
 	.kiri{left:8px;top:calc(var(--atas,150px) + 8px);width:calc(100% - 16px);max-height:calc(100% - var(--atas,150px) - 16px);gap:6px}
 	:host([data-panel]) .perhatian{display:none}

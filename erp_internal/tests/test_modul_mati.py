@@ -78,7 +78,24 @@ class TestModulMati(IntegrationTestCase):
 		self.assertFalse(mati & set(boot.user.can_read))
 		self.assertFalse(mati & set(boot.user.can_search))
 		self.assertFalse(any((v or {}).get("ref_doctype") in mati for v in boot.allowed_reports.values()))
+		self.assertFalse(any((v or {}).get("module") in MODUL_MATI for v in boot.allowed_reports.values()))
+		self.assertNotIn("Lead Conversion Time", boot.allowed_reports)  # CRM, though it reads Communication
+		self.assertFalse(any(d.get("module") in MODUL_MATI for d in boot.dashboards))
 		self.assertIn("Sales Order", boot.user.can_read)
+
+	def test_laporan_mati(self):
+		# A report of a locked module is disabled, even one reading an open DocType; taken out of the list it comes
+		# back. A report outside the list stays as it is.
+		self.assertEqual(frappe.db.get_value("Report", "Lead Conversion Time", "disabled"), 1)
+		self.assertEqual(frappe.db.get_value("Report", "Stock Balance", "disabled"), 0)
+		tanpa = tuple(m for m in MODUL_MATI if m != "CRM")
+		try:
+			with patch.object(tampilan, "MODUL_MATI", tanpa):
+				tampilan._kunci_modul()
+			self.assertEqual(frappe.db.get_value("Report", "Lead Conversion Time", "disabled"), 0)
+		finally:
+			tampilan._kunci_modul()
+		self.assertEqual(frappe.db.get_value("Report", "Lead Conversion Time", "disabled"), 1)
 
 	def test_boot_tak_pernah_gagal(self):
 		saring_modul_mati(frappe._dict(user=None))

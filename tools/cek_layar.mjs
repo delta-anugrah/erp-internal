@@ -348,6 +348,18 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await ph.waitForURL(/\/desk\/stock\/warehouse/, { timeout: 5000 }).catch(() => {});
 	cek(ph.url().includes("/desk/stock/warehouse"), `phone link opened ${ph.url()}`);
 	cek(!(await ph.locator(".body-sidebar-container.expanded").count()), "phone drawer still open after a link");
+	// The Production Floor on a phone: its back button and the output card stay on screen, no sideways scroll.
+	await ph.goto(`${URL}/desk/manufacturing/production-floor`);
+	await ph.waitForLoadState("networkidle");
+	await ph.waitForTimeout(3000);
+	const lantaiHp = await ph.evaluate(() => {
+		const root = [...document.querySelectorAll("*")].find((e) => e.shadowRoot?.querySelector(".kembali"))?.shadowRoot;
+		const kotak = (sel) => root?.querySelector(sel)?.getBoundingClientRect();
+		const ok = (r) => !!r && r.width > 0 && r.left >= 0 && r.right <= innerWidth + 1;
+		return { kembali: ok(kotak(".kembali")), hasil: ok(kotak('.sel[data-kpi="hasil"] .nilai')), lebar: document.documentElement.scrollWidth <= innerWidth };
+	});
+	cek(lantaiHp.kembali && lantaiHp.hasil && lantaiHp.lebar, `phone floor: ${JSON.stringify(lantaiHp)}`);
+	await ph.screenshot({ path: join(HASIL, `${slug(profil)}-lantai-hp.png`) });
 	await hp.close();
 }
 

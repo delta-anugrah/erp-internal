@@ -208,9 +208,12 @@ MODUL_MATI = (
 	"Portal",
 )
 PERAN_KUNCI = "Administrator"  # the one role a locked DocType's Custom DocPerm names
-KUNCI_GLOBAL = (
-	"erp_modul_terkunci"  # global default: the DocTypes _kunci_modul locked (JSON), the only ones it unlocks
-)
+# Global default: the DocTypes `_kunci_modul` locked (JSON), the only ones it unlocks.
+KUNCI_GLOBAL = "erp_modul_terkunci"
+# A report of MODUL_MATI may read a DocType that stays open (Lead Conversion Time reads Communication, the VAT reports
+# GL Entry), so the lock does not reach it: `_matikan_laporan` disables it (refused even by URL) and keeps the list
+# here, the only reports it enables again.
+LAPORAN_GLOBAL = "erp_laporan_mati"
 
 # Role Profile → standard ERPNext/HRMS roles. Read from the v16 DocPerms (`test_izin_per_profil`):
 # - User (Samuel, 2026-11-02): Stock User (Stock Entry, Delivery Note, and reads stock, items, Work Orders and
@@ -569,12 +572,21 @@ def saring_modul_mati(bootinfo) -> None:
 		for kunci in DAFTAR_BOOT:
 			if isinstance(user.get(kunci), list):
 				user[kunci] = [dt for dt in user[kunci] if dt not in mati]
-		# The search bar's reports: `allowed_reports` on the boot itself (v16 no longer sends `user.all_reports`).
-		laporan = bootinfo.get("allowed_reports")
-		if isinstance(laporan, dict):
-			bootinfo["allowed_reports"] = {
-				k: v for k, v in laporan.items() if (v or {}).get("ref_doctype") not in mati
-			}
+		# The search bar's reports, pages and dashboards sit on the boot itself (v16 no longer sends
+		# `user.all_reports`); each carries its module. A report also goes by its DocType.
+		modul = set(MODUL_MATI)
+		for kunci in ("allowed_reports", "page_info"):
+			isi = bootinfo.get(kunci)
+			if isinstance(isi, dict):
+				bootinfo[kunci] = {
+					k: v
+					for k, v in isi.items()
+					if (v or {}).get("module") not in modul and (v or {}).get("ref_doctype") not in mati
+				}
+		if isinstance(bootinfo.get("dashboards"), list):
+			bootinfo["dashboards"] = [
+				d for d in bootinfo["dashboards"] if (d or {}).get("module") not in modul
+			]
 	except Exception:
 		frappe.log_error("erp_internal: saring_modul_mati")
 
@@ -954,6 +966,21 @@ def _kunci_modul() -> None:
 			frappe.clear_cache(doctype=dt)
 	if kunci != dulu:
 		frappe.db.set_global(KUNCI_GLOBAL, frappe.as_json(sorted(kunci)))
+	_matikan_laporan()
+
+
+def _matikan_laporan() -> None:
+	"""Disable the reports of MODUL_MATI; enable again only those this function disabled and that left it."""
+	mati = set(frappe.get_all("Report", {"module": ("in", MODUL_MATI)}, pluck="name"))
+	dulu = set(frappe.parse_json(frappe.db.get_global(LAPORAN_GLOBAL) or "[]"))
+	for nama in sorted(mati):
+		if not frappe.db.get_value("Report", nama, "disabled"):
+			frappe.db.set_value("Report", nama, "disabled", 1, update_modified=False)
+	for nama in sorted(dulu - mati):
+		if frappe.db.exists("Report", nama):
+			frappe.db.set_value("Report", nama, "disabled", 0, update_modified=False)
+	if mati != dulu:
+		frappe.db.set_global(LAPORAN_GLOBAL, frappe.as_json(sorted(mati)))
 
 
 # ---------------------------------------------------------------------------------------------------------

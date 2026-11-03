@@ -30,6 +30,15 @@ Newest first. One entry per working session: what changed, test results as run, 
   disabled machine.
 - Security review: unlocking now touches only DocTypes `_kunci_modul` locked itself (global default
   `erp_modul_terkunci`), never a hand-set Administrator-only Custom DocPerm; `test_modul_mati` 7 OK.
+- Checked on Abel's Docker stack (`make update-local`, temporary `_cek.*` accounts, deleted afterwards): the version,
+  the back button, `/api/resource/Lead` 403, `/desk/lead` refused, no locked module in the menu. The search bar still
+  offered the CRM report "Lead Conversion Time" (it reads Communication, which stays open): every report of
+  `MODUL_MATI` is now disabled (`_matikan_laporan`, tracked in `erp_laporan_mati`), and boot drops reports, pages and
+  dashboards by module. `test_modul_mati` 8 OK; full run 260 tests (13 unit + 247 integration), all OK; rechecked on
+  the rebuilt stack: the report is gone from the search bar.
+- Responsive (Abel): the login version, the floor's back button and the Settings version checked at 390 px and 768 px
+  (no overflow, no sideways scroll). Found and fixed: the floor's output card ran past a phone's edge ("39.427 / 3…"):
+  its "/ plan" now sits under the figure below 760 px. `cek_layar` now checks the floor on a phone per role.
 - Next: push + PR; HR's unused DocTypes.
 
 ## 2026-11-03 (one-command setup, built)

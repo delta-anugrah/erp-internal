@@ -2,7 +2,7 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-04, module lock): `run-tests --app erp_internal` 258 tests (13 unit + 245 integration), all
+Last full run (2026-11-04, module and report lock): `run-tests --app erp_internal` 260 tests (13 unit + 247 integration), all
 OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
 (2026-11-03, app version): 252 tests, all OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
 Before that (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
