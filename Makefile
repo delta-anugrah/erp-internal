@@ -37,7 +37,8 @@ help:
 start-local: check-local env-local
 	@if [ -f $(LOKAL)/siap ]; then $(COMPOSE) up -d; else $(MAKE) --no-print-directory setup-local; fi
 	@$(MAKE) --no-print-directory ping-local
-	@if [ ! -f $(LOKAL)/akun-siap ]; then ERP_COMPOSE='$(COMPOSE)' tools/akun.sh; fi
+	@if [ ! -f $(LOKAL)/akun-siap ]; then bash -c 'set -euo pipefail; . deploy/server/tanya.sh; . deploy/server/akun.sh; \
+		perlu_terminal; tanya_akun; buat_akun "$(COMPOSE)"; touch $(LOKAL)/akun-siap'; fi
 	@echo
 	@echo "Ready: open http://localhost:$(PORT_ENV) and sign in."
 
