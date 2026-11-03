@@ -9,7 +9,7 @@ Newest first. One entry per working session: what changed, test results as run, 
   then floor order; `adegan.proyeksi` gives `dalam` as view depth in metres (was NDC z).
 - Tests as run: `lantai.mjs label-rapi` OK; `lantai.mjs` all cases OK (perf 60.0 fps, 0 dropped, 34 draw calls);
   `node --test tools/denah.test.mjs` 6 OK. Machines back to disabled + Off.
-- Pushed `feat/lokal`, PR to `main` opened for this fix.
+- PR #4 (this fix) merged 2026-11-03 (Abel approved).
 - Next: what Samuel answers (`docs/menunggu-samuel.md`), DigitalOcean server and go-live.
 
 ## 2026-11-02 (guide pictures)
