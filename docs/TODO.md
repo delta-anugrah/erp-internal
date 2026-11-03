@@ -86,7 +86,7 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
 - [x] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid. API as `user@` 2026-10-31: SAL-ORD-2026-00007 → MAT-DN-2026-00003 → ACC-SINV-2026-00003 Paid (ACC-PAY-2026-00002). Found: the default price list was the empty Standard Selling (Rate 0), fixed in `master._harga_bawaan`.
 - [ ] Optional: the official vector logo from the designer. `delta-anugrah.svg` is our redraw of the 200 px JPEG;
       replace it under the same name and rerender the PNGs (no code change).
-- [ ] Add `127.0.0.1 erp.localhost` to `/etc/hosts` (sudo): Node's socket.io can't resolve `*.localhost` on macOS,
+- [x] Add `127.0.0.1 erp.localhost` to `/etc/hosts` (sudo; present, checked 2026-11-03): Node's socket.io can't resolve `*.localhost` on macOS,
       so live updates (Production Floor) fall back to a 60 s poll without it.
 - [x] Review and approve PR #1 (`feat/lokal` → `main`) and the Production Floor plan (PR approved by Abel 2026-10-31)
       (`docs/superpowers/plans/2026-10-28-production-floor-plan.md`).
