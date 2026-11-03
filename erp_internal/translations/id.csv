@@ -323,3 +323,9 @@ Title,Judul
 "You may only record a Material Receipt. Ask an Admin for a {0}.","Kamu cuma bisa mencatat Material Receipt (bahan masuk). Minta Admin untuk {0}."
 ERP User,Pengguna ERP
 "{0} is not in use. Choose another machine.",{0} sedang tidak dipakai. Pilih mesin lain.
+ERP_AKUN is not set: run make users from the repo.,ERP_AKUN belum diisi: jalankan make users dari repo.
+A password needs at least {0} characters.,Password minimal {0} karakter.
+Unknown role {0}.,Peran {0} tidak dikenal.
+{0} is not a valid email address.,{0} bukan alamat email yang benar.
+{0} is given twice.,{0} diisi dua kali.
+No account {0}.,Tidak ada akun {0}.

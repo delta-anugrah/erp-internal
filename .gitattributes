@@ -1,0 +1,7 @@
+# Shell scripts, Makefiles and compose files must keep LF line endings, also when cloned on Windows (WSL runs them).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.xlsx binary

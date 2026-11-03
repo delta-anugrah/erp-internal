@@ -18,13 +18,13 @@ from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json
 
 ## First install
 
-**With make** (same steps, from step 5 on; steps 1-4 stay by hand, `cek` and `pull` check them). As `deploy` in
+**With make** (same steps, from step 5 on; steps 1-4 stay by hand, `check` and `pull` check them). As `deploy` in
 `~/erp` with this folder's files copied in:
 
 ```bash
 make env SITE=erp.<domain> ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z RCLONE_REMOTE=<remote>:<bucket>/erp
-make setup COMPANY="PT Delta Anugrah" ABBR=DAN     # cek env cek-env pull db site wizard aktif up ping cron
-make cadangan                                     # then a restore drill (below)
+make setup COMPANY="PT Delta Anugrah" ABBR=DAN     # check env check-env pull db site wizard configure up ping cron
+make backup                                       # then a restore drill (below)
 ```
 
 `make help` lists the targets; `make -n setup` prints every command without running it. `env` writes `.env` once
@@ -33,7 +33,7 @@ that exists or a finished wizard; `cron` adds its line once. `ping` checks the s
 `https://` check needs the proxy of step 3. Dry run 2026-10-29 on a Mac with a fake `docker`/`bench`/`crontab`:
 every step ran, a second run skipped, a `:latest` image and a mode-644 `.env` were refused, `make setup` stopped at
 the first failing step. Real run 2026-10-31 on the Mac (Docker, image `erp-internal:v0.0.1`, steps `env` to `ping` and
-`cadangan`; `cek`, `pull` and `cron` left out: macOS time zone, a local image, Abel's own crontab): a fresh site in
+`cadangan` (now `backup`); `cek` (now `check`), `pull` and `cron` left out: macOS time zone, a local image, Abel's own crontab): a fresh site in
 8 m 40 s, every step a no-op on a second run. It found two faults, both fixed: `tools` started before the
 configurator wrote the Redis config (now `depends_on` it), and a `site` step cut off halfway left a site that the
 next run skipped without its apps (now each missing app is installed). `bench execute erp_internal.contoh.buat_contoh`

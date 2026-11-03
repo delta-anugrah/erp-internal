@@ -2,6 +2,22 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-03 (local stack with only Docker)
+- Root `Makefile` for Samuel's laptop (Mac, or Windows through WSL): `make start-local` runs the server compose stack as
+  project `erp-local` (`--project-directory .local`, git-ignored and in .dockerignore), builds `erp-internal:local` or
+  pulls `ERP_IMAGE`, reuses the server Makefile's `db site wizard`, then `configure-local`, `data-local` (master,
+  penjualan, mesin_barang), up, ping, and the first time `tools/akun.sh users`. After one full run (`.local/siap`) it
+  only starts the containers. `stop`, `users`, `password`, `update-local`; README "Run it on your computer", "Make commands".
+- `tools/akun.sh` (checklist, passwords as `*`, min 8) hands accounts to `erp_internal/akun.py` in env `ERP_AKUN`.
+  Found in the real run: keys typed faster than the one-character reads showed the password in clear between them;
+  echo is now off for the whole answer.
+- `deploy/server/Makefile`: cek → check, cek-env → check-env, aktif → configure, cadangan → backup (script name kept).
+  `.gitattributes`: LF everywhere.
+- Tests as run: `run-tests --module erp_internal.tests.test_akun` 3 OK, `test_bahasa` 6 OK; `docker build` of
+  `erp-internal:local` OK; a real `make start-local` from nothing (7 min 40 s), `make users`, `make password`, logins
+  by API, `make stop` + `make start-local` (24 s). Not run: the full `run-tests --app`, `make update-local`, Windows.
+- Next: Samuel tries a fresh clone; deploy stays parked.
+
 ## 2026-11-03 (label jiggle)
 - `label-rapi 1440x900` flip found: at the dolly-out threshold 06 went compact and 03/05/07 full, or the reverse, on a
   0.15 m camera move. Cause: the front row lies at one view depth when seen square on, so the nearest-first sort was

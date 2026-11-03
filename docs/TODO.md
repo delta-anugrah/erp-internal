@@ -8,6 +8,20 @@ Before that (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integra
 Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
+## Done: run it on a laptop with only Docker (2026-11-03)
+- [x] Root `Makefile`: `make start-local` (first time `setup-local`: check-local, env-local, image-local, the server
+      Makefile's `db site wizard`, configure-local, data-local, up; then ping-local and the accounts once; later runs
+      only start the containers), `stop`, `users`, `password`, `update-local`. Compose project `erp-local`, `.local/`
+      git-ignored, image `erp-internal:local` built from the repo or a released `ERP_IMAGE`.
+- [x] `tools/akun.sh` checklist (Administrator always; Developer, Admin, User optional), email + password twice,
+      shown as `*` (echo off for the whole answer) → `erp_internal/akun.py` in env `ERP_AKUN`; `test_akun` 3 OK.
+- [x] `deploy/server/Makefile` targets in English: check, check-env, configure, backup. `.gitattributes` LF everywhere.
+- [x] Real run on the Mac 2026-11-03 from an empty `.local` and no volumes: setup 7 min 40 s (image already built,
+      a build is 10-20 min), 127 items, 54 Machine Capacity rows, 513 Sales History rows; `make users` (Admin + User,
+      every refusal tried), logins by API 200 (wrong password 401), `make password`, `make stop`, `make start-local`
+      again in 24 s.
+- [ ] Samuel: a fresh clone on his Mac. Not tried yet: Windows + WSL, `make update-local`.
+
 ## Done: a simpler User role (Samuel 2026-11-02)
 Samuel agreed: User records only the three daily jobs, everything else is view only; purchasing and selling are not
 used for now. Admin makes Work Orders, BOMs and master data (items, customers, machines).

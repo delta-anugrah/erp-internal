@@ -853,13 +853,13 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
 - [x] **Step 1: Build.** `docker build -f deploy/Containerfile -t erp-internal:uji .` succeeds, and
   `deploy/check_image.sh erp-internal:uji` exits 0. Done 2026-10-28 on the Mac (linux/arm64, about 20 min, 5.43 GB):
   `OK: frappe v16.53.0 erpnext v16.52.1 hrms v16.52.0 erp_internal 77867c1`. CI builds linux/amd64.
-- [ ] **Step 2: Boot it.** Not run: `new-site` needs a database root password (left to Abel); `docker compose
+- [x] **Step 2: Boot it.** Done 2026-10-31 (see the deviations). Before that not run: `new-site` needs a database root password (left to Abel); `docker compose
   config` validates the file. `docker compose up -d` with `SITE=erp-uji.localhost` and a new site. Then `curl -fsS -H
   "Host: erp-uji.localhost" http://127.0.0.1:8080/api/method/ping` prints `{"message":"pong"}`.
-- [ ] **Step 3: Back it up.** Not run against a real stack (needs Step 2). Dry run with a stub `docker` and a local
+- [x] **Step 3: Back it up.** Done 2026-10-31. Before that not run against a real stack (needs Step 2). Dry run with a stub `docker` and a local
   rclone remote passed: three files copied, a 15-day-old set deleted locally and remotely, a bad remote exits non-zero. Run `cadangan.sh` with an rclone remote of type `local` (a temp directory). Expected:
   three files (database, public files, private files). A fake set dated 15 days ago is deleted on the next run.
-- [ ] **Step 4: Restore drill.** Not run (needs Step 2); the commands are in the runbook. Restore that backup into a second fresh stack. `ping` answers, and
+- [x] **Step 4: Restore drill.** Done 2026-10-31, equal counts. Before that not run (needs Step 2); the commands are in the runbook. Restore that backup into a second fresh stack. `ping` answers, and
   `frappe.db.count("Item")` equals the source's.
 - [x] **Step 5: Write `deploy/server/README.md`** with these sections:
   - first install: server, DNS, reverse proxy with TLS, `.env`, `up -d`, new site, wizard values, set Jenis;
@@ -890,6 +890,13 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
   compatible (no `mapfile`).
 - Still not run on 2026-10-28: Steps 2-4 need a new site in the compose stack, and `new-site` needs the database
   root password (Abel). The local stand-in for Task 8 Step 6 was `bench --site erp.localhost backup` (below).
+- 2026-10-31: Steps 2-4 ran on the Mac with `deploy/server/Makefile` (`make env`, the `setup` steps, `cadangan`, a
+  restore drill with equal counts; deploy/server/README.md). 2026-11-03: its targets renamed to English (`cek` →
+  `check`, `cek-env` → `check-env`, `aktif` → `configure`, `cadangan` → `backup`; the script keeps the name
+  `cadangan.sh`). New root `Makefile` (`start-local`, `stop`, `users`, `password`, `update-local`): the same compose
+  stack on a laptop with only Docker (project `erp-local`, `--project-directory .local`, image `erp-internal:local`
+  built from the repo), reusing the server Makefile's `db site wizard`, loading Samuel's real data, accounts from
+  `tools/akun.sh` → `erp_internal/akun.py` (`test_akun`). `.gitattributes` forces LF for WSL.
 
 ### Task 8: Go-live wave 1, the factory
 

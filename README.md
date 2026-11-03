@@ -8,6 +8,76 @@ ERPNext v16 for the plastic factory (stock, sales, purchasing, production with a
 - Plan vs Actual: spec `docs/superpowers/specs/2026-10-28-plan-vs-actual-design.md`, plan
   `docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md`
 
+## Run it on your computer
+
+For trying ERP Internal with Samuel's real data, no developer tools: only Docker. It runs the same stack as the
+server on http://localhost:8080.
+
+1. Install **Docker Desktop** and start it. On **Windows**: Docker Desktop with the WSL 2 backend and, under Settings > Resources > WSL integration, Ubuntu
+   switched on; then open the
+   **Ubuntu** terminal (Microsoft Store, "Ubuntu") and run every command below in it, never in PowerShell; once:
+   `sudo apt update && sudo apt install -y make git curl openssl`. On a Mac, `make` and `git` come with the Xcode
+   command line tools (`xcode-select --install` if the terminal asks).
+2. Get the repo (it is private: your GitHub account must be invited to `delta-anugrah`):
+   `git clone https://github.com/delta-anugrah/erp-internal.git && cd erp-internal`
+3. `make start-local`. The first time it builds the image (10-20 minutes), makes the site, loads the catalog,
+   sales and machines, and then asks which accounts to create:
+
+   ```text
+   Which accounts do you want to create?  (Up/Down move, Space tick, Enter continue)
+      [x] Administrator  always created; the built-in super user
+    > [ ] Developer      everything, plus system settings (for the IT people)
+      [ ] Admin          manager: Work Orders, BOMs, users, items, customers, machines
+      [ ] User           daily work: production output, deliveries, raw material in
+   ```
+
+   Administrator needs only a password (sign in with the name `Administrator`); every other ticked account an email
+   and a password, typed twice. A password shows as `*` while you type and needs at least 8 characters. One account
+   per role is enough to start; an Admin adds the other people later in Users.
+4. Open http://localhost:8080 and sign in.
+
+`make stop` stops it (the data stays); `make start-local` starts it again in seconds (the full setup runs only
+until it has succeeded once). After `git pull`, `make update-local`. Another port: `make start-local PORT=8090` the first time (it is kept in `.local/.env`).
+Everything local is in `.local/` (git-ignored); the data is in Docker volumes of the project `erp-local`.
+
+## Make commands
+
+Repo root (`Makefile`, on your computer):
+
+| Command | What it does |
+|---|---|
+| `make help` | Lists these commands. |
+| `make start-local` | The first time: checks Docker, writes `.local/.env` with generated passwords, builds or pulls the image, starts the database, makes the site, completes the setup wizard (PT Delta Anugrah), migrates, loads Samuel's data, starts the stack, waits for it, asks for the accounts. Each step skips what is done, so a run cut off halfway goes on where it stopped. Once that has succeeded (`.local/siap`), it only starts the containers and waits for them, and asks for the accounts again only if that step never finished (`.local/akun-siap`). |
+| `make stop` | Stops the stack; the data stays. |
+| `make users` | Asks again which accounts to create, with email and password; an existing email is updated (role and password). Once accounts have been made (`.local/akun-siap`), Administrator's password can be left empty to keep it. |
+| `make password` | A new password for one account (asks the email, or Administrator). |
+| `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, reloads Samuel's data, starts the stack. |
+
+The first-time setup is `setup-local` (run by `start-local` until `.local/siap` exists): `check-local`, `env-local`,
+`image-local`, `db`, `site` and `wizard` of the server Makefile, `configure-local`, `data-local`, then up;
+`start-local` runs `ping-local` after it. Each is its own target too.
+`ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z` on the first `make start-local` pulls a released image instead of
+building one (needs `docker login ghcr.io` first: the image is private).
+
+Server (`deploy/server/Makefile`, run in `~/erp` on the server; runbook `deploy/server/README.md`):
+
+| Command | What it does |
+|---|---|
+| `make help` | Lists the steps. |
+| `make env SITE=… ERP_IMAGE=… RCLONE_REMOTE=…` | Writes `.env` with generated passwords, once. |
+| `make setup [COMPANY=… ABBR=… TAHUN=…]` | Every step below in order, stops at the first error. |
+| `make check` | Tools on the host (docker, compose, rclone, openssl, curl, crontab) and the time zone Asia/Jakarta. |
+| `make check-env` | `.env` is mode 600, has every key, `ERP_IMAGE` is an exact tag. |
+| `make pull` | Pulls the image (needs `docker login ghcr.io`). |
+| `make db` | Starts MariaDB, Redis and the configurator. |
+| `make site` | Makes the site if missing and installs any missing app. |
+| `make wizard` | Completes the setup wizard (skipped when done). |
+| `make configure` | Ticks `erp_aktif`, migrates, sets `host_name` and `erp_produksi`, turns the scheduler on. |
+| `make up` | Starts the whole stack. |
+| `make ping` | Checks that the stack answers on `127.0.0.1:PORT` (8080 unless `.env` sets PORT). |
+| `make cron` | Adds the nightly backup line to the crontab, once. |
+| `make backup` | One backup by hand (`cadangan.sh`). |
+
 ## Dev setup (macOS)
 
 Needs Docker, `python3.14`, Node 24 with yarn, `redis-server` and `pipx install frappe-bench`.
