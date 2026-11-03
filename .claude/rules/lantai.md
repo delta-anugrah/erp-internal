@@ -33,7 +33,8 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
   `backdrop-filter` or with `prefers-reduced-transparency` every card turns solid.
 - **Labels declutter** (`label.js`): placed nearest first, the selected one before all; a label that would overlap a placed one
   shows compact (number and status dot), one under a fixed card is hidden, and it flips between the two only past an 8 px
-  overlap change (hysteresis). Sizes are cached and measured only after a text change (camera at rest), so a frame reads no
+  overlap change (hysteresis). Labels level in depth (within `SERI` 0.25 m, e.g. the front row seen square on) keep a fixed order: full last frame first, then floor
+  order; with the plain depth order float noise swapped who won on a few px of camera move (`label-rapi` jiggle). `adegan.proyeksi`'s `dalam` is the view depth in metres. Sizes are cached and measured only after a text change (camera at rest), so a frame reads no
   layout; only a changed class, visibility or transform is written. The cards' rectangles come from `hud.kotak()` /
   `panel.kotak()` (host-relative, cached, re-measured by a ResizeObserver or `ukurKotak()`, never per frame); the bundle joins
   them into `halangan`. `adegan.aturRuang()` fits the default view into the free area (`setViewOffset` on a scaled virtual frame, never above 1x) beside the
