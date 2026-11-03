@@ -6,6 +6,8 @@
 #
 #   .local/wizard     the wizard answer (no secret), so a rerun does not ask again
 #   .local/akun-siap  the accounts were made: a rerun never touches live passwords
+#   .local/lanjut-siap  `lanjut` ran after the wizard (our setup, the wizard's account as Developer, Samuel's data);
+#                     until then every start tries it, so a job that failed after a by-hand wizard is repaired
 #   .local/siap       a run went through to the end; afterwards `make start` only starts the containers
 #
 #   tools/setup_lokal.sh --pesan   only the last line: where to go, or what is left of a wizard filled by hand
@@ -24,12 +26,21 @@ PORT=$(sed -n 's/^PORT=//p' $LOKAL/.env 2>/dev/null)
 PORT=${PORT:-8080}
 ERP_AKUN=""
 
+# After the wizard, once: `lanjut` (idempotent; Samuel's data is loaded only the first time).
+lanjut() {
+	if [ ! -f $LOKAL/lanjut-siap ]; then
+		make --no-print-directory lanjut
+		touch $LOKAL/lanjut-siap
+	fi
+}
+
 pesan() {
 	if [ -f $LOKAL/wizard ]; then
 		# shellcheck source=/dev/null
 		. $LOKAL/wizard
 	fi
 	if make --no-print-directory -s wizard-selesai >/dev/null 2>&1; then
+		lanjut
 		echo
 		echo "Ready: open http://localhost:$PORT and sign in as Administrator or with an account made here."
 	else

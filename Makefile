@@ -32,7 +32,7 @@ PORT_ENV = $(or $(shell sed -n 's/^PORT=//p' $(LOKAL)/.env 2>/dev/null),$(PORT))
 
 .DEFAULT_GOAL := help
 .PHONY: help start start-local setup-local stop update-local check-local env-local image-local configure-local \
-	ping-local wizard-selesai dev
+	ping-local wizard-selesai lanjut dev
 
 help:
 	@echo "On your computer (README.md \"Run it on your computer\"):"
@@ -53,12 +53,15 @@ start-local: check-local env-local
 	else COMPOSE='$(COMPOSE)' tools/setup_lokal.sh; fi
 
 # Every step skips what is done: image, database, site, wizard. WIZARD=otomatis (from setup_lokal.sh) also fills the
-# wizard and runs `lanjut` (Samuel's data, once); update-local leaves it out, so his data is never reloaded.
+# wizard; setup_lokal.sh then runs `lanjut` once the wizard is done (Samuel's data, once: never on an update).
 setup-local: check-local env-local image-local
 	@$(SERVER) db site $(if $(filter otomatis,$(WIZARD)),wizard)
 	@$(MAKE) --no-print-directory configure-local
-	@$(if $(filter otomatis,$(WIZARD)),$(SERVER) lanjut,true)
 	$(COMPOSE) up -d
+
+# After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (setup_lokal.sh).
+lanjut:
+	@$(SERVER) lanjut
 
 # Exit 0 when the wizard is done (setup_lokal.sh's last line).
 wizard-selesai:

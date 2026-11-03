@@ -323,7 +323,7 @@ Title,Judul
 "You may only record a Material Receipt. Ask an Admin for a {0}.","Kamu cuma bisa mencatat Material Receipt (bahan masuk). Minta Admin untuk {0}."
 ERP User,Pengguna ERP
 "{0} is not in use. Choose another machine.",{0} sedang tidak dipakai. Pilih mesin lain.
-ERP_AKUN is not set: run make start-local from the repo.,ERP_AKUN belum diisi: jalankan make start-local dari repo.
+ERP_AKUN is not set: run make start (or make setup on the server).,ERP_AKUN belum diisi: jalankan make start (atau make setup di server).
 A password needs at least {0} characters.,Password minimal {0} karakter.
 "Create the Developer, Admin and User accounts after the setup wizard; for now only Administrator.","Buat akun Developer, Admin dan User setelah setup wizard; untuk sekarang hanya Administrator."
 Unknown role {0}.,Peran {0} tidak dikenal.

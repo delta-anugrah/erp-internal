@@ -51,8 +51,8 @@ make setup
    accounts (`akun.sh`, the same checklist as `make start`); asked once (`.akun-siap`).
 
 Then `make env` (from the answers, passwords from `openssl rand`), `langkah` (`check check-env pull db site`),
-`wizard configure lanjut` (automatic) or `configure` (by hand), the accounts (the generated `ADMIN_PASSWORD` then
-leaves `.env`), `up ping cron`, and the last line: `Ready: https://<address>`, or the by-hand wizard's steps
+`wizard configure` (automatic) or `configure` (by hand), the accounts (the generated `ADMIN_PASSWORD` then
+leaves `.env`), `lanjut` once the wizard is done (`.lanjut-siap`), `up ping cron`, and the last line: `Ready: https://<address>`, or the by-hand wizard's steps
 (Administrator signs in, fills the wizard with the printed values, makes the account that becomes the Developer;
 Samuel's data then loads in the background). A run that stops halfway goes on where it stopped when run again.
 Afterwards: `make backup` and a restore drill (below).
@@ -62,10 +62,12 @@ Afterwards: `make backup` and a restore drill (below).
 
 What the steps do to the site: `site` makes it with erpnext, hrms and erp_internal and sets `erp_produksi` (real
 data; `erp_internal.contoh` refuses sample data). The wizard, however filled, runs `erp_internal.wizard.selesai`
-(the `setup_wizard_complete` hook): it ticks the company's `erp_aktif`, makes the wizard's own account a Developer
-and queues `lanjutkan`, which runs our setup (warehouses, groups, UOMs, the order flow, holiday lists, PPN
-templates), gives Admin/User accounts the company, and loads Samuel's catalog, sales and machines once (marker
-`erp_data_samuel`: a new version never reloads them). `make lanjut` runs the same at once on the automatic path.
+(the `setup_wizard_complete` hook): it ticks the company's `erp_aktif`, keeps the wizard's own account (global
+default `erp_wizard_developer`) and queues `lanjutkan`, which runs our setup (warehouses, groups, UOMs, the order
+flow, holiday lists, PPN templates, the Role Profiles), makes that account a Developer, gives Admin/User accounts
+the company, and loads Samuel's catalog, sales and machines once (marker `erp_data_samuel`: a new version never
+reloads them; a file lock keeps two runs apart). `setup.sh` also runs `make lanjut` itself once the wizard is done
+(`.lanjut-siap`), so a background job that failed after a by-hand wizard is repaired by the next `make setup`.
 
 History: dry run 2026-10-29 with a fake `docker`/`bench`/`crontab`; real run 2026-10-31 on the Mac (image
 `erp-internal:v0.0.1`, a fresh site in 8 m 40 s, every step a no-op on a second run), which found two faults, both

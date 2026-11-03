@@ -1,6 +1,6 @@
-"""The first accounts of a local stack, asked once by `make start-local` (the repo's Makefile).
+"""The first accounts of a site, asked once by `make start` (local) or `make setup` (server).
 
-The terminal asks for the accounts and passwords (`tools/akun.sh`) and hands them over in the environment variable
+The terminal asks for the accounts and passwords (`deploy/server/akun.sh`) and hands them over in the environment variable
 `ERP_AKUN` (JSON), never on a command line, so no password shows in a process list or the shell history:
 
 	{"Administrator": "<password>", "akun": [{"profil": "Admin", "email": "...", "sandi": "..."}]}
@@ -27,7 +27,7 @@ from erp_internal import setup
 from erp_internal.tampilan import DEVELOPER, MODUL_BOLEH, PROFIL_PERAN
 from erp_internal.tests import utils
 
-PANJANG_MIN = 8  # the shortest password accepted, also checked in tools/akun.sh
+PANJANG_MIN = 8  # the shortest password accepted, also checked in deploy/server/tanya.sh
 
 
 @contextmanager
@@ -44,7 +44,7 @@ def _masukan() -> dict:
 	"""The JSON in `ERP_AKUN`."""
 	isi = os.environ.get("ERP_AKUN")
 	if not isi:
-		frappe.throw(_("ERP_AKUN is not set: run make start-local from the repo."))
+		frappe.throw(_("ERP_AKUN is not set: run make start (or make setup on the server)."))
 	return json.loads(isi)
 
 

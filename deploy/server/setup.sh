@@ -5,6 +5,8 @@
 #
 #   .wizard      the wizard answer (WIZARD, COMPANY, ABBR; no secret), so a rerun does not ask again
 #   .akun-siap   the accounts were made: a rerun never touches live passwords
+#   .lanjut-siap `make lanjut` ran after the wizard (our setup, the wizard's account as Developer, Samuel's data);
+#                until then every run tries it, so a background job that failed after a by-hand wizard is repaired
 #   .siap        a run went through to the end
 #
 # No secret on a command line or in a file: the GitHub token goes to `docker login` on stdin and to curl through
@@ -27,6 +29,12 @@ baca() { sed -n "s/^$1=//p" .env 2>/dev/null | tail -1; }
 
 # Question 1: sign in to GitHub's registry (the app's image is private), unless already signed in.
 masuk_github() {
+	local fout
+	# A docker problem must not look like a wrong token (README step 1: docker, and deploy in the docker group).
+	if ! docker info >/dev/null 2>&1; then
+		echo "Docker does not answer for $USER: install Docker and add $USER to the docker group (README step 1)." >&2
+		exit 1
+	fi
 	if grep -q '"ghcr.io"' ~/.docker/config.json 2>/dev/null; then
 		echo "GitHub: already signed in to ghcr.io."
 		return
@@ -39,9 +47,13 @@ masuk_github() {
 		baca_sandi "  Token: "
 		TOKEN=$SANDI
 		SANDI=""
-		if printf '%s' "$TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin >/dev/null 2>&1; then
+		if fout=$(printf '%s' "$TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin 2>&1); then
 			echo "  Signed in."
 			return
+		fi
+		if ! grep -qiE 'unauthorized|denied|incorrect|forbidden' <<<"$fout"; then
+			echo "  Could not reach ghcr.io: $fout" >&2
+			exit 1
 		fi
 		echo "  That token did not work (it needs read:packages), try again."
 	done
@@ -63,16 +75,31 @@ versi_terbaru() {
 tulis_env() {
 	local situs versi remote
 	echo
-	tanya "Site address" "" "the exact address people type in the browser, e.g. app.deltaanugrah.com"
-	situs=$(printf '%s' "$JAWAB" | sed -E 's#^https?://##; s#/.*$##')
+	# Checked here: once .env is written a rerun never asks again.
+	while true; do
+		tanya "Site address" "" "the exact address people type in the browser, e.g. app.deltaanugrah.com"
+		situs=$(printf '%s' "$JAWAB" | sed -E 's#^https?://##; s#/.*$##' | tr '[:upper:]' '[:lower:]')
+		[[ $situs =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$ ]] && break
+		echo "  That is not a web address like app.deltaanugrah.com, try again."
+	done
 	echo
-	tanya "App version" "$(versi_terbaru)" "the release to install (vX.Y.Z); the newest is suggested"
-	versi=$JAWAB
-	[[ $versi == v* ]] || versi="v$versi"
+	local saran
+	saran=$(versi_terbaru)
+	while true; do
+		tanya "App version" "$saran" "the release to install (vX.Y.Z); the newest is suggested"
+		versi=$JAWAB
+		[[ $versi == v* ]] || versi="v$versi"
+		[[ $versi =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && break
+		echo "  A version has three numbers, like v0.1.0, try again."
+	done
 	echo
-	tanya "Backup destination" "skip" "an rclone remote like r2:erp-backup/erp; skip keeps the nightly backups on this server only"
-	remote=$JAWAB
-	[ "$remote" != skip ] || remote=""
+	while true; do
+		tanya "Backup destination" "skip" "an rclone remote like r2:erp-backup/erp; skip keeps the nightly backups on this server only"
+		remote=$JAWAB
+		[ "$(printf '%s' "$remote" | tr '[:upper:]' '[:lower:]')" != skip ] || remote=""
+		[[ -z $remote || $remote == *:* || $remote == /* ]] && break
+		echo "  An rclone remote looks like name:bucket/path (or a folder starting with /), try again."
+	done
 	make --no-print-directory env SITE="$situs" ERP_IMAGE="ghcr.io/$REPO:$versi" RCLONE_REMOTE="$remote"
 }
 
@@ -98,7 +125,7 @@ echo
 echo "Setting up; the first time takes 10-20 minutes."
 make --no-print-directory langkah
 if [ "$WIZARD" = otomatis ]; then
-	make --no-print-directory wizard configure lanjut COMPANY="$COMPANY" ABBR="$ABBR"
+	make --no-print-directory wizard configure COMPANY="$COMPANY" ABBR="$ABBR"
 else
 	make --no-print-directory configure
 fi
@@ -108,11 +135,17 @@ if [ -n "$ERP_AKUN" ]; then
 	# The generated password only served bench new-site; the typed one is Administrator's now.
 	sed -i.lama '/^ADMIN_PASSWORD=/d' .env && rm -f .env.lama && chmod 600 .env
 fi
+selesai=""
+if make --no-print-directory -s wizard-selesai >/dev/null 2>&1; then selesai=1; fi
+if [ -n "$selesai" ] && [ ! -f .lanjut-siap ]; then
+	make --no-print-directory lanjut
+	touch .lanjut-siap
+fi
 make --no-print-directory up ping cron
 touch .siap
 
 situs=$(baca SITE)
-if make --no-print-directory -s wizard-selesai >/dev/null 2>&1; then
+if [ -n "$selesai" ]; then
 	echo
 	echo "Ready: https://$situs (once DNS and the reverse proxy point at this server, README steps 2-3)."
 	echo "Sign in as Administrator or with an account made above."

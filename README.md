@@ -138,9 +138,10 @@ Repo root (`Makefile`, on your computer):
 
 `setup-local` is `check-local`, `env-local`, `image-local`, then the server Makefile's `db`, `site` (also sets
 `erp_produksi`: real data, sample data refused) and, with `WIZARD=otomatis`, `wizard`; then `configure-local`
-(migrate, host name, scheduler) and, with `WIZARD=otomatis`, the server's `lanjut`; then up. After the wizard,
-however it was filled, `erp_internal.wizard` ticks the company's `erp_aktif`, makes the wizard's own account a
-Developer and loads Samuel's data once (marker `erp_data_samuel`). `ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
+(migrate, host name, scheduler); then up. After the wizard, however it was filled, `erp_internal.wizard` ticks the
+company's `erp_aktif` and, in a background job and again through `make lanjut` (run by `setup_lokal.sh` until
+`.local/lanjut-siap`), makes the wizard's own account a Developer and loads Samuel's data once (marker
+`erp_data_samuel`). `ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
 on the first `make start` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
 image is private). `PROYEK=<name>` (with another `PORT` and `ERP_IMAGE`) runs a second stack beside the first, for
 a test.
@@ -150,7 +151,7 @@ Server (`deploy/server/Makefile`, run in `~/erp` on the server; runbook `deploy/
 | Command | What it does |
 |---|---|
 | `make help` | Lists the steps. |
-| `make setup` | Runs `setup.sh`: the questions (GitHub token, site address, app version, backup destination, wizard, accounts; each skipped when already answered), `.env`, then `langkah` (`check check-env pull db site`), `wizard configure lanjut` (automatic) or `configure` (by hand), the accounts, `up ping cron`, and the last line. |
+| `make setup` | Runs `setup.sh`: the questions (GitHub token, site address, app version, backup destination, wizard, accounts; each skipped when already answered), `.env`, then `langkah` (`check check-env pull db site`), `wizard configure` (automatic) or `configure` (by hand), the accounts, `lanjut` once the wizard is done, `up ping cron`, and the last line. |
 | `make env SITE=… ERP_IMAGE=… [RCLONE_REMOTE=…]` | Writes `.env` with generated passwords, once, without questions. |
 | `make langkah` | The steps before the wizard: `check check-env pull db site` (`make -n langkah` prints their commands). |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done, 1 when not. |

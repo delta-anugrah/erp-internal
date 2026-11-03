@@ -13,12 +13,14 @@ The automatic path also runs it directly (`make lanjut`), so the terminal shows 
 from importlib import import_module
 
 import frappe
+from frappe.utils.synchronization import filelock
 
 from erp_internal import setup
 from erp_internal.tampilan import ADMIN, DEVELOPER, USER
 from erp_internal.tests import utils
 
 PENANDA_DATA = "erp_data_samuel"  # global default, set once Samuel's data is loaded
+DEVELOPER_WIZARD = "erp_wizard_developer"  # global default: the wizard's own account, for a later lanjutkan
 MUAT = ("master", "penjualan", "mesin_barang")  # in this order: each needs the one before
 
 
@@ -38,6 +40,13 @@ def _selesai(args) -> None:
 	except Exception:
 		frappe.log_error("erp_internal: wizard.selesai")
 	email = args.get("email") or frappe.session.user
+	if email in ("Administrator", "Guest"):
+		email = None
+	try:
+		if email:
+			frappe.db.set_default(DEVELOPER_WIZARD, email)
+	except Exception:
+		frappe.log_error("erp_internal: wizard.selesai")
 	try:
 		frappe.enqueue(
 			"erp_internal.wizard.lanjutkan",
@@ -46,16 +55,25 @@ def _selesai(args) -> None:
 			job_id="erp_lanjutkan",
 			deduplicate=True,
 			cetak=False,
-			developer=None if email in ("Administrator", "Guest") else email,
+			developer=email,
 		)
 	except Exception:
 		frappe.log_error("erp_internal: wizard.selesai")
 
 
 def lanjutkan(cetak: bool = True, developer: str | None = None) -> list[str] | None:
-	"""The slow part after the wizard; nothing before it. `developer`: the wizard's own account, made a Developer
-	once setup has made that Role Profile. Prints its lines from the terminal (`bench execute`). The caller
-	commits: bench execute and the background job both do."""
+	"""The slow part after the wizard; nothing before it. `developer`: the wizard's own account (default: the one
+	the hook kept), made a Developer once setup has made that Role Profile. A file lock on the site keeps the queued
+	job and `make lanjut` apart. Prints its lines from the terminal (`bench execute`). The caller commits: bench
+	execute and the background job both do."""
+	with filelock("erp_lanjutkan", timeout=3600):
+		hasil = _lanjutkan(developer or frappe.db.get_default(DEVELOPER_WIZARD))
+	if not cetak:
+		return hasil
+	print("\n".join(hasil))
+
+
+def _lanjutkan(developer: str | None) -> list[str]:
 	hasil = []
 	if frappe.is_setup_complete():
 		setup.pastikan_setup()
@@ -71,9 +89,7 @@ def lanjutkan(cetak: bool = True, developer: str | None = None) -> list[str] | N
 			frappe.db.set_default(PENANDA_DATA, 1)
 	else:
 		hasil.append("setup wizard not done yet")
-	if not cetak:
-		return hasil
-	print("\n".join(hasil))
+	return hasil
 
 
 def _akun_perusahaan() -> list[str]:

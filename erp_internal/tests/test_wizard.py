@@ -56,6 +56,15 @@ class TestWizard(IntegrationTestCase):
 			wizard.lanjutkan(cetak=False, developer="_uji.tidak.ada@example.com")  # no user: nothing
 		self.assertEqual(profil(EMAIL), [DEVELOPER])
 
+	def test_developer_dari_penanda(self):
+		# The wizard's account is kept, so a rerun of lanjutkan (make lanjut) without it still makes the Developer
+		with patch("frappe.enqueue"):
+			wizard._selesai({"company_name": self.pabrik, "email": EMAIL})
+		buat_pengguna(EMAIL, None, None, None)  # no profile again
+		with patch("erp_internal.setup.pastikan_setup"):
+			wizard.lanjutkan(cetak=False)
+		self.assertEqual(profil(EMAIL), [DEVELOPER])
+
 	def test_tidak_pernah_gagal(self):
 		# One step failing never fails the wizard, and the rest still runs
 		sebelum = frappe.db.count("Error Log")
