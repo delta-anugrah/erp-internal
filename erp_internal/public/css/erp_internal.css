@@ -48,6 +48,34 @@
 	}
 }
 
+/* The menu sidebar on ERP and HR pages (public/js/menu_samping.js, Abel 2026-11-03): each module is a heading row
+   with its icon, read like a menu entry (dark, semi-bold, the rows' own spacing), not Frappe's faded group caption;
+   its links sit indented under it. `!important` only where Frappe's `.section-break` has it. */
+body.erp-menu .sidebar-items > .section-item:has(.section-break):not(:first-child) {
+	margin-top: 2px;
+}
+
+body.erp-menu .section-break {
+	color: var(--ink-gray-8) !important;
+	gap: 8px !important;
+}
+
+body.erp-menu .section-break .sidebar-item-label {
+	font-weight: 600;
+}
+
+body.erp-menu .section-item > .nested-container {
+	margin-left: 12px;
+	padding-left: 4px;
+	border-left: 1px solid var(--border-color);
+}
+
+/* Folded to its rail, the menu shows the module icons only: Frappe opens every group there, which would list
+   every link of every module as a bare icon. A click on an icon opens the sidebar on that module. */
+body.erp-menu .body-sidebar-container:not(.expanded) .section-item > .nested-container {
+	display: none;
+}
+
 /* A form whose name is a random hash (Sales History, Machine Capacity) shows its title; the hash under the
    title in the form sidebar only raised questions (Abel, 2026-10-29: hide what users don't need). */
 body[data-route^="Form/Sales History/"] .form-name-container,
