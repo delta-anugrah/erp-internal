@@ -29,7 +29,7 @@ pesan() {
 		# shellcheck source=/dev/null
 		. $LOKAL/wizard
 	fi
-	if make --no-print-directory -s wizard-selesai; then
+	if make --no-print-directory -s wizard-selesai >/dev/null 2>&1; then
 		echo
 		echo "Ready: open http://localhost:$PORT and sign in as Administrator or with an account made here."
 	else

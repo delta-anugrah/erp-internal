@@ -14,7 +14,9 @@ SHELL := /bin/bash
 KETAT := set -euo pipefail;
 
 LOKAL := .local
-COMPOSE := docker compose -p erp-local --project-directory $(LOKAL) -f deploy/server/docker-compose.yml
+# The compose project; another name (and PORT, ERP_IMAGE) runs a second stack beside the first, e.g. for a test.
+PROYEK ?= erp-local
+COMPOSE := docker compose -p $(PROYEK) --project-directory $(LOKAL) -f deploy/server/docker-compose.yml
 TOOLS := $(COMPOSE) run --rm -T -e COMPANY -e ABBR -e TAHUN tools bash -c
 # The image: built here from this repo, unless ERP_IMAGE names a released one (ghcr.io/...:vX.Y.Z, pulled).
 ERP_IMAGE ?= erp-internal:local

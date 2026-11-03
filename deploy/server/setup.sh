@@ -112,7 +112,7 @@ make --no-print-directory up ping cron
 touch .siap
 
 situs=$(baca SITE)
-if make --no-print-directory -s wizard-selesai; then
+if make --no-print-directory -s wizard-selesai >/dev/null 2>&1; then
 	echo
 	echo "Ready: https://$situs (once DNS and the reverse proxy point at this server, README steps 2-3)."
 	echo "Sign in as Administrator or with an account made above."
@@ -121,7 +121,7 @@ else
 fi
 echo
 if [ -n "$(baca RCLONE_REMOTE)" ]; then
-	echo "Next: make backup, then a restore drill (README \"Backups and restore\")."
+	echo "Next: make backup, then a restore drill (README \"Backup and restore\")."
 else
 	echo "Backups stay on this server only (./cadangan). To copy them off it: install rclone,"
 	echo "add RCLONE_REMOTE=<remote> to .env, then make backup."

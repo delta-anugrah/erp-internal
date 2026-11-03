@@ -40,24 +40,32 @@ class TestWizard(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Company", self.pabrik, "erp_aktif"), 0)
 		antre.assert_not_called()
 
-	def test_centang_dan_developer(self):
+	def test_centang_dan_antre(self):
+		# The Developer Role Profile is made by setup after the wizard: the hook only passes the account on
 		with patch("frappe.enqueue") as antre:
 			wizard._selesai({"company_name": self.pabrik, "email": EMAIL})
 		self.assertEqual(frappe.db.get_value("Company", self.pabrik, "erp_aktif"), 1)
-		self.assertEqual(profil(EMAIL), [DEVELOPER])
 		kami = [c for c in antre.call_args_list if c.args[:1] == ("erp_internal.wizard.lanjutkan",)]
 		self.assertEqual(len(kami), 1)
 		self.assertEqual(kami[0].kwargs["job_id"], "erp_lanjutkan")
+		self.assertEqual(kami[0].kwargs["developer"], EMAIL)
+
+	def test_developer_sesudah_setup(self):
+		with patch("erp_internal.setup.pastikan_setup"):
+			wizard.lanjutkan(cetak=False, developer=EMAIL)
+			wizard.lanjutkan(cetak=False, developer="_uji.tidak.ada@example.com")  # no user: nothing
+		self.assertEqual(profil(EMAIL), [DEVELOPER])
 
 	def test_tidak_pernah_gagal(self):
+		# One step failing never fails the wizard, and the rest still runs
 		sebelum = frappe.db.count("Error Log")
 		with (
-			patch("frappe.enqueue"),
-			patch("erp_internal.tests.utils.buat_pengguna", side_effect=Exception("x")),
+			patch("frappe.enqueue") as antre,
+			patch("frappe.db.set_value", side_effect=Exception("x")),
 		):
-			wizard._selesai({"company_name": self.pabrik, "email": "_uji.tidak.ada@example.com"})  # no user
 			wizard._selesai({"company_name": self.pabrik, "email": EMAIL})
 		self.assertEqual(frappe.db.count("Error Log"), sebelum + 1)
+		self.assertTrue([c for c in antre.call_args_list if c.args[:1] == ("erp_internal.wizard.lanjutkan",)])
 
 	def test_data_sekali(self):
 		bawaan = {}
