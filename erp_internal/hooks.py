@@ -198,6 +198,8 @@ override_whitelisted_methods = {
 
 after_install = "erp_internal.setup.pastikan_setup"
 after_migrate = "erp_internal.setup.pastikan_setup"
+# The wizard, filled by make or in the browser: our company, the wizard's account as Developer, Samuel's data once.
+setup_wizard_complete = "erp_internal.wizard.selesai"
 
 # Frappe runs only the tested app's before_tests: complete the test site's wizard (HRMS's own hook,
 # which also runs ERPNext's setup), then our setup.

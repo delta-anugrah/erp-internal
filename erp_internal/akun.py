@@ -68,6 +68,13 @@ def _buat(data: dict) -> list[str]:
 	akun = data.get("akun") or []
 	if sandi_admin is not None:
 		_cek_sandi(sandi_admin)
+	if akun and not frappe.is_setup_complete():
+		# The Role Profiles are made by setup after the wizard
+		frappe.throw(
+			_(
+				"Create the Developer, Admin and User accounts after the setup wizard; for now only Administrator."
+			)
+		)
 	dipakai = set()
 	for a in akun:
 		if a.get("profil") not in PROFIL_PERAN:
