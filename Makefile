@@ -24,14 +24,12 @@ export COMPANY ABBR TAHUN
 PORT_ENV = $(or $(shell sed -n 's/^PORT=//p' $(LOKAL)/.env 2>/dev/null),$(PORT))
 
 .DEFAULT_GOAL := help
-.PHONY: help start-local setup-local stop users password update-local check-local env-local image-local configure-local data-local ping-local
+.PHONY: help start-local setup-local stop update-local check-local env-local image-local configure-local data-local ping-local
 
 help:
 	@echo "On your computer (README.md \"Run it on your computer\"):"
 	@echo "  make start-local    first setup, later just start again; ends at http://localhost:$(PORT_ENV)"
 	@echo "  make stop           stop it; the data stays"
-	@echo "  make users          pick and create the accounts (asked once by start-local)"
-	@echo "  make password       a new password for one account"
 	@echo "  make update-local   after git pull: rebuild the image, then start-local"
 	@echo "On the server: make -C deploy/server help"
 
@@ -39,7 +37,7 @@ help:
 start-local: check-local env-local
 	@if [ -f $(LOKAL)/siap ]; then $(COMPOSE) up -d; else $(MAKE) --no-print-directory setup-local; fi
 	@$(MAKE) --no-print-directory ping-local
-	@if [ ! -f $(LOKAL)/akun-siap ]; then ERP_COMPOSE='$(COMPOSE)' tools/akun.sh users; fi
+	@if [ ! -f $(LOKAL)/akun-siap ]; then ERP_COMPOSE='$(COMPOSE)' tools/akun.sh; fi
 	@echo
 	@echo "Ready: open http://localhost:$(PORT_ENV) and sign in."
 
@@ -52,12 +50,6 @@ setup-local: check-local env-local image-local
 
 stop:
 	$(COMPOSE) stop
-
-users:
-	@ERP_COMPOSE='$(COMPOSE)' tools/akun.sh users
-
-password:
-	@ERP_COMPOSE='$(COMPOSE)' tools/akun.sh password
 
 # The new code: rebuild (or pull again), migrate, reload the data.
 update-local: check-local env-local

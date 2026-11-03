@@ -6,15 +6,16 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Root `Makefile` for Samuel's laptop (Mac, or Windows through WSL): `make start-local` runs the server compose stack as
   project `erp-local` (`--project-directory .local`, git-ignored and in .dockerignore), builds `erp-internal:local` or
   pulls `ERP_IMAGE`, reuses the server Makefile's `db site wizard`, then `configure-local`, `data-local` (master,
-  penjualan, mesin_barang), up, ping, and the first time `tools/akun.sh users`. After one full run (`.local/siap`) it
-  only starts the containers. `stop`, `users`, `password`, `update-local`; README "Run it on your computer", "Make commands".
+  penjualan, mesin_barang), up, ping, and the first time `tools/akun.sh`. After one full run (`.local/siap`) it
+  only starts the containers. `stop`, `update-local`; `make users`/`make password` were made, then dropped the same day
+  (Abel: an Admin makes later accounts and resets passwords in the app). README "Run it on your computer", "Make commands".
 - `tools/akun.sh` (checklist, passwords as `*`, min 8) hands accounts to `erp_internal/akun.py` in env `ERP_AKUN`.
   Found in the real run: keys typed faster than the one-character reads showed the password in clear between them;
   echo is now off for the whole answer.
 - `deploy/server/Makefile`: cek → check, cek-env → check-env, aktif → configure, cadangan → backup (script name kept).
   `.gitattributes`: LF everywhere.
-- Tests as run: `run-tests --module erp_internal.tests.test_akun` 3 OK, `test_bahasa` 6 OK; `docker build` of
-  `erp-internal:local` OK; a real `make start-local` from nothing (7 min 40 s), `make users`, `make password`, logins
+- Tests as run: `run-tests --module erp_internal.tests.test_akun` OK (2 tests after `ganti_sandi` was dropped), `test_bahasa` 6 OK; `docker build` of
+  `erp-internal:local` OK; a real `make start-local` from nothing (7 min 40 s), the account picker (also again after removing `.local/akun-siap`), logins
   by API, `make stop` + `make start-local` (24 s). Not run: the full `run-tests --app`, `make update-local`, Windows.
 - Next: Samuel tries a fresh clone; deploy stays parked.
 

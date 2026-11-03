@@ -1,4 +1,4 @@
-"""The first accounts of a local stack (akun.py, `make users` / `make password`)."""
+"""The first accounts of a local stack (akun.py, asked by `make start-local`)."""
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -56,14 +56,3 @@ class TestAkun(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("User", "_uji.akun.x@example.com"))
 		with self.assertRaises(frappe.ValidationError):
 			akun.buat({"Administrator": "pendek", "akun": []})
-
-	def test_ganti_sandi(self):
-		akun.buat({"akun": [{"profil": ADMIN, "email": "_uji.akun.ganti@example.com", "sandi": "lama-lama"}]})
-		akun.ganti_sandi({"email": "_UJI.akun.ganti@example.com", "sandi": "baru-baru"})
-		self.assertEqual(
-			check_password("_uji.akun.ganti@example.com", "baru-baru"), "_uji.akun.ganti@example.com"
-		)
-		with self.assertRaises(frappe.ValidationError):
-			akun.ganti_sandi({"email": "_uji.tidak.ada@example.com", "sandi": "12345678"})
-		with self.assertRaises(frappe.ValidationError):
-			akun.ganti_sandi({"email": "_uji.akun.ganti@example.com", "sandi": "pendek"})

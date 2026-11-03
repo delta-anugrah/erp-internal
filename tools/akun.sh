@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
-# The accounts of the local stack, asked in the terminal (the repo's Makefile: `make users`, `make password`).
-#
-#   tools/akun.sh users      pick the accounts (Administrator always), then email and password for each
-#   tools/akun.sh password   a new password for one account
+# The first accounts of the local stack, asked in the terminal once by `make start-local` (the repo's Makefile):
+# pick the accounts (Administrator always), then a password for Administrator and an email and password for each.
+# Everyone after that gets an account from an Admin in the app, which also resets a forgotten password.
 #
 # ERP_COMPOSE is the stack's `docker compose ...` command (set by the Makefile). The answers go to
 # erp_internal.akun inside the `tools` container in the environment variable ERP_AKUN, never on a command line.
 # Passwords are typed blind, one * per character. Runs on macOS's bash 3.2 and on Linux / WSL.
 set -euo pipefail
 
-: "${ERP_COMPOSE:?run this through make (make users, make password)}"
+: "${ERP_COMPOSE:?run this through make start-local}"
 PANJANG_MIN=8 # as erp_internal.akun.PANJANG_MIN
-SIAP=.local/akun-siap # written after the first successful `users`: start-local asks only once
+SIAP=.local/akun-siap # written once the accounts are made: start-local asks only once
 
 if [ ! -t 0 ] || [ ! -t 1 ]; then
-	echo "Accounts need a terminal: run make users (or make password) in one." >&2
+	echo "Accounts need a terminal: run make start-local in one." >&2
 	exit 1
 fi
 trap 'stty echo 2>/dev/null || true; printf "\033[?25h"' EXIT
@@ -62,13 +61,11 @@ baca_sandi() {
 	printf '\n'
 }
 
-# A password with its confirmation, at least PANJANG_MIN characters. Into SANDI. With a second argument `boleh-kosong`
-# an empty first answer is accepted (SANDI stays empty: keep the current password).
+# A password with its confirmation, at least PANJANG_MIN characters. Into SANDI.
 sandi_baru() {
 	local label=$1 pertama
 	while true; do
 		baca_sandi "  Password for $label: "
-		[ -z "$SANDI" ] && [ "${2:-}" = boleh-kosong ] && return
 		if [ ${#SANDI} -lt $PANJANG_MIN ]; then
 			echo "  At least $PANJANG_MIN characters, try again."
 			continue
@@ -117,63 +114,37 @@ pilih() {
 	printf '\033[?25h'
 }
 
-# Runs erp_internal.akun.<fungsi> in the stack with ERP_AKUN.
-kirim() {
-	ERP_AKUN=$2 $ERP_COMPOSE run --rm -T -e ERP_AKUN tools bash -c \
-		"bench --site \"\$SITE\" execute erp_internal.akun.$1"
-}
-
-users() {
-	local i email data akun="" dipakai=" "
-	pilih
+pilih
+echo
+echo "Administrator (sign in with the name Administrator)"
+sandi_baru "Administrator"
+data="{\"Administrator\": $(json "$SANDI")"
+akun=""
+dipakai=" "
+for ((i = 1; i < ${#PROFIL[@]}; i++)); do
+	[ "${DIPILIH[$i]}" = 1 ] || continue
 	echo
-	if [ -f "$SIAP" ]; then
-		echo "Administrator (sign in with the name Administrator; Enter keeps the current password)"
-		sandi_baru "Administrator" boleh-kosong
-	else
-		echo "Administrator (sign in with the name Administrator)"
-		sandi_baru "Administrator"
-	fi
-	if [ -n "$SANDI" ]; then data="{\"Administrator\": $(json "$SANDI")"; else data="{\"Administrator\": null"; fi
-	for ((i = 1; i < ${#PROFIL[@]}; i++)); do
-		[ "${DIPILIH[$i]}" = 1 ] || continue
-		echo
-		echo "${PROFIL[$i]}"
-		while true; do
-			read -rp "  Email: " email
-			email=$(printf '%s' "$email" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
-			if ! email_benar "$email"; then
-				echo "  That is not an email address, try again."
-			elif [[ $dipakai == *" $email "* ]]; then
-				echo "  Already used for another account, try again."
-			else
-				break
-			fi
-		done
-		dipakai+="$email "
-		sandi_baru "$email"
-		akun+="${akun:+, }{\"profil\": $(json "${PROFIL[$i]}"), \"email\": $(json "$email"), \"sandi\": $(json "$SANDI")}"
+	echo "${PROFIL[$i]}"
+	while true; do
+		read -rp "  Email: " email
+		email=$(printf '%s' "$email" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+		if ! email_benar "$email"; then
+			echo "  That is not an email address, try again."
+		elif [[ $dipakai == *" $email "* ]]; then
+			echo "  Already used for another account, try again."
+		else
+			break
+		fi
 	done
-	data+=", \"akun\": [$akun]}"
-	echo
-	echo "Creating the accounts..."
-	kirim buat "$data"
-	mkdir -p .local && touch "$SIAP"
-}
-
-password() {
-	local email
-	read -rp "Account (email, or Administrator) [Administrator]: " email
-	email=$(printf '%s' "${email:-Administrator}" | tr -d '[:space:]')
+	dipakai+="$email "
 	sandi_baru "$email"
-	kirim ganti_sandi "{\"email\": $(json "$email"), \"sandi\": $(json "$SANDI")}"
-}
-
-case "${1:-}" in
-	users) users ;;
-	password) password ;;
-	*)
-		echo "usage: tools/akun.sh users|password" >&2
-		exit 2
-		;;
-esac
+	akun+="${akun:+, }{\"profil\": $(json "${PROFIL[$i]}"), \"email\": $(json "$email"), \"sandi\": $(json "$SANDI")}"
+done
+data+=", \"akun\": [$akun]}"
+echo
+echo "Creating the accounts..."
+# SITE is expanded inside the container (from its env_file), not here.
+# shellcheck disable=SC2016
+ERP_AKUN=$data $ERP_COMPOSE run --rm -T -e ERP_AKUN tools bash -c \
+	'bench --site "$SITE" execute erp_internal.akun.buat'
+mkdir -p .local && touch "$SIAP"
