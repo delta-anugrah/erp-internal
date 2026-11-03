@@ -1,4 +1,4 @@
-"""The first accounts of a local stack (`make users`, `make password` in the repo's Makefile).
+"""The first accounts of a local stack, asked once by `make start-local` (the repo's Makefile).
 
 The terminal asks for the accounts and passwords (`tools/akun.sh`) and hands them over in the environment variable
 `ERP_AKUN` (JSON), never on a command line, so no password shows in a process list or the shell history:
@@ -7,8 +7,8 @@ The terminal asks for the accounts and passwords (`tools/akun.sh`) and hands the
 
 `buat()` sets Administrator's password and makes (or updates) one System User per entry with that Role Profile,
 its Module Profile and, for Admin and User, a default permission on the company, like the sample users of
-`contoh.py`. `ganti_sandi()` reads `{"email": ..., "sandi": ...}` and changes one password. Both print what they did,
-never a password (from the terminal they print and return nothing, else bench prints the result again).
+`contoh.py`. It prints what it did, never a password (from the terminal it prints and returns nothing, else bench
+prints the result again). Later accounts and password resets are made by an Admin in the app.
 `bench execute` commits afterwards; a refusal read from `ERP_AKUN` is printed and exits 1 (bench
 would otherwise hide the message behind its own eval fallback).
 """
@@ -44,7 +44,7 @@ def _masukan() -> dict:
 	"""The JSON in `ERP_AKUN`."""
 	isi = os.environ.get("ERP_AKUN")
 	if not isi:
-		frappe.throw(_("ERP_AKUN is not set: run make users from the repo."))
+		frappe.throw(_("ERP_AKUN is not set: run make start-local from the repo."))
 	return json.loads(isi)
 
 
@@ -94,21 +94,3 @@ def _buat(data: dict) -> list[str]:
 		update_password(email, a["sandi"])
 		hasil.append(f"{profil}: {email} {'updated' if ada else 'created'}")
 	return hasil
-
-
-def ganti_sandi(data: dict | None = None) -> str | None:
-	"""One account's new password (default: `ERP_AKUN` = {"email", "sandi"}). Returns the line, or prints it when
-	called from the terminal."""
-	if data is not None:
-		return _ganti_sandi(data)
-	with _dari_terminal():
-		print(_ganti_sandi(_masukan()))
-
-
-def _ganti_sandi(data: dict) -> str:
-	email = (data.get("email") or "").strip()
-	email = "Administrator" if email.lower() == "administrator" else email.lower()
-	if not frappe.db.exists("User", email):
-		frappe.throw(_("No account {0}.").format(email or "''"))
-	update_password(email, _cek_sandi(data.get("sandi")))
-	return f"{email}: password changed"

@@ -893,7 +893,7 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
 - 2026-10-31: Steps 2-4 ran on the Mac with `deploy/server/Makefile` (`make env`, the `setup` steps, `cadangan`, a
   restore drill with equal counts; deploy/server/README.md). 2026-11-03: its targets renamed to English (`cek` →
   `check`, `cek-env` → `check-env`, `aktif` → `configure`, `cadangan` → `backup`; the script keeps the name
-  `cadangan.sh`). New root `Makefile` (`start-local`, `stop`, `users`, `password`, `update-local`): the same compose
+  `cadangan.sh`). New root `Makefile` (`start-local`, `stop`, `update-local`; `users`/`password` dropped the same day: later accounts come from an Admin in the app): the same compose
   stack on a laptop with only Docker (project `erp-local`, `--project-directory .local`, image `erp-internal:local`
   built from the repo), reusing the server Makefile's `db site wizard`, loading Samuel's real data, accounts from
   `tools/akun.sh` → `erp_internal/akun.py` (`test_akun`). `.gitattributes` forces LF for WSL.

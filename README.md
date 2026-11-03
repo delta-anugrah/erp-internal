@@ -10,12 +10,12 @@ ERPNext v16 for the plastic factory (stock, sales, purchasing, production with a
 
 ## Run it on your computer
 
-For trying ERP Internal with Samuel's real data, no developer tools: only Docker. It runs the same stack as the
-server on http://localhost:8080.
+ERP Internal with the factory's real catalog, sales and machines, on http://localhost:8080. No developer tools,
+only Docker: it runs the same stack as the server.
 
-1. Install **Docker Desktop** and start it. On **Windows**: Docker Desktop with the WSL 2 backend and, under Settings > Resources > WSL integration, Ubuntu
-   switched on; then open the
-   **Ubuntu** terminal (Microsoft Store, "Ubuntu") and run every command below in it, never in PowerShell; once:
+1. Install **Docker Desktop** and start it. On **Windows**: Docker Desktop with the WSL 2 backend and, under
+   Settings > Resources > WSL integration, Ubuntu switched on; then open the **Ubuntu** terminal (Microsoft Store,
+   "Ubuntu") and run every command below in it, never in PowerShell; once:
    `sudo apt update && sudo apt install -y make git curl openssl`. On a Mac, `make` and `git` come with the Xcode
    command line tools (`xcode-select --install` if the terminal asks).
 2. Get the repo (it is private: your GitHub account must be invited to `delta-anugrah`):
@@ -33,11 +33,14 @@ server on http://localhost:8080.
 
    Administrator needs only a password (sign in with the name `Administrator`); every other ticked account an email
    and a password, typed twice. A password shows as `*` while you type and needs at least 8 characters. One account
-   per role is enough to start; an Admin adds the other people later in Users.
+   per role is enough to start. Everyone else gets an account from an Admin in the app (Users, with the User or
+   Admin role profile); a forgotten password is reset there too, and each person changes their own under their
+   avatar, My Settings, Change Password.
 4. Open http://localhost:8080 and sign in.
 
 `make stop` stops it (the data stays); `make start-local` starts it again in seconds (the full setup runs only
-until it has succeeded once). After `git pull`, `make update-local`. Another port: `make start-local PORT=8090` the first time (it is kept in `.local/.env`).
+until it has succeeded once). After `git pull`, `make update-local`. Another port: `make start-local PORT=8090` the
+first time (it is kept in `.local/.env`).
 Everything local is in `.local/` (git-ignored); the data is in Docker volumes of the project `erp-local`.
 
 ## Make commands
@@ -47,11 +50,9 @@ Repo root (`Makefile`, on your computer):
 | Command | What it does |
 |---|---|
 | `make help` | Lists these commands. |
-| `make start-local` | The first time: checks Docker, writes `.local/.env` with generated passwords, builds or pulls the image, starts the database, makes the site, completes the setup wizard (PT Delta Anugrah), migrates, loads Samuel's data, starts the stack, waits for it, asks for the accounts. Each step skips what is done, so a run cut off halfway goes on where it stopped. Once that has succeeded (`.local/siap`), it only starts the containers and waits for them, and asks for the accounts again only if that step never finished (`.local/akun-siap`). |
+| `make start-local` | The first time: checks Docker, writes `.local/.env` with generated passwords, builds or pulls the image, starts the database, makes the site, completes the setup wizard (PT Delta Anugrah), migrates, loads the factory's catalog, sales and machines, starts the stack, waits for it, asks for the accounts. Each step skips what is done, so a run cut off halfway goes on where it stopped. Once that has succeeded (`.local/siap`), it only starts the containers and waits for them, and asks for the accounts again only if that step never finished (`.local/akun-siap`). |
 | `make stop` | Stops the stack; the data stays. |
-| `make users` | Asks again which accounts to create, with email and password; an existing email is updated (role and password). Once accounts have been made (`.local/akun-siap`), Administrator's password can be left empty to keep it. |
-| `make password` | A new password for one account (asks the email, or Administrator). |
-| `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, reloads Samuel's data, starts the stack. |
+| `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, reloads the catalog, sales and machines, starts the stack. |
 
 The first-time setup is `setup-local` (run by `start-local` until `.local/siap` exists): `check-local`, `env-local`,
 `image-local`, `db`, `site` and `wizard` of the server Makefile, `configure-local`, `data-local`, then up;
@@ -155,26 +156,25 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
 
 ## Factory flow and data import
 
-- A Delivery Note is made directly (Samuel 2026-11-02: no Sales Orders for now), every Purchase Receipt comes from
+- A Delivery Note is made directly (decided 2026-11-02: no Sales Orders for now), every Purchase Receipt comes from
   an order, stock never goes negative, stock posts no journal
   entries, and the company gets PPN templates that are never the default (not PKP: invoices only record) (`setup._alur_jual_beli`). Staff guides:
   `docs/panduan/{penjualan,pembelian,gudang}.md`.
 - Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
   by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`). Sales History (monthly quantities per item):
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
-- Samuel's real master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
+- The factory's master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
   execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin}.json` (templates with only the listed
   variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`); rerun after a new file
   (`docs/impor.md`, tested by `tests/test_master.py`).
-- Samuel's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
+- The factory's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
   reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw
   materials with their price per kg, Sales History January-September 2026 (spread evenly over the colours) and each
-  variant's `safety_stock` (half an average month) (`docs/impor.md` "Excel penjualan Samuel", tested by
+  variant's `safety_stock` (half an average month) (`docs/impor.md`, tested by
   `tests/test_penjualan.py`).
-- Samuel's item-to-machine list (2026-11-02), after `penjualan.muat`: `bench --site erp.localhost execute
+- The item-to-machine list (2026-11-02), after `penjualan.muat`: `bench --site erp.localhost execute
   erp_internal.mesin_barang.muat` reads `erp_internal/data/mesin_barang.json` and makes a Machine Capacity row per
-  template + Jenis and machine ("( n )" = the mould's cavities) (54 rows) and their BOMs (`docs/impor.md` "Daftar barang per
-  mesin Samuel", tested by `tests/test_mesin_barang.py`). Machines 1, 7, 9-14 are inactive (`mesin.json` `aktif`).
+  template + Jenis and machine ("( n )" = the mould's cavities) (54 rows) and their BOMs (`docs/impor.md`, tested by `tests/test_mesin_barang.py`). Machines 1, 7, 9-14 are inactive (`mesin.json` `aktif`).
 - Production (`erp_internal/planning/`, module Planning): the company's Work Orders default to its Gudang
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
@@ -212,7 +212,7 @@ doctype or report still opens.
 
 Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one company:
 
-- **User** (Samuel 2026-11-02): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
+- **User** (decided 2026-11-02): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
   directly and Material Receipt stock entries, sets a machine's status on the Production Floor, and reads stock,
   items, Work Orders, BOMs and the production reports; rail Stock and Manufacturing (`erp_internal/batas_user.py`).
   Guide: `docs/panduan/user.md`.
