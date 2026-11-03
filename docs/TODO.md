@@ -13,7 +13,10 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 
 ## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
-- [ ] Abel approves the spec, then the plan (superpowers:writing-plans), then build.
+- [x] Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md`, built (Tasks 1-6): `make start`, `make setup`,
+      `make dev`, `erp_internal/wizard.py`; end to end on the Mac, automatic and by hand (PROGRESS 2026-11-03).
+- [ ] Abel: try `make start` from a fresh clone (Mac now, Samuel's Windows/WSL later).
+- [ ] On the real server: `make setup` (needs the server, Samuel question 6).
 - [ ] After that, a small task: show the app version (e.g. `v0.1.3`) on the login screen and in the Settings
       dialog's left menu; `erp_internal.__version__` follows the release tag (now `0.0.1`).
 - [ ] Then the same setup work for BPT, then the sawit autoerp, one at a time in their own sessions.

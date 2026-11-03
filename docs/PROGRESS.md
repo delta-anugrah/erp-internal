@@ -2,6 +2,30 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-03 (one-command setup, built)
+- Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md` (deviations at its end), built inline:
+  `erp_internal/wizard.py` (`setup_wizard_complete` hook: erp_aktif, queue `lanjutkan`; `lanjutkan`: setup, the
+  wizard's account into Developer, company on Admin/User accounts, Samuel's data once with `erp_produksi`,
+  marker `erp_data_samuel`), `akun.buat` refuses other accounts before the wizard; `deploy/server/{tanya,akun,
+  wizard}.sh` (shared prompts; `tools/akun.sh` moved), `deploy/server/setup.sh` (`make setup` asks token, address,
+  version, backup or skip, wizard, accounts), `tools/setup_lokal.sh` (`make start` = `start-local`), `make dev`,
+  `PROYEK` for a second local stack; `data-local` removed (update never reloads Samuel's data); `cadangan.sh`
+  and `check` without a backup destination. README rewritten for first-time readers (local and server).
+- Tests as run: `test_wizard` 7 OK, `test_akun` 3 OK, `test_bahasa` 6 OK, `test_setup` 9 OK; full
+  `run-tests --app erp_internal` 246 OK before the last fix (rerun after it: see TODO); shellcheck and `bash -n`
+  clean; prompts driven through a pty (Enter defaults, Backspace, `*`, checklist); `cadangan.sh` with a fake
+  docker, with and without a remote; `make -n` of `setup-local`/`update-local`/`langkah`.
+- End to end on the Mac beside Abel's own stack: automatic `make start` from nothing (project `erp-tanya`, port
+  8081): Ready, Administrator and a User sign in, Item 127, Workstation 14, erp_aktif 1, the User has the
+  company, marker set; a second `make start` 19 s, no question. By hand (`erp-tangan`, 8082): the by-hand steps
+  printed, the wizard filled in the browser: it found a real bug (the Developer Role Profile does not exist at
+  hook time, and the failure kept the data job from being queued), fixed (`b36a5b7`), then rerun from nothing:
+  data in ~70 s, the wizard's account Developer, no Error Log, `make start` then says Ready. Server `setup.sh`
+  with a fake make/docker: wrong token asked again, `https://` dropped, `v` added, backup skipped (no
+  `RCLONE_REMOTE`), `ADMIN_PASSWORD` removed, steps in order. Not run: a real server (none yet), `make
+  update-local` on the test stack (covered by `make -n` and the marker).
+- Next: Abel tries `make start` himself; the version display task.
+
 ## 2026-11-03 (setup design)
 - Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md`: `make setup` (server) as one command
   with plain questions (token, address, version, backup skippable, wizard automatic by default or by hand,

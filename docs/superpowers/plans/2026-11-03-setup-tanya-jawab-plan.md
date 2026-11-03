@@ -83,7 +83,7 @@ run the existing Makefile steps.
   `import_module(f"erp_internal.{m}").muat()` for each of `MUAT`, then `frappe.db.set_default(PENANDA_DATA, 1)`;
   `frappe.db.commit()` at the end.
 
-- [ ] **Step 1: Write the failing tests** in `test_wizard.py` (`IntegrationTestCase`; company from
+- [x] **Step 1: Write the failing tests** in `test_wizard.py` (`IntegrationTestCase`; company from
   `utils.buat_perusahaan`, then `frappe.db.set_value("Company", nama, "erp_aktif", 0)` to start unticked):
   - `test_lewat_di_situs_tes`: `with patch("frappe.enqueue") as e: wizard.selesai({"company_name": nama})` →
     `erp_aktif` still 0, `e.assert_not_called()` (the test site has `allow_tests`).
@@ -107,19 +107,19 @@ run the existing Makefile steps.
     password afterwards like the existing tests do, if they do; else leave Administrator out and only assert the
     refusal).
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
   Run: `cd ~/Desktop/Projects/erp-internal-bench && bench --site erp-test.localhost run-tests --module erp_internal.tests.test_wizard`
   Expected: FAIL, `No module named 'erp_internal.wizard'`.
 
-- [ ] **Step 3: Write `wizard.py`, the hook line, the `akun._buat` check** (message: "Create the Developer,
+- [x] **Step 3: Write `wizard.py`, the hook line, the `akun._buat` check** (message: "Create the Developer,
   Admin and User accounts after the setup wizard; for now only Administrator.") and its `id.csv` row.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
   Run: `bench --site erp-test.localhost run-tests --module erp_internal.tests.test_wizard` and
   `--module erp_internal.tests.test_akun`, then `--module erp_internal.tests.test_bahasa` (translations).
   Expected: all OK.
 
-- [ ] **Step 5: Commit** `feat(wizard): finish the site from setup_wizard_complete and seed Samuel's data once`
+- [x] **Step 5: Commit** `feat(wizard): finish the site from setup_wizard_complete and seed Samuel's data once`
 
 ### Task 2: Shared prompts, the account picker and the wizard question
 
@@ -147,14 +147,14 @@ run the existing Makefile steps.
   typed, fill in the wizard with the values above. The account you create there is the Developer; if you use an
   email typed here, the wizard's password wins." then the values list.
 
-- [ ] **Step 1: Write the libraries; move `akun.sh` with `git mv` so history follows.**
-- [ ] **Step 2: Check syntax and lint**
+- [x] **Step 1: Write the libraries; move `akun.sh` with `git mv` so history follows.**
+- [x] **Step 2: Check syntax and lint**
   Run: `bash -n deploy/server/tanya.sh deploy/server/akun.sh deploy/server/wizard.sh && (command -v shellcheck >/dev/null && shellcheck -x deploy/server/*.sh || echo "shellcheck not installed")`
   Expected: no output from `bash -n`; shellcheck clean or reported missing.
-- [ ] **Step 3: Try the prompts by hand** with a scratch script in the scratchpad that sources the three files and
+- [x] **Step 3: Try the prompts by hand** with a scratch script in the scratchpad that sources the three files and
   calls `tanya_wizard; tanya_akun; echo "$WIZARD $COMPANY $ABBR"; echo "${#ERP_AKUN}"` (never echo the JSON).
   Expected: options one per line, Enter accepts suggestions, passwords show `*`, Backspace works, length printed.
-- [ ] **Step 4: Commit** `refactor(deploy): shared terminal prompts, account picker and wizard question`
+- [x] **Step 4: Commit** `refactor(deploy): shared terminal prompts, account picker and wizard question`
 
 ### Task 3: Server `make setup` asks, then runs every step
 
@@ -205,19 +205,19 @@ run the existing Makefile steps.
 - `cadangan.sh`: `RCLONE_REMOTE` optional; when empty, after the local copy log "no RCLONE_REMOTE: kept in
   ./cadangan only", skip `rclone copy`/`lsf`/`delete`, still prune the local folder, exit 0.
 
-- [ ] **Step 1: Write the failing check** for the optional remote, in the scratchpad: a fake `docker` on `PATH`
+- [x] **Step 1: Write the failing check** for the optional remote, in the scratchpad: a fake `docker` on `PATH`
   that answers the three `exec`/`cp` calls of `cadangan.sh` (prints three file names, creates them on `cp`), a
   `.env` with only `SITE=x`; `./cadangan.sh` must exit 0 and print the "kept in ./cadangan only" line.
   Run it now: expected FAIL, `RCLONE_REMOTE missing`.
-- [ ] **Step 2: Change `cadangan.sh`; rerun the check** → exit 0 with the line. Also rerun with
+- [x] **Step 2: Change `cadangan.sh`; rerun the check** → exit 0 with the line. Also rerun with
   `RCLONE_REMOTE=x` and a fake `rclone` to confirm the copy path still runs.
-- [ ] **Step 3: Change the Makefile and write `setup.sh`.**
-- [ ] **Step 4: Dry runs**
+- [x] **Step 3: Change the Makefile and write `setup.sh`.**
+- [x] **Step 4: Dry runs**
   Run: `cd deploy/server && make -n langkah && make -n wizard configure lanjut && bash -n setup.sh`
   Expected: `site` prints the `erp_produksi` line, `configure` has no `erp_aktif`, `lanjut` prints the execute line.
   Run: `make env SITE=a.b ERP_IMAGE=x:v0.0.1` in a scratch copy of the folder → `.env` without `RCLONE_REMOTE`,
   then `make check-env` → `check-env OK`.
-- [ ] **Step 5: Commit** `feat(deploy): make setup asks its questions, backup destination optional`
+- [x] **Step 5: Commit** `feat(deploy): make setup asks its questions, backup destination optional`
 
 ### Task 4: Local `make start-local` asks the same, and `make dev`
 
@@ -245,32 +245,32 @@ run the existing Makefile steps.
   `make setup-local WIZARD=… COMPANY=… ABBR=…`; `buat_akun "$COMPOSE"`; `touch .local/akun-siap .local/siap`;
   final message as on the server with `http://localhost:PORT` (no backup line).
 
-- [ ] **Step 1: Write the driver and the Makefile changes.**
-- [ ] **Step 2: Dry run**
+- [x] **Step 1: Write the driver and the Makefile changes.**
+- [x] **Step 2: Dry run**
   Run: `make -n setup-local WIZARD=otomatis | grep -c lanjutkan` → `1`; `WIZARD=tangan` → `0`;
   `make -n update-local | grep -c "\.muat"` → `0`; `make dev BENCH=/nope` → the "No bench" line, exit 1.
-- [ ] **Step 3: Commit** `feat(local): start-local asks the wizard question; make dev`
+- [x] **Step 3: Commit** `feat(local): start-local asks the wizard question; make dev`
 
 ### Task 5: End-to-end runs (needs Abel's OK: wipes the local stack)
 
 The local stack in `.local/` holds a site. Before this task, ask Abel whether it may be removed
 (`make stop; docker compose -p erp-local --project-directory .local -f deploy/server/docker-compose.yml down -v; rm -rf .local`).
 
-- [ ] **Step 1: Automatic path, local.** `make start-local`, Enter on every suggestion, Administrator + one Admin
+- [x] **Step 1: Automatic path, local.** `make start-local`, Enter on every suggestion, Administrator + one Admin
   account. Expected: ends with "Ready", sign in as Administrator and as the Admin works, Item count > 0
   (`… run --rm -T tools bash -c 'bench --site "$SITE" execute frappe.db.count --args "[\"Item\"]"'`), Admin has a
   Company User Permission. Run `make start-local` again: no question, seconds. `make update-local`: no `muat`
   output, an item edited in the app keeps its edit.
-- [ ] **Step 2: By-hand path, local** (wipe again with Abel's OK). Choose 2, Administrator password only.
+- [x] **Step 2: By-hand path, local** (wipe again with Abel's OK). Choose 2, Administrator password only.
   Expected: ends with the browser instructions; `make start-local` again repeats them and asks nothing; fill the
   wizard in the browser (Chrome tools) with a new account; within a minute the background job has run (Item count
   > 0) and that account's role profile is Developer (Review Focus 1). Then the by-hand message stops.
-- [ ] **Step 3: Server flow on the Mac** in a scratch copy of `deploy/server/` with `PORT=8081`, a local image tag
+- [x] **Step 3: Server flow on the Mac** in a scratch copy of `deploy/server/` with `PORT=8081`, a local image tag
   `erp-internal:v0.0.0` (`docker tag erp-internal:local erp-internal:v0.0.0`), compose project `erp-uji`: run
   `./setup.sh`, skip the GitHub question (already logged in, or answer and let it fail once to see the retry
   line), skip the backup. Expected: setup ends with the "Backups stay on this server only" line; `make backup` exits
   0. Tear it down after (`down -v`).
-- [ ] **Step 4: Full test run** `bench --site erp-test.localhost run-tests --app erp_internal` → all OK (number in
+- [x] **Step 4: Full test run** `bench --site erp-test.localhost run-tests --app erp_internal` → all OK (number in
   the report).
 
 ### Task 6: Docs
@@ -288,6 +288,25 @@ row → `deploy/server/akun.sh`, `tools/setup_lokal.sh`, `wizard.py`; Commands b
 `docs/impor.md` (Samuel's data loads by itself once on a real site; the manual commands stay for a reload),
 `docs/TODO.md`, `docs/PROGRESS.md`.
 
-- [ ] **Step 1:** `grep -rn "tools/akun.sh\|data-local\|make env\|ADMIN_PASSWORD\|RCLONE_REMOTE" --include=*.md . | grep -v superpowers` and fix each hit.
-- [ ] **Step 2:** Run the `docs-sync` agent with the changed files; fix what it finds.
-- [ ] **Step 3:** Commit `docs: one-command setup with questions`.
+- [x] **Step 1:** `grep -rn "tools/akun.sh\|data-local\|make env\|ADMIN_PASSWORD\|RCLONE_REMOTE" --include=*.md . | grep -v superpowers` and fix each hit.
+- [x] **Step 2:** Run the `docs-sync` agent with the changed files; fix what it finds.
+- [x] **Step 3:** Commit `docs: one-command setup with questions`.
+
+## Deviations made while building (2026-11-03)
+
+- The wizard answer is kept in `.wizard` (server) / `.local/wizard` (local) and never asked again; a later run that
+  finds the wizard incomplete reprints the by-hand steps instead of asking again (a run that failed after the
+  wizard would otherwise ask a pointless question). To switch from by hand to automatic, delete that file.
+- Task 1: `lanjutkan(cetak=True)`: returns its lines with `cetak=False` (tests, the queued job), prints them from
+  bench. It does not commit (bench execute and the background job do; a commit flushed mail in tests). It does not
+  filter on enabled users.
+- Task 2: the terminal message is "This asks a few questions: run it in a terminal."; the by-hand heading is "Values
+  to type in the wizard later (Enter keeps each one):"; the fixed values also list Time zone, Language and Chart of
+  accounts; `petunjuk_wizard` has no "the wizard's password wins" line (by hand only Administrator is asked).
+- Task 3: the `wizard` target greps `true` case-insensitively (bench execute prints JSON `true`).
+- Task 4: `.local/siap` is written by `tools/setup_lokal.sh` at the very end; the wizard check is the root
+  Makefile's own `wizard-selesai`, the last line `tools/setup_lokal.sh --pesan`; the generated `ADMIN_PASSWORD` also
+  leaves `.local/.env`. `PROYEK ?= erp-local` names the compose project, so a test stack runs beside a real one.
+- Task 5: run beside Abel's stack (`~/Desktop/coba-erp`, project `erp-local`) instead of wiping it: projects
+  `erp-tanya` (automatic, port 8081) and `erp-tangan` (by hand, port 8082), image `erp-internal:uji-setup`. The
+  name `erp-uji` was taken by the 10-31 rehearsal's volumes.

@@ -56,6 +56,7 @@ petunjuk_wizard() {
 	echo "  2. Sign in as Administrator with the password you typed for it."
 	echo "  3. Fill in the wizard with these values:"
 	cetak_nilai | sed "s/^/   /"
+	echo "     The wizard suggests \"Indonesia - Chart of Accounts\": pick Standard. \"A little about you\": any answer."
 	echo "  4. In \"Create your account\", make your own account: it becomes the Developer."
 	echo "  5. Wait a minute after the wizard: Samuel's data loads by itself."
 }
