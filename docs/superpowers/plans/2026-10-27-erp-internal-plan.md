@@ -44,7 +44,7 @@ Samuel's answers are in `docs/menunggu-samuel.md` ("Answers").
    **Admin** (manager roles, users and business settings under the Setup rail entry shown as "Settings"; role
    `ERP Admin`), **Developer** (Admin plus System Manager: Build, System Settings). Module Profiles: Admin and User;
    Developer has none (deviation, Abel 2026-11-04: Developer has one too, blocking only `tampilan.MODUL_MATI`, whose
-   DocTypes get one Custom DocPerm for the Administrator role; `test_modul_mati`). `erp_internal/pengguna.py` keeps an Admin from giving any role outside Admin and User (also to
+   DocTypes get one Custom DocPerm for the Administrator role; HR's unused DocTypes by name in `tampilan.DOCTYPE_MATI`, the same lock, their reports and `LAPORAN_MATI` disabled; Recruitment, Performance, Expenses, Tenure, Tax and Benefits added to `MODUL_MATI`; `test_modul_mati`). `erp_internal/pengguna.py` keeps an Admin from giving any role outside Admin and User (also to
    itself) and from touching a Developer's or Administrator's account (User `before_validate`/`validate`/
    `has_permission`, Has Role `before_insert`/`validate`); `tests/test_pengguna.py` tries the form save, a direct Has
    Role insert, `frappe.client`, rename and password change. `proyek.PERAN_ATASAN`: Admin and Developer submit

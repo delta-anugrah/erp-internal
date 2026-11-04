@@ -6,7 +6,7 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
 Status 2026-11-03: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
-company and three roles (plan "Revision 4"): 260 tests (13 unit + 247 integration, 2026-11-04 after the unused-module and report lock, all OK; `run-tests --app erp_internal`, incl. `test_modul_mati`, `test_versi`, `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (shortcut-only homes, at most 12 each; Plan vs Actual raised the cap from 10), `lantai.mjs` all cases OK (2026-11-04, perf 60 fps, 0 frames over 25 ms), sample
+company and three roles (plan "Revision 4"): 262 tests (13 unit + 249 integration, 2026-11-04 after the HR DocType lock, all OK; `run-tests --app erp_internal`, incl. `test_modul_mati`, `test_versi`, `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (shortcut-only homes, at most 12 each; Plan vs Actual raised the cap from 10), `lantai.mjs` all cases OK (2026-11-04, perf 60 fps, 0 frames over 25 ms), sample
 data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
 the plan). Task 7's compose boot, backup and restore drill ran locally 2026-10-31 (`make setup`). Root `Makefile`: `make up` (= `start-local`) runs the same stack locally with only Docker and Samuel's real data (README "Run it on your computer"). Open: the DigitalOcean server and the
 real go-live with Samuel.
@@ -90,7 +90,7 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - Unused modules are locked, not only hidden (Abel 2026-11-04): `tampilan.MODUL_MATI` (CRM, Assets, Quality, Support,
   Subcontracting, Maintenance, Payroll, ...) gets one Custom DocPerm for the Administrator role per DocType, every
   profile (Developer too) blocks those modules, and `saring_modul_mati` (`extend_bootinfo`, after `saring_aplikasi`, `merek_aplikasi`, `menu_samping`) drops them from every boot; only
-  Administrator still opens their documents by URL; their reports are disabled (`_matikan_laporan`). Remove a module from the list and migrate to unlock it. `test_modul_mati`.
+  Administrator still opens their documents by URL; their reports are disabled (`_matikan_laporan`). HR's own DocTypes are all module "HR", so its unused ones (recruitment, appraisal, training, expense claims, travel, lifecycle, vehicles, skills, overtime) are named in `tampilan.DOCTYPE_MATI` and locked the same way, with the reports built on them and `LAPORAN_MATI`; attendance, check-ins, shifts, leave and holidays stay open. The Employee form's `get_assignable_masters` is routed to `tampilan.master_karyawan` (a locked Salary Structure answers False, no popup). Remove a module or DocType from the list and migrate to unlock it. `test_modul_mati`.
 - Hide what users don't need (Abel, 2026-10-29). A DocType named by hash (Sales History, Machine Capacity) shows a
   title instead: `show_title_field_in_link`, `hide_name_column`/`hide_name_filter` in its `*_list.js`, and the form
   sidebar's name hidden in `public/css/erp_internal.css`. Sales History's `title` is "ITEM · MM-YYYY"

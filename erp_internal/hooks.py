@@ -197,7 +197,9 @@ override_whitelisted_methods = {
 } | {
 	"frappe.desk.page.workspace_restore.workspace_restore.restore_workspace_edits": (
 		"erp_internal.ruang_kerja.restore_workspace_edits"
-	)
+	),
+	# The Employee form asks for Salary Structure, which the Payroll lock refuses.
+	"hrms.overrides.employee_master.get_assignable_masters": "erp_internal.tampilan.master_karyawan",
 }
 
 after_install = "erp_internal.setup.pastikan_setup"

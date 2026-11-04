@@ -2,8 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-04, module and report lock): `run-tests --app erp_internal` 260 tests (13 unit + 247 integration), all
-OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
+Last full run (2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
+OK (then `test_modul_mati` 11 OK after the Employee form fix); before that (module and report lock) 260 tests, all OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
 (2026-11-03, app version): 252 tests, all OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
 Before that (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
 all OK; `cek_layar` 3 users OK (menu checks included); `lantai.mjs` all OK (pilih and perf rerun alone: during the
@@ -25,8 +25,9 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       `v` + `erp_internal.__version__`. Tests `test_versi`, `cek_layar` checks both.
 - [ ] Abel: look at the version on the login page and in Settings (avatar menu, My Settings).
 - [x] Unused modules locked (`tampilan.MODUL_MATI`, Abel 2026-11-04): no menu, search or URL for anyone but Administrator.
-- [ ] HR's unused DocTypes (Recruitment, Appraisal, Training, Expense, Travel, ...) locked the same way, DocType by
-      DocType (HR also holds Attendance, Shift and Leave, which are in use).
+- [x] HR's unused DocTypes locked the same way (`tampilan.DOCTYPE_MATI`, Abel 2026-11-04): recruitment, appraisal,
+      training, expenses, travel, lifecycle, vehicles, skills, overtime; attendance, shift and leave stay open.
+- [ ] Abel: as Admin, open HR (Attendance, Leave Application) and check nothing you use is gone.
 - [ ] Then the same setup work for BPT, then the sawit autoerp, one at a time in their own sessions.
 
 ## Done: one labelled menu instead of the icon rail (Abel, 2026-11-03)

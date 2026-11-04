@@ -8,11 +8,33 @@ from frappe.boot import get_bootinfo
 from frappe.tests import IntegrationTestCase
 
 from erp_internal import tampilan
-from erp_internal.tampilan import ADMIN, DEVELOPER, MODUL_MATI, PERAN_KUNCI, USER, saring_modul_mati
+from erp_internal.tampilan import (
+	ADMIN,
+	DEVELOPER,
+	DOCTYPE_MATI,
+	LAPORAN_MATI,
+	MODUL_MATI,
+	PERAN_KUNCI,
+	USER,
+	saring_modul_mati,
+)
 from erp_internal.tests.test_tampilan import pengguna_profil
 
-# One DocType per kind of module: CRM, Assets, Quality, Support, Payroll (HRMS).
-CONTOH_MATI = ("Lead", "Opportunity", "Asset", "Quality Goal", "Issue", "Salary Slip")
+# One DocType per kind of module: CRM, Assets, Quality, Support, Payroll (HRMS), and HR's unused ones.
+CONTOH_MATI = (
+	"Lead",
+	"Opportunity",
+	"Asset",
+	"Quality Goal",
+	"Issue",
+	"Salary Slip",
+	"Job Applicant",
+	"Appraisal",
+	"Expense Claim",
+	"Overtime Slip",
+)
+# HR's used DocTypes stay open for Admin (and Developer).
+HR_TETAP = ("Employee", "Attendance", "Employee Checkin", "Leave Application", "Shift Type", "Holiday List")
 # Used DocTypes each profile still reads.
 TETAP = {DEVELOPER: "Sales Order", ADMIN: "Sales Order", USER: "Delivery Note"}
 
@@ -30,6 +52,19 @@ class TestModulMati(IntegrationTestCase):
 			self.assertTrue(frappe.has_permission(TETAP[profil], "read", user=u), profil)
 		for dt in CONTOH_MATI:
 			self.assertTrue(frappe.has_permission(dt, "read", user="Administrator"), dt)
+
+	def test_hr_dipakai_tetap_buka(self):
+		for profil in (DEVELOPER, ADMIN):
+			u = pengguna_profil(profil, "mati")
+			for dt in HR_TETAP:
+				self.assertTrue(frappe.has_permission(dt, "read", user=u), f"{profil} {dt}")
+		self.assertFalse(set(HR_TETAP) & set(tampilan.doctype_mati()))
+
+	def test_nama_doctype_ada(self):
+		# A typo in DOCTYPE_MATI or LAPORAN_MATI would leave that DocType or report open without a word.
+		self.assertEqual([dt for dt in DOCTYPE_MATI if not frappe.db.exists("DocType", dt)], [])
+		self.assertEqual([r for r in LAPORAN_MATI if not frappe.db.exists("Report", r)], [])
+		self.assertLessEqual(set(DOCTYPE_MATI), set(tampilan.doctype_mati()))
 
 	def test_satu_baris_kunci(self):
 		for dt in tampilan.doctype_mati():
@@ -88,6 +123,11 @@ class TestModulMati(IntegrationTestCase):
 		# back. A report outside the list stays as it is.
 		self.assertEqual(frappe.db.get_value("Report", "Lead Conversion Time", "disabled"), 1)
 		self.assertEqual(frappe.db.get_value("Report", "Stock Balance", "disabled"), 0)
+		# HR: reports on a locked DocType or in LAPORAN_MATI are off, attendance and leave reports stay.
+		for nama in ("Unpaid Expense Claim", "Appraisal Overview", "Vehicle Expenses"):
+			self.assertEqual(frappe.db.get_value("Report", nama, "disabled"), 1, nama)
+		for nama in ("Monthly Attendance Sheet", "Employee Leave Balance"):
+			self.assertEqual(frappe.db.get_value("Report", nama, "disabled"), 0, nama)
 		tanpa = tuple(m for m in MODUL_MATI if m != "CRM")
 		try:
 			with patch.object(tampilan, "MODUL_MATI", tanpa):
@@ -96,6 +136,23 @@ class TestModulMati(IntegrationTestCase):
 		finally:
 			tampilan._kunci_modul()
 		self.assertEqual(frappe.db.get_value("Report", "Lead Conversion Time", "disabled"), 1)
+
+	def test_master_karyawan(self):
+		# The Employee form's assign buttons ask for Salary Structure (Payroll, locked): False, not a Permission Error.
+		self.assertIn(
+			"erp_internal.tampilan.master_karyawan",
+			frappe.get_hooks("override_whitelisted_methods")[
+				"hrms.overrides.employee_master.get_assignable_masters"
+			],
+		)
+		company = frappe.get_all("Company", pluck="name", limit=1)[0]
+		frappe.set_user(pengguna_profil(ADMIN, "mati"))
+		try:
+			hasil = tampilan.master_karyawan(company)
+		finally:
+			frappe.set_user("Administrator")
+		self.assertIs(hasil["Salary Structure"], False)
+		self.assertEqual(set(hasil), {"Leave Policy", "Salary Structure", "Shift Schedule"})
 
 	def test_boot_tak_pernah_gagal(self):
 		saring_modul_mati(frappe._dict(user=None))

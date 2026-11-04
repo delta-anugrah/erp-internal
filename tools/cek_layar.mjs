@@ -7,7 +7,7 @@
 //
 // For each user it opens the apps screen, the module home and one new form, and asserts: the page is full
 // width, the ERPNext and HRMS rails show only that profile's modules, Frappe's own tile (Build) shows for
-// Developer only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
+// Developer only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) and HR DocTypes (DOCTYPE_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
 
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -310,8 +310,12 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	// Modules nobody uses (tampilan.MODUL_MATI): not in the search bar or a menu, refused by URL. After the console
 	// check: the refusal logs a 403.
 	const mati = await page.evaluate(() => ({
-		cari: ["Lead", "Asset", "Issue", "Quality Goal", "Salary Slip"].filter((d) => frappe.boot.user.can_read.includes(d)),
-		menu: Object.keys(frappe.boot.module_sidebars || {}).filter((s) => /^(CRM|Assets|Quality|Support|Payroll)$/.test(s)),
+		cari: ["Lead", "Asset", "Issue", "Quality Goal", "Salary Slip", "Job Applicant", "Appraisal", "Expense Claim"].filter((d) =>
+			frappe.boot.user.can_read.includes(d)
+		),
+		menu: Object.keys(frappe.boot.module_sidebars || {}).filter((s) =>
+			/^(CRM|Assets|Quality|Support|Payroll|Recruitment|Performance|Expenses|Tenure)$/.test(s)
+		),
 	}));
 	cek(!mati.cari.length && !mati.menu.length, `unused modules still offered: ${JSON.stringify(mati)}`);
 	await page.goto(`${URL}/desk/lead`);
@@ -321,6 +325,14 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	cek(/Not permitted|Not found/i.test(await page.locator("body").innerText()), "/desk/lead opened");
 	const api = await page.request.get(`${URL}/api/resource/Lead?limit=1`);
 	cek(api.status() === 403, `/api/resource/Lead: ${api.status()}`);
+	// HR's unused DocTypes (tampilan.DOCTYPE_MATI) are refused too; the attendance the office uses stays open where the
+	// profile has HR.
+	const klaim = await page.request.get(`${URL}/api/resource/Expense Claim?limit=1`);
+	cek(klaim.status() === 403, `/api/resource/Expense Claim: ${klaim.status()}`);
+	if (harap.modul.includes("Shift & Attendance")) {
+		const absen = await page.request.get(`${URL}/api/resource/Attendance?limit=1`);
+		cek(absen.status() === 200, `/api/resource/Attendance: ${absen.status()}`);
+	}
 	await context.close();
 
 	// Phone width: Frappe's drawer shows the same menu and shuts after a link click.

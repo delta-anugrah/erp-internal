@@ -39,7 +39,19 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Responsive (Abel): the login version, the floor's back button and the Settings version checked at 390 px and 768 px
   (no overflow, no sideways scroll). Found and fixed: the floor's output card ran past a phone's edge ("39.427 / 3…"):
   its "/ plan" now sits under the figure below 760 px. `cek_layar` now checks the floor on a phone per role.
-- Next: push + PR; HR's unused DocTypes.
+- HR's unused DocTypes locked (Abel's yes to the proposed list): `tampilan.DOCTYPE_MATI` (50 DocTypes:
+  recruitment, appraisal, training, expense claims and advances, travel, onboarding/separation/promotion/transfer,
+  grievance, vehicles, skills, daily work summary, health insurance, overtime), the menu-only modules Recruitment,
+  Performance, Expenses, Tenure, Tax and Benefits added to `MODUL_MATI`, and their reports disabled (by
+  `ref_doctype`, plus `LAPORAN_MATI` Vehicle Expenses). Attendance, check-ins, shifts, leave, holidays, HR Settings
+  and their masters stay open. Goes into PR #9 (Abel: start now).
+- Found in Playwright (Admin and Developer): the Employee form popped "Insufficient Permission for Salary Structure"
+  since the Payroll lock (HRMS `get_assignable_masters`). Routed to `tampilan.master_karyawan`, which answers False
+  for a master the user cannot read. Employee, Attendance, Leave Application, Shift Assignment, Employee Checkin
+  forms now open with no popup or 4xx.
+- Tests as run: full run 262 tests (13 unit + 249 integration), all OK before the override; `test_modul_mati` 11 OK
+  after it; `cek_layar` 3 users OK (now also `/api/resource/Expense Claim` 403, Attendance 200); ruff clean.
+- Next: Abel checks HR as Admin; PR #9 review.
 
 ## 2026-11-03 (one-command setup, built)
 - Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md` (deviations at its end), built inline:

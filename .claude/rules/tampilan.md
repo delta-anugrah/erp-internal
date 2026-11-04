@@ -14,7 +14,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
 | Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards) |
 | Per user | none | `User.block_modules` from the Module Profile of the same name (`blok_profil`: Admin and User outside `MODUL_BOLEH`, Developer only `MODUL_MATI`; `_modul_pengguna` keeps each profile's users on it, and Administrator's own blocks on `MODUL_MATI`) |
-| Unused modules | DocPerm | `MODUL_MATI` (`_kunci_modul`): one Custom DocPerm for the Administrator role per DocType, so no other user reads, searches or opens them by URL; `saring_modul_mati` (`extend_bootinfo`) drops them and their reports from every boot (Administrator's search). Administrator still opens one by URL |
+| Unused modules | DocPerm | `MODUL_MATI` and HR's `DOCTYPE_MATI` (`_kunci_modul`, `doctype_mati()`): one Custom DocPerm for the Administrator role per DocType, so no other user reads, searches or opens them by URL; `saring_modul_mati` (`extend_bootinfo`) drops them and their reports from every boot (Administrator's search). Administrator still opens one by URL |
 
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
@@ -126,10 +126,15 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Unused modules (Abel 2026-11-04, `MODUL_MATI`): a Module Profile block only hides the way in (`frappe.utils.modules`
   says so: never a security boundary), so a blocked module's documents still opened by search and URL. The lock is
   a Custom DocPerm for the Administrator role on each of their DocTypes (a DocType with Custom DocPerms ignores its
-  standard ones); `_kunci_modul` removes it again when a module leaves the list, only for a DocType it locked itself
+  standard ones); `_kunci_modul` removes it again when a module leaves `MODUL_MATI` or a DocType leaves `DOCTYPE_MATI`, only for a DocType it locked itself
   (global default `erp_modul_terkunci`): a Custom DocPerm set by hand elsewhere is never touched. A
   report of those modules can read an open DocType (Lead Conversion Time reads Communication, the VAT reports GL
   Entry), so `_matikan_laporan` disables every report of `MODUL_MATI` (refused even by URL, Administrator too) and
   enables again only those it disabled (`erp_laporan_mati`). `saring_modul_mati` also drops reports, pages and
-  dashboards whose module is locked. Bulk Transaction stays open (list bulk actions log there). HR is mixed and comes next, DocType by
-  DocType. `test_modul_mati`; `cek_layar` checks the boot, the menu, `/desk/lead` and `/api/resource/Lead` (403).
+  dashboards whose module is locked. Bulk Transaction stays open (list bulk actions log there). HR's DocTypes are all module "HR", mixed: the
+  unused ones are named in `DOCTYPE_MATI` (Abel 2026-11-04) and locked the same way; `_matikan_laporan` also disables reports
+  whose `ref_doctype` is one of them, plus `LAPORAN_MATI` (Vehicle Expenses reads Vehicle Log). The menu-only HRMS modules
+  Recruitment, Performance, Expenses, Tenure and Tax and Benefits are in `MODUL_MATI`. `test_nama_doctype_ada` catches a typo. The Employee form asks HRMS's
+  `get_assignable_masters` for Salary Structure (Payroll, locked), which raised a Permission Error popup:
+  `hooks.override_whitelisted_methods` routes it to `tampilan.master_karyawan` (same filters, an unreadable master is
+  False; `test_master_karyawan`). `test_modul_mati`; `cek_layar` checks the boot, the menu, `/desk/lead`, `/api/resource/Lead` and `/api/resource/Expense Claim` (403), and Attendance still 200 where the profile has HR.

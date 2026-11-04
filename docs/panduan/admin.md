@@ -16,7 +16,9 @@ Ada tiga peran (**Role Profile**):
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
-Modul yang tidak dipakai (CRM, Assets, Quality, Support, Payroll, dan lain-lain) dikunci: tidak ada di menu, tidak
+Modul yang tidak dipakai (CRM, Assets, Quality, Support, Payroll, dan lain-lain) dikunci, begitu juga bagian HR yang
+tidak dipakai (rekrutmen, penilaian kinerja, training, klaim biaya, perjalanan dinas, lembur, dan lain-lain; absen,
+shift dan cuti tetap jalan): tidak ada di menu, tidak
 muncul di pencarian, dan tidak bisa dibuka lewat alamat. Kalau suatu hari dibutuhkan, tim IT membukanya
 (hapus dari daftar di kode, lalu migrate).
 

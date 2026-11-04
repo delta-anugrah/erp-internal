@@ -300,7 +300,9 @@ The menu folds to a rail of module icons and opens again with the 32 px arrow at
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.
 
 The table is Admin's view. A User's menu has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
-doctype or report still opens.
+doctype or report still opens. Unused modules (`tampilan.MODUL_MATI`) and HR's unused DocTypes (`tampilan.DOCTYPE_MATI`:
+recruitment, appraisal, training, expenses, travel, lifecycle, vehicles, skills, overtime) are locked for everyone but
+Administrator and their reports are disabled; remove an entry and migrate to unlock it.
 
 ## Roles
 

@@ -189,8 +189,9 @@ MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), USER: ("Stock", "Manufacturing")
 # user reads, searches or opens them by URL. Developer's Module Profile blocks them (it blocks nothing else),
 # Administrator's own `block_modules` too, and `saring_modul_mati` takes them out of every boot (Administrator's
 # search). Administrator still opens one by URL: the way back, and the user ERPNext's own jobs run as. Bulk
-# Transaction stays open: list views log their bulk actions there. HR is mixed (Attendance and Shift are in use):
-# next, DocType by DocType. Remove a module here and migrate to unlock it.
+# Transaction stays open: list views log their bulk actions there. HR's own DocTypes are all module "HR", mixed
+# (Attendance, Shift and Leave are in use), so its unused ones are listed by name in DOCTYPE_MATI; Recruitment,
+# Performance, Expenses, Tenure and Tax and Benefits hold only those menus. Remove a module here and migrate to unlock it.
 MODUL_MATI = (
 	"CRM",
 	"Assets",
@@ -206,7 +207,74 @@ MODUL_MATI = (
 	"ERPNext Integrations",
 	"Communication",
 	"Portal",
+	"Recruitment",
+	"Performance",
+	"Expenses",
+	"Tenure",
+	"Tax and Benefits",
 )
+# HR's unused DocTypes (Abel, 2026-11-04), locked like MODUL_MATI's. The office uses attendance, check-ins, shifts,
+# leave and holidays only; overtime goes with Payroll. Remove one here and migrate to unlock it.
+DOCTYPE_MATI = (
+	# Recruitment
+	"Job Requisition",
+	"Job Opening",
+	"Job Opening Template",
+	"Job Applicant",
+	"Job Applicant Source",
+	"Interview",
+	"Interview Feedback",
+	"Interview Type",
+	"Job Offer",
+	"Job Offer Term Template",
+	"Offer Term",
+	"Appointment Letter",
+	"Appointment Letter Template",
+	"Staffing Plan",
+	"Employee Referral",
+	# Performance
+	"Appraisal",
+	"Appraisal Cycle",
+	"Appraisal Template",
+	"Goal",
+	"KRA",
+	"Employee Performance Feedback",
+	"Employee Feedback Criteria",
+	# Training
+	"Training Program",
+	"Training Event",
+	"Training Feedback",
+	"Training Result",
+	# Expenses and travel
+	"Expense Claim",
+	"Expense Claim Type",
+	"Employee Advance",
+	"Travel Request",
+	"Purpose of Travel",
+	# Employee lifecycle
+	"Employee Onboarding",
+	"Employee Onboarding Template",
+	"Employee Separation",
+	"Employee Separation Template",
+	"Employee Promotion",
+	"Employee Transfer",
+	"Exit Interview",
+	"Full and Final Statement",
+	"Employee Grievance",
+	"Grievance Type",
+	# Fleet, skills and the rest
+	"Vehicle Log",
+	"Vehicle Service Item",
+	"Skill",
+	"Employee Skill Map",
+	"Daily Work Summary",
+	"Daily Work Summary Group",
+	"Employee Health Insurance",
+	"Overtime Type",
+	"Overtime Slip",
+)
+# Reports of an open module that read only DOCTYPE_MATI's records though their ref_doctype stays open.
+LAPORAN_MATI = ("Vehicle Expenses",)
 PERAN_KUNCI = "Administrator"  # the one role a locked DocType's Custom DocPerm names
 # Global default: the DocTypes `_kunci_modul` locked (JSON), the only ones it unlocks.
 KUNCI_GLOBAL = "erp_modul_terkunci"
@@ -924,10 +992,27 @@ def _modul_pengguna() -> None:
 
 
 def doctype_mati() -> list[str]:
-	"""The DocTypes of MODUL_MATI that have permissions of their own (child tables follow their parent)."""
-	return frappe.get_all(
-		"DocType", {"module": ("in", MODUL_MATI), "istable": 0}, pluck="name", order_by="name"
-	)
+	"""The DocTypes of MODUL_MATI, and those of DOCTYPE_MATI that exist, that have permissions of their own (child
+	tables follow their parent)."""
+	modul = frappe.get_all("DocType", {"module": ("in", MODUL_MATI), "istable": 0}, pluck="name")
+	nama = frappe.get_all("DocType", {"name": ("in", DOCTYPE_MATI), "istable": 0}, pluck="name")
+	return sorted(set(modul) | set(nama))
+
+
+@frappe.whitelist()
+def master_karyawan(company: str) -> dict[str, bool]:
+	"""HRMS's `get_assignable_masters` (the Employee form's assign buttons), with a master the user cannot read
+	(Salary Structure, locked with Payroll) answered False instead of a Permission Error popup. Same filters as
+	HRMS v16.52."""
+	masters = {
+		"Leave Policy": {"docstatus": 1},
+		"Salary Structure": {"docstatus": 1, "is_active": "Yes", "company": company},
+		"Shift Schedule": {"docstatus": 1},
+	}
+	return {
+		dt: frappe.has_permission(dt, "read") and bool(frappe.get_list(dt, filters=f, limit=1, pluck="name"))
+		for dt, f in masters.items()
+	}
 
 
 def _kunci_modul() -> None:
@@ -970,8 +1055,11 @@ def _kunci_modul() -> None:
 
 
 def _matikan_laporan() -> None:
-	"""Disable the reports of MODUL_MATI; enable again only those this function disabled and that left it."""
+	"""Disable the reports of MODUL_MATI, those built on a DOCTYPE_MATI DocType and LAPORAN_MATI; enable again only
+	those this function disabled and that left them."""
 	mati = set(frappe.get_all("Report", {"module": ("in", MODUL_MATI)}, pluck="name"))
+	mati |= set(frappe.get_all("Report", {"ref_doctype": ("in", DOCTYPE_MATI)}, pluck="name"))
+	mati |= set(frappe.get_all("Report", {"name": ("in", LAPORAN_MATI)}, pluck="name"))
 	dulu = set(frappe.parse_json(frappe.db.get_global(LAPORAN_GLOBAL) or "[]"))
 	for nama in sorted(mati):
 		if not frappe.db.get_value("Report", nama, "disabled"):
