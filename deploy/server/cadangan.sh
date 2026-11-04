@@ -3,6 +3,8 @@
 #   1. bench backup --with-files --compress inside the backend container;
 #   2. the newest set (database, public files, private files) copied to ./cadangan and then to $RCLONE_REMOTE;
 #   3. sets older than SIMPAN_HARI (14) days deleted, here and on the remote.
+# Without RCLONE_REMOTE (the destination was skipped in make setup) the set stays in ./cadangan only, with a
+# warning line; add RCLONE_REMOTE=<remote> to .env (and install rclone) to copy it off the server.
 # Exits non-zero on any failure, so cron's mail or the log shows it.
 #
 #   ./cadangan.sh            (in the directory holding docker-compose.yml and .env)
@@ -12,12 +14,11 @@ DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$DIR"
 
 ENV_FILE=${ENV_FILE:-$DIR/.env}
-# Only the two values this script needs, never the whole .env (it holds the database root password).
+# Only the values this script needs, never the whole .env (it holds the database root password).
 baca() { sed -n "s/^$1=//p" "$ENV_FILE" | tail -1; }
 SITE=${SITE:-$(baca SITE)}
 RCLONE_REMOTE=${RCLONE_REMOTE:-$(baca RCLONE_REMOTE)}
 : "${SITE:?SITE missing in $ENV_FILE}"
-: "${RCLONE_REMOTE:?RCLONE_REMOTE missing in $ENV_FILE}"
 SIMPAN_HARI=${SIMPAN_HARI:-14}
 LOKAL=${CADANGAN_LOKAL:-$DIR/cadangan}
 
@@ -47,6 +48,12 @@ for f in "${berkas[@]}"; do
 	touch "$LOKAL/$(basename "$f")"
 done
 nama=$(basename "$awalan")
+if [ -z "$RCLONE_REMOTE" ]; then
+	log "no RCLONE_REMOTE: $nama kept in ./cadangan only, not copied off this server"
+	find "$LOKAL" -type f -mmin +$((SIMPAN_HARI * 1440)) -delete
+	log "OK $nama"
+	exit 0
+fi
 log "copy $nama-* to $RCLONE_REMOTE"
 rclone copy "$LOKAL" "$RCLONE_REMOTE" --include "$nama-*"
 # A copy that did not land is a failure, not a warning.

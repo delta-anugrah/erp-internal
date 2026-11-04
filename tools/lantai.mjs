@@ -100,7 +100,7 @@ const cek = (syarat, pesan) => syarat || gagal.push(pesan);
 // set statuses on any machine: turn them on for the run (db.set_value, no controller) and back off at the end.
 const bench = (...args) => execFileSync("bench", ["--site", SITUS, ...args], { cwd: BENCH, encoding: "utf8" });
 const MATI = JSON.parse(
-	bench("execute", "frappe.get_all", "--kwargs", JSON.stringify({ doctype: "Workstation", filters: { disabled: 1, erp_nomor: [">", 0] }, pluck: "name" })).trim().split("\n").pop()
+	bench("execute", "frappe.get_all", "--kwargs", JSON.stringify({ doctype: "Workstation", filters: { disabled: 1, erp_nomor: [">", 0] }, pluck: "name" })).trim().split("\n").pop() || "[]" // bench prints nothing for an empty list
 );
 for (const m of MATI) bench("execute", "frappe.db.set_value", "--args", JSON.stringify(["Workstation", m, "disabled", 0]));
 const pulihkanMati = () => {

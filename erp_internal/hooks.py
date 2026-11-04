@@ -52,8 +52,11 @@ add_to_apps_screen = [
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = "/assets/erp_internal/css/erp_internal.css"  # public/css: avatar cursor, sidebar fold arrow
-app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: the language switch
+app_include_css = "/assets/erp_internal/css/erp_internal.css"  # public/css: avatar cursor, sidebar fold arrow, Settings version
+app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: language switch, menu, version
+
+# The app version under the login card (erp_internal/versi.py; Desk shows it in the Settings dialog, public/js/versi.js).
+update_website_context = "erp_internal.versi.di_login"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/erp_internal/css/erp_internal.css"
@@ -183,6 +186,7 @@ extend_bootinfo = [
 	"erp_internal.tampilan.saring_aplikasi",
 	"erp_internal.tampilan.merek_aplikasi",
 	"erp_internal.tampilan.menu_samping",
+	"erp_internal.tampilan.saring_modul_mati",
 ]
 
 # Frappe's workspace writes answer with a fresh `app_data` that skips extend_bootinfo; ours run Frappe's and then
@@ -193,11 +197,15 @@ override_whitelisted_methods = {
 } | {
 	"frappe.desk.page.workspace_restore.workspace_restore.restore_workspace_edits": (
 		"erp_internal.ruang_kerja.restore_workspace_edits"
-	)
+	),
+	# The Employee form asks for Salary Structure, which the Payroll lock refuses.
+	"hrms.overrides.employee_master.get_assignable_masters": "erp_internal.tampilan.master_karyawan",
 }
 
 after_install = "erp_internal.setup.pastikan_setup"
 after_migrate = "erp_internal.setup.pastikan_setup"
+# The wizard, filled by make or in the browser: our company, the wizard's account as Developer, Samuel's data once.
+setup_wizard_complete = "erp_internal.wizard.selesai"
 
 # Frappe runs only the tested app's before_tests: complete the test site's wizard (HRMS's own hook,
 # which also runs ERPNext's setup), then our setup.

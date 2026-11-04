@@ -13,7 +13,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 | Menu (ERP and HR pages) | none | `menu_samping` (`extend_bootinfo`, `erp_menu`) + `public/js/menu_samping.js`: every module of the user as a collapsible header |
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
 | Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards) |
-| Per user | none | `User.block_modules` from the Module Profile (`MODUL_BOLEH`: Admin, User; Developer has none) |
+| Per user | none | `User.block_modules` from the Module Profile of the same name (`blok_profil`: Admin and User outside `MODUL_BOLEH`, Developer only `MODUL_MATI`; `_modul_pengguna` keeps each profile's users on it, and Administrator's own blocks on `MODUL_MATI`) |
+| Unused modules | DocPerm | `MODUL_MATI` and HR's `DOCTYPE_MATI` (`_kunci_modul`, `doctype_mati()`): one Custom DocPerm for the Administrator role per DocType, so no other user reads, searches or opens them by URL; `saring_modul_mati` (`extend_bootinfo`) drops them and their reports from every boot (Administrator's search). Administrator still opens one by URL |
 
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
@@ -29,11 +30,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   Attendance, `PINTASAN["HR"]` written into it), first in the Shift & Attendance sidebar; a standard Workspace keeps
   its app's title and `Custom Workspace` has no title field. So the page title, breadcrumb and tab read "HR"
   ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
-- Our module `Planning` has no Dock entry or Sidebar and stays blocked in every Module Profile; its Sales History
+- Our module `Planning` has no Dock entry or Sidebar and stays blocked in the Admin and User Module Profiles (Developer's blocks only `MODUL_MATI`); its Sales History
   is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and the Planning
   DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Entry (after Work
   Order), Plan vs Actual (after Order Readiness), Machine Capacity (after BOM); Reject Reason sits in Setup after
-  Manufacturing Settings. The Planning module itself stays blocked.
+  Manufacturing Settings. The Planning module itself stays blocked for Admin and User.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
@@ -106,7 +107,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   the folded rail and the phone drawer (also on a Stock page the menu does not list, which lights nothing).
 - Our CSS is one plain file, `public/css/erp_internal.css` (`hooks.app_include_css`, served as-is: no build, no
   `bench start` restart, only `clear-cache` after a hooks change). It gives the Apps screen avatar a pointer and
-  keeps the sidebar's fold arrow visible on a desktop. Frappe v16.53 folds the module sidebar with that arrow
+  keeps the sidebar's fold arrow visible on a desktop, and styles the version line at the foot of the Settings
+  dialog (`public/js/versi.js`, in the same bundle as `menu_samping.js`: wraps `SettingsDialog.render_sidebar`). Frappe v16.53 folds the module sidebar with that arrow
   (or the 8 px edge), but shows the arrow only on hover. On Frappe's own pages (System app), beside the pinned dock a folded sidebar slides shut and
   the dock stays as the rail; Frappe then parks the arrow half under the dock (z-index 1030), so our CSS moves
   it into the dock above the profile avatar as a 32 px button with border and shadow (`.sidebar-hidden`: left
@@ -118,4 +120,21 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen
   (`app_data[].on_apps_screen`), failing on a tile with nothing behind it. It also opens every home on the user's
-  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (12).
+  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (12). It reads the version on /login
+  as a guest and in each user's Settings dialog (`.settings-dialog-sidebar .erp-versi` = `v` +
+  `frappe.boot.versions.erp_internal`).
+- Unused modules (Abel 2026-11-04, `MODUL_MATI`): a Module Profile block only hides the way in (`frappe.utils.modules`
+  says so: never a security boundary), so a blocked module's documents still opened by search and URL. The lock is
+  a Custom DocPerm for the Administrator role on each of their DocTypes (a DocType with Custom DocPerms ignores its
+  standard ones); `_kunci_modul` removes it again when a module leaves `MODUL_MATI` or a DocType leaves `DOCTYPE_MATI`, only for a DocType it locked itself
+  (global default `erp_modul_terkunci`): a Custom DocPerm set by hand elsewhere is never touched. A
+  report of those modules can read an open DocType (Lead Conversion Time reads Communication, the VAT reports GL
+  Entry), so `_matikan_laporan` disables every report of `MODUL_MATI` (refused even by URL, Administrator too) and
+  enables again only those it disabled (`erp_laporan_mati`). `saring_modul_mati` also drops reports, pages and
+  dashboards whose module is locked. Bulk Transaction stays open (list bulk actions log there). HR's DocTypes are all module "HR", mixed: the
+  unused ones are named in `DOCTYPE_MATI` (Abel 2026-11-04) and locked the same way; `_matikan_laporan` also disables reports
+  whose `ref_doctype` is one of them, plus `LAPORAN_MATI` (Vehicle Expenses reads Vehicle Log). The menu-only HRMS modules
+  Recruitment, Performance, Expenses, Tenure and Tax and Benefits are in `MODUL_MATI`. `test_nama_doctype_ada` catches a typo. The Employee form asks HRMS's
+  `get_assignable_masters` for Salary Structure (Payroll, locked), which raised a Permission Error popup:
+  `hooks.override_whitelisted_methods` routes it to `tampilan.master_karyawan` (same filters, an unreadable master is
+  False; `test_master_karyawan`). `test_modul_mati`; `cek_layar` checks the boot, the menu, `/desk/lead`, `/api/resource/Lead` and `/api/resource/Expense Claim` (403), and Attendance still 200 where the profile has HR.

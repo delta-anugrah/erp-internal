@@ -62,6 +62,9 @@ The full description is in CLAUDE.md's "Where things are"; the design and its tw
 
 ## The info cards (`hud.js`)
 
+- **Top bar** (`.bar`): back button `.kembali` (an arrow, `frappe.set_route("manufacturing")`; not a house, since the
+  camera bar's house `.reset` resets the view; `cek_layar` clicks it), company logo, live dot and the 1 s clock. Under 760 px the output card's "/ plan" sits under its figure (it
+  ran past the screen's edge on one line); `cek_layar` checks the back button and that card on a 390 px phone.
 - **Left column (`.kiri`)**, top left right under the top bar (under the KPI row below 1100 px): the machine table, then directly under it the
   attention card. Both are listed by `hud.kotak()`, so labels avoid them, and `ukurKotak()` feeds `adegan.aturRuang` the column's right edge (or its bottom).
   The table keeps its fold (collapsed under 760 px); the attention card has its own (`erp.lantai.perhatianTutup`, folded on a phone until opened) and is

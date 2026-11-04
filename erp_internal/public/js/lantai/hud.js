@@ -1,5 +1,5 @@
 // The info bar over the 3D floor, laid out like BPT Live's screen: a top bar (company logo and name, "Production
-// Floor", the machine count, the live dot and a ticking clock), a row of KPI cards on the right, and a collapsible
+// Floor", a back button to Manufacturing's home, the machine count, the live dot and a ticking clock), a row of KPI cards on the right, and a collapsible
 // machine table at the top left, under the bar, whose status chips double as the legend, with the attention card directly under it. A table row selects its machine
 // through `saatPilih`, the same path as a click in the scene.
 //
@@ -22,6 +22,9 @@ export const GAYA_HUD = `
 .bar{align-self:stretch;min-height:60px;box-sizing:border-box;padding:10px 14px;
 	display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap}
 .identitas{display:flex;align-items:center;gap:12px;min-width:0}
+.kembali{width:36px;height:36px;flex:none;display:grid;place-items:center;margin-right:-2px;border-radius:12px;
+	border:1px solid var(--kaca-garis);background:var(--kaca-tombol);color:inherit;cursor:pointer}
+.kembali:hover{background:var(--kaca-tombol-hover)}
 .logo{width:40px;height:40px;flex:none;border-radius:12px;display:grid;place-items:center;overflow:hidden;
 	background:#4338ca linear-gradient(140deg,#2563eb,#6d28d9);color:#fff;font-weight:700;font-size:15px;letter-spacing:.02em;
 	box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
@@ -137,6 +140,8 @@ export const GAYA_HUD = `
 	.sel .judul .pendek{display:inline}
 	.sel .nilai{font-size:16px}
 	.sel .nilai small{font-size:11px}
+	/* The output cell's "/ plan" goes under the figure on a phone: on one line it ran past the screen's edge. */
+	.sel[data-kpi="hasil"] .nilai small{display:block;line-height:1.1;overflow:hidden;text-overflow:ellipsis}
 	.sel .ket{display:none}
 	.kiri{left:8px;top:calc(var(--atas,150px) + 8px);width:calc(100% - 16px);max-height:calc(100% - var(--atas,150px) - 16px);gap:6px}
 	:host([data-panel]) .perhatian{display:none}
@@ -146,6 +151,7 @@ export const GAYA_HUD = `
 }
 `;
 
+const IKON_KEMBALI = `<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const IKON_LIPAT = `<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const KUNCI_TUTUP = "erp.lantai.tabelTutup"; // localStorage: "1" collapsed, "0" open
 const KUNCI_PERHATIAN = "erp.lantai.perhatianTutup"; // localStorage: "1" folded, "0" open
@@ -238,6 +244,14 @@ export function buatHud(root, { saatPilih, saatDetik, diam, saatKotak } = {}) {
 	const atas = el(hud, "div", "atas");
 	const bar = el(atas, "header", "bar kartu");
 	const identitas = el(bar, "div", "identitas");
+	// Out of the page without the browser's Back: Manufacturing's home, where the floor lives (the camera bar's own
+	// house button resets the view, so this one is an arrow).
+	const kembali = el(identitas, "button", "kembali");
+	kembali.type = "button";
+	kembali.innerHTML = IKON_KEMBALI;
+	kembali.title = __("Back to Manufacturing");
+	kembali.setAttribute("aria-label", kembali.title);
+	kembali.addEventListener("click", () => frappe.set_route("manufacturing"));
 	const logo = el(identitas, "div", "logo");
 	const gambar = el(logo, "img");
 	gambar.alt = "";

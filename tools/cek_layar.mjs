@@ -7,7 +7,7 @@
 //
 // For each user it opens the apps screen, the module home and one new form, and asserts: the page is full
 // width, the ERPNext and HRMS rails show only that profile's modules, Frappe's own tile (Build) shows for
-// Developer only, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
+// Developer only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) and HR DocTypes (DOCTYPE_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
 
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -52,6 +52,16 @@ mkdirSync(HASIL, { recursive: true });
 
 const gagal = [];
 const browser = await chromium.launch();
+
+// The app version under the login card (erp_internal/versi.py), read as a guest.
+{
+	const tamu = await browser.newPage();
+	await tamu.goto(`${URL}/login`);
+	const versi = await tamu.locator(".for-login .erp-versi").innerText().catch(() => "");
+	if (!/^v\d+\.\d+\.\d+$/.test(versi)) gagal.push(`login page: version "${versi}"`);
+	await tamu.screenshot({ path: join(HASIL, "login.png") });
+	await tamu.close();
+}
 
 for (const [profil, harap] of Object.entries(PROFIL)) {
 	const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -284,7 +294,45 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.waitForTimeout(1500);
 	// The floor page hides the sidebar on purpose (full-bleed); coming back must still name Manufacturing.
 	cek(page.url().includes("/manufacturing/production-floor"), `floor after a Work Order list: ${page.url()}`);
+	// Its back button (top left) leads to Manufacturing's home without the browser's Back.
+	await page.locator(".kembali").click();
+	await page.waitForURL(/\/desk\/manufacturing\/?$/, { timeout: 5000 }).catch(() => {});
+	cek(/\/desk\/manufacturing\/?$/.test(page.url()), `floor back button opened ${page.url()}`);
+	// The user's Settings dialog (avatar menu > My Settings) ends its left menu with the app version (public/js/versi.js).
+	await page.evaluate(() => frappe.require("user_settings_dialog.bundle.js").then(() => frappe.ui.show_user_settings("profile")));
+	const versi = page.locator(".settings-dialog-sidebar .erp-versi");
+	await versi.waitFor({ timeout: 5000 }).catch(() => {});
+	const harap_versi = await page.evaluate(() => `v${frappe.boot.versions.erp_internal}`);
+	cek((await versi.count()) === 1 && (await versi.innerText()) === harap_versi, `Settings dialog: no version ${harap_versi}`);
+	await page.screenshot({ path: join(HASIL, `${slug(profil)}-settings.png`) });
+	await page.keyboard.press("Escape");
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
+	// Modules nobody uses (tampilan.MODUL_MATI): not in the search bar or a menu, refused by URL. After the console
+	// check: the refusal logs a 403.
+	const mati = await page.evaluate(() => ({
+		cari: ["Lead", "Asset", "Issue", "Quality Goal", "Salary Slip", "Job Applicant", "Appraisal", "Expense Claim"].filter((d) =>
+			frappe.boot.user.can_read.includes(d)
+		),
+		menu: Object.keys(frappe.boot.module_sidebars || {}).filter((s) =>
+			/^(CRM|Assets|Quality|Support|Payroll|Recruitment|Performance|Expenses|Tenure)$/.test(s)
+		),
+	}));
+	cek(!mati.cari.length && !mati.menu.length, `unused modules still offered: ${JSON.stringify(mati)}`);
+	await page.goto(`${URL}/desk/lead`);
+	await page.waitForLoadState("networkidle");
+	await page.waitForTimeout(800);
+	// Not permitted, or Not found for Developer (System Manager reads Page, so the route falls through to a 404).
+	cek(/Not permitted|Not found/i.test(await page.locator("body").innerText()), "/desk/lead opened");
+	const api = await page.request.get(`${URL}/api/resource/Lead?limit=1`);
+	cek(api.status() === 403, `/api/resource/Lead: ${api.status()}`);
+	// HR's unused DocTypes (tampilan.DOCTYPE_MATI) are refused too; the attendance the office uses stays open where the
+	// profile has HR.
+	const klaim = await page.request.get(`${URL}/api/resource/Expense Claim?limit=1`);
+	cek(klaim.status() === 403, `/api/resource/Expense Claim: ${klaim.status()}`);
+	if (harap.modul.includes("Shift & Attendance")) {
+		const absen = await page.request.get(`${URL}/api/resource/Attendance?limit=1`);
+		cek(absen.status() === 200, `/api/resource/Attendance: ${absen.status()}`);
+	}
 	await context.close();
 
 	// Phone width: Frappe's drawer shows the same menu and shuts after a link click.
@@ -312,6 +360,18 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await ph.waitForURL(/\/desk\/stock\/warehouse/, { timeout: 5000 }).catch(() => {});
 	cek(ph.url().includes("/desk/stock/warehouse"), `phone link opened ${ph.url()}`);
 	cek(!(await ph.locator(".body-sidebar-container.expanded").count()), "phone drawer still open after a link");
+	// The Production Floor on a phone: its back button and the output card stay on screen, no sideways scroll.
+	await ph.goto(`${URL}/desk/manufacturing/production-floor`);
+	await ph.waitForLoadState("networkidle");
+	await ph.waitForTimeout(3000);
+	const lantaiHp = await ph.evaluate(() => {
+		const root = [...document.querySelectorAll("*")].find((e) => e.shadowRoot?.querySelector(".kembali"))?.shadowRoot;
+		const kotak = (sel) => root?.querySelector(sel)?.getBoundingClientRect();
+		const ok = (r) => !!r && r.width > 0 && r.left >= 0 && r.right <= innerWidth + 1;
+		return { kembali: ok(kotak(".kembali")), hasil: ok(kotak('.sel[data-kpi="hasil"] .nilai')), lebar: document.documentElement.scrollWidth <= innerWidth };
+	});
+	cek(lantaiHp.kembali && lantaiHp.hasil && lantaiHp.lebar, `phone floor: ${JSON.stringify(lantaiHp)}`);
+	await ph.screenshot({ path: join(HASIL, `${slug(profil)}-lantai-hp.png`) });
 	await hp.close();
 }
 

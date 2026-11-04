@@ -2,7 +2,10 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
+Last full run (2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
+OK (then `test_modul_mati` 11 OK after the Employee form fix); before that (module and report lock) 260 tests, all OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
+(2026-11-03, app version): 252 tests, all OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
+Before that (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
 all OK; `cek_layar` 3 users OK (menu checks included); `lantai.mjs` all OK (pilih and perf rerun alone: during the
 full run they failed on load); `denah.test.mjs` 6 OK.
 Before that (2026-11-03, guide pictures): 233 tests (13 unit + 220 integration), all OK; since then
@@ -13,9 +16,18 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 
 ## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
-- [ ] Abel approves the spec, then the plan (superpowers:writing-plans), then build.
-- [ ] After that, a small task: show the app version (e.g. `v0.1.3`) on the login screen and in the Settings
-      dialog's left menu; `erp_internal.__version__` follows the release tag (now `0.0.1`).
+- [x] Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md`, built (Tasks 1-6): `make up`, `make setup`,
+      `make dev`, `erp_internal/wizard.py`; end to end on the Mac, automatic and by hand (PROGRESS 2026-11-03).
+- [ ] Abel: try `make up` from a fresh clone (Mac now, Samuel's Windows/WSL later).
+- [ ] On the real server: `make setup` (needs the server, Samuel question 6).
+- [x] The app version (`v0.0.1`) under the login card and at the foot of the Settings dialog's left menu
+      (`erp_internal/versi.py`, `public/js/versi.js`); the image workflow refuses a tag other than
+      `v` + `erp_internal.__version__`. Tests `test_versi`, `cek_layar` checks both.
+- [ ] Abel: look at the version on the login page and in Settings (avatar menu, My Settings).
+- [x] Unused modules locked (`tampilan.MODUL_MATI`, Abel 2026-11-04): no menu, search or URL for anyone but Administrator.
+- [x] HR's unused DocTypes locked the same way (`tampilan.DOCTYPE_MATI`, Abel 2026-11-04): recruitment, appraisal,
+      training, expenses, travel, lifecycle, vehicles, skills, overtime; attendance, shift and leave stay open.
+- [ ] Abel: as Admin, open HR (Attendance, Leave Application) and check nothing you use is gone.
 - [ ] Then the same setup work for BPT, then the sawit autoerp, one at a time in their own sessions.
 
 ## Done: one labelled menu instead of the icon rail (Abel, 2026-11-03)
@@ -28,7 +40,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 ## Done: run it on a laptop with only Docker (2026-11-03)
 - [x] Root `Makefile`: `make start-local` (first time `setup-local`: check-local, env-local, image-local, the server
       Makefile's `db site wizard`, configure-local, data-local, up; then ping-local and the accounts once; later runs
-      only start the containers), `stop`, `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
+      only start the containers), `stop` (now `down`), `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
       makes later accounts and resets passwords in the app. Compose project `erp-local`, `.local/`
       git-ignored, image `erp-internal:local` built from the repo or a released `ERP_IMAGE`.
 - [x] `tools/akun.sh` checklist (Administrator always; Developer, Admin, User optional), Administrator password only; Developer, Admin, User each email + password, typed twice,
@@ -36,7 +48,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] `deploy/server/Makefile` targets in English: check, check-env, configure, backup. `.gitattributes` LF everywhere.
 - [x] Real run on the Mac 2026-11-03 from an empty `.local` and no volumes: setup 7 min 40 s (image already built,
       a build is 10-20 min), 127 items, 54 Machine Capacity rows, 513 Sales History rows; the account picker (Admin + User,
-      every refusal tried), logins by API 200 (wrong password 401), `make stop`, `make start-local` again in 24 s.
+      every refusal tried), logins by API 200 (wrong password 401), `make stop` (now `make down`), `make start-local` again in 24 s.
 - [ ] Samuel: a fresh clone on his Mac. Not tried yet: Windows + WSL, `make update-local`.
 
 ## Done: a simpler User role (Samuel 2026-11-02)

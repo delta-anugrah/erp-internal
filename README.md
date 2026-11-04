@@ -10,18 +10,62 @@ ERPNext v16 for the plastic factory (stock, sales, purchasing, production with a
 
 ## Run it on your computer
 
-ERP Internal with the factory's real catalog, sales and machines, on http://localhost:8080. No developer tools,
-only Docker: it runs the same stack as the server.
+ERP Internal with the factory's real catalog, sales and machines, on http://localhost:8080. You need only Docker:
+it runs the same stack as the server. One command sets it up the first time and starts it every time after.
 
-1. Install **Docker Desktop** and start it. On **Windows**: Docker Desktop with the WSL 2 backend and, under
-   Settings > Resources > WSL integration, Ubuntu switched on; then open the **Ubuntu** terminal (Microsoft Store,
-   "Ubuntu") and run every command below in it, never in PowerShell; once:
-   `sudo apt update && sudo apt install -y make git curl openssl`. On a Mac, `make` and `git` come with the Xcode
-   command line tools (`xcode-select --install` if the terminal asks).
-2. Get the repo (it is private: your GitHub account must be invited to `delta-anugrah`):
-   `git clone https://github.com/delta-anugrah/erp-internal.git && cd erp-internal`
-3. `make start-local`. The first time it builds the image (10-20 minutes), makes the site, loads the catalog,
-   sales and machines, and then asks which accounts to create:
+### What you need (once)
+
+1. **Docker Desktop**, installed and running (the whale icon is steady, not animating).
+   - **Windows**: Docker Desktop with the WSL 2 backend; under Settings > Resources > WSL integration, switch
+     Ubuntu on. Then open the **Ubuntu** terminal (Microsoft Store, "Ubuntu") and type every command below in it,
+     never in PowerShell. Once, in Ubuntu: `sudo apt update && sudo apt install -y make git curl openssl`.
+   - **Mac**: `make` and `git` come with the Xcode command line tools (`xcode-select --install` if the terminal
+     asks for them).
+2. **The repo.** It is private: your GitHub account must be invited to `delta-anugrah`.
+
+   ```bash
+   git clone https://github.com/delta-anugrah/erp-internal.git
+   cd erp-internal
+   ```
+
+### First time: `make up`
+
+```bash
+make up
+```
+
+It asks a few questions first, then works by itself for 10-30 minutes (building the image is most of it). Every
+question shows a suggestion in `[brackets]`: press **Enter** to take it.
+
+1. **The setup wizard** (the company's first settings), automatic or by hand:
+
+   ```text
+   Setup wizard (the company's first settings): fill it in automatically, or by hand in the browser?
+     1) Automatically (suggested: press Enter)
+     2) By hand in the browser
+     Your choice [1]:
+   ```
+
+   Then the values, one per line with what each is for. Only the company name and its abbreviation can be changed:
+   they are already typed in, so Enter keeps them, Backspace changes them (Ctrl+U clears the line):
+
+   ```text
+   Automatic values. The first two are filled in: Enter keeps them, Backspace changes them.
+     Company name: on invoices, reports and every document
+     Company name: PT Delta Anugrah
+     Abbreviation: short code added to account and warehouse names
+     Abbreviation: DAN
+     Fiscal year:       2026                 (the bookkeeping year, 1 January to 31 December)
+     Country:           Indonesia            (tax and address formats)
+     Time zone:         Asia/Jakarta         (the clock of every document)
+     Currency:          IDR                  (the money every price and report is in)
+     Language:          English              (each user can switch to Indonesian later)
+     Chart of accounts: Standard             (the list of bookkeeping accounts)
+   ```
+
+   Choose **1** unless you want to see the wizard yourself.
+2. **The accounts.** With the automatic wizard, tick the accounts to create (Up/Down move, Space ticks, Enter goes
+   on); Administrator is always there:
 
    ```text
    Which accounts do you want to create?  (Up/Down move, Space tick, Enter continue)
@@ -31,17 +75,52 @@ only Docker: it runs the same stack as the server.
       [ ] User           daily work: production output, deliveries, raw material in
    ```
 
-   Administrator needs only a password (sign in with the name `Administrator`); every other ticked account an email
-   and a password, typed twice. A password shows as `*` while you type and needs at least 8 characters. One account
-   per role is enough to start. Everyone else gets an account from an Admin in the app (Users, with the User or
-   Admin role profile); a forgotten password is reset there too, and each person changes their own under their
-   avatar, My Settings, Change Password.
-4. Open http://localhost:8080 and sign in.
+   Administrator needs only a password (you sign in with the name `Administrator`); every other account an email and
+   a password. Each password is typed twice, shows as `*`, and needs at least 8 characters. One account per role is
+   enough to start; everyone else gets an account from an Admin in the app later.
+   With the wizard **by hand**, only the Administrator password is asked: the other accounts can exist only after
+   the wizard (see below).
 
-`make stop` stops it (the data stays); `make start-local` starts it again in seconds (the full setup runs only
-until it has succeeded once). After `git pull`, `make update-local`. Another port: `make start-local PORT=8090` the
-first time (it is kept in `.local/.env`).
-Everything local is in `.local/` (git-ignored); the data is in Docker volumes of the project `erp-local`.
+When it ends:
+
+- **Automatic**: `Ready: open http://localhost:8080 and sign in as Administrator or with an account made here.`
+  Samuel's catalog, sales and machines are already loaded.
+- **By hand**: it prints the last steps, the same every time you run `make up` until the wizard is done:
+  1. open http://localhost:8080 and sign in as `Administrator` with the password you typed;
+  2. fill in the wizard with the values printed under it. Two things the wizard does differently: its Chart of
+     Accounts suggests "Indonesia - Chart of Accounts", pick **Standard**; its "A little about you" step (kind of
+     work, team size) changes nothing here, answer as you like (Manufacturing);
+  3. in "Create your account" make your own account: it becomes the **Developer** (all rights);
+  4. wait a minute: Samuel's data loads by itself. Then add the Admin and User accounts in the app (Users, with the
+     Admin or User role profile).
+
+### Every day after
+
+| You want to | Type |
+|---|---|
+| Start it | `make up` (seconds; no questions again) |
+| Stop it (the data stays) | `make down` |
+| Get the newest version | `git pull`, then `make update-local` (rebuilds and migrates; your data and your edits stay; Samuel's data is never loaded twice) |
+| Use another port | the very first time only: `make up PORT=8090` (kept in `.local/.env`) |
+| A new person's account, or a forgotten password | an Admin in the app: Users. Everyone changes their own password under their avatar, My Settings, Change Password. |
+
+`make start` and `make start-local` are the same as `make up` (`make start` goes once the real server is live). Everything local is in `.local/` (git-ignored: generated passwords,
+the wizard answer, the backups folder); the data is in Docker volumes of the compose project `erp-local`.
+
+### When something goes wrong
+
+| The terminal says | Do this |
+|---|---|
+| `missing: docker` (or `curl`, `openssl`) | Install it (step "What you need"), then `make up` again. |
+| `Docker does not answer: start Docker Desktop and try again` | Start Docker Desktop, wait for it, `make up` again. |
+| `This asks a few questions: run it in a terminal.` | Run `make up` in a terminal window, not from a script. |
+| `no answer on http://localhost:8080 in 2 minutes` | Docker may still be busy: `make up` again. Still failing: the line shows the `docker compose ... logs` command to see why. |
+| `port is already allocated` | Something else uses port 8080: `make down` in the other copy, or start this one with `PORT=8090` the first time. |
+| Any other error during the first setup | Run `make up` again: every step skips what is done and goes on where it stopped; the questions are not asked again. |
+
+Starting over from nothing (this **deletes all data** of this copy):
+`make down`, then `docker compose -p erp-local --project-directory .local -f deploy/server/docker-compose.yml down -v`
+and `rm -rf .local`, then `make up`.
 
 ## Make commands
 
@@ -50,34 +129,45 @@ Repo root (`Makefile`, on your computer):
 | Command | What it does |
 |---|---|
 | `make help` | Lists these commands. |
-| `make start-local` | The first time: checks Docker, writes `.local/.env` with generated passwords, builds or pulls the image, starts the database, makes the site, completes the setup wizard (PT Delta Anugrah), migrates, loads the factory's catalog, sales and machines, starts the stack, waits for it, asks for the accounts. Each step skips what is done, so a run cut off halfway goes on where it stopped. Once that has succeeded (`.local/siap`), it only starts the containers and waits for them, and asks for the accounts again only if that step never finished (`.local/akun-siap`). |
-| `make stop` | Stops the stack; the data stays. |
-| `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, reloads the catalog, sales and machines, starts the stack. |
+| `make up` | Same as `make start-local`. `make start` is the same too, until the real server is live. |
+| `make start-local` | The first time (no `.local/siap`): `tools/setup_lokal.sh` asks the wizard question (kept in `.local/wizard`) and the accounts, then runs `setup-local`, waits for the stack, makes the accounts (`.local/akun-siap`; the generated `ADMIN_PASSWORD` then leaves `.local/.env`) and prints where to go. Afterwards it only starts the containers, waits for them and prints the same last line. |
+| `make down` | Stops the stack; the data stays. |
+| `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. |
+| `make wizard-selesai` | Exit 0 when the setup wizard is done (used for the last line). |
+| `make lanjut` | After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
+| `make dev` | For coding (not Docker): starts `erp-mariadb` and `bench start` in the bench of `tools/setup_bench.sh` (Python reloads, JS/CSS rebuild; a DocType change needs `bench migrate`). Without the bench it says so. |
 
-The first-time setup is `setup-local` (run by `start-local` until `.local/siap` exists): `check-local`, `env-local`,
-`image-local`, `db`, `site` and `wizard` of the server Makefile, `configure-local`, `data-local`, then up;
-`start-local` runs `ping-local` after it. Each is its own target too.
-`ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z` on the first `make start-local` pulls a released image instead of
-building one (needs `docker login ghcr.io` first: the image is private).
+`setup-local` is `check-local`, `env-local`, `image-local`, then the server Makefile's `db`, `site` (also sets
+`erp_produksi`: real data, sample data refused) and, with `WIZARD=otomatis`, `wizard`; then `configure-local`
+(migrate, host name, scheduler); then up. After the wizard, however it was filled, `erp_internal.wizard` ticks the
+company's `erp_aktif` and, in a background job and again through `make lanjut` (run by `setup_lokal.sh` until
+`.local/lanjut-siap`), makes the wizard's own account a Developer and loads Samuel's data once (marker
+`erp_data_samuel`). `ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
+on the first `make up` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
+image is private). `PROYEK=<name>` (with another `PORT` and `ERP_IMAGE`) runs a second stack beside the first, for
+a test.
 
 Server (`deploy/server/Makefile`, run in `~/erp` on the server; runbook `deploy/server/README.md`):
 
 | Command | What it does |
 |---|---|
 | `make help` | Lists the steps. |
-| `make env SITE=… ERP_IMAGE=… RCLONE_REMOTE=…` | Writes `.env` with generated passwords, once. |
-| `make setup [COMPANY=… ABBR=… TAHUN=…]` | Every step below in order, stops at the first error. |
-| `make check` | Tools on the host (docker, compose, rclone, openssl, curl, crontab) and the time zone Asia/Jakarta. |
-| `make check-env` | `.env` is mode 600, has every key, `ERP_IMAGE` is an exact tag. |
-| `make pull` | Pulls the image (needs `docker login ghcr.io`). |
+| `make setup` | Runs `setup.sh`: the questions (GitHub token, site address, app version, backup destination, wizard, accounts; each skipped when already answered), `.env`, then `langkah` (`check check-env pull db site`), `wizard configure` (automatic) or `configure` (by hand), the accounts, `lanjut` once the wizard is done, `up ping cron`, and the last line. |
+| `make env SITE=… ERP_IMAGE=… [RCLONE_REMOTE=…]` | Writes `.env` with generated passwords, once, without questions. |
+| `make langkah` | The steps before the wizard: `check check-env pull db site` (`make -n langkah` prints their commands). |
+| `make wizard-selesai` | Exit 0 when the setup wizard is done, 1 when not. |
+| `make check` | Tools on the host (docker, compose, openssl, curl, crontab; rclone only with a backup destination) and the time zone Asia/Jakarta. |
+| `make check-env` | `.env` is mode 600, has `ERP_IMAGE`, `SITE`, `DB_ROOT_PASSWORD`, `ERP_IMAGE` is an exact tag. |
+| `make pull` | Pulls the image (needs `docker login ghcr.io`; `make setup` does it). |
 | `make db` | Starts MariaDB, Redis and the configurator. |
-| `make site` | Makes the site if missing and installs any missing app. |
+| `make site` | Makes the site if missing, installs any missing app, sets `erp_produksi`. |
 | `make wizard` | Completes the setup wizard (skipped when done). |
-| `make configure` | Ticks `erp_aktif`, migrates, sets `host_name` and `erp_produksi`, turns the scheduler on. |
+| `make configure` | Migrates, sets `host_name`, turns the scheduler on. |
+| `make lanjut` | After the wizard: our setup, the company on Admin/User accounts, Samuel's data the first time. |
 | `make up` | Starts the whole stack. |
 | `make ping` | Checks that the stack answers on `127.0.0.1:PORT` (8080 unless `.env` sets PORT). |
 | `make cron` | Adds the nightly backup line to the crontab, once. |
-| `make backup` | One backup by hand (`cadangan.sh`). |
+| `make backup` | One backup by hand (`cadangan.sh`; without `RCLONE_REMOTE` it stays in `./cadangan`). |
 
 ## Dev setup (macOS)
 
@@ -144,7 +234,7 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 
 Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@example.com` of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
-(the password is `SAMPLE_PASSWORD` in the bench's `.env`). Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`; Admin's screens as `admin@`, the User's `gudang-2`/`gudang-3` as `user@`).
+(the password is `SAMPLE_PASSWORD` in the bench's `.env`). It also checks the app version under the login card (as a guest) and at the foot of each role's Settings dialog. Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`; Admin's screens as `admin@`, the User's `gudang-2`/`gudang-3` as `user@`).
 `tools/lantai.mjs` checks the Production Floor page (`/desk/production-floor`, Manufacturing's first link) the same
 way: the 14 machines in floor order, status lamps, labels, the side panel and its status buttons, live updates, the
 info bar, the attention card, the loading screen, the dark decor, the glass look in light and dark, a plain table without WebGL, and the smoothness budget (frame rate,
@@ -210,7 +300,9 @@ The menu folds to a rail of module icons and opens again with the 32 px arrow at
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.
 
 The table is Admin's view. A User's menu has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
-doctype or report still opens.
+doctype or report still opens. Unused modules (`tampilan.MODUL_MATI`) and HR's unused DocTypes (`tampilan.DOCTYPE_MATI`:
+recruitment, appraisal, training, expenses, travel, lifecycle, vehicles, skills, overtime) are locked for everyone but
+Administrator and their reports are disabled; remove an entry and migrate to unlock it.
 
 ## Roles
 
@@ -251,8 +343,42 @@ Mac the password is kept only in `~/Desktop/Projects/erp-internal-bench/.env` as
 
 ## Server
 
+### Put it on the server: `make setup`
+
+Before it, by hand (`deploy/server/README.md` steps 1-3): an Ubuntu server with Docker and the user `deploy`, a DNS
+record for the address (for example `app.deltaanugrah.com`) pointing at it, and the reverse proxy with TLS. Then,
+as `deploy`, copy the files of `deploy/server/` into `~/erp` and:
+
+```bash
+cd ~/erp
+make setup
+```
+
+It asks, each with a suggestion in `[brackets]` (Enter takes it), and skips what is already answered:
+
+1. **GitHub user name and token**, to download the app: a token with only `read:packages`. A wrong token says
+   `That token did not work (it needs read:packages), try again.` Skipped when the server is already signed in.
+   If Docker does not answer it stops with `Docker does not answer for <user>: install Docker and add <user> to the
+   docker group (README step 1).`
+2. **Site address**: exactly what people type in the browser, e.g. `app.deltaanugrah.com` (anything else is asked
+   again).
+3. **App version**: the newest release is suggested (`vX.Y.Z`); without a release yet, type the version. Not three
+   numbers: `A version has three numbers, like v0.1.0, try again.`
+4. **Backup destination**: an rclone remote like `r2:erp-backup/erp`, or Enter to `skip`. Skipped, the nightly
+   backup still runs and stays in `~/erp/cadangan` on the server only; add `RCLONE_REMOTE=...` to `.env` (and
+   install rclone) later to copy it off the server.
+5. **The setup wizard**, automatic or by hand, and 6. **the accounts**: the same as on your computer (above).
+
+Then it runs every step (10-20 minutes the first time) and ends with `Ready: https://<address>` or, by hand, the
+wizard's last steps. Run `make setup` again any time: it asks nothing already answered and skips every step that is
+done. Afterwards: `make backup` and a restore drill (`deploy/server/README.md`).
+
+### The image
+
 The image is built from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`) by
-`.github/workflows/image.yml` on a `vX.Y.Z` tag and checked by `deploy/check_image.sh`. The stack, backups
+`.github/workflows/image.yml` on a `vX.Y.Z` tag and checked by `deploy/check_image.sh`. The workflow refuses a tag that is
+not `v` + `erp_internal.__version__` (the version on the login page and in Settings): bump `erp_internal/__init__.py`
+before tagging (`deploy/server/README.md` "New version"). The stack, backups
 (`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:
 
 ```bash

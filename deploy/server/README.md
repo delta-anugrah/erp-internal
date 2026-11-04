@@ -7,105 +7,85 @@ shared with BPT or the sawit server.
 | File | What |
 |---|---|
 | `docker-compose.yml` | The stack: configurator, backend, queue, scheduler, websocket, frontend (`127.0.0.1:8080`), MariaDB 11.8.9, two Redis; `tools` (profile `setup`) for one-off bench commands. |
-| `.env.example` | The shape of `.env` (chmod 600, made on the server, never in git): `ERP_IMAGE`, `SITE`, `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD`, `RCLONE_REMOTE`. |
-| `Makefile` | The first install as `make` targets (below): one per step, `make setup` runs them in order and stops on the first error; every step skips what is done; no secret in the file. |
-| `cadangan.sh` | Nightly backup: `bench backup --with-files --compress`, the newest set to `./cadangan` and `$RCLONE_REMOTE`, sets older than 14 days deleted on both. Exits non-zero on any failure. |
+| `.env.example` | The shape of `.env` (chmod 600, written by `make setup` on the server, never in git): `ERP_IMAGE`, `SITE`, `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD` (until the typed password replaces it), `RCLONE_REMOTE` (optional). |
+| `Makefile` | The first install as `make` targets (below): one per step; `make setup` runs `setup.sh`; every step skips what is done; no secret in the file. |
+| `setup.sh` | `make setup`: the questions (GitHub token, site address, app version, backup destination, setup wizard, accounts), `.env`, then the steps in order, stopping at the first error. Markers `.wizard`, `.akun-siap`, `.siap`. |
+| `tanya.sh`, `akun.sh`, `wizard.sh` | The terminal questions, shared with `make up` on a computer (`tools/setup_lokal.sh`): plain prompts with a suggestion, blind passwords, the account checklist, the wizard question and its by-hand instructions. |
+| `cadangan.sh` | Nightly backup: `bench backup --with-files --compress`, the newest set to `./cadangan` and, when set, `$RCLONE_REMOTE`; sets older than 14 days deleted on both. Without `RCLONE_REMOTE` it says the set stays on the server. Exits non-zero on any failure. |
 
 The image comes from `.github/workflows/image.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
 from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`), checks it with
-`deploy/check_image.sh` and pushes it. Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
+`deploy/check_image.sh` and pushes it. The workflow refuses a tag that is not `v` + `erp_internal.__version__`
+(the version shown on the login page and in Settings). Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
 `latest`.
 
 ## First install
 
-**With make** (same steps, from step 5 on; steps 1-4 stay by hand, `check` and `pull` check them). As `deploy` in
-`~/erp` with this folder's files copied in:
+By hand first:
 
-```bash
-make env SITE=erp.<domain> ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z RCLONE_REMOTE=<remote>:<bucket>/erp
-make setup COMPANY="PT Delta Anugrah" ABBR=DAN     # check env check-env pull db site wizard configure up ping cron
-make backup                                       # then a restore drill (below)
-```
-
-`make help` lists the targets; `make -n setup` prints every command without running it. `env` writes `.env` once
-(passwords from `openssl rand`, never shown) and never touches an existing one; `site` and `wizard` skip a site
-that exists or a finished wizard; `cron` adds its line once. `ping` checks the stack on `127.0.0.1:8080`; the public
-`https://` check needs the proxy of step 3. Dry run 2026-10-29 on a Mac with a fake `docker`/`bench`/`crontab`:
-every step ran, a second run skipped, a `:latest` image and a mode-644 `.env` were refused, `make setup` stopped at
-the first failing step. Real run 2026-10-31 on the Mac (Docker, image `erp-internal:v0.0.1`, steps `env` to `ping` and
-`cadangan` (now `backup`); `cek` (now `check`), `pull` and `cron` left out: macOS time zone, a local image, Abel's own crontab): a fresh site in
-8 m 40 s, every step a no-op on a second run. It found two faults, both fixed: `tools` started before the
-configurator wrote the Redis config (now `depends_on` it), and a `site` step cut off halfway left a site that the
-next run skipped without its apps (now each missing app is installed). `bench execute erp_internal.contoh.buat_contoh`
-on such a site prints `name 'erp_internal' is not defined`: bench hides the real refusal ("Sample data is not
-allowed on a production site"), which a direct call shows.
-
-By hand:
-
-1. **Server.** Ubuntu LTS, 4 GB RAM or more, Docker Engine with the compose plugin, `rclone`, a non-root user
-   `deploy` in the `docker` group. Time zone: `sudo timedatectl set-timezone Asia/Jakarta` (the cron line below is
-   in local time).
-2. **DNS.** An `A` record `erp.<domain>` to the server.
+1. **Server.** Ubuntu LTS, 4 GB RAM or more, Docker Engine with the compose plugin, a non-root user `deploy` in the
+   `docker` group, `make`. `rclone` only with an off-site backup destination. Time zone:
+   `sudo timedatectl set-timezone Asia/Jakarta` (the cron line below is in local time).
+2. **DNS.** An `A` record for the address (e.g. `app.deltaanugrah.com`) to the server.
 3. **Reverse proxy with TLS** on the host (nginx + certbot, or Caddy). Only 80/443 open; it proxies everything to
    `http://127.0.0.1:8080`, websockets included (`Upgrade`/`Connection` headers), passes `Host` and
-   `X-Forwarded-For`, `client_max_body_size 50m`. Then `certbot --nginx -d erp.<domain> --redirect`.
-4. **GHCR login** for the private image: `docker login ghcr.io` with an account that reads
-   `delta-anugrah/erp-internal` (a token with `read:packages` only).
-5. **`.env`**, as `deploy` in `~/erp`, with this folder's files copied in:
+   `X-Forwarded-For`, `client_max_body_size 50m`. Then `certbot --nginx -d <address> --redirect`.
 
-   ```bash
-   umask 077
-   printf 'ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:v0.1.0\nSITE=erp.<domain>\nDB_ROOT_PASSWORD=%s\nADMIN_PASSWORD=%s\nRCLONE_REMOTE=<remote>:<bucket>/erp\n' \
-     "$(openssl rand -hex 24)" "$(openssl rand -hex 12)" > .env
-   ```
+Then, as `deploy`, with this folder's files copied into `~/erp`:
 
-   The passwords are generated here and never typed, printed or pasted.
-6. **Up, then the site.**
+```bash
+cd ~/erp
+make setup
+```
 
-   ```bash
-   docker compose pull
-   docker compose up -d mariadb redis-cache redis-queue configurator
-   docker compose run --rm tools bash -c 'bench new-site "$SITE" --db-root-username root \
-     --db-root-password "$DB_ROOT_PASSWORD" --admin-password "$ADMIN_PASSWORD" \
-     --mariadb-user-host-login-scope="%" --install-app erpnext --install-app hrms --install-app erp_internal'
-   ```
+`setup.sh` asks (each with a suggestion that Enter takes, each skipped when already answered):
 
-   `--mariadb-user-host-login-scope="%"`: otherwise the site's database user is bound to the container's IP, which
-   changes on restart.
-7. **Wizard**, in the same `tools` container (the values Task 8 confirms with Samuel; dev uses PT Delta Anugrah,
-   CPL): English, Indonesia, Asia/Jakarta, IDR, chart "Standard", fiscal year January to December, Administrator
-   only.
+1. GitHub user name and token (`read:packages` only) for `docker login ghcr.io`, on stdin; skipped when already
+   signed in. Docker must answer first, else `Docker does not answer for <user>: install Docker and add <user> to
+   the docker group (README step 1).` and it stops. A refused token is asked again; any other login error prints
+   `Could not reach ghcr.io: <error>` and stops.
+2. The site address, exactly as typed in the browser (`https://` and a trailing path are dropped, lower case);
+   not a host name, asked again. These answers are checked before `.env` is written: a rerun never asks again.
+3. The app version: the newest `vX.Y.Z` tag of the image is suggested (read with the token through `curl -K -`);
+   no release yet, no suggestion; asked again unless `vX.Y.Z` (a `v` is added).
+4. The backup destination (an rclone remote `name:bucket/path`, a folder starting with `/`) or `skip`; anything
+   else is asked again.
+5. The setup wizard: automatic (default) or by hand in the browser, the company name and abbreviation (kept in
+   `.wizard`, never asked again).
+6. The accounts: Administrator's password and, with the automatic wizard, optional Developer / Admin / User
+   accounts (`akun.sh`, the same checklist as `make up`); asked once (`.akun-siap`).
 
-   ```bash
-   docker compose run --rm tools bash -c 'bench --site "$SITE" execute \
-     frappe.desk.page.setup_wizard.setup_wizard.setup_complete --kwargs "{\"args\": {\"language\": \"English\",
-     \"country\": \"Indonesia\", \"timezone\": \"Asia/Jakarta\", \"currency\": \"IDR\", \"company_name\": \"<name>\",
-     \"company_abbr\": \"<ABC>\", \"chart_of_accounts\": \"Standard\", \"fy_start_date\": \"2026-01-01\",
-     \"fy_end_date\": \"2026-12-31\", \"setup_demo\": 0}}"'
-   ```
+Then `make env` (from the answers, passwords from `openssl rand`), `langkah` (`check check-env pull db site`),
+`wizard configure` (automatic) or `configure` (by hand), the accounts (the generated `ADMIN_PASSWORD` then
+leaves `.env`), `lanjut` once the wizard is done (`.lanjut-siap`), `up ping cron`, and the last line: `Ready: https://<address>`, or the by-hand wizard's steps
+(Administrator signs in, fills the wizard with the printed values, makes the account that becomes the Developer;
+Samuel's data then loads in the background). A run that stops halfway goes on where it stopped when run again.
+Afterwards: `make backup` and a restore drill (below).
 
-8. **Mark the company, then migrate.** One company (PT Delta Anugrah, `DAN`) runs the factory and the office; with
-   `erp_aktif` ticked, `migrate` builds its warehouses, groups, UOMs, the order flow, holiday lists and the PPN
-   templates, never the default (`erp_internal/setup.py`). `erp_produksi` makes `erp_internal.contoh` refuse to
-   put sample data on this site:
+`make help` lists the targets, `make -n langkah` prints the steps' commands. Without questions (a script):
+`make env SITE=... ERP_IMAGE=... [RCLONE_REMOTE=...]`, then the targets by name.
 
-   ```bash
-   docker compose run --rm tools bash -c 'bench --site "$SITE" execute frappe.db.set_value \
-       --args "[\"Company\", \"<name>\", \"erp_aktif\", 1]" \
-     && bench --site "$SITE" migrate \
-     && bench --site "$SITE" set-config host_name "https://$SITE" \
-     && bench --site "$SITE" set-config -p erp_produksi 1 \
-     && bench --site "$SITE" enable-scheduler'
-   docker compose up -d
-   curl -fsS https://erp.<domain>/api/method/ping   # {"message":"pong"}
-   ```
+What the steps do to the site: `site` makes it with erpnext, hrms and erp_internal and sets `erp_produksi` (real
+data; `erp_internal.contoh` refuses sample data). The wizard, however filled, runs `erp_internal.wizard.selesai`
+(the `setup_wizard_complete` hook): it ticks the company's `erp_aktif`, keeps the wizard's own account (global
+default `erp_wizard_developer`) and queues `lanjutkan`, which runs our setup (warehouses, groups, UOMs, the order
+flow, holiday lists, PPN templates, the Role Profiles), makes that account a Developer, gives Admin/User accounts
+the company, and loads Samuel's catalog, sales and machines once (marker `erp_data_samuel`: a new version never
+reloads them; a file lock keeps two runs apart). `setup.sh` also runs `make lanjut` itself once the wizard is done
+(`.lanjut-siap`), so a background job that failed after a by-hand wizard is repaired by the next `make setup`.
 
-9. **Backups**: the cron line below, then one run by hand and a restore drill.
+History: dry run 2026-10-29 with a fake `docker`/`bench`/`crontab`; real run 2026-10-31 on the Mac (image
+`erp-internal:v0.0.1`, a fresh site in 8 m 40 s, every step a no-op on a second run), which found two faults, both
+fixed: `tools` started before the configurator wrote the Redis config (now `depends_on` it), and a `site` step cut
+off halfway left a site without its apps (now each missing app is installed). `bench execute
+erp_internal.contoh.buat_contoh` on such a site prints `name 'erp_internal' is not defined`: bench hides the real
+refusal ("Sample data is not allowed on a production site"), which a direct call shows.
 
 ## New version
 
-1. Abel approves; tag `vX.Y.Z` on `main`; wait for the image workflow to pass.
-2. `cadangan.sh` by hand first.
+1. Abel approves; set `__version__ = "X.Y.Z"` in `erp_internal/__init__.py` (merged to `main`), tag `vX.Y.Z` on
+   `main`; wait for the image workflow to pass.
+2. `make backup` first.
 3. Set `ERP_IMAGE` in `.env` to the new tag, then:
 
    ```bash
@@ -131,10 +111,10 @@ config (it holds the database password) stays on the server; the encryption key 
 `SITE=erp-pulih.localhost` and `PORT=8081`, which `docker-compose.yml` and `make ping` read), never on production:
 
 ```bash
-rclone copy "$RCLONE_REMOTE" ./cadangan --include '<prefix>-*'
+rclone copy "$RCLONE_REMOTE" ./cadangan   # without a remote: copy the set from production's ./cadangan --include '<prefix>-*'
 docker compose -p erp-pulih up -d mariadb redis-cache redis-queue configurator
 docker compose -p erp-pulih run --rm tools bash -c 'bench new-site "$SITE" --db-root-username root \
-  --db-root-password "$DB_ROOT_PASSWORD" --admin-password "$ADMIN_PASSWORD" --mariadb-user-host-login-scope="%" \
+  --db-root-password "$DB_ROOT_PASSWORD" --admin-password "$(openssl rand -hex 12)" --mariadb-user-host-login-scope="%" \
   && bench --site "$SITE" restore /home/frappe/cadangan/<prefix>-database.sql.gz \
      --with-public-files /home/frappe/cadangan/<prefix>-files.tgz \
      --with-private-files /home/frappe/cadangan/<prefix>-private-files.tgz \
@@ -152,7 +132,8 @@ the date and the counts at the end of this file. Then `docker compose -p erp-pul
 
 | Secret | Where | Who |
 |---|---|---|
-| `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD` | `~/erp/.env` on the server (chmod 600) | generated there; Abel reads them on the server when needed |
+| `DB_ROOT_PASSWORD` | `~/erp/.env` on the server (chmod 600) | generated there; Abel reads it on the server when needed |
+| Administrator's password | typed in `make setup`, never stored in a file | Abel |
 | Site `encryption_key` | `sites/<site>/site_config.json` in the `sites` volume; a copy in Abel's password manager | Abel |
 | rclone remote credentials | `~deploy/.config/rclone/rclone.conf` (chmod 600) | Abel |
 | GHCR read token | `~deploy/.docker/config.json` | Abel |

@@ -171,7 +171,7 @@ IKON_LINK = {
 # Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
 # erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the modules of that profile's
 # IKON entries plus MODUL_TANPA_IKON for Admin (`test_profil_modul_ikut_ikon`); User has no invoices or leave.
-# Developer has no Module Profile: it sees everything.
+# Developer's Module Profile blocks only MODUL_MATI.
 MODUL_TANPA_IKON = ("Accounts", "Leaves")  # their documents show in other sidebars; allowed, no rail icon
 _MODUL_KERJA = (
 	"Stock",
@@ -183,6 +183,105 @@ _MODUL_KERJA = (
 	*MODUL_TANPA_IKON,
 )
 MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), USER: ("Stock", "Manufacturing")}
+
+# Modules nobody uses here (Abel, 2026-11-04). A block hides only the way in, never a document (Frappe keeps that to
+# DocPerm), so `_kunci_modul` also gives each of their DocTypes one Custom DocPerm for the Administrator role: no other
+# user reads, searches or opens them by URL. Developer's Module Profile blocks them (it blocks nothing else),
+# Administrator's own `block_modules` too, and `saring_modul_mati` takes them out of every boot (Administrator's
+# search). Administrator still opens one by URL: the way back, and the user ERPNext's own jobs run as. Bulk
+# Transaction stays open: list views log their bulk actions there. HR's own DocTypes are all module "HR", mixed
+# (Attendance, Shift and Leave are in use), so its unused ones are listed by name in DOCTYPE_MATI; Recruitment,
+# Performance, Expenses, Tenure and Tax and Benefits hold only those menus. Remove a module here and migrate to unlock it.
+MODUL_MATI = (
+	"CRM",
+	"Assets",
+	"Quality Management",
+	"Support",
+	"Subcontracting",
+	"Maintenance",
+	"Payroll",
+	"Telephony",
+	"Utilities",
+	"Regional",
+	"EDI",
+	"ERPNext Integrations",
+	"Communication",
+	"Portal",
+	"Recruitment",
+	"Performance",
+	"Expenses",
+	"Tenure",
+	"Tax and Benefits",
+)
+# HR's unused DocTypes (Abel, 2026-11-04), locked like MODUL_MATI's. The office uses attendance, check-ins, shifts,
+# leave and holidays only; overtime goes with Payroll. Remove one here and migrate to unlock it.
+DOCTYPE_MATI = (
+	# Recruitment
+	"Job Requisition",
+	"Job Opening",
+	"Job Opening Template",
+	"Job Applicant",
+	"Job Applicant Source",
+	"Interview",
+	"Interview Feedback",
+	"Interview Type",
+	"Job Offer",
+	"Job Offer Term Template",
+	"Offer Term",
+	"Appointment Letter",
+	"Appointment Letter Template",
+	"Staffing Plan",
+	"Employee Referral",
+	# Performance
+	"Appraisal",
+	"Appraisal Cycle",
+	"Appraisal Template",
+	"Goal",
+	"KRA",
+	"Employee Performance Feedback",
+	"Employee Feedback Criteria",
+	# Training
+	"Training Program",
+	"Training Event",
+	"Training Feedback",
+	"Training Result",
+	# Expenses and travel
+	"Expense Claim",
+	"Expense Claim Type",
+	"Employee Advance",
+	"Travel Request",
+	"Purpose of Travel",
+	# Employee lifecycle
+	"Employee Onboarding",
+	"Employee Onboarding Template",
+	"Employee Separation",
+	"Employee Separation Template",
+	"Employee Promotion",
+	"Employee Transfer",
+	"Exit Interview",
+	"Full and Final Statement",
+	"Employee Grievance",
+	"Grievance Type",
+	# Fleet, skills and the rest
+	"Vehicle Log",
+	"Vehicle Service Item",
+	"Skill",
+	"Employee Skill Map",
+	"Daily Work Summary",
+	"Daily Work Summary Group",
+	"Employee Health Insurance",
+	"Overtime Type",
+	"Overtime Slip",
+)
+# Reports of an open module that read only DOCTYPE_MATI's records though their ref_doctype stays open.
+LAPORAN_MATI = ("Vehicle Expenses",)
+PERAN_KUNCI = "Administrator"  # the one role a locked DocType's Custom DocPerm names
+# Global default: the DocTypes `_kunci_modul` locked (JSON), the only ones it unlocks.
+KUNCI_GLOBAL = "erp_modul_terkunci"
+# A report of MODUL_MATI may read a DocType that stays open (Lead Conversion Time reads Communication, the VAT reports
+# GL Entry), so the lock does not reach it: `_matikan_laporan` disables it (refused even by URL) and keeps the list
+# here, the only reports it enables again.
+LAPORAN_GLOBAL = "erp_laporan_mati"
 
 # Role Profile → standard ERPNext/HRMS roles. Read from the v16 DocPerms (`test_izin_per_profil`):
 # - User (Samuel, 2026-11-02): Stock User (Stock Entry, Delivery Note, and reads stock, items, Work Orders and
@@ -481,6 +580,8 @@ def terapkan() -> None:
 	_sidebar()
 	_profil_peran()
 	_profil_modul()
+	_modul_pengguna()
+	_kunci_modul()
 	_pintasan()
 	_sembunyi()
 
@@ -508,6 +609,54 @@ def saring_aplikasi(bootinfo) -> None:
 				app["on_apps_screen"] = False
 	except Exception:
 		frappe.log_error("erp_internal: saring_aplikasi")
+
+
+# The lists of DocTypes in a boot's `user` that the search bar and the menus read.
+DAFTAR_BOOT = (
+	"can_read",
+	"can_search",
+	"can_create",
+	"can_write",
+	"can_get_report",
+	"can_import",
+	"can_export",
+	"can_select",
+	"can_print",
+	"can_email",
+	"can_submit",
+	"can_cancel",
+	"can_delete",
+	"in_create",
+	"all_read",
+)
+
+
+def saring_modul_mati(bootinfo) -> None:
+	"""extend_bootinfo: take MODUL_MATI's DocTypes and reports out of the boot, so the search bar never offers them.
+	Only Administrator still has them to take out (`_kunci_modul`). Boot must never fail."""
+	try:
+		mati = set(doctype_mati())
+		user = bootinfo.get("user") or {}
+		for kunci in DAFTAR_BOOT:
+			if isinstance(user.get(kunci), list):
+				user[kunci] = [dt for dt in user[kunci] if dt not in mati]
+		# The search bar's reports, pages and dashboards sit on the boot itself (v16 no longer sends
+		# `user.all_reports`); each carries its module. A report also goes by its DocType.
+		modul = set(MODUL_MATI)
+		for kunci in ("allowed_reports", "page_info"):
+			isi = bootinfo.get(kunci)
+			if isinstance(isi, dict):
+				bootinfo[kunci] = {
+					k: v
+					for k, v in isi.items()
+					if (v or {}).get("module") not in modul and (v or {}).get("ref_doctype") not in mati
+				}
+		if isinstance(bootinfo.get("dashboards"), list):
+			bootinfo["dashboards"] = [
+				d for d in bootinfo["dashboards"] if (d or {}).get("module") not in modul
+			]
+	except Exception:
+		frappe.log_error("erp_internal: saring_modul_mati")
 
 
 def menu_samping(bootinfo) -> None:
@@ -803,10 +952,16 @@ def _pengguna_profil() -> None:
 			frappe.get_doc("User", user).save(ignore_permissions=True)
 
 
-def _profil_modul() -> None:
+def blok_profil() -> dict[str, list[str]]:
+	"""Module Profile → the modules it blocks: Admin and User everything outside MODUL_BOLEH, Developer MODUL_MATI."""
 	semua = set(modul_aplikasi())
-	for nama, boleh in MODUL_BOLEH.items():
-		blok = sorted(semua - set(boleh))
+	blok = {nama: sorted(semua - set(boleh)) for nama, boleh in MODUL_BOLEH.items()}
+	blok[DEVELOPER] = sorted(semua & set(MODUL_MATI))
+	return blok
+
+
+def _profil_modul() -> None:
+	for nama, blok in blok_profil().items():
 		if frappe.db.exists("Module Profile", nama):
 			doc = frappe.get_doc("Module Profile", nama)
 			if sorted(b.module for b in doc.block_modules) == blok:
@@ -816,6 +971,104 @@ def _profil_modul() -> None:
 			doc.module_profile_name = nama
 		doc.set("block_modules", [{"module": m} for m in blok])
 		doc.save(ignore_permissions=True)
+
+
+def _modul_pengguna() -> None:
+	"""Each user of one of our Role Profiles on the Module Profile of the same name (a User copies its profile's
+	blocks on save), and Administrator's own blocks on MODUL_MATI. A Developer made before Developer had a Module
+	Profile gets it here."""
+	for r in frappe.get_all("User Role Profile", ["parent", "role_profile"], {"parenttype": "User"}):
+		if r.role_profile not in PROFIL_PERAN or r.parent in frappe.STANDARD_USERS:
+			continue
+		if frappe.db.get_value("User", r.parent, "module_profile") != r.role_profile:
+			doc = frappe.get_doc("User", r.parent)
+			doc.module_profile = r.role_profile
+			doc.save(ignore_permissions=True)
+	blok = blok_profil()[DEVELOPER]
+	admin = frappe.get_doc("User", "Administrator")
+	if sorted(b.module for b in admin.block_modules) != blok:
+		admin.set("block_modules", [{"module": m} for m in blok])
+		admin.save(ignore_permissions=True)
+
+
+def doctype_mati() -> list[str]:
+	"""The DocTypes of MODUL_MATI, and those of DOCTYPE_MATI that exist, that have permissions of their own (child
+	tables follow their parent)."""
+	modul = frappe.get_all("DocType", {"module": ("in", MODUL_MATI), "istable": 0}, pluck="name")
+	nama = frappe.get_all("DocType", {"name": ("in", DOCTYPE_MATI), "istable": 0}, pluck="name")
+	return sorted(set(modul) | set(nama))
+
+
+@frappe.whitelist()
+def master_karyawan(company: str) -> dict[str, bool]:
+	"""HRMS's `get_assignable_masters` (the Employee form's assign buttons), with a master the user cannot read
+	(Salary Structure, locked with Payroll) answered False instead of a Permission Error popup. Same filters as
+	HRMS v16.52."""
+	masters = {
+		"Leave Policy": {"docstatus": 1},
+		"Salary Structure": {"docstatus": 1, "is_active": "Yes", "company": company},
+		"Shift Schedule": {"docstatus": 1},
+	}
+	return {
+		dt: frappe.has_permission(dt, "read") and bool(frappe.get_list(dt, filters=f, limit=1, pluck="name"))
+		for dt, f in masters.items()
+	}
+
+
+def _kunci_modul() -> None:
+	"""One Custom DocPerm, for PERAN_KUNCI, on each DocType of MODUL_MATI (a DocType with Custom DocPerms ignores its
+	standard ones). Only a DocType this function locked before (KUNCI_GLOBAL) and that left MODUL_MATI gets its own
+	permissions back: a Custom DocPerm someone set by hand on another DocType is never touched."""
+	kunci = set(doctype_mati())
+	dulu = set(frappe.parse_json(frappe.db.get_global(KUNCI_GLOBAL) or "[]"))
+	baris = {}
+	for r in frappe.get_all(
+		"Custom DocPerm",
+		["name", "parent", "role", "permlevel"],
+		{"parent": ("in", list(kunci | dulu) or [""])},
+	):
+		baris.setdefault(r.parent, []).append(r)
+	for dt in sorted(kunci | dulu):
+		ada = baris.get(dt, [])
+		kita = len(ada) == 1 and ada[0].role == PERAN_KUNCI and not ada[0].permlevel
+		if dt in kunci and not kita:
+			for r in ada:
+				frappe.delete_doc("Custom DocPerm", r.name, ignore_permissions=True)
+			frappe.get_doc(
+				{
+					"doctype": "Custom DocPerm",
+					"parent": dt,
+					"parenttype": "DocType",
+					"parentfield": "permissions",
+					"role": PERAN_KUNCI,
+					"permlevel": 0,
+					**dict.fromkeys(("read", "write", "create", "delete", "report", "export"), 1),
+				}
+			).insert(ignore_permissions=True)
+			frappe.clear_cache(doctype=dt)
+		elif dt not in kunci and kita:
+			frappe.delete_doc("Custom DocPerm", ada[0].name, ignore_permissions=True)
+			frappe.clear_cache(doctype=dt)
+	if kunci != dulu:
+		frappe.db.set_global(KUNCI_GLOBAL, frappe.as_json(sorted(kunci)))
+	_matikan_laporan()
+
+
+def _matikan_laporan() -> None:
+	"""Disable the reports of MODUL_MATI, those built on a DOCTYPE_MATI DocType and LAPORAN_MATI; enable again only
+	those this function disabled and that left them."""
+	mati = set(frappe.get_all("Report", {"module": ("in", MODUL_MATI)}, pluck="name"))
+	mati |= set(frappe.get_all("Report", {"ref_doctype": ("in", DOCTYPE_MATI)}, pluck="name"))
+	mati |= set(frappe.get_all("Report", {"name": ("in", LAPORAN_MATI)}, pluck="name"))
+	dulu = set(frappe.parse_json(frappe.db.get_global(LAPORAN_GLOBAL) or "[]"))
+	for nama in sorted(mati):
+		if not frappe.db.get_value("Report", nama, "disabled"):
+			frappe.db.set_value("Report", nama, "disabled", 1, update_modified=False)
+	for nama in sorted(dulu - mati):
+		if frappe.db.exists("Report", nama):
+			frappe.db.set_value("Report", nama, "disabled", 0, update_modified=False)
+	if mati != dulu:
+		frappe.db.set_global(LAPORAN_GLOBAL, frappe.as_json(sorted(mati)))
 
 
 # ---------------------------------------------------------------------------------------------------------

@@ -2,6 +2,86 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-03 (app version on screen)
+- `erp_internal/versi.py` (`di_login`, hooks `update_website_context`): `v0.0.1` under the login card;
+  `public/js/versi.js`: the same at the foot of the Settings dialog's left menu (the user's Settings only). The image
+  workflow's tag check now also refuses a tag other than `v` + `erp_internal.__version__`; runbook "New version"
+  says to bump it first. `tools/cek_layar.mjs` checks both (login as a guest, Settings per role).
+- Tests as run: `test_versi` 4 OK; `cek_layar` 3 users OK; ruff clean; full run 252 tests (13 unit + 239 integration),
+  all OK. Checked in a browser
+  (Playwright): login page and the User's Settings dialog show `v0.0.1`.
+- Wizard prompt: company name and abbreviation now come already typed in (`tanya.sh` `tanya_isi`; Abel during his
+  first `make start`). Tested through a pty with macOS `/bin/bash` 3.2 (Enter, Backspace, Ctrl+U, empty, arrows,
+  terminal mode restored); shellcheck and `bash -n` clean.
+- 2026-11-04 (Abel after his `make start`, all fine): Production Floor back button (top left, arrow, to
+  `/desk/manufacturing`; `cek_layar` clicks it for each role); `make up` (main name; `make start` kept as the same
+  until the real server is live) and `make down` (was `make stop`); docs and the `ERP_AKUN` message say `make up`.
+- Audit of unused modules (CRM, Assets, Quality, Support, Subcontracting, Payroll, ...): they were only hidden from
+  the menu for Admin/User; their documents still opened by search and URL, and Developer saw them all. Now locked
+  (Abel's yes): `tampilan.MODUL_MATI`, one Custom DocPerm for the Administrator role per DocType (91), a Developer
+  Module Profile, Administrator's own blocks, `saring_modul_mati` on every boot. Bulk Transaction left open (bulk
+  actions log there); HR next, DocType by DocType.
+- Tests as run: `test_modul_mati` 6 OK, `test_tampilan` 25 OK, `test_akun` 3 OK; `cek_layar` 3 users OK (now also the
+  floor's back button, the unused modules: boot, menu, `/desk/lead`, `/api/resource/Lead` 403); 16 used forms opened
+  per role in a browser with no popup, 403 or error (User's popups only on forms it never had: Quotation, Sales
+  Invoice, Employee). Full run 258 tests (13 unit + 245 integration),
+  all OK; `lantai.mjs` all OK (60 fps, 0 dropped). An earlier `lantai.mjs` run cut off by a session restart had left
+  machines 1, 7, 9-14 enabled on `erp.localhost`: restored by `master.muat`; `lantai.mjs` now also copes with no
+  disabled machine.
+- Security review: unlocking now touches only DocTypes `_kunci_modul` locked itself (global default
+  `erp_modul_terkunci`), never a hand-set Administrator-only Custom DocPerm; `test_modul_mati` 7 OK.
+- Checked on Abel's Docker stack (`make update-local`, temporary `_cek.*` accounts, deleted afterwards): the version,
+  the back button, `/api/resource/Lead` 403, `/desk/lead` refused, no locked module in the menu. The search bar still
+  offered the CRM report "Lead Conversion Time" (it reads Communication, which stays open): every report of
+  `MODUL_MATI` is now disabled (`_matikan_laporan`, tracked in `erp_laporan_mati`), and boot drops reports, pages and
+  dashboards by module. `test_modul_mati` 8 OK; full run 260 tests (13 unit + 247 integration), all OK; rechecked on
+  the rebuilt stack: the report is gone from the search bar.
+- Responsive (Abel): the login version, the floor's back button and the Settings version checked at 390 px and 768 px
+  (no overflow, no sideways scroll). Found and fixed: the floor's output card ran past a phone's edge ("39.427 / 3…"):
+  its "/ plan" now sits under the figure below 760 px. `cek_layar` now checks the floor on a phone per role.
+- HR's unused DocTypes locked (Abel's yes to the proposed list): `tampilan.DOCTYPE_MATI` (50 DocTypes:
+  recruitment, appraisal, training, expense claims and advances, travel, onboarding/separation/promotion/transfer,
+  grievance, vehicles, skills, daily work summary, health insurance, overtime), the menu-only modules Recruitment,
+  Performance, Expenses, Tenure, Tax and Benefits added to `MODUL_MATI`, and their reports disabled (by
+  `ref_doctype`, plus `LAPORAN_MATI` Vehicle Expenses). Attendance, check-ins, shifts, leave, holidays, HR Settings
+  and their masters stay open. Goes into PR #9 (Abel: start now).
+- Found in Playwright (Admin and Developer): the Employee form popped "Insufficient Permission for Salary Structure"
+  since the Payroll lock (HRMS `get_assignable_masters`). Routed to `tampilan.master_karyawan`, which answers False
+  for a master the user cannot read. Employee, Attendance, Leave Application, Shift Assignment, Employee Checkin
+  forms now open with no popup or 4xx.
+- Tests as run: full run 262 tests (13 unit + 249 integration), all OK before the override; `test_modul_mati` 11 OK
+  after it; `cek_layar` 3 users OK (now also `/api/resource/Expense Claim` 403, Attendance 200); ruff clean.
+- Next: Abel checks HR as Admin; PR #9 review.
+
+## 2026-11-03 (one-command setup, built)
+- Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md` (deviations at its end), built inline:
+  `erp_internal/wizard.py` (`setup_wizard_complete` hook: erp_aktif, queue `lanjutkan`; `lanjutkan`: setup, the
+  wizard's account into Developer, company on Admin/User accounts, Samuel's data once with `erp_produksi`,
+  marker `erp_data_samuel`), `akun.buat` refuses other accounts before the wizard; `deploy/server/{tanya,akun,
+  wizard}.sh` (shared prompts; `tools/akun.sh` moved), `deploy/server/setup.sh` (`make setup` asks token, address,
+  version, backup or skip, wizard, accounts), `tools/setup_lokal.sh` (`make start` = `start-local`), `make dev`,
+  `PROYEK` for a second local stack; `data-local` removed (update never reloads Samuel's data); `cadangan.sh`
+  and `check` without a backup destination. README rewritten for first-time readers (local and server).
+- Tests as run: `test_wizard` 7 OK, `test_akun` 3 OK, `test_bahasa` 6 OK, `test_setup` 9 OK; full
+  `run-tests --app erp_internal` 246 OK before the last fix (rerun after it: see TODO); shellcheck and `bash -n`
+  clean; prompts driven through a pty (Enter defaults, Backspace, `*`, checklist); `cadangan.sh` with a fake
+  docker, with and without a remote; `make -n` of `setup-local`/`update-local`/`langkah`.
+- End to end on the Mac beside Abel's own stack: automatic `make start` from nothing (project `erp-tanya`, port
+  8081): Ready, Administrator and a User sign in, Item 127, Workstation 14, erp_aktif 1, the User has the
+  company, marker set; a second `make start` 19 s, no question. By hand (`erp-tangan`, 8082): the by-hand steps
+  printed, the wizard filled in the browser: it found a real bug (the Developer Role Profile does not exist at
+  hook time, and the failure kept the data job from being queued), fixed (`b36a5b7`), then rerun from nothing:
+  data in ~70 s, the wizard's account Developer, no Error Log, `make start` then says Ready. Server `setup.sh`
+  with a fake make/docker: wrong token asked again, `https://` dropped, `v` added, backup skipped (no
+  `RCLONE_REMOTE`), `ADMIN_PASSWORD` removed, steps in order. Not run: a real server (none yet), `make
+  update-local` on the test stack (covered by `make -n` and the marker).
+- Final review (fresh reviewer): no critical; 3 important fixed (`e368a26`): a docker problem no longer looks like
+  a wrong token, answers are checked before `.env` is written, and the drivers run `lanjut` until it has run once
+  after the wizard (the hook keeps the wizard's account in `erp_wizard_developer`; a file lock keeps the queued job
+  and `make lanjut` apart). 12 minors deferred (ledger list in the final message). Full run after the fixes:
+  248 OK (13 unit + 235 integration).
+- Next: Abel tries `make start` himself; the version display task.
+
 ## 2026-11-03 (setup design)
 - Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md`: `make setup` (server) as one command
   with plain questions (token, address, version, backup skippable, wizard automatic by default or by hand,

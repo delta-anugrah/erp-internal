@@ -43,7 +43,8 @@ Samuel's answers are in `docs/menunggu-samuel.md` ("Answers").
 2. **Three roles instead of seven bagian** (`tampilan.PROFIL_PERAN`): **User** (daily work in every used module),
    **Admin** (manager roles, users and business settings under the Setup rail entry shown as "Settings"; role
    `ERP Admin`), **Developer** (Admin plus System Manager: Build, System Settings). Module Profiles: Admin and User;
-   Developer has none. `erp_internal/pengguna.py` keeps an Admin from giving any role outside Admin and User (also to
+   Developer has none (deviation, Abel 2026-11-04: Developer has one too, blocking only `tampilan.MODUL_MATI`, whose
+   DocTypes get one Custom DocPerm for the Administrator role; HR's unused DocTypes by name in `tampilan.DOCTYPE_MATI`, the same lock, their reports and `LAPORAN_MATI` disabled; Recruitment, Performance, Expenses, Tenure, Tax and Benefits added to `MODUL_MATI`; `test_modul_mati`). `erp_internal/pengguna.py` keeps an Admin from giving any role outside Admin and User (also to
    itself) and from touching a Developer's or Administrator's account (User `before_validate`/`validate`/
    `has_permission`, Has Role `before_insert`/`validate`); `tests/test_pengguna.py` tries the form save, a direct Has
    Role insert, `frappe.client`, rename and password change. `proyek.PERAN_ATASAN`: Admin and Developer submit
@@ -863,13 +864,15 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
   `frappe.db.count("Item")` equals the source's.
 - [x] **Step 5: Write `deploy/server/README.md`** with these sections:
   - first install: server, DNS, reverse proxy with TLS, `.env`, `up -d`, new site, wizard values, set Jenis;
-  - new version: tag, image, pull, `migrate`;
+  - new version: bump `__version__`, tag, image, pull, `migrate`;
   - backup and restore: the cron line and a monthly restore drill;
   - who holds which secret.
 - [x] **Step 6: Commit** `feat(deploy): pinned image, compose stack, nightly off-site backup, runbook`. Tag `v0.1.0`
   only with Abel's approval (not tagged).
 
 **Task 7 deviations (2026-10-28):**
+- 2026-11-03: `image.yml` also refuses a tag other than `v` + `erp_internal.__version__` (shown on the login page
+  and in Settings); bump `erp_internal/__init__.py` first. The first tag is `v0.0.1` unless `__version__` is bumped.
 - `frappe/build` has no `v16.53.0` tag; its tags follow the frappe_docker release. `BUILD_IMAGE` is
   `frappe/build:v16.52.1` and `BASE_IMAGE` `frappe/base:v16.53.0`, both pinned by index digest, both from the
   2026-10-27 release (same Python 3.14.10). The base already ships Node 24.22.1, so bpt's Node swap is dropped.

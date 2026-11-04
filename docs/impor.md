@@ -192,9 +192,13 @@ alasannya bisa dibaca.
 
 ## Excel penjualan Samuel (`penjualan.py`)
 
-Di stack lokal Docker (`make start-local`, README "Run it on your computer"), tiga pemuat Samuel (`master`,
-`penjualan`, `mesin_barang`) jalan otomatis saat setup pertama dan saat `make update-local`, atau sendiri dengan
-`make data-local`.
+Di situs asli (server `make setup`, atau lokal `make up`; README "Run it on your computer"), tiga pemuat Samuel
+(`master`, `penjualan`, `mesin_barang`) jalan otomatis **sekali**, begitu setup wizard selesai (otomatis atau diisi
+sendiri di browser; `erp_internal.wizard.lanjutkan`, penanda `erp_data_samuel`). Update berikutnya (`make
+update-local`, versi baru di server) tidak memuat ulang, jadi editan di aplikasi aman. Memuat ulang setelah Samuel
+kirim file baru: jalankan `muat` per pemuat seperti di bawah (lokal lewat `docker compose -p erp-local
+--project-directory .local -f deploy/server/docker-compose.yml run --rm tools bash -c 'bench --site "$SITE"
+execute erp_internal.master.muat'`, begitu juga `penjualan` lalu `mesin_barang`).
 
 Excel Samuel 2026-10-29 (penjualan Januari-September 2026 dan spesifikasi barang) ada di
 `erp_internal/data/penjualan_2026.json`. Jalankan **sesudah** `master.muat` (barangnya dari sana):

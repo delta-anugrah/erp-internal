@@ -19,6 +19,7 @@ from erp_internal.tampilan import (
 	IKON_MODUL,
 	IKON_RUMAH,
 	MODUL_BOLEH,
+	MODUL_MATI,
 	PINTASAN,
 	PROFIL_PERAN,
 	RUMAH_SENDIRI,
@@ -113,9 +114,9 @@ PENGATURAN_BISNIS = [
 
 
 def pengguna_profil(profil: str, jenis: str) -> str:
-	"""A test user of that Role Profile and its Module Profile (Developer has none), with the Employee record
+	"""A test user of that Role Profile and the Module Profile of the same name, with the Employee record
 	the Employee role needs (ERPNext drops it from a user without one)."""
-	u = buat_pengguna(surel(profil, jenis), profil, profil if profil in MODUL_BOLEH else None, None)
+	u = buat_pengguna(surel(profil, jenis), profil, profil, None)
 	if "Employee" in PROFIL_PERAN[profil]:
 		buat_karyawan(f"_Uji {jenis} {profil}", buat_perusahaan("_Uji Pabrik", "_UP"), user=u)
 	return u
@@ -378,6 +379,9 @@ class TestTampilan(IntegrationTestCase):
 		for profil, boleh in MODUL_BOLEH.items():
 			blok = {b.module for b in frappe.get_doc("Module Profile", profil).block_modules}
 			self.assertEqual(blok, set(modul_aplikasi()) - set(boleh), profil)
+		# Developer blocks only the modules nobody uses.
+		blok = {b.module for b in frappe.get_doc("Module Profile", DEVELOPER).block_modules}
+		self.assertEqual(blok, set(modul_aplikasi()) & set(MODUL_MATI))
 
 	def test_profil_modul_ikut_ikon(self):
 		# Every module a profile has an icon for is allowed by its Module Profile, plus the modules whose

@@ -25,6 +25,7 @@ Floor** (pilihan paling atas).
   mati dan lebih gelap = Off. Di atas tiap mesin ada nama dan Work Order yang sedang jalan.
 - **Lihat dari sudut lain**: tarik pakai mouse untuk memutar, scroll untuk zoom, klik kanan lalu tarik untuk
   menggeser. Tombol **+**, **−** dan **rumah** (pojok kanan bawah) zoom dan mengembalikan tampilan awal.
+- **Kembali**: tombol panah di pojok kiri atas membuka halaman depan Manufacturing, tanpa tombol Back browser.
 - **Bar atas**: nama perusahaan, jam, dan titik **Live** (hijau = langsung ikut berubah; kalau tertulis
   **Updated jam:menit**, halamannya menyegarkan diri tiap menit). Kartu di bawahnya: jumlah mesin, yang jalan,
   yang bermasalah, Work Order yang jalan, dan hasil produksi.

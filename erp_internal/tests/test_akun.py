@@ -1,5 +1,7 @@
 """The first accounts of a local stack (akun.py, asked by `make start-local`)."""
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils.password import check_password
@@ -56,3 +58,11 @@ class TestAkun(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("User", "_uji.akun.x@example.com"))
 		with self.assertRaises(frappe.ValidationError):
 			akun.buat({"Administrator": "pendek", "akun": []})
+
+	def test_tolak_akun_sebelum_wizard(self):
+		# Role Profiles exist only after the wizard: before it, only Administrator's password
+		daftar = [{"profil": ADMIN, "email": "_uji.akun.awal@example.com", "sandi": "12345678"}]
+		with patch("frappe.is_setup_complete", return_value=False):
+			with self.assertRaises(frappe.ValidationError):
+				akun.buat({"akun": daftar})
+		self.assertFalse(frappe.db.exists("User", "_uji.akun.awal@example.com"))
