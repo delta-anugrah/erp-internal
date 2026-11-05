@@ -150,7 +150,7 @@ if [ -n "$selesai" ]; then
 	echo "Ready: https://$situs (once DNS and the reverse proxy point at this server, README steps 2-3)."
 	echo "Sign in as Administrator or with an account made above."
 else
-	petunjuk_wizard "https://$situs"
+	petunjuk_wizard "https://$situs" "make setup"
 fi
 echo
 if [ -n "$(baca RCLONE_REMOTE)" ]; then

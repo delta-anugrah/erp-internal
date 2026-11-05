@@ -1,4 +1,4 @@
-"""What runs once the setup wizard is done, however it was filled (`make setup` / `make start-local` fill it
+"""What runs once the setup wizard is done, however it was filled (`make setup`, local or server, fills it
 automatically, or a person fills it in the browser).
 
 `selesai` is the `setup_wizard_complete` hook. It runs inside the wizard, where an exception rolls the whole wizard

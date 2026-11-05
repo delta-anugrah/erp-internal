@@ -1,4 +1,4 @@
-"""The first accounts of a local stack (akun.py, asked by `make start-local`)."""
+"""The first accounts of a local stack (akun.py, asked by `make setup`)."""
 
 from unittest.mock import patch
 
