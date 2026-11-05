@@ -2,7 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
+Last full run (2026-11-06, make setup / make up): 263 tests (13 unit + 250 integration), all OK. Before that
+(2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
 OK (then `test_modul_mati` 11 OK after the Employee form fix); before that (module and report lock) 260 tests, all OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
 (2026-11-03, app version): 252 tests, all OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
 Before that (2026-11-03, accordion menu): `run-tests --app erp_internal` 239 tests (13 unit + 226 integration),
@@ -18,7 +19,11 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
 - [x] Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md`, built (Tasks 1-6): `make up`, `make setup`,
       `make dev`, `erp_internal/wizard.py`; end to end on the Mac, automatic and by hand (PROGRESS 2026-11-03).
-- [ ] Abel: try `make up` from a fresh clone (Mac now, Samuel's Windows/WSL later).
+- [x] `make setup` once after the clone (the questions and the whole setup), `make up` only starts (Abel 2026-11-05).
+- [x] `make setup`, then `make up`, from a fresh clone on the Mac: automatic and by hand (2026-11-06, PROGRESS).
+- [ ] The same on Samuel's Windows/WSL.
+- [x] By-hand ending now says "When the wizard is done, run make up here" (`make setup` on the server) instead of
+      "wait a minute": the wizard's own jobs kept the background load waiting over 3 minutes (Abel 2026-11-06).
 - [ ] On the real server: `make setup` (needs the server, Samuel question 6).
 - [x] The app version (`v0.0.1`) under the login card and at the foot of the Settings dialog's left menu
       (`erp_internal/versi.py`, `public/js/versi.js`); the image workflow refuses a tag other than

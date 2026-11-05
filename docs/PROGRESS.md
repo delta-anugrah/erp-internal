@@ -2,6 +2,38 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-05 (make setup, then make up)
+- Abel: `make setup` is the one-time step after the clone (wizard question, accounts, the whole setup through
+  `tools/setup_lokal.sh`); `make up` (= `start-local`, `start`) only starts the containers, pings and prints the
+  last line. Without `.local/siap`, `make up` says to run `make setup` first; with it, `make setup` says to use
+  `make up`. The same split as the server's `make setup` / `make up`.
+- The `ERP_AKUN` message (`akun.py`) now reads "ERP_AKUN is not set: run make setup." (its `id.csv` row too); the
+  docstrings of `akun.py`, `wizard.py`, `test_akun.py` say `make setup`.
+- Docs: README, CLAUDE.md, `deploy/server/README.md`, `docs/impor.md`, the setup plan's deviations, TODO.
+- Checked: `bash -n` + shellcheck on `setup_lokal.sh` clean; on a copy with no `.local/`, `make up` stops with
+  "Not set up yet" and `make setup` reaches the questions (refused without a terminal, as before); here
+  `make setup` says "Already set up". `test_bahasa` 6 OK, `test_akun` 3 OK. Not run: ruff (not installed here;
+  only strings and docstrings changed).
+- Full run from a fresh copy of the working tree (project `erp-uji-klon`, port 8091, image built new, answers
+  typed through `expect`): `make up` first refused ("Not set up yet"); `make setup` asked the wizard (automatic,
+  PT Delta Anugrah / DAN kept) and the accounts (Administrator + Developer), built, ended "Ready", Samuel's data
+  loaded (127 Items, 54 Machine Capacity rows, company `erp_aktif`, the Developer on profile Developer); both logins
+  OK; `make setup` again said "Already set up"; `make down` then `make up` with no terminal: no questions, Ready in
+  27 s, logins still OK; `akun.buat` without `ERP_AKUN` shows the new message. Test stack removed (`down -v`).
+- 2026-11-06: automatic path run again from a fresh copy: Ready. By-hand path from a fresh copy (`erp-uji-tangan`,
+  port 8092): `make setup` asked only the Administrator password and ended with "One step left"; the wizard filled
+  in the browser (Playwright: suggested "Indonesia - Chart of Accounts" changed to Standard, own account made);
+  ~3 minutes later Samuel's data was still not loaded (the worker was busy with the wizard's own
+  `delete_dynamic_links` jobs, about 1 s each), so `make up` ran `lanjut` itself: wizard account → Developer,
+  data loaded (127 Items, 54 Machine Capacity), Ready, 3 min 18 s; next `make up` 30 s; `make setup` again
+  "Already set up". Both test stacks removed. `/run-checks`: `run-tests --app erp_internal` 263 tests (13 unit +
+  250 integration), all OK; shellcheck and `bash -n` clean; `make -n setup-local WIZARD=otomatis` reads right;
+  no new commits, so no attribution lines. Not run: ruff (not installed here).
+- Then (Abel): the by-hand ending's step 5 names the command that loads the data, `petunjuk_wizard URL PERINTAH`
+  (`make up` locally, `make setup` on the server), instead of "wait a minute"; README and
+  `deploy/server/README.md` say the same. Checked: the printed steps, `bash -n`, shellcheck. Removed the unused
+  images `erp-internal:uji-klon` and `erp-internal:uji`.
+
 ## 2026-11-03 (app version on screen)
 - `erp_internal/versi.py` (`di_login`, hooks `update_website_context`): `v0.0.1` under the login card;
   `public/js/versi.js`: the same at the foot of the Settings dialog's left menu (the user's Settings only). The image

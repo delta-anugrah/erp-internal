@@ -314,6 +314,15 @@ row → `deploy/server/akun.sh`, `tools/setup_lokal.sh`, `wizard.py`; Commands b
   the new root `lanjut` target) run it once the wizard is done, until `.lanjut-siap` / `.local/lanjut-siap`, so
   Task 4's dry run now counts 0; `wizard.selesai` keeps the account in global default `erp_wizard_developer`;
   `lanjutkan` runs under the site filelock `erp_lanjutkan`; the `ERP_AKUN` message names `make start`/`make setup`.
+- 2026-11-05 (Abel): the first run moved to a new root target `setup` (`check-local env-local`, then
+  `tools/setup_lokal.sh`; with `.local/siap` it only prints "Already set up: make up starts it"). `start-local`
+  (= `up`, `start`) only starts: without `.local/siap` it prints "Not set up yet: run make setup first" and exits 1. The `ERP_AKUN` message now reads "ERP_AKUN is not
+  set: run make setup." (`akun.py`, `id.csv`).
+- 2026-11-06 (Abel): `petunjuk_wizard URL PERINTAH`: step 5 of the by-hand ending reads "When the wizard is done,
+  run PERINTAH here: it loads Samuel's data (a few minutes)." (`make up` from `tools/setup_lokal.sh`, `make setup`
+  from `deploy/server/setup.sh`) instead of "Wait a minute after the wizard". In the by-hand rerun the wizard's own
+  `delete_dynamic_links` jobs (~1 s each) kept the queued `lanjutkan` waiting over 3 minutes, so Task 5 step 2's
+  "within a minute" no longer holds; the command runs `lanjut` itself.
 - Task 5: run beside Abel's stack (`~/Desktop/coba-erp`, project `erp-local`) instead of wiping it: projects
   `erp-tanya` (automatic, port 8081) and `erp-tangan` (by hand, port 8082), image `erp-internal:uji-setup`. The
   name `erp-uji` was taken by the 10-31 rehearsal's volumes.

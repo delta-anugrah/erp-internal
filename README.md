@@ -11,7 +11,8 @@ ERPNext v16 for the plastic factory (stock, sales, purchasing, production with a
 ## Run it on your computer
 
 ERP Internal with the factory's real catalog, sales and machines, on http://localhost:8080. You need only Docker:
-it runs the same stack as the server. One command sets it up the first time and starts it every time after.
+it runs the same stack as the server. `make setup` sets it up once, right after the clone; `make up` starts it every
+time after.
 
 ### What you need (once)
 
@@ -28,10 +29,10 @@ it runs the same stack as the server. One command sets it up the first time and 
    cd erp-internal
    ```
 
-### First time: `make up`
+### First time: `make setup`
 
 ```bash
-make up
+make setup
 ```
 
 It asks a few questions first, then works by itself for 10-30 minutes (building the image is most of it). Every
@@ -91,17 +92,19 @@ When it ends:
      Accounts suggests "Indonesia - Chart of Accounts", pick **Standard**; its "A little about you" step (kind of
      work, team size) changes nothing here, answer as you like (Manufacturing);
   3. in "Create your account" make your own account: it becomes the **Developer** (all rights);
-  4. wait a minute: Samuel's data loads by itself. Then add the Admin and User accounts in the app (Users, with the
+  4. when the wizard is done, run `make up`: it makes your wizard account the Developer and loads Samuel's data
+     (a few minutes; the background job the wizard starts does it too, but only after the wizard's own jobs,
+     which can take many minutes). Then add the Admin and User accounts in the app (Users, with the
      Admin or User role profile).
 
 ### Every day after
 
 | You want to | Type |
 |---|---|
-| Start it | `make up` (seconds; no questions again) |
+| Start it | `make up` (seconds, no questions; the first start after a by-hand wizard may take a few minutes while Samuel's data loads; before `make setup` it only says to run that first) |
 | Stop it (the data stays) | `make down` |
 | Get the newest version | `git pull`, then `make update-local` (rebuilds and migrates; your data and your edits stay; Samuel's data is never loaded twice) |
-| Use another port | the very first time only: `make up PORT=8090` (kept in `.local/.env`) |
+| Use another port | the very first time only: `make setup PORT=8090` (kept in `.local/.env`) |
 | A new person's account, or a forgotten password | an Admin in the app: Users. Everyone changes their own password under their avatar, My Settings, Change Password. |
 
 `make start` and `make start-local` are the same as `make up` (`make start` goes once the real server is live). Everything local is in `.local/` (git-ignored: generated passwords,
@@ -111,16 +114,17 @@ the wizard answer, the backups folder); the data is in Docker volumes of the com
 
 | The terminal says | Do this |
 |---|---|
-| `missing: docker` (or `curl`, `openssl`) | Install it (step "What you need"), then `make up` again. |
-| `Docker does not answer: start Docker Desktop and try again` | Start Docker Desktop, wait for it, `make up` again. |
-| `This asks a few questions: run it in a terminal.` | Run `make up` in a terminal window, not from a script. |
-| `no answer on http://localhost:8080 in 2 minutes` | Docker may still be busy: `make up` again. Still failing: the line shows the `docker compose ... logs` command to see why. |
-| `port is already allocated` | Something else uses port 8080: `make down` in the other copy, or start this one with `PORT=8090` the first time. |
-| Any other error during the first setup | Run `make up` again: every step skips what is done and goes on where it stopped; the questions are not asked again. |
+| `missing: docker` (or `curl`, `openssl`) | Install it (step "What you need"), then the same command again. |
+| `Docker does not answer: start Docker Desktop and try again` | Start Docker Desktop, wait for it, the same command again. |
+| `Not set up yet: run make setup first` | `make setup` once, then `make up`. |
+| `This asks a few questions: run it in a terminal.` | Run `make setup` in a terminal window, not from a script. |
+| `no answer on http://localhost:8080 in 2 minutes` | Docker may still be busy: the same command again. Still failing: the line shows the `docker compose ... logs` command to see why. |
+| `port is already allocated` | Something else uses port 8080: `make down` in the other copy, or set this one up with `make setup PORT=8090`. |
+| Any other error during the first setup | Run `make setup` again: every step skips what is done and goes on where it stopped; the questions are not asked again. |
 
 Starting over from nothing (this **deletes all data** of this copy):
 `make down`, then `docker compose -p erp-local --project-directory .local -f deploy/server/docker-compose.yml down -v`
-and `rm -rf .local`, then `make up`.
+and `rm -rf .local`, then `make setup`.
 
 ## Make commands
 
@@ -129,10 +133,10 @@ Repo root (`Makefile`, on your computer):
 | Command | What it does |
 |---|---|
 | `make help` | Lists these commands. |
-| `make up` | Same as `make start-local`. `make start` is the same too, until the real server is live. |
-| `make start-local` | The first time (no `.local/siap`): `tools/setup_lokal.sh` asks the wizard question (kept in `.local/wizard`) and the accounts, then runs `setup-local`, waits for the stack, makes the accounts (`.local/akun-siap`; the generated `ADMIN_PASSWORD` then leaves `.local/.env`) and prints where to go. Afterwards it only starts the containers, waits for them and prints the same last line. |
+| `make setup` | Once, after the clone (no `.local/siap`): `tools/setup_lokal.sh` asks the wizard question (kept in `.local/wizard`) and the accounts, then runs `setup-local`, waits for the stack, makes the accounts (`.local/akun-siap`; the generated `ADMIN_PASSWORD` then leaves `.local/.env`), writes `.local/siap` and prints where to go. Rerun after a failure, it goes on without asking again; once `.local/siap` exists it only says to use `make up`. |
+| `make up` | Same as `make start-local` (`make start` too, until the real server is live): starts the containers, waits for them and prints the last line (Ready, or the by-hand wizard's steps). Without `.local/siap` it only says to run `make setup` first. |
 | `make down` | Stops the stack; the data stays. |
-| `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. |
+| `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. Run `make setup` first: on a copy never set up it builds, then only says to run `make setup`. |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done (used for the last line). |
 | `make lanjut` | After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
 | `make dev` | For coding (not Docker): starts `erp-mariadb` and `bench start` in the bench of `tools/setup_bench.sh` (Python reloads, JS/CSS rebuild; a DocType change needs `bench migrate`). Without the bench it says so. |
@@ -143,7 +147,7 @@ Repo root (`Makefile`, on your computer):
 company's `erp_aktif` and, in a background job and again through `make lanjut` (run by `setup_lokal.sh` until
 `.local/lanjut-siap`), makes the wizard's own account a Developer and loads Samuel's data once (marker
 `erp_data_samuel`). `ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
-on the first `make up` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
+on `make setup` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
 image is private). `PROYEK=<name>` (with another `PORT` and `ERP_IMAGE`) runs a second stack beside the first, for
 a test.
 
@@ -370,7 +374,8 @@ It asks, each with a suggestion in `[brackets]` (Enter takes it), and skips what
 5. **The setup wizard**, automatic or by hand, and 6. **the accounts**: the same as on your computer (above).
 
 Then it runs every step (10-20 minutes the first time) and ends with `Ready: https://<address>` or, by hand, the
-wizard's last steps. Run `make setup` again any time: it asks nothing already answered and skips every step that is
+wizard's last steps (the last one: `make setup` again once the wizard is done, to load Samuel's data). Run
+`make setup` again any time: it asks nothing already answered and skips every step that is
 done. Afterwards: `make backup` and a restore drill (`deploy/server/README.md`).
 
 ### The image

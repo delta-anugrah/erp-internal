@@ -2,14 +2,14 @@
 # with Samuel's real catalog, sales and machines loaded. Needs only Docker (Docker Desktop on a Mac; on Windows,
 # Docker Desktop with WSL and this repo cloned inside the WSL Ubuntu terminal). README.md "Run it on your computer".
 #
-#   make up             first time: a few questions, then the setup (10-30 min); afterwards it only starts the
-#                       containers again (seconds). `make start` and `make start-local` are the same (`start` goes
-#                       once the real server is live).
+#   make setup          once, right after the clone: a few questions (wizard, accounts), then the setup (10-30 min)
+#   make up             start it (seconds, no questions). `make start` and `make start-local` are the same
+#                       (`start` goes once the real server is live).
 #   make down           stop it (the data stays)
 #   make dev            for coding: the bench (tools/setup_bench.sh), not this Docker stack
 #
 # Everything local lives in .local/ (git-ignored): .env with generated passwords, the wizard answer (wizard), the
-# markers akun-siap and siap, the backups folder. The server has its own Makefile in deploy/server/.
+# markers akun-siap, lanjut-siap and siap, the backups folder. The server has its own Makefile in deploy/server/.
 
 SHELL := /bin/bash
 KETAT := set -euo pipefail;
@@ -32,13 +32,13 @@ SERVER := $(MAKE) --no-print-directory -f deploy/server/Makefile COMPOSE='$(COMP
 PORT_ENV = $(or $(shell sed -n 's/^PORT=//p' $(LOKAL)/.env 2>/dev/null),$(PORT))
 
 .DEFAULT_GOAL := help
-.PHONY: help up start start-local setup-local down update-local check-local env-local image-local configure-local \
+.PHONY: help setup up start start-local setup-local down update-local check-local env-local image-local configure-local \
 	ping-local wizard-selesai lanjut dev
 
 help:
 	@echo "On your computer (README.md \"Run it on your computer\"):"
-	@echo "  make up             first time: a few questions, then the setup; later just starts it again"
-	@echo "                      (http://localhost:$(PORT_ENV)); make start is the same for now"
+	@echo "  make setup          once, after the clone: a few questions, then the setup (10-30 min)"
+	@echo "  make up             start it (http://localhost:$(PORT_ENV)); make start is the same for now"
 	@echo "  make down           stop it; the data stays"
 	@echo "  make update-local   after git pull: rebuild the image, then start; your data stays"
 	@echo "  make dev            code on the bench: Python reloads, JS/CSS rebuild; a DocType change needs bench migrate"
@@ -49,12 +49,19 @@ up: start-local
 # The old name of `up`, kept until the real server is live (Abel 2026-11-04).
 start: start-local
 
-# The first time (no .local/siap) tools/setup_lokal.sh asks and runs the whole setup; afterwards only the
-# containers start, and the last line says where to go (or what is left of a wizard filled by hand).
-start-local: check-local env-local
+# Once, after the clone: tools/setup_lokal.sh asks the questions and runs the whole setup. A setup that stopped
+# halfway (no .local/siap) goes on where it stopped, without asking again; a finished one is left alone.
+setup: check-local env-local
 	@if [ -f $(LOKAL)/siap ]; then \
-		$(COMPOSE) up -d && $(MAKE) --no-print-directory ping-local && COMPOSE='$(COMPOSE)' tools/setup_lokal.sh --pesan; \
+		echo "Already set up: make up starts it (after a git pull: make update-local)."; \
 	else COMPOSE='$(COMPOSE)' tools/setup_lokal.sh; fi
+
+# Only starts the containers; the last line says where to go (or what is left of a wizard filled by hand).
+start-local: check-local
+	@if [ ! -f $(LOKAL)/siap ]; then \
+		echo "Not set up yet: run make setup first (once; it asks a few questions, then sets everything up)."; \
+		exit 1; fi
+	@$(COMPOSE) up -d && $(MAKE) --no-print-directory ping-local && COMPOSE='$(COMPOSE)' tools/setup_lokal.sh --pesan
 
 # Every step skips what is done: image, database, site, wizard. WIZARD=otomatis (from setup_lokal.sh) also fills the
 # wizard; setup_lokal.sh then runs `lanjut` once the wizard is done (Samuel's data, once: never on an update).

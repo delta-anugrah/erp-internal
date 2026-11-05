@@ -48,7 +48,10 @@ tanya_wizard() {
 	export WIZARD COMPANY ABBR TAHUN
 }
 
-# petunjuk_wizard URL: the ending of the by-hand path.
+# petunjuk_wizard URL PERINTAH: the ending of the by-hand path. PERINTAH is the command that, once the wizard is
+# done, makes the wizard's account the Developer and loads Samuel's data (`make up` locally, `make setup` on the
+# server). The background job queued by the wizard does it too, but only after the wizard's own jobs, which can take
+# many minutes.
 petunjuk_wizard() {
 	echo
 	echo "One step left: the setup wizard, by hand."
@@ -58,5 +61,5 @@ petunjuk_wizard() {
 	cetak_nilai | sed "s/^/   /"
 	echo "     The wizard suggests \"Indonesia - Chart of Accounts\": pick Standard. \"A little about you\": any answer."
 	echo "  4. In \"Create your account\", make your own account: it becomes the Developer."
-	echo "  5. Wait a minute after the wizard: Samuel's data loads by itself."
+	echo "  5. When the wizard is done, run $2 here: it loads Samuel's data (a few minutes)."
 }
