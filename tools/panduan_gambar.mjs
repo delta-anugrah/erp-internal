@@ -134,11 +134,13 @@ const GAMBAR_LIST = {
 	"gudang-3": [
 		"Stock",
 		(p) =>
-			isi_baru(p, "Delivery Note", { customer: "Toko Contoh Sejahtera" }, "items", {
-				item_code: "CTH-GAYUNG",
-				qty: 200,
-				warehouse: "Gudang Barang Jadi - CPL",
-			}),
+			isi_baru(
+				p,
+				"Delivery Note",
+				{ customer: "Toko Contoh Sejahtera", set_warehouse: "Gudang Pluit - CPL" },
+				"items",
+				{ item_code: "CTH-GAYUNG", qty: 200 }
+			),
 	],
 };
 

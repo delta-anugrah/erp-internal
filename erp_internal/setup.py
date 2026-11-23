@@ -119,7 +119,15 @@ SATUAN_PECAHAN = ("Kg",)  # every other UOM takes whole numbers only
 # A variant keeps its own packings (one colour's Dus holds 3 Gross, another's 5): a template's save then no
 # longer copies its UOM table over its variants'.
 PENGATURAN_VARIAN = {"allow_different_uom": 1}  # Item Variant Settings
-GUDANG_PABRIK = ("Gudang Bahan Baku", "Gudang Produksi", "Gudang Barang Jadi", "Gudang Reject")
+GUDANG_PABRIK = (
+	"Gudang Bahan Baku",
+	"Gudang Produksi",
+	"Gudang Barang Jadi",
+	"Gudang Reject",
+	"Gudang Pluit",
+)
+# Where finished goods are sold from (Samuel 2026-11-23): a Delivery Note picks one, Order Readiness counts both.
+GUDANG_JUAL = ("Gudang Barang Jadi", "Gudang Pluit")
 
 # The sales and purchasing flow: a Delivery Note is made directly (Samuel 2026-11-02: no Sales Orders for now),
 # every purchase receipt starts from an order; stock never goes negative and is valued FIFO.
@@ -252,6 +260,7 @@ def pastikan_setup() -> None:
 	_varian()
 	for company in perusahaan():
 		_gudang_pabrik(company)
+	_gudang_kirim()
 	_bawaan()
 	_alur_jual_beli()
 	_produksi()
@@ -361,7 +370,7 @@ def _varian() -> None:
 
 
 def _gudang_pabrik(company: str) -> None:
-	"""The four factory warehouses under the company's root; every other unused one is disabled."""
+	"""The `GUDANG_PABRIK` warehouses under the company's root; every other unused one is disabled."""
 	akar = frappe.db.get_value(
 		"Warehouse", {"company": company, "is_group": 1, "parent_warehouse": ("is", "not set")}, "name"
 	)
@@ -386,6 +395,16 @@ def _gudang_pabrik(company: str) -> None:
 		# A warehouse with stock history stays; disabling it would hide stock that exists.
 		if wh not in milik and not frappe.db.exists("Stock Ledger Entry", {"warehouse": wh}):
 			frappe.db.set_value("Warehouse", wh, "disabled", 1)
+
+
+def _gudang_kirim() -> None:
+	"""A Delivery Note must name its warehouse (Property Setter `reqd` on `set_warehouse`)."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	if not frappe.get_meta("Delivery Note").get_field("set_warehouse").reqd:
+		make_property_setter(
+			"Delivery Note", "set_warehouse", "reqd", "1", "Check", validate_fields_for_doctype=False
+		)
 
 
 def _bawaan() -> None:

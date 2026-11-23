@@ -23,7 +23,8 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 
 1. Di Sales Order yang sudah Submit: **Create → Delivery Note**.
 2. Cek jumlah yang benar-benar dikirim hari ini (boleh sebagian; sisanya tetap di pesanan).
-3. Gudang asalnya otomatis **Gudang Barang Jadi**. **Save**, lalu **Submit**: stok langsung berkurang.
+3. Cek **Source Warehouse** (wajib): `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya diambil.
+   **Save**, lalu **Submit**: stok langsung berkurang.
 4. Cetak surat jalan: **Print**.
 
 Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minus.

@@ -9,6 +9,7 @@ from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
+from erp_internal.setup import gudang
 from erp_internal.tampilan import (
 	ADMIN,
 	APLIKASI,
@@ -462,6 +463,7 @@ class TestTampilan(IntegrationTestCase):
 				"customer": pelanggan,
 				"currency": "IDR",
 				"selling_price_list": harga,
+				"set_warehouse": gudang(pabrik, "Gudang Pluit"),
 				"items": [{"item_code": barang, "qty": 10, "rate": 10000}],
 			}
 		)

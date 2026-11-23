@@ -1,7 +1,7 @@
 # Panduan Gudang
 
 Untuk **Admin**: bahan baku masuk, surat jalan, pindah gudang dan stok opname (Stock Reconciliation). Akun
-**Produksi** tidak membuka menu Stock (Mas Samuel, 2026-11-23). Pabrik punya empat gudang:
+**Produksi** tidak membuka menu Stock (Mas Samuel, 2026-11-23). Pabrik punya lima gudang:
 
 | Gudang | Isinya |
 |---|---|
@@ -9,6 +9,10 @@ Untuk **Admin**: bahan baku masuk, surat jalan, pindah gudang dan stok opname (S
 | Gudang Produksi | bahan yang sedang dipakai di mesin |
 | Gudang Barang Jadi | produk siap kirim |
 | Gudang Reject | produk cacat |
+| Gudang Pluit | produk siap kirim yang disimpan di Pluit |
+
+Barang yang dijual diambil dari Gudang Barang Jadi atau Gudang Pluit. Laporan Order Readiness menjumlahkan stok
+keduanya.
 
 Stok tidak boleh minus: kalau sistem bilang stok kurang, cek dulu barangnya, jangan dipaksa.
 
@@ -29,8 +33,10 @@ Pembelian (Purchase Order) belum dipakai (Mas Samuel, 2026-11-02), jadi bahan ma
 Surat jalan dibuat langsung, tanpa Sales Order (penjualan belum dipakai, Mas Samuel 2026-11-02):
 1. **Stock → Delivery Note → + Add Delivery Note**.
 2. **Customer**: pelanggannya (pelanggan baru dibuat Admin).
-3. Di **Items**: barang, jumlah, dan gudang asal `Gudang Barang Jadi`. **Save**, lalu **Submit** sebelum truk
-   berangkat: stok langsung berkurang. Cetak: **Print**.
+3. **Source Warehouse** (wajib): pilih `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya
+   diambil. Semua baris barang ikut gudang itu. Kosong berarti tidak bisa di-Save.
+4. Di **Items**: barang dan jumlah. **Save**, lalu **Submit** sebelum truk berangkat: stok langsung berkurang.
+   Cetak: **Print**.
 
 ![Delivery Note](gambar/gudang-3.png)
 
@@ -38,7 +44,8 @@ Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minu
 
 ### Pindah barang antar gudang
 1. **Stock → Stock Entry → + Add Stock Entry**, **Stock Entry Type** `Material Transfer`.
-2. Isi **Default Source Warehouse** dan **Default Target Warehouse** (misalnya Bahan Baku ke Produksi).
+2. Isi **Default Source Warehouse** dan **Default Target Warehouse** (misalnya Bahan Baku ke Produksi, atau
+   Barang Jadi ke Pluit kalau barang jadi dipindah ke Pluit).
 3. Di **Items**: barang dan jumlah. **Save**, **Submit**.
 
 ![Stock Entry](gambar/gudang-1.png)

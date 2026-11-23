@@ -109,7 +109,7 @@ Short,Kurang
 Lead Time (days),Lama Produksi (hari)
 Latest Start,Mulai Paling Lambat
 Status,Status
-Empty: the company's Gudang Barang Jadi.,Kosong: Gudang Barang Jadi perusahaan itu.
+Empty: Gudang Barang Jadi and Gudang Pluit together.,Kosong: Gudang Barang Jadi dan Gudang Pluit digabung.
 Late,Telat,Order Readiness
 Start this week,Mulai minggu ini,Order Readiness
 Set lead time,Isi lama produksi,Order Readiness

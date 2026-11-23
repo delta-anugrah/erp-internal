@@ -44,7 +44,7 @@ frappe.query_reports["Order Readiness"] = {
 			label: __("Warehouse"),
 			fieldtype: "Link",
 			options: "Warehouse",
-			description: __("Empty: the company's Gudang Barang Jadi."),
+			description: __("Empty: Gudang Barang Jadi and Gudang Pluit together."),
 			get_query: () => ({
 				filters: { company: frappe.query_report.get_filter_value("company"), is_group: 0 },
 			}),

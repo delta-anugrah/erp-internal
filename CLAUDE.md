@@ -93,6 +93,10 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
   keeps an Admin from handing out any role outside Admin and Produksi or touching a Super Admin account (User
   validate/has_permission, Has Role insert); `test_pengguna` tries every path.
 - A report that reads with `get_all` checks the caller's Company/Warehouse permission itself (Order Readiness).
+- Warehouse Pluit (Samuel 2026-11-23): `setup.GUDANG_PABRIK` has five warehouses, `GUDANG_JUAL` (Gudang Barang Jadi,
+  Gudang Pluit) are where goods are sold from. `_gudang_kirim` makes Delivery Note `set_warehouse` required (Property
+  Setter), `pengiriman.ikut_gudang` (Delivery Note `validate`) sets every line to it, and Order Readiness' Stock sums
+  `GUDANG_JUAL` when no warehouse is picked (`_stok` takes a list). Any Delivery Note a test or tool makes sets `set_warehouse`.
 - Unused modules are locked, not only hidden (Abel 2026-11-04): `tampilan.MODUL_MATI` (CRM, Assets, Quality, Support,
   Subcontracting, Maintenance, Payroll, ...) gets one Custom DocPerm for the Administrator role per DocType, every
   profile (Super Admin too) blocks those modules, and `saring_modul_mati` (`extend_bootinfo`, after `saring_aplikasi`, `merek_aplikasi`, `menu_samping`) drops them from every boot; only

@@ -28,8 +28,9 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 2: Produksi records production only (`ERP User` alone), Admin only views it, `batas_user.py`
       removed, Finish on a Work Order Super Admin's only, new Work Orders skip the transfer.
 - [x] Plan Task 3: Work Order machine lock (`kapasitas.mesin_terdaftar`, `cari_mesin`).
-- [ ] Build the plan's Tasks 4-12:
-      warehouse Pluit; Daily Input page like Samuel's Excel with print and Excel; monthly expenses (operator shifts
+- [x] Plan Task 4: warehouse Pluit (`GUDANG_JUAL`, `pengiriman.ikut_gudang`, Order Readiness sums both).
+- [ ] Build the plan's Tasks 5-12:
+      Daily Input page like Samuel's Excel with print and Excel; monthly expenses (operator shifts
       from the daily input); PO print; real documents attached; pigment.
 - [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).

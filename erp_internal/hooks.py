@@ -78,6 +78,8 @@ doctype_js = {"Sales Forecast": "public/js/sales_forecast.js", "Work Order": "pu
 # pengguna.py: an Admin hands out only Admin and Produksi roles and leaves Super Admin accounts alone.
 doc_events = {
 	"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"},
+	# pengiriman.py: every Delivery Note line ships from the note's warehouse.
+	"Delivery Note": {"validate": "erp_internal.pengiriman.ikut_gudang"},
 	# production_floor.py: the Production Floor page refreshes the machine that changed. Work Order uses on_change:
 	# ERPNext sets produced_qty and status with db_set, which runs only before_change/on_change, and on_change also
 	# runs after save, submit, cancel and update-after-submit. Workstation keeps on_update: Job Card writes its status

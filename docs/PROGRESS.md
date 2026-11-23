@@ -2,6 +2,12 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 4 (Warehouse Pluit)
+- `setup.GUDANG_PABRIK` gains Gudang Pluit, `GUDANG_JUAL` = Barang Jadi + Pluit; `_gudang_kirim` makes Delivery Note
+  `set_warehouse` required (Property Setter); `pengiriman.ikut_gudang` (Delivery Note `validate`) copies it to every
+  line. Order Readiness stock sums both selling warehouses when no warehouse is picked (`_stok` takes a list). Delivery
+  notes in `test_alur_jual_beli`, `test_tampilan` and `tools/panduan_gambar.mjs` now set `set_warehouse`.
+
 ## 2026-11-23, plan Task 3 (Work Order machine lock)
 - `kapasitas.mesin_item` / `cari_mesin` / `mesin_terdaftar`: a Work Order takes only a machine Machine Capacity
   lists for its item (variant row, else template); no row at all means any machine; a submitted order already on its
