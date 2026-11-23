@@ -26,13 +26,16 @@ from erp_internal.tests.utils import (
 	buat_bom,
 	buat_hasil,
 	buat_kapasitas,
+	buat_kemasan,
 	buat_mesin,
 	buat_pemasok,
 	buat_pengguna,
 	buat_perusahaan,
+	buat_pigmen,
 	buat_varian,
 	buat_wo,
 	daftar_harga,
+	isi_kemasan,
 	lampirkan,
 	stok_awal,
 	tahun_fiskal,
@@ -268,22 +271,13 @@ class TestPigmen(IntegrationTestCase):
 		self.addCleanup(frappe.cache.delete_value, kapasitas.KUNCI_SEGARKAN_LAGI)
 
 	def pigmen(self, warna, rasio):
-		"""Get or create the PIGMEN template (as `penjualan._pigmen`) and its variant for `warna`."""
-		buat_varian("_UJI-PG-WARNA", ["Super"], [warna])  # the Warna value exists
-		penjualan._pigmen(master.Hasil())
-		kode = frappe.db.sql(
-			"""select i.name from `tabItem` i join `tabItem Variant Attribute` a on a.parent = i.name
-			where i.variant_of = 'PIGMEN' and a.attribute = 'Warna' and a.attribute_value = %s""",
-			warna,
-		)
-		if kode:
-			doc = frappe.get_doc("Item", kode[0][0])
-			doc.erp_rasio_pigmen = rasio
-			doc.save()
-			return doc.name
-		doc = create_variant("PIGMEN", {"Warna": warna})
-		doc.erp_rasio_pigmen = rasio
-		return doc.insert().name
+		return buat_pigmen(warna, rasio)
+
+	def kemasan(self, kode):
+		return buat_kemasan(kode)
+
+	def isi_kemasan(self, item, kemasan, pieces):
+		isi_kemasan(item, kemasan, pieces)
 
 	def isi_bom(self, item):
 		bom = frappe.db.get_value(
@@ -359,6 +353,41 @@ class TestPigmen(IntegrationTestCase):
 		stok_awal(self.pabrik, self.bahan, 100, "Gudang Bahan Baku")
 		buat_hasil(buat_wo(merah, self.mesin, qty=1000), good=1000)
 		self.assertAlmostEqual(self.stok(pg, "Gudang Bahan Baku"), 1000 - 50)
+
+	def test_kemasan_di_bom(self):
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		plastik = self.kemasan("_UJI Plastik isi 560")
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 560)  # on the template: the variant inherits it
+		buat_bom_kapasitas(
+			buat_kapasitas(
+				"_UJI-KM-GAYUNG", self.mesin, material=self.bahan, part_weight=50, runner_weight=0
+			),
+			company=self.pabrik,
+		)
+		self.assertIn((plastik, round(1 / 560, 9)), self.isi_bom(merah))
+
+	def test_kemasan_berubah_bom_baru(self):
+		# changing the template's pieces rebuilds the BOM now under tests (same job as the pigment)
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		plastik = self.kemasan("_UJI Plastik isi 560")
+		karung = self.kemasan("_UJI Karung")
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 560)
+		buat_bom_kapasitas(self.kapasitas("_UJI-KM-GAYUNG"), company=self.pabrik)
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 280)
+		self.assertIn((plastik, round(1 / 280, 9)), self.isi_bom(merah))
+		# the variant's own rows win over its template's
+		self.isi_kemasan(merah, karung, 100)
+		isi = [k for k, _q in self.isi_bom(merah)]
+		self.assertIn(karung, isi)
+		self.assertNotIn(plastik, isi)
+		# a packing item switched off leaves the BOMs
+		frappe.get_doc("Item", karung).update({"disabled": 1}).save()
+		self.assertNotIn(karung, [k for k, _q in self.isi_bom(merah)])
+
+	def test_kemasan_nol_ditolak(self):
+		buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		with self.assertRaises(frappe.ValidationError):
+			self.isi_kemasan("_UJI-KM-GAYUNG", self.kemasan("_UJI Plastik isi 560"), 0)
 
 	def test_beli_per_kg(self):
 		pg = self.pigmen("Merah", rasio=1)

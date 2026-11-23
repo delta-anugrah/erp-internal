@@ -7,7 +7,8 @@
   A machine shift is one distinct (machine, date, shift) of the submitted Production Entries, on the entry's own
   machine: two orders on one machine in one shift count once. One indented row per machine under the category.
 
-Rows are a plain list ending in a Total row, so more rows (computed costs) can be appended before the total.
+Rows are a plain list ending in a Total row, so more rows (computed costs) can be appended before the total:
+`BIAYA_STOK`, the pigment and packing production used up in the month (`pemakaian`, spec A3).
 The report reads with `get_all`, so it checks the caller's Company and Expense Entry permission itself.
 """
 
@@ -18,10 +19,13 @@ from datetime import date
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Count
-from frappe.utils import get_first_day, get_last_day, getdate
+from frappe.utils import flt, get_first_day, get_last_day, getdate
 
 from erp_internal.planning.doctype.expense_entry.expense_entry import PER_SHIFT
 from erp_internal.setup import KATEGORI_BIAYA
+
+# Computed rows (spec A3): report row → the Item Group whose stock production used up in the month.
+BIAYA_STOK = {"Pigmen": "Pigmen", "Kemasan": "Kemasan"}
 
 
 def execute(filters=None):
@@ -31,7 +35,11 @@ def execute(filters=None):
 	frappe.has_permission("Company", "read", doc=filters.company, throw=True)
 	frappe.has_permission("Expense Entry", "read", throw=True)
 	bulan = getdate(filters.bulan or frappe.utils.today())
-	baris = data(filters.company, get_first_day(bulan), get_last_day(bulan))
+	awal, akhir = get_first_day(bulan), get_last_day(bulan)
+	baris = data(filters.company, awal, akhir) + [
+		{"kategori": label, "keterangan": _("Used by production"), "jumlah": nilai, "indent": 0}
+		for label, nilai in pemakaian(filters.company, awal, akhir).items()
+	]
 	total = sum(r["jumlah"] for r in baris if not r["indent"])
 	return kolom(), [
 		*baris,
@@ -98,6 +106,28 @@ def jumlah(entri, awal: date, akhir: date, shift: Callable[[date, date], int]) -
 	if entri.repeat == PER_SHIFT:
 		return entri.amount * shift(max(mulai, awal), min(sampai or akhir, akhir))
 	return entri.amount
+
+
+def pemakaian(company: str, awal: date, akhir: date) -> dict[str, float]:
+	"""`BIAYA_STOK` row → the stock value production took out in `awal..akhir`: minus the summed
+	`stock_value_difference` of the stock ledger rows of items in that group, from the Manufacture and Repack
+	entries of the submitted Production Entries of `company`. Only rows not 0."""
+	nilai = dict(
+		frappe.db.sql(
+			"""select i.item_group, -sum(sle.stock_value_difference)
+			from `tabStock Ledger Entry` sle join `tabItem` i on i.name = sle.item_code
+			where sle.is_cancelled = 0 and sle.company = %(company)s and sle.voucher_type = 'Stock Entry'
+				and sle.posting_date between %(awal)s and %(akhir)s and i.item_group in %(grup)s
+				and sle.voucher_no in (
+					select manufacture_entry from `tabProduction Entry` where docstatus = 1 and company = %(company)s
+					union
+					select reject_entry from `tabProduction Entry` where docstatus = 1 and company = %(company)s
+				)
+			group by i.item_group""",
+			{"company": company, "awal": awal, "akhir": akhir, "grup": tuple(BIAYA_STOK.values())},
+		)
+	)
+	return {label: flt(nilai[grup]) for label, grup in BIAYA_STOK.items() if flt(nilai.get(grup))}
 
 
 def shift_mesin(company: str, dari: date, sampai: date) -> dict[str, dict]:

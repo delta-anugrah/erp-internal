@@ -5,16 +5,29 @@ from datetime import date
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from erp_internal.planning.report.monthly_expenses.monthly_expenses import execute, jumlah, shift_mesin
+from erp_internal.planning.kapasitas import buat_bom_kapasitas
+from erp_internal.planning.report.monthly_expenses.monthly_expenses import (
+	execute,
+	jumlah,
+	pemakaian,
+	shift_mesin,
+)
 from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
+	buat_hasil,
+	buat_kapasitas,
+	buat_kemasan,
 	buat_mesin,
 	buat_pengguna,
 	buat_perusahaan,
+	buat_pigmen,
+	buat_varian,
 	buat_wo,
+	isi_kemasan,
 	lampirkan,
+	stok_awal,
 )
 
 JADI, PP = "_UJI-BY-EMBER", "_UJI-BY-PP"
@@ -172,6 +185,35 @@ class TestBiaya(IntegrationTestCase):
 					"until": date(2026, 5, 9),
 				}
 			).insert()
+
+	def test_pemakaian_pigmen_kemasan(self):
+		# A product whose capacity BOM has a pigment and a packing line, both stocked with a valuation rate; one
+		# Production Entry in November: the November report counts what it used, in Total; December nothing.
+		(merah,) = buat_varian("_UJI-BY-GAYUNG", ["Super"], ["Merah"])
+		pg = buat_pigmen("Merah", rasio=2)
+		plastik = buat_kemasan("_UJI-BY-PLASTIK")
+		isi_kemasan("_UJI-BY-GAYUNG", plastik, 50)
+		buat_bom_kapasitas(
+			buat_kapasitas("_UJI-BY-GAYUNG", self.mesin, material=PP, part_weight=50, runner_weight=0),
+			company=self.pabrik,
+		)
+		awal = date(2026, 11, 1)
+		stok_awal(self.pabrik, PP, 100, "Gudang Bahan Baku", tanggal=awal)
+		stok_awal(self.pabrik, pg, 1000, "Gudang Bahan Baku", rate=150, tanggal=awal)
+		stok_awal(self.pabrik, plastik, 100, "Gudang Bahan Baku", rate=2000, tanggal=awal)
+		wo = buat_wo(merah, self.mesin, qty=100, company=self.pabrik)
+		buat_hasil(wo, good=100, posting_date=date(2026, 11, 10))
+		# 100 pcs x 0.05 kg x 2 g/kg = 10 g at 150; 100 / 50 = 2 bags at 2.000
+		self.assertEqual(
+			pemakaian(self.pabrik, awal, date(2026, 11, 30)), {"Pigmen": 1_500, "Kemasan": 4_000}
+		)
+		nov = self.bulan(awal)
+		self.assertAlmostEqual(nov["Pigmen"], 1_500)
+		self.assertAlmostEqual(nov["Kemasan"], 4_000)
+		self.assertAlmostEqual(nov["Total"], 5_500)
+		des = self.bulan(date(2026, 12, 1))
+		self.assertNotIn("Pigmen", des)
+		self.assertNotIn("Kemasan", des)
 
 	def test_hanya_admin(self):
 		u = buat_pengguna("_uji.biaya.produksi@example.com", PRODUKSI, PRODUKSI, self.pabrik)

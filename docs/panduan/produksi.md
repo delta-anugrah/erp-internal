@@ -80,6 +80,12 @@ Pigmen baru (Admin): **Stock → Item → + Add Item**, atau buka barang **PIGME
 **Warna**, isi **Pigment Ratio (g per kg)** (lebih dari 0, bawaan 1). Stoknya dalam gram, belinya per Kg
 (`pembelian.md`).
 
+**Kemasan.** Tiap baris tabel **Packing** di barang produk (punya varian sendiri, atau dari templatenya) jadi satu
+baris BOM: 1 / **Pieces per Packing** barang kemasan itu per buah. Contoh: plastik isi 560 = 0,001785714 plastik per
+buah, jadi 1.120 buah memakai 2 plastik. Baris Packing diubah atau barang kemasan dinonaktifkan: BOM dibuat ulang
+seperti pigmen. Cara mengisi tabelnya: `admin.md` "Kemasan per produk". Reject ikut memakai bahan BOM-nya, kemasan
+juga.
+
 ## Tiap bulan
 
 ### 1. Perkiraan penjualan (Sales Forecast)

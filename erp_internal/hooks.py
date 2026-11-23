@@ -85,10 +85,14 @@ doc_events = {
 	# runs after save, submit, cancel and update-after-submit. Workstation keeps on_update: Job Card writes its status
 	# with db.set_value (no event at all), which the page's poll catches.
 	"Workstation": {"on_update": "erp_internal.production_floor.siarkan"},
-	# kapasitas.py: a pigment's ratio is above 0; a pigment changed rebuilds the capacity BOMs.
+	# kapasitas.py: a pigment's ratio and a Packing row's pieces are above 0; a pigment, a packing item's state or
+	# a product's Packing rows changed rebuilds the capacity BOMs.
 	"Item": {
-		"validate": "erp_internal.planning.kapasitas.cek_pigmen",
-		"on_update": "erp_internal.planning.kapasitas.pigmen_berubah",
+		"validate": [
+			"erp_internal.planning.kapasitas.cek_pigmen",
+			"erp_internal.planning.kapasitas.cek_kemasan",
+		],
+		"on_update": "erp_internal.planning.kapasitas.item_berubah",
 	},
 	"Work Order": {
 		"on_change": "erp_internal.production_floor.siarkan",

@@ -208,6 +208,11 @@ Make BOMs,Buat BOM
 Set the material of this row before making BOMs.,Isi bahan baris ini dulu sebelum membuat BOM.
 Pigment Ratio (g per kg),Rasio Pigmen (g per kg)
 The pigment ratio must be more than 0 g per kg.,Rasio pigmen harus lebih dari 0 g per kg.
+Item Packing,Kemasan Barang
+Packing Item,Barang Kemasan
+Pieces per Packing,Isi per Kemasan (pcs)
+Row {0}: Pieces per Packing must be more than 0.,Baris {0}: Isi per Kemasan harus lebih dari 0.
+Used by production,Dipakai produksi
 Apply,Terapkan
 Cavities must be a whole number.,Cavity harus bilangan bulat.
 Columns ignored: {0},Kolom diabaikan: {0}

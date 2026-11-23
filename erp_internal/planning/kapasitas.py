@@ -6,7 +6,7 @@ The lookup is the only way the report and the BOM step find a row (Machine Capac
 import erpnext
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 # A new capacity row's `runner_reground` when the field was not given (import, API). Open question to Samuel:
 # is the runner reground and reused (1) or thrown away (0)? A new form asks `runner_digiling()` for it.
@@ -16,8 +16,12 @@ ATRIBUT_JENIS = "Jenis"
 # The pigment template (spec section 8): one variant per colour, stocked in grams, its ratio in g per kg of resin.
 TEMPLATE_PIGMEN = "PIGMEN"
 ATRIBUT_WARNA = "Warna"
-# The fields of a pigment whose change (or a new pigment) rebuilds the capacity BOMs (`pigmen_berubah`).
+# The fields of a pigment whose change (or a new pigment) rebuilds the capacity BOMs (`item_berubah`).
 PEMICU_PIGMEN = ("erp_rasio_pigmen", "disabled")
+# Packing items (spec A2): a product's Packing rows (Item `erp_kemasan`) add one line per row to its BOM.
+GRUP_KEMASAN = "Kemasan"
+# The fields of a packing item whose change rebuilds the capacity BOMs (`item_berubah`).
+PEMICU_KEMASAN = ("disabled",)
 # Cache flag: a rebuild was asked for (`_antre`); `segarkan_bom` runs passes until it stays clear.
 KUNCI_SEGARKAN_LAGI = "erp_segarkan_bom_lagi"
 
@@ -113,10 +117,33 @@ def pigmen(item: str) -> tuple[str, float] | None:
 	return (pg, flt(frappe.db.get_value("Item", pg, "erp_rasio_pigmen"))) if pg else None
 
 
+def _baris_kemasan(item: str) -> list:
+	return frappe.get_all(
+		"Item Packing",
+		{"parenttype": "Item", "parentfield": "erp_kemasan", "parent": item},
+		["packing_item", "pieces"],
+		order_by="idx",
+	)
+
+
+def kemasan(item: str) -> list[tuple[str, int]]:
+	"""(packing item, pieces per packing) of `item`: the variant's Packing rows, else its template's; rows whose
+	packing item is disabled or holds no pieces are left out."""
+	baris = _baris_kemasan(item)
+	if not baris and (template := frappe.db.get_value("Item", item, "variant_of")):
+		baris = _baris_kemasan(template)
+	return [
+		(b.packing_item, b.pieces)
+		for b in baris
+		if b.pieces > 0 and not frappe.db.get_value("Item", b.packing_item, "disabled")
+	]
+
+
 def baris_bom(row, item: str | None = None) -> list[dict]:
 	"""The BOM lines of one piece of `item`: the material, less the masterbatch, then the masterbatch (the
 	percent is of the whole resin mix), in kg; then the pigment of the item's colour, in grams (stock UOM Gram),
-	on top of the material. No masterbatch line unless both the item and a percent are given."""
+	on top of the material; then 1 / pieces of each packing (`kemasan`). No masterbatch line unless both the
+	item and a percent are given."""
 	campuran = flt(row.material_per_pcs) / 1000
 	mb = campuran * flt(row.masterbatch_percent) / 100 if row.masterbatch else 0
 	baris = [{"item_code": row.material, "qty": round(campuran - mb, 6)}]
@@ -124,6 +151,8 @@ def baris_bom(row, item: str | None = None) -> list[dict]:
 		baris.append({"item_code": row.masterbatch, "qty": round(mb, 6)})
 	if item and (pg := pigmen(item)):
 		baris.append({"item_code": pg[0], "qty": round(campuran * pg[1], 6)})
+	for kode, isi in kemasan(item) if item else ():
+		baris.append({"item_code": kode, "qty": round(1 / isi, 9)})
 	return baris
 
 
@@ -136,7 +165,7 @@ def _bom_aktif(nama: str, item: str | None = None) -> list[str]:
 
 def _isi_bom(bom: str) -> list[tuple[str, float]]:
 	return sorted(
-		(r.item_code, round(flt(r.qty), 6))
+		(r.item_code, round(flt(r.qty), 9))
 		for r in frappe.get_all("BOM Item", {"parent": bom}, ["item_code", "qty"])
 	)
 
@@ -274,13 +303,32 @@ def cek_pigmen(doc, method=None) -> None:
 		frappe.throw(_("The pigment ratio must be more than 0 g per kg."))
 
 
-def pigmen_berubah(doc, method=None) -> None:
-	"""A pigment new, or with another ratio or enabled state, rebuilds the capacity BOMs in the background
-	(Item on_update), as the user who saved it."""
-	if doc.variant_of != TEMPLATE_PIGMEN:
-		return
+def cek_kemasan(doc, method=None) -> None:
+	"""Each Packing row holds more than 0 pieces (Item validate)."""
+	for r in doc.get("erp_kemasan") or ():
+		if cint(r.pieces) <= 0:
+			frappe.throw(_("Row {0}: Pieces per Packing must be more than 0.").format(r.idx))
+
+
+def _isi_kemasan(doc) -> list[tuple]:
+	return [(r.packing_item, cint(r.pieces)) for r in doc.get("erp_kemasan") or ()]
+
+
+def perlu_segarkan(doc) -> bool:
+	"""Whether this Item save changes a capacity BOM: a pigment new or with another `PEMICU_PIGMEN`; a packing
+	item with another `PEMICU_KEMASAN`; any other item whose Packing rows changed (or a new one with rows)."""
 	lama = doc.get_doc_before_save()
-	if lama and all(lama.get(f) == doc.get(f) for f in PEMICU_PIGMEN):
+	if doc.variant_of == TEMPLATE_PIGMEN:
+		return not lama or any(lama.get(f) != doc.get(f) for f in PEMICU_PIGMEN)
+	if doc.item_group == GRUP_KEMASAN:
+		return bool(lama) and any(lama.get(f) != doc.get(f) for f in PEMICU_KEMASAN)
+	return _isi_kemasan(doc) != (_isi_kemasan(lama) if lama else [])
+
+
+def item_berubah(doc, method=None) -> None:
+	"""An Item save that changes a capacity BOM (`perlu_segarkan`) rebuilds the capacity BOMs in the background
+	(Item on_update), as the user who saved it."""
+	if not perlu_segarkan(doc):
 		return
 	# Tests never commit, so the after-commit callback would never run there.
 	if frappe.in_test:

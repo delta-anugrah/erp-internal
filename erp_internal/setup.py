@@ -121,6 +121,22 @@ FIELD_PIGMEN = {
 	"insert_after": "item_group",
 	"depends_on": "eval:doc.variant_of=='PIGMEN'",
 }
+# A product's packing (spec A2): which packing items it goes in and how many pieces fit in one, read from the
+# variant, else its template (`kapasitas.kemasan`). Shown on templates, variants and finished goods, never on
+# the groups below.
+GRUP_PRODUK = "Barang Jadi"
+GRUP_TANPA_KEMASAN = ("Kemasan", "Pigmen")
+FIELD_KEMASAN = {
+	"fieldname": "erp_kemasan",
+	"label": "Packing",
+	"fieldtype": "Table",
+	"options": "Item Packing",
+	"insert_after": "erp_rasio_pigmen",
+	"depends_on": (
+		f"eval:(doc.has_variants || doc.variant_of || doc.item_group=={GRUP_PRODUK!r})"
+		f" && !{list(GRUP_TANPA_KEMASAN)!r}.includes(doc.item_group)"
+	),
+}
 
 GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart", "Pigmen")
 # Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`); Ball Kecil the sales Excel's
@@ -139,8 +155,11 @@ SATUAN = (
 	"Roll",
 	"Kg",
 	"Gram",
+	"Buah",
 )
-SATUAN_PECAHAN = ("Kg", "Gram")  # every other UOM takes whole numbers only
+# Buah: the packing items' stock UOM (a capacity BOM uses 1/560 of a bag per piece).
+SATUAN_KEMASAN = "Buah"
+SATUAN_PECAHAN = ("Kg", "Gram", SATUAN_KEMASAN)  # every other UOM takes whole numbers only
 # A variant keeps its own packings (one colour's Dus holds 3 Gross, another's 5): a template's save then no
 # longer copies its UOM table over its variants'.
 PENGATURAN_VARIAN = {"allow_different_uom": 1}  # Item Variant Settings
@@ -375,7 +394,7 @@ def _field_aktif() -> None:
 			"Workstation": FIELD_MESIN,
 			"Work Order": [FIELD_WO_MESIN],
 			"BOM": FIELD_BOM,
-			"Item": [FIELD_PIGMEN],
+			"Item": [FIELD_PIGMEN, FIELD_KEMASAN],
 		},
 		update=True,
 	)

@@ -2,6 +2,15 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 13 (Packing, Pigmen and Kemasan in Monthly Expenses)
+- Child DocType Item Packing (`packing_item` filtered to group Kemasan, `pieces`), Item field `erp_kemasan`
+  ("Packing", on templates, variants and Barang Jadi, not on Kemasan or Pigmen); UOM Buah (fractional,
+  `setup.SATUAN_KEMASAN`) for packing items. `kapasitas.kemasan(item)` (variant rows, else template's; disabled packing
+  left out), `baris_bom` adds 1 / pieces per row; `perlu_segarkan` + `item_berubah` (Item on_update, replaces
+  `pigmen_berubah`) queue the same `_antre` rebuild; `cek_kemasan` refuses 0 pieces. Monthly Expenses:
+  `BIAYA_STOK`, `pemakaian()` (stock value used by Production Entries' Manufacture/Repack), rows Pigmen and Kemasan
+  before Total. `test_bom_kapasitas` 20 OK (3 new), `test_biaya` 12 OK (1 new). Next: Task 12 (sample data).
+
 ## 2026-11-23, plan Task 11 (Pigment)
 - Item Group Pigmen, UOM Gram (fractions), Item field `erp_rasio_pigmen` (g per kg); `penjualan._pigmen` makes the
   template `PIGMEN` (stock Gram, Kg = 1000, purchase UOM Kg, variants on Warna; no variants until Samuel's list).

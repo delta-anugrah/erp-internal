@@ -545,6 +545,40 @@ def buat_varian(template: str, jenis: list[str], warna: list[str]) -> list[str]:
 	return hasil
 
 
+def buat_pigmen(warna: str, rasio: float) -> str:
+	"""Get or create the PIGMEN template (as `penjualan._pigmen`) and its variant for `warna`, with ratio `rasio`
+	(g per kg)."""
+	from erpnext.controllers.item_variant import create_variant
+
+	from erp_internal import master, penjualan
+
+	buat_varian("_UJI-PG-WARNA", ["Super"], [warna])  # the Warna value exists
+	penjualan._pigmen(master.Hasil())
+	kode = frappe.db.sql(
+		"""select i.name from `tabItem` i join `tabItem Variant Attribute` a on a.parent = i.name
+		where i.variant_of = 'PIGMEN' and a.attribute = 'Warna' and a.attribute_value = %s""",
+		warna,
+	)
+	doc = frappe.get_doc("Item", kode[0][0]) if kode else create_variant("PIGMEN", {"Warna": warna})
+	doc.erp_rasio_pigmen = rasio
+	doc.save()
+	return doc.name
+
+
+def buat_kemasan(kode: str) -> str:
+	"""Get or create a packing item (group Kemasan, stock UOM `setup.SATUAN_KEMASAN`)."""
+	from erp_internal.setup import SATUAN_KEMASAN
+
+	return buat_barang(kode, "Kemasan", SATUAN_KEMASAN)
+
+
+def isi_kemasan(item: str, kemasan: str, pieces: int) -> None:
+	"""Set the Packing rows of `item` to one row: `pieces` fit in one `kemasan`."""
+	doc = frappe.get_doc("Item", item)
+	doc.set("erp_kemasan", [{"packing_item": kemasan, "pieces": pieces}])
+	doc.save()
+
+
 def buat_mesin(nomor: int) -> str:
 	"""Get or create the numbered machine Workstation `_Uji Mesin NN`."""
 	nama = f"_Uji Mesin {nomor:02d}"

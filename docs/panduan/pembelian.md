@@ -31,6 +31,10 @@ saring yang statusnya **Pending**.
 **Pigmen** dibeli per **Kg** (satuan beli bawaannya Kg) tapi distok dalam **gram**: pesan `2` Kg, stok bertambah
 2.000 g. Harga per Kg diisi di daftar harga `Harga Bahan Baku` (**Buying → Item Price**, **UOM** `Kg`).
 
+**Kemasan** (plastik, karung, karton) dibeli seperti bahan baku: barang grup **Kemasan**, satuan **Buah**, gudang
+bawaannya Gudang Bahan Baku, harganya di `Harga Bahan Baku`. Stoknya berkurang lewat BOM saat hasil produksi dicatat
+(`produksi.md` "Kemasan"), dan pemakaiannya muncul di laporan Monthly Expenses (`admin.md`).
+
 ## 3. Terima barang (Purchase Receipt)
 
 Biasanya dikerjakan Gudang saat truk datang.
