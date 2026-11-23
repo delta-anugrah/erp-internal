@@ -16,7 +16,7 @@ keduanya.
 
 Stok tidak boleh minus: kalau sistem bilang stok kurang, cek dulu barangnya, jangan dipaksa.
 
-Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 ## Harian
@@ -38,7 +38,7 @@ Sales Order dipakai Admin sejak 2026-11-23 (Mas Samuel: PO dan Sales Order, ceta
 jalan boleh tetap langsung tanpa Sales Order:
 1. **Stock → Delivery Note → + Add Delivery Note**.
 2. **Customer**: pelanggannya (pelanggan baru dibuat Admin).
-3. **Source Warehouse** (wajib): pilih `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya
+3. **Set Source Warehouse** (wajib): pilih `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya
    diambil. Semua baris barang ikut gudang itu. Kosong berarti tidak bisa di-Save.
 4. Di **Items**: barang dan jumlah. **Save**, lalu **Submit** sebelum truk berangkat: stok langsung berkurang.
    Cetak: **Print**.

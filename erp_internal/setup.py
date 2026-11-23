@@ -182,7 +182,7 @@ GUDANG_PABRIK = (
 # Where finished goods are sold from (Samuel 2026-11-23): a Delivery Note picks one, Order Readiness counts both.
 GUDANG_JUAL = ("Gudang Barang Jadi", "Gudang Pluit")
 
-# The sales and purchasing flow: a Delivery Note is made directly (Samuel 2026-11-02: no Sales Orders for now),
+# The sales and purchasing flow: a Delivery Note is made directly (Samuel 2026-11-02; Sales Orders came back 2026-11-23 but stay optional before a delivery),
 # every purchase receipt starts from an order; stock never goes negative and is valued FIFO.
 PENGATURAN_ALUR = {
 	"Selling Settings": {"so_required": "No", "dn_required": "No"},

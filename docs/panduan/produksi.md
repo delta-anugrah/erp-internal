@@ -9,7 +9,7 @@ Alurnya:
 3. tiap shift: **catat hasil produksi** per mesin (bagus lewat Daily Input; reject lewat form Production Entry);
 4. tiap Senin: cek **Order Readiness** (Siap Order).
 
-Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 ## Lantai produksi (Production Floor)
@@ -59,7 +59,7 @@ Tanpa lama produksi, Order Readiness menulis **Set lead time** dan tidak memberi
 
 ### Resep produk (BOM)
 1. **Manufacturing → BOM → + Add BOM**, **Item** produknya, **Quantity** misalnya `1`.
-2. Di **Items**: bahan dan jumlahnya untuk Quantity tadi, dalam satuan stok bahan (biji PP dalam Kg, kemasan dalam
+2. Di **Items**: bahan dan jumlahnya untuk Quantity tadi, dalam satuan stok bahan (biji PP dalam Kg, kemasan dalam satuan stoknya, Buah atau
    Pcs). Contoh ember: `0,25` Kg biji PP dan `1` kemasan.
 3. **Save**, **Submit**. BOM pertama otomatis jadi BOM utama (**Is Default**).
 

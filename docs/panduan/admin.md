@@ -14,7 +14,7 @@ Ada tiga peran (**Role Profile**):
 | **Admin** | pemilik dan kepala | lihat hasil produksi; Work Order, BOM, stok, surat jalan, data induk, penjualan, pembelian, proyek, HR, akun pengguna, pengaturan usaha |
 | **Super Admin** | tim IT | semuanya kecuali modul yang dikunci, termasuk Build, System Settings, dan **Finish** di Work Order |
 
-Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 Modul yang tidak dipakai (CRM, Assets, Quality, Support, Payroll, dan lain-lain) dikunci, begitu juga bagian HR yang

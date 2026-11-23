@@ -5,7 +5,7 @@
 
 Untuk **Admin**. Urutannya: **Sales Order → Delivery Note → Sales Invoice → Payment Entry**.
 
-Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok kanan atas, pilih
+Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok kiri bawah menu samping, pilih
 **Bahasa Indonesia**. Nama tombol di panduan ini ditulis seperti di tampilan bahasa Inggris.
 
 ## 1. Catat pesanan pelanggan (Sales Order)
@@ -27,7 +27,7 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 
 1. Di Sales Order yang sudah Submit: **Create → Delivery Note**.
 2. Cek jumlah yang benar-benar dikirim hari ini (boleh sebagian; sisanya tetap di pesanan).
-3. Cek **Source Warehouse** (wajib): `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya diambil.
+3. Cek **Set Source Warehouse** (wajib): `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya diambil.
    **Save**, lalu **Submit**: stok langsung berkurang.
 4. Cetak surat jalan: **Print**.
 5. Surat jalan boleh di-Submit tanpa lampiran. Setelah pelanggan menandatangani, lampirkan fotonya lewat **Attach**
