@@ -2,6 +2,33 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 12 (sample data, guides, full check): Samuel's 2026-11-23 requests built (Tasks 1-14)
+- What the plan built (entries below per task): roles Super Admin / Admin / Produksi (1-2), Work Order machine lock
+  (3), Gudang Pluit (4), attachments + Missing Documents (5), Daily Input server, page, Print and Excel (6-8),
+  Expense Entry + Monthly Expenses (9), PO print formats (10), pigment per colour (11), packing per product (13),
+  Seal Cap brand codes (14).
+- `contoh.py`: Shift 1 entries carry technician Yudi, Shift 2 is typed through `daily_input.save_cell` (Fadli); the
+  orders' quantity covers both shifts, the order is found by tag, start date and qty, its `creation` set back to the
+  window's first day (Daily Input refuses earlier dates); open sample orders on another machine (the Mesin 01 era)
+  are stopped. Packing CTH-DUS / CTH-PLASTIK (Buah) on the products (`KEMASAN_PRODUK`; erp.localhost's CTH-KARDUS is
+  in whole-number Pcs, so it stays only in the hand-made BOMs), pigments Merah and Biru with stock and Kg prices in
+  `Harga Bahan Baku`, a transfer to Gudang Pluit and an attached delivery note from it, expenses `BIAYA` (a
+  Per machine shift wage made by hand on a site is reused: two would overlap). `tests.utils.nilai_atribut` split out
+  of `buat_varian`; `buat_pigmen` no longer makes a test template and saves only on a change.
+- `test_contoh.test_contoh_baru` (red first: ImportError of `KEMASAN_PRODUK`); `test_hari_berikutnya` keys entries
+  by shift too. `test_contoh` 9 OK. Full `run-tests --app erp_internal`: 346 tests (13 unit + 333 integration), OK.
+  `ruff check` / `ruff format --check` clean. `bench build --app erp_internal`, migrate both sites, `buat_contoh` on
+  erp.localhost twice (same counts). `cek_layar` 3 users OK.
+- New `tools/e2e_samuel.mjs`: Produksi types 1.000 in Daily Input (TOTAL moves) and empties it; Admin: Work Order
+  refused on Mesin 04, submitted on Mesin 03; Sales Order refused without an attachment, submitted with one;
+  Delivery Note from Pluit; Expense Entry refused without its receipt, submitted with it; Monthly Expenses and
+  Missing Documents open; Super Admin: PO Samuel print. 14/14; it cancels and deletes what it made (a cancelled
+  Delivery Note stays: ERPNext never deletes one with stock ledger rows). Screenshots 1440/390 in `tools/hasil/`.
+- Guide pictures retaken (`panduan_gambar.mjs`, 12): new `produksi-2` (Daily Input), `admin-1` (Monthly Expenses),
+  `admin-2` (Missing Documents), shown in `produksi.md` and `admin.md`. The access PDF was not regenerated: no tool
+  or source for it exists (made by hand 2026-11-02, gone from the Desktop).
+- Next: Abel reviews and approves the PR/tag; Samuel's full PO header, pigment list and item 6 lists.
+
 ## 2026-11-23, plan Task 14 (Seal Cap brand codes and their mould inserts)
 - `data/merek_epp.json` (21 rows of Samuel's "List Insert EPP - Delta"), Brand custom field `erp_jumlah_insert`
   ("Inserts (pcs)", `setup.FIELD_MEREK`), `master._merek` (count and KET set only when the Brand is new, so an

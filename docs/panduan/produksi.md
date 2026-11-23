@@ -123,6 +123,8 @@ Halaman **Daily Input** (menu paling atas, di bawah Production Floor) adalah lem
 per Work Order, satu baris per tanggal, satu kolom per shift. Diisi **Produksi** (petugas pabrik) dari catatan
 operator; Admin melihat halaman yang sama tanpa kotak isian.
 
+![Input harian](gambar/produksi-2.png)
+
 - **Atas**: minggu (‹, **This week**, ›), filter mesin, **Tanggal** minggu itu, **Teknisi Pagi** (Shift 1) dan
   **Teknisi Malam** (Shift 2). Nama teknisi terisi nama terakhir yang dipakai; ganti kalau orangnya lain, nama itu
   ditulis di setiap angka yang disimpan sesudahnya.

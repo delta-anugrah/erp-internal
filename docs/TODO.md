@@ -2,8 +2,9 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-23, plan Task 2: Produksi records production only): 262 tests (13 unit + 249
-integration), all OK; `cek_layar` 3 users OK. Before that (Task 1, profile rename): 265 tests, all OK. Before that
+Last full run (2026-11-23, plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),
+all OK; `cek_layar` 3 users OK; `tools/e2e_samuel.mjs` 14/14. Before that (plan Task 2: Produksi records production
+only): 262 tests (13 unit + 249 integration), all OK; `cek_layar` 3 users OK. Before that (Task 1, profile rename): 265 tests, all OK. Before that
 (price list defaults): 263 tests (13 unit + 250 integration), all OK. Before that
 (2026-11-06, make setup / make up): 263 tests, all OK. Before that
 (2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
@@ -40,7 +41,11 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 13: packing per product in the capacity BOMs (Item `erp_kemasan`, Item Packing), Pigmen and Kemasan
       rows in Monthly Expenses (`test_bom_kapasitas`, `test_biaya`).
 - [x] Plan Task 14: Seal Cap brand codes with their mould inserts (Brand `erp_jumlah_insert`, `master._merek`, `test_master`).
-- [ ] Build the plan's remaining task (12, sample data).
+- [x] Plan Task 12: sample data (daily input with technicians Yudi/Fadli, Pluit delivery, two pigments, packing,
+      four expenses), guide pictures `produksi-2`, `admin-1`, `admin-2`, browser run `tools/e2e_samuel.mjs` (14/14).
+- [ ] Access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` for the three new roles: not regenerated (no tool or
+      source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
+- [ ] Abel: approve tagging (bump `erp_internal.__version__`) and the PR from `feat/lokal` once the review is done.
 - [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, M1x machines, colours, pcs per pack and sack): waits for Samuel's lists
       (the brand codes came 2026-11-23).
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).

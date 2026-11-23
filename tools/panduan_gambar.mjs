@@ -4,8 +4,8 @@
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs produksi-1   # only the named pictures
 //
-// Each picture is taken as the sample Admin (User opens no Selling or Buying since 2026-11-02), the User's own
-// screens as the sample User, at 1440x900. A screen with a sample record opens that
+// Each picture is taken as the sample Admin, Produksi's own screen (Daily Input) as the sample Produksi user
+// (`user@`), at 1440x900. A screen with a sample record opens that
 // record; one without (no Purchase Order or Purchase Receipt in the sample data, no Material Transfer) opens a new
 // form and fills it in the browser without saving, so nothing is written. Exit code 1 on an error dialog or a
 // console error.
@@ -55,6 +55,12 @@ const buka = (page, dt) =>
 		return page.evaluate(([dt, nama]) => frappe.set_route("Form", dt, nama), [dt, nama]);
 	});
 
+// A report by name, once its rows have drawn.
+const laporan = (page, nama) =>
+	page
+		.evaluate((nama) => frappe.set_route("query-report", nama), nama)
+		.then(() => page.waitForFunction(() => document.querySelector(".dt-row:not(.dt-row-header)")));
+
 const besok = () => new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
 
 const ADMIN = "admin@example.com"; // since 2026-11-23 Produksi records production only
@@ -71,6 +77,19 @@ const GAMBAR_LIST = {
 				.then(() => p.waitForFunction(() => document.querySelector(".lantai-host")?.shadowRoot?.querySelector("canvas")))
 				.then(() => p.waitForTimeout(3500)),
 	],
+	// Daily Input as Produksi, last week (the sample's seven days end yesterday).
+	"produksi-2": [
+		"Manufacturing",
+		(p) =>
+			p
+				.evaluate(() => frappe.set_route("daily-input"))
+				.then(() => p.waitForSelector("section[data-wo]"))
+				.then(() => p.getByRole("button", { name: "Previous week" }).click())
+				.then(() => p.waitForTimeout(2500)),
+		"user@example.com",
+	],
+	"admin-1": ["Buying", (p) => laporan(p, "Monthly Expenses")],
+	"admin-2": ["Stock", (p) => laporan(p, "Missing Documents")],
 	"penjualan-1": ["Selling", (p) => buka(p, "Sales Order")],
 	"penjualan-2": ["Selling", (p) => buka(p, "Delivery Note")],
 	"penjualan-3": ["Selling", (p) => buka(p, "Sales Invoice")],

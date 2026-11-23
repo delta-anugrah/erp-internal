@@ -281,6 +281,14 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   with a machine gets that machine's BOM (`pilih_bom`). Production Entry (typed in the Daily Input page; "Record Output" on a Work Order opens it) books the
   good pieces (Manufacture) and the rejects (Repack into Gudang Reject) as two Stock Entries; the Plan vs Actual
   report compares them with the target. Guide: `docs/panduan/produksi.md`.
+- Samuel's requests of 2026-11-23 (spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md`): a Work
+  Order takes only a machine its item's Machine Capacity lists; a second sales warehouse Gudang Pluit, picked per
+  Delivery Note; the Daily Input page in his Excel layout (Shift 1 / Shift 2, technicians, TOTAL) with Print and
+  Excel; paper documents attached before submit and the Missing Documents report; Expense Entry (Once, Every month,
+  Per machine shift) and the Monthly Expenses report with pigment and packing used by production; print formats
+  `PO Samuel` / `PO Samuel Beli`; pigment per colour (`PIGMEN`, grams) and packing per product (Item Packing) in the
+  capacity BOMs; the Seal Cap brand codes with their mould inserts. Guides: `docs/panduan/admin.md`, `produksi.md`.
+  Browser run of each profile's flow: `ERP_SANDI=… node tools/e2e_samuel.mjs` (cleans up after itself).
 
 ## Screens
 
@@ -292,9 +300,9 @@ shortcuts to the same links as its menu entries, nothing else:
 
 | Menu header | Home and links |
 |---|---|
-| Stock | Stock Entry, Delivery Note, Item, Warehouse, Stock Balance, Stock Ledger |
+| Stock | Stock Entry, Delivery Note, Item, Brand, Warehouse, Stock Balance, Stock Ledger, Missing Documents |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
-| Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
+| Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice, Expense Entry, Monthly Expenses |
 | Production Floor (own menu entry, first) | the floor page |
 | Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
@@ -336,8 +344,12 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
 ## Sample data
 
 `erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): one company (PT Delta Anugrah, abbreviation CPL, with its logo), products
-with BOMs, lead times and stock, customers, suppliers, 6 months of Sales History, open orders, 10 Machine Capacity rows with their BOMs, 4 open Work Orders (plus one older order without a machine) and 28 Production Entries over the last 7 days, employees on the
-shift, one project, and one user per role (`developer@`, `admin@`, `user@example.com`):
+with BOMs, lead times and stock, two packing items on the products, two pigments (Merah, Biru) with stock and buying
+prices, customers, suppliers, 6 months of Sales History, open orders, 10 Machine Capacity rows with their BOMs (packing
+included), 4 open Work Orders (plus one older order without a machine) with 7 days of output ending yesterday (Shift 1
+with rejects, technician Yudi; Shift 2 typed through Daily Input, technician Fadli), a transfer to Gudang Pluit and a
+delivery note from it, four expenses (operator wage per machine shift, fixed salaries every month, electricity and
+fuel once), employees on the shift, one project, and one user per role (`developer@`, `admin@`, `user@example.com`):
 
 ```bash
 bench --site erp.localhost set-config erp_sandi_contoh <password>

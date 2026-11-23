@@ -44,6 +44,8 @@ dibuat dari dokumen lain (Sales Order ke Delivery Note, Purchase Order ke Purcha
 Laporan **Stock → Missing Documents** menampilkan dokumen yang sudah di-Submit tapi belum ada lampirannya, plus semua
 surat jalan yang belum dilampiri. Tindak lanjutnya dari situ.
 
+![Missing Documents](gambar/admin-2.png)
+
 ## Biaya bulanan
 
 Menu **Buying → Expense Entry** mencatat biaya pabrik; cuma Admin dan Super Admin yang bisa membuka dan melihatnya.
@@ -65,6 +67,8 @@ jadi bulan lalu tetap pakai tarif lama.
 Laporan **Buying → Monthly Expenses** (pilih Company dan Month, tanggal mana saja di bulan itu) menampilkan satu baris
 per kategori dan Total. Di bawah Gaji Operator ada satu baris per mesin: jumlah shift, hari 24 jam (dua shift), dan
 hari 12 jam (satu shift).
+
+![Monthly Expenses](gambar/admin-1.png)
 
 Dua baris dihitung sendiri, tanpa Expense Entry: **Pigmen** dan **Kemasan** ("Used by production"), yaitu nilai stok
 pigmen dan kemasan yang dipakai hasil produksi bulan itu (Production Entry yang di-Submit; reject ikut memakai pigmen, tidak memakai kemasan),
