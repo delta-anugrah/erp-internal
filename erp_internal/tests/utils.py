@@ -487,28 +487,33 @@ def jatah_cuti(karyawan: str, jenis: str, jumlah: float, dari: date, sampai: dat
 	return doc.name
 
 
+def nilai_atribut(atribut: str, nilai: list[str]) -> None:
+	"""Get or create the Item Attribute `atribut` holding every value of `nilai` (missing ones added)."""
+	if frappe.db.exists("Item Attribute", atribut):
+		doc = frappe.get_doc("Item Attribute", atribut)
+	else:
+		doc = frappe.get_doc({"doctype": "Item Attribute", "attribute_name": atribut})
+	ada = {r.attribute_value for r in doc.item_attribute_values}
+	ada_abbr = {r.abbr for r in doc.item_attribute_values}
+	baru = [n for n in nilai if n not in ada]
+	for n in baru:
+		abbr = "".join(c for c in n.upper() if c.isalnum())[:6]
+		while abbr in ada_abbr:
+			abbr += "X"
+		ada_abbr.add(abbr)
+		doc.append("item_attribute_values", {"attribute_value": n, "abbr": abbr})
+	if baru or doc.is_new():
+		doc.save(ignore_permissions=True)
+
+
 def buat_varian(template: str, jenis: list[str], warna: list[str]) -> list[str]:
 	"""Get or create the template `template` (Barang Jadi, attributes Jenis and Warna) and one variant per
 	(jenis, warna) pair, jenis-major; return the variant codes in that order. Missing attribute values are
 	added to the Item Attributes; existing ones are reused."""
 	from erpnext.controllers.item_variant import create_variant
 
-	for atribut, nilai in (("Jenis", jenis), ("Warna", warna)):
-		if frappe.db.exists("Item Attribute", atribut):
-			doc = frappe.get_doc("Item Attribute", atribut)
-		else:
-			doc = frappe.get_doc({"doctype": "Item Attribute", "attribute_name": atribut})
-		ada = {r.attribute_value for r in doc.item_attribute_values}
-		ada_abbr = {r.abbr for r in doc.item_attribute_values}
-		baru = [n for n in nilai if n not in ada]
-		for n in baru:
-			abbr = "".join(c for c in n.upper() if c.isalnum())[:6]
-			while abbr in ada_abbr:
-				abbr += "X"
-			ada_abbr.add(abbr)
-			doc.append("item_attribute_values", {"attribute_value": n, "abbr": abbr})
-		if baru or doc.is_new():
-			doc.save(ignore_permissions=True)
+	nilai_atribut("Jenis", jenis)
+	nilai_atribut("Warna", warna)
 
 	if not frappe.db.exists("Item", template):
 		frappe.get_doc(
@@ -552,7 +557,7 @@ def buat_pigmen(warna: str, rasio: float) -> str:
 
 	from erp_internal import master, penjualan
 
-	buat_varian("_UJI-PG-WARNA", ["Super"], [warna])  # the Warna value exists
+	nilai_atribut("Warna", [warna])
 	penjualan._pigmen(master.Hasil())
 	kode = frappe.db.sql(
 		"""select i.name from `tabItem` i join `tabItem Variant Attribute` a on a.parent = i.name
@@ -560,8 +565,9 @@ def buat_pigmen(warna: str, rasio: float) -> str:
 		warna,
 	)
 	doc = frappe.get_doc("Item", kode[0][0]) if kode else create_variant("PIGMEN", {"Warna": warna})
-	doc.erp_rasio_pigmen = rasio
-	doc.save()
+	if doc.is_new() or frappe.utils.flt(doc.erp_rasio_pigmen) != rasio:
+		doc.erp_rasio_pigmen = rasio
+		doc.save()
 	return doc.name
 
 

@@ -9,13 +9,16 @@ from frappe.utils.password import check_password
 
 from erp_internal.contoh import (
 	BARANG,
+	BIAYA,
 	DIBUAT,
 	KAPASITAS,
 	KARYAWAN,
+	KEMASAN_PRODUK,
 	ORDER_PRODUKSI,
 	PELANGGAN,
 	PEMASOK,
 	PERUSAHAAN,
+	PIGMEN,
 	RESEP,
 	TANDA,
 	buat_contoh,
@@ -44,7 +47,9 @@ class TestContoh(IntegrationTestCase):
 		self.assertEqual(hitung(), sebelum)
 
 		self.assertEqual(ringkas["Company"], 1)
-		self.assertEqual(ringkas["Item"], len(BARANG))
+		self.assertEqual(ringkas["Item"], len(BARANG) + len(PIGMEN))
+		self.assertEqual(ringkas["Expense Entry"], len(BIAYA))
+		self.assertEqual(ringkas["Delivery Note"], 1)
 		self.assertEqual(ringkas["BOM"], len(RESEP) + len(KAPASITAS))
 		self.assertEqual(ringkas["Machine Capacity"], len(KAPASITAS))
 		self.assertEqual(ringkas["Customer"], len(PELANGGAN))
@@ -100,10 +105,35 @@ class TestContoh(IntegrationTestCase):
 			)
 		for o in frappe.get_all("Work Order", tag, ["qty", "produced_qty"]):
 			self.assertLessEqual(o.produced_qty, o.qty)
-		entri = frappe.get_all("Production Entry", tag, ["workstation", "item", "posting_date"])
-		kunci = [(e.workstation, e.item, e.posting_date) for e in entri]
+		entri = frappe.get_all("Production Entry", tag, ["workstation", "item", "posting_date", "shift"])
+		kunci = [(e.workstation, e.item, e.posting_date, e.shift) for e in entri]
 		self.assertEqual(len(kunci), len(set(kunci)))
 		self.assertEqual(max(e.posting_date for e in entri), getdate(today()))
+
+	def test_contoh_baru(self):
+		# Samuel's 2026-11-23 requests: daily input with technicians, the operator wage per machine shift, a
+		# delivery from Pluit, two pigments, and packing in the capacity BOMs.
+		buat_contoh()
+		self.assertTrue(frappe.db.count("Production Entry", {"technician": "Yudi", "docstatus": 1}))
+		self.assertTrue(frappe.db.count("Production Entry", {"technician": "Fadli", "docstatus": 1}))
+		self.assertTrue(
+			frappe.db.exists(
+				"Expense Entry", {"repeat": "Per machine shift", "amount": 105000, "docstatus": 1}
+			)
+		)
+		self.assertTrue(
+			frappe.db.exists("Delivery Note", {"set_warehouse": ("like", "Gudang Pluit%"), "docstatus": 1})
+		)
+		self.assertEqual(frappe.db.count("Item", {"variant_of": "PIGMEN", "disabled": 0}), 2)
+		bom = frappe.get_all(
+			"BOM", {"erp_kapasitas": ("is", "set"), "_user_tags": ("like", f"%{TANDA}%")}, pluck="name"
+		)
+		self.assertTrue(
+			frappe.db.exists(
+				"BOM Item",
+				{"parent": ("in", bom), "item_code": ("in", [k for k, _isi in KEMASAN_PRODUK.values()])},
+			)
+		)
 
 	def test_pengguna_masuk_dengan_sandi(self):
 		buat_contoh()
