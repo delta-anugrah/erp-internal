@@ -2,6 +2,13 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 5 (real documents attached)
+- `lampiran.WAJIB_LAMPIRAN` (Sales Order, Sales Invoice, Purchase Order, Purchase Receipt, Purchase Invoice,
+  Payment Entry, Stock Entry only for Material Receipt) with `before_submit` `cek_lampiran`; `LAMPIRAN_NANTI` = Delivery
+  Note. Report Missing Documents (Stock sidebar and home, Admin and Super Admin, icon `paperclip`), orange note on the
+  forms (`public/js/lampiran.js`, `frappe.boot.erp_lampiran`). Tests and `contoh.py` attach through
+  `tests.utils.lampirkan` before every submit of a covered DocType.
+
 ## 2026-11-23, plan Task 4 (Warehouse Pluit)
 - `setup.GUDANG_PABRIK` gains Gudang Pluit, `GUDANG_JUAL` = Barang Jadi + Pluit; `_gudang_kirim` makes Delivery Note
   `set_warehouse` required (Property Setter); `pengiriman.ikut_gudang` (Delivery Note `validate`) copies it to every

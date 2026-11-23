@@ -295,8 +295,27 @@ def buat_order(
 		}
 	).insert(ignore_permissions=True)
 	if submit:
+		lampirkan("Sales Order", so.name)
 		so.submit()
 	return so
+
+
+def lampirkan(doctype: str, nama: str) -> str:
+	"""Attach a small private text file to the document (the real document's photo or scan); return the File."""
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{nama}.txt",
+				"content": f"scan of {doctype} {nama}".encode(),
+				"is_private": 1,
+				"attached_to_doctype": doctype,
+				"attached_to_name": nama,
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 def buat_perkiraan(company: str, items: list[str], dari: date, periode: int, tanggal: date | None = None):

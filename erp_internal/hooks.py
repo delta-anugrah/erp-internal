@@ -112,7 +112,17 @@ doc_events = {
 	"Stock Entry": {
 		"validate": "erp_internal.planning.doctype.production_entry.production_entry.cek_stock_entry",
 		"before_cancel": "erp_internal.planning.doctype.production_entry.production_entry.cek_stock_entry",
+		# lampiran.py: only a Material Receipt needs its real document attached.
+		"before_submit": "erp_internal.lampiran.cek_lampiran",
 	},
+	# lampiran.py: the photo or scan of a paper document is attached before submit. One entry per DocType of
+	# `lampiran.WAJIB_LAMPIRAN` (`test_lampiran.test_hook_per_tabel` keeps the two in step).
+	"Sales Order": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Sales Invoice": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Purchase Order": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Purchase Receipt": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Purchase Invoice": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Payment Entry": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
 }
 has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
@@ -188,6 +198,7 @@ extend_bootinfo = [
 	"erp_internal.tampilan.merek_aplikasi",
 	"erp_internal.tampilan.menu_samping",
 	"erp_internal.tampilan.saring_modul_mati",
+	"erp_internal.lampiran.boot",
 ]
 
 # Frappe's workspace writes answer with a fresh `app_data` that skips extend_bootinfo; ours run Frappe's and then

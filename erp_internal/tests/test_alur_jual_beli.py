@@ -14,6 +14,7 @@ from erp_internal.tests.utils import (
 	buat_pemasok,
 	buat_perusahaan,
 	daftar_harga,
+	lampirkan,
 	stok_awal,
 	tahun_fiskal,
 )
@@ -53,6 +54,7 @@ class TestAlurJualBeli(IntegrationTestCase):
 			}
 		)
 		so.insert()
+		lampirkan("Sales Order", so.name)
 		so.submit()
 		return so
 
@@ -87,6 +89,7 @@ class TestAlurJualBeli(IntegrationTestCase):
 		si.set("taxes", [])
 		si.set_taxes()
 		si.insert()
+		lampirkan("Sales Invoice", si.name)
 		si.submit()
 		self.assertEqual(si.grand_total, 1_110_000)
 		self.assertEqual(si.items[0].sales_order, so.name)
@@ -146,9 +149,11 @@ class TestAlurJualBeli(IntegrationTestCase):
 			}
 		)
 		po.insert()
+		lampirkan("Purchase Order", po.name)
 		po.submit()
 		pr = make_purchase_receipt(po.name)
 		pr.insert()
+		lampirkan("Purchase Receipt", pr.name)
 		pr.submit()
 		self.assertEqual(stok(self.biji, self.bahan), sebelum + 50)
 

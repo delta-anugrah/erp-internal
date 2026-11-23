@@ -335,3 +335,8 @@ Unknown role {0}.,Peran {0} tidak dikenal.
 {0} is not a valid email address.,{0} bukan alamat email yang benar.
 {0} is given twice.,{0} diisi dua kali.
 Back to Manufacturing,Kembali ke Produksi
+Missing Documents,Dokumen Tanpa Lampiran
+Document Type,Jenis Dokumen
+Document,Dokumen
+"Attach a photo or scan of the real document before you submit.","Lampirkan foto atau hasil scan dokumen aslinya sebelum diajukan."
+Attach the signed delivery note.,Lampirkan surat jalan yang sudah ditandatangani.

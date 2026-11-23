@@ -25,7 +25,10 @@ di tampilan bahasa Inggris.
 Pembelian (Purchase Order) belum dipakai (Mas Samuel, 2026-11-02), jadi bahan masuk dicatat langsung:
 1. **Stock → Stock Entry → + Add Stock Entry**, **Stock Entry Type** `Material Receipt`.
 2. **Default Target Warehouse**: `Gudang Bahan Baku`.
-3. Di **Items**: bahan (misalnya biji plastik) dan jumlahnya dalam Kg. **Save**, **Submit**: stok bertambah.
+3. Di **Items**: bahan (misalnya biji plastik) dan jumlahnya dalam Kg. **Save**.
+4. **Attach** foto atau scan surat jalan dari pemasok (di kanan form). Tanpa lampiran, **Submit** ditolak dan form
+   menampilkan catatan oranye.
+5. **Submit**: stok bertambah.
 
 ![Material Receipt](gambar/gudang-2.png)
 
@@ -41,6 +44,15 @@ Surat jalan dibuat langsung, tanpa Sales Order (penjualan belum dipakai, Mas Sam
 ![Delivery Note](gambar/gudang-3.png)
 
 Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minus.
+
+Surat jalan boleh di-Submit tanpa lampiran, supaya truk tidak menunggu. Setelah pelanggan menandatangani, buka
+suratnya dan **Attach** foto surat jalan yang sudah ditandatangani (bisa setelah Submit). Formnya menampilkan catatan
+oranye "Attach the signed delivery note." selama belum ada.
+
+### Surat yang belum dilampiri
+**Stock → Missing Documents** (Admin dan Super Admin): daftar dokumen yang sudah di-Submit tapi belum ada foto atau
+scan-nya (semua surat jalan, plus pesanan, faktur, penerimaan dan pembayaran), yang terbaru di atas. Klik
+dokumennya, **Attach**, dan hilang dari daftar.
 
 ### Pindah barang antar gudang
 1. **Stock → Stock Entry → + Add Stock Entry**, **Stock Entry Type** `Material Transfer`.

@@ -22,7 +22,8 @@ saring yang statusnya **Pending**.
    ubah kalau harga supplier beda. Rate 0 berarti bahan itu belum punya harga di daftar. Gudang tujuan bahan baku:
    **Gudang Bahan Baku**.
 4. **Purchase Taxes and Charges Template** dibiarkan kosong: perusahaan tidak PKP.
-5. **Save**, lalu **Submit**. Kirim ke pemasok: **Print** atau **Email**.
+5. **Save**, **Attach** foto atau scan dokumen aslinya (PO yang dicap atau dikirim), lalu **Submit**: tanpa
+   lampiran sistem menolak. Kirim ke pemasok: **Print** atau **Email**.
 
 ![Purchase Order](gambar/pembelian-2.png)
 
@@ -32,7 +33,8 @@ Biasanya dikerjakan Gudang saat truk datang.
 
 1. Di Purchase Order: **Create → Purchase Receipt**.
 2. Ubah **Quantity** ke jumlah yang benar-benar datang. Barang rusak: isi **Rejected Quantity**.
-3. **Save**, lalu **Submit**: stok gudang langsung bertambah.
+3. **Save**, **Attach** foto atau scan surat jalan dari pemasok, lalu **Submit**: stok gudang langsung bertambah.
+   Dokumen yang dibuat dari Purchase Order mulai tanpa lampiran, jadi lampirkan lagi.
 
 ![Purchase Receipt](gambar/pembelian-3.png)
 
@@ -40,7 +42,8 @@ Biasanya dikerjakan Gudang saat truk datang.
 
 1. Di Purchase Receipt: **Create → Purchase Invoice**.
 2. Samakan nomor dan tanggal dengan faktur pemasok (**Supplier Invoice No**, **Supplier Invoice Date**).
-3. **Save**, lalu **Submit**. Bayarnya nanti lewat **Create → Payment**.
+3. **Save**, **Attach** foto atau scan faktur pemasok, lalu **Submit**. Bayarnya nanti lewat **Create → Payment**
+   (lampirkan juga bukti bayarnya sebelum Submit).
 
 ## Kalau salah
 

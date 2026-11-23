@@ -15,7 +15,9 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 3. Di tabel **Items**: pilih barang, isi **Quantity**. **Rate** (harga satuan) terisi sendiri dari daftar harga
    `Harga Pola 2026`; ubah kalau harganya beda. Rate 0 berarti barang itu belum punya harga di daftar.
    Kalau pelanggan pesan per karton, pilih **UOM** `Karton`; sistem menghitung isinya sendiri.
-4. Klik **Save**, cek lagi, lalu **Submit**. Pesanan yang belum di-Submit belum dihitung.
+4. Klik **Save**, cek lagi. **Lampirkan foto atau scan dokumen aslinya** (pesanan dari pelanggan) lewat
+   **Attach** di kanan form; selama belum ada lampiran, form menampilkan catatan oranye dan **Submit** ditolak.
+5. Klik **Submit**. Pesanan yang belum di-Submit belum dihitung.
 
 ![Sales Order](gambar/penjualan-1.png)
 
@@ -26,6 +28,8 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 3. Cek **Source Warehouse** (wajib): `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya diambil.
    **Save**, lalu **Submit**: stok langsung berkurang.
 4. Cetak surat jalan: **Print**.
+5. Surat jalan boleh di-Submit tanpa lampiran. Setelah pelanggan menandatangani, lampirkan fotonya lewat **Attach**
+   (bisa setelah Submit). Yang belum dilampiri muncul di laporan **Stock → Missing Documents**.
 
 Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minus.
 
@@ -35,14 +39,15 @@ Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minu
 
 1. Di Delivery Note yang sudah Submit: **Create → Sales Invoice**.
 2. Faktur cuma untuk mencatat (perusahaan tidak PKP): **Sales Taxes and Charges Template** dibiarkan kosong.
-3. **Save**, cek totalnya, lalu **Submit**. Cetak dengan **Print**.
+3. **Save**, cek totalnya, **Attach** foto atau scan fakturnya, lalu **Submit** (tanpa lampiran ditolak). Cetak
+   dengan **Print**.
 
 ![Sales Invoice](gambar/penjualan-3.png)
 
 ## 4. Catat pembayaran (Payment Entry)
 
 1. Di Sales Invoice: **Create → Payment**.
-2. Isi tanggal dan jumlah yang diterima, pilih rekening atau kas. **Save**, lalu **Submit**.
+2. Isi tanggal dan jumlah yang diterima, pilih rekening atau kas. **Save**, **Attach** bukti pembayarannya (foto atau scan), lalu **Submit**.
 
 ## Kalau salah
 

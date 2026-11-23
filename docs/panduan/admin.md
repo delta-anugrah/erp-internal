@@ -26,6 +26,18 @@ muncul di pencarian, dan tidak bisa dibuka lewat alamat. Kalau suatu hari dibutu
 Versi aplikasi (misalnya `v0.0.1`) ada di bawah kotak login dan di bagian bawah menu kiri **My Settings**. Sebut
 versinya kalau melaporkan masalah.
 
+## Dokumen asli dilampirkan
+
+Dokumen kertas harus ada foto atau scan-nya sebelum di-Submit: Sales Order, Sales Invoice, Purchase Order, Purchase
+Receipt, Purchase Invoice, Payment Entry, dan Stock Entry **Material Receipt**. Tanpa lampiran, sistem menolak
+("Attach a photo or scan of the real document before you submit.") dan formnya menampilkan catatan oranye. Catatan
+produksi (Production Entry, Work Order, BOM, Stock Entry Manufacture dan Repack), stok opname, dan Delivery Note
+tidak diwajibkan; surat jalan dilampiri setelah ditandatangani. Dokumen hasil Amend membawa lampirannya; dokumen yang
+dibuat dari dokumen lain (Sales Order ke Delivery Note, Purchase Order ke Purchase Receipt) mulai tanpa lampiran.
+
+Laporan **Stock → Missing Documents** menampilkan dokumen yang sudah di-Submit tapi belum ada lampirannya, plus semua
+surat jalan yang belum dilampiri. Tindak lanjutnya dari situ.
+
 ## Akun pengguna
 
 ### Tambah orang

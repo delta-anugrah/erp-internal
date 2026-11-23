@@ -285,6 +285,7 @@ def _jual_beli(company: str, hari_ini: date) -> None:
 				],
 			}
 		).insert(ignore_permissions=True)
+		utils.lampirkan("Sales Order", so.name)  # a real order is submitted with its document attached
 		so.submit()
 		tandai("Sales Order", so.name)
 
@@ -451,6 +452,7 @@ def _terima_bahan(company: str, tanggal: date) -> None:
 					],
 				}
 			).insert(ignore_permissions=True)
+			utils.lampirkan("Stock Entry", se.name)
 			se.submit()
 			ada = se.name
 		tandai("Stock Entry", ada)

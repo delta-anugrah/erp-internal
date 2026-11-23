@@ -72,7 +72,15 @@ MENU_ATAS = ("production-floor",)
 # Reconciliation, Admin only), the business settings and the reject reasons; System Settings and Build stay
 # with System Manager.
 SIDEBAR = {
-	"Stock": ["Stock Entry", "Delivery Note", "Item", "Warehouse", "Stock Balance", "Stock Ledger"],
+	"Stock": [
+		"Stock Entry",
+		"Delivery Note",
+		"Item",
+		"Warehouse",
+		"Stock Balance",
+		"Stock Ledger",
+		"Missing Documents",  # Admin and Super Admin only (the report's roles): last, so no gap
+	],
 	"Selling": [
 		"Customer",
 		"Sales Order",
@@ -139,6 +147,7 @@ IKON_LINK = {
 	"Production Entry": "notebook-pen",
 	"Order Readiness": "calendar-clock",
 	"Plan vs Actual": "target",
+	"Missing Documents": "paperclip",
 	"Machine Capacity": "cog",
 	"Item Lead Time": "hourglass",
 	"Item": "package",
@@ -347,6 +356,7 @@ PINTASAN = {
 		_p("Warehouse"),
 		_p("Stock Balance", jenis="Report"),
 		_p("Stock Ledger", jenis="Report"),
+		_p("Missing Documents", jenis="Report"),
 	),
 	"Selling": (
 		_p("Customer"),
