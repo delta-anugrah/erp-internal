@@ -94,6 +94,18 @@ class TestPeran(IntegrationTestCase):
 				setup._cabut_izin()  # idempotent
 				self.assertEqual(bool(frappe.db.exists("Custom DocPerm", syarat)), sisa)
 
+	def test_harga_wo_tersembunyi(self):
+		# The Work Order's material rates sit on permlevel 1: Admin reads them, Produksi does not.
+		for field in ("rate", "amount"):
+			self.assertEqual(frappe.get_meta("Work Order Item").get_field(field).permlevel, 1)
+		meta = frappe.get_meta("Work Order")
+		for profil, boleh in ((ADMIN, True), (PRODUKSI, False)):
+			u = buat_pengguna(f"_uji.peran.harga.{profil.lower()}@example.com", profil, profil, self.pabrik)
+			frappe.set_user(u)
+			self.addCleanup(frappe.set_user, "Administrator")
+			self.assertEqual(1 in meta.get_permlevel_access("read", user=u), boleh, profil)
+			frappe.set_user("Administrator")
+
 	def test_wo_tanpa_transfer(self):
 		# Produksi's entries never wait for Admin's Start: new Work Orders take material as output is entered.
 		self.assertEqual(frappe.new_doc("Work Order").skip_transfer, 1)

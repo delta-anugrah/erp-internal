@@ -414,3 +414,4 @@ Per machine shift: the amount for one machine in one shift.,Per shift mesin: jum
 "The last day it counts. Empty: still running. A raise: set Until here, then make a new entry.","Hari terakhir yang dihitung. Kosong: masih berjalan. Naik gaji: isi Sampai di sini, lalu buat catatan baru."
 "What a monthly expense is for (Gaji Operator, Listrik, ...). Expense Entry picks one.","Untuk apa biaya bulanan itu (Gaji Operator, Listrik, ...). Catatan Biaya memilih salah satu."
 {0} shifts · {1} days 24 h · {2} days 12 h,{0} shift · {1} hari 24 jam · {2} hari 12 jam
+"{0} has no stock in {1} yet: receive it there before recording output, or recording fails.","{0} belum ada stoknya di {1}: terima barangnya di sana dulu sebelum mencatat hasil produksi, kalau tidak pencatatan gagal."

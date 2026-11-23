@@ -295,6 +295,10 @@ IZIN_TAMBAHAN = (
 	("Workstation", tampilan.PERAN_USER, 0, ("read",)),
 	("Work Order", tampilan.PERAN_USER, 0, ("read",)),
 	("Company", tampilan.PERAN_USER, 0, ("read",)),
+	# The Work Order's material rates and amounts sit on permlevel 1 (`HARGA_TERSEMBUNYI`): Admin's roles read
+	# them, Produksi (permlevel 0 only) does not.
+	("Work Order", "Manufacturing Manager", 1, ("read", "write")),
+	("Work Order", "Manufacturing User", 1, ("read", "write")),
 )
 # Grants of IZIN_TAMBAHAN taken back (same shape): `_cabut_izin` clears exactly these rights. The old User read
 # these for the delivery note and Material Receipt forms, now Admin's (Samuel, 2026-11-23).
@@ -307,6 +311,9 @@ IZIN_DICABUT = (
 # New Work Orders' defaults (a Property Setter `default` per field): no material transfer, so Produksi's entries
 # never wait for Admin's Start; the material leaves Gudang Bahan Baku as output is entered. Admin may untick it.
 BAWAAN_WO = {"skip_transfer": 1}
+# Price fields Produksi must not see (Samuel, 2026-11-23): moved to permlevel 1 by a Property Setter; IZIN_TAMBAHAN
+# gives the Manufacturing roles that level on the parent DocType.
+HARGA_TERSEMBUNYI = {"Work Order Item": ("rate", "amount")}
 
 
 def pastikan_setup() -> None:
@@ -329,6 +336,7 @@ def pastikan_setup() -> None:
 	_alur_jual_beli()
 	_produksi()
 	_bawaan_wo()
+	_harga_tersembunyi()
 	_shift_pabrik()
 	_format_cetak()
 	_alasan_reject()
@@ -636,6 +644,17 @@ def _bawaan_wo() -> None:
 			make_property_setter(
 				"Work Order", field, "default", str(nilai), "Text", validate_fields_for_doctype=False
 			)
+
+
+def _harga_tersembunyi() -> None:
+	"""HARGA_TERSEMBUNYI's fields on permlevel 1 (a Property Setter each)."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	for doctype, fields in HARGA_TERSEMBUNYI.items():
+		meta = frappe.get_meta(doctype)
+		for field in fields:
+			if meta.get_field(field).permlevel != 1:
+				make_property_setter(doctype, field, "permlevel", 1, "Int", validate_fields_for_doctype=False)
 
 
 def _shift_pabrik() -> None:

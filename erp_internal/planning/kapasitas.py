@@ -336,11 +336,39 @@ def perlu_segarkan(doc) -> bool:
 	return _isi_kemasan(doc) != (_isi_kemasan(lama) if lama else [])
 
 
+def _ingatkan_stok(doc) -> None:
+	"""An orange note, never a refusal: the pigment, or a Packing row's item, has no stock in Gudang Bahan Baku,
+	so recording output of a product that uses it fails (no negative stock)."""
+	from erp_internal.setup import GUDANG_GRUP
+
+	nama_gudang = GUDANG_GRUP["Pigmen"]
+	if doc.variant_of == TEMPLATE_PIGMEN:
+		kode = [] if doc.disabled else [doc.name]
+	else:
+		kode = list(dict.fromkeys(r.packing_item for r in doc.get("erp_kemasan") or ()))
+	gudang = frappe.get_all("Warehouse", {"warehouse_name": nama_gudang}, pluck="name")
+	kosong = [
+		k
+		for k in kode
+		if not gudang
+		or not frappe.db.exists("Bin", {"item_code": k, "warehouse": ("in", gudang), "actual_qty": (">", 0)})
+	]
+	if kosong:
+		frappe.msgprint(
+			_(
+				"{0} has no stock in {1} yet: receive it there before recording output, or recording fails."
+			).format(", ".join(frappe.bold(k) for k in kosong), nama_gudang),
+			indicator="orange",
+			alert=True,
+		)
+
+
 def item_berubah(doc, method=None) -> None:
 	"""An Item save that changes a capacity BOM (`perlu_segarkan`) rebuilds the capacity BOMs in the background
 	(Item on_update), as the user who saved it."""
 	if not perlu_segarkan(doc):
 		return
+	_ingatkan_stok(doc)
 	# Tests never commit, so the after-commit callback would never run there.
 	if frappe.in_test:
 		_antre()

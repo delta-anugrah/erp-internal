@@ -411,6 +411,25 @@ class TestPigmen(IntegrationTestCase):
 		reject = [d.item_code for d in frappe.get_doc("Stock Entry", pe.reject_entry).items if d.s_warehouse]
 		self.assertEqual(sorted(reject), sorted([self.bahan, pg]))
 
+	def test_peringatan_tanpa_stok(self):
+		# A pigment or packing with no stock in Gudang Bahan Baku would block recording output: an orange note.
+		def pesan():
+			return " ".join(str(m) for m in frappe.message_log)
+
+		buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		frappe.clear_messages()
+		pg = self.pigmen("Merah", rasio=1)
+		self.assertIn(pg, pesan())
+		self.assertIn("Gudang Bahan Baku", pesan())
+		plastik = self.kemasan("_UJI Plastik isi 560")
+		frappe.clear_messages()
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 560)
+		self.assertIn(plastik, pesan())
+		stok_awal(self.pabrik, plastik, 10, "Gudang Bahan Baku")
+		frappe.clear_messages()
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 280)
+		self.assertNotIn(plastik, pesan())
+
 	def test_satu_reject_pigmen_kecil(self):
 		# One reject whose pigment line rounds to 0 at the entry's precision still submits, without that line.
 		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])

@@ -47,13 +47,13 @@
 		</tr>
 		<tr>
 			<td>
-				{{ "Pelanggan" if jual else "Pemasok" }}:
+				{{ _("Customer") if jual else _("Supplier") }}:
 				<b>{{ pihak | e }}</b>
 			</td>
 			<td class="meta">
 				No. <b>{{ nomor | e }}</b>
 				{% if jual and doc.po_no %}<br>Sales Order: {{ doc.name | e }}{% endif %}
-				<br>Tanggal: {{ tanggal_panjang(doc.transaction_date) | e }}
+				<br>{{ _("Date") }}: {{ tanggal_panjang(doc.transaction_date) | e }}
 			</td>
 		</tr>
 	</table>

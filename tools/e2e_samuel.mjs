@@ -6,9 +6,12 @@
 // Produksi types a day in Daily Input and sees TOTAL move, then empties the cell again. Admin makes a Work Order
 // on a listed machine (and is refused on an unlisted one), a Sales Order (refused without an attachment, submitted
 // with one), a Delivery Note from Gudang Pluit and an Expense Entry, then opens Monthly Expenses and Missing
-// Documents. Super Admin opens a Purchase Order in the "PO Samuel" print format. The forms are filled through
-// the open form (`cur_frm`), so their scripts and the server's checks run as that user. Every document made here
-// is cancelled and deleted at the end. Screenshots (1440 and 390 px wide) go to tools/hasil/e2e-*.png.
+// Documents. Super Admin opens a Purchase Order in the "PO Samuel Beli" print format (its default). The forms are
+// filled through the open form (`cur_frm`), so their scripts and the server's checks run as that user. Every
+// document made here is cancelled and deleted at the end where ERPNext allows it: each run leaves the cancelled
+// Production Entry, its cancelled Stock Entries and the cancelled Delivery Note on erp.localhost (ERPNext never
+// deletes a submitted-then-cancelled document with ledger rows); no further cleanup is needed. Screenshots
+// (1440 and 390 px wide) go to tools/hasil/e2e-*.png.
 // Exit code 1 on any failed step or console error.
 
 import { mkdirSync } from "node:fs";
@@ -344,12 +347,14 @@ async function superAdmin() {
 		return s;
 	}
 	dibuat.push([s, "Purchase Order", r.name]);
-	const cetak = `${URL}/printview?doctype=Purchase%20Order&name=${encodeURIComponent(r.name)}&format=PO%20Samuel&no_letterhead=0`;
+	const bawaan = await page.evaluate(() => frappe.get_meta("Purchase Order").default_print_format);
+	langkah("Super Admin: PO Samuel Beli is the Purchase Order's default print format", bawaan === "PO Samuel Beli", bawaan);
+	const cetak = `${URL}/printview?doctype=Purchase%20Order&name=${encodeURIComponent(r.name)}&format=PO%20Samuel%20Beli&no_letterhead=0`;
 	const resp = await page.goto(cetak);
 	await page.waitForLoadState("networkidle");
 	const isi = await page.locator("body").innerText();
 	langkah(
-		"Super Admin: PO Samuel print opens",
+		"Super Admin: PO Samuel Beli print opens",
 		resp.ok() && isi.includes(r.name) && !/Traceback|Error/.test(isi),
 		`${resp.status()} ${r.name}`
 	);

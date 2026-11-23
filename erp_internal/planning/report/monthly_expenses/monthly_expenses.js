@@ -20,7 +20,9 @@ frappe.query_reports["Monthly Expenses"] = {
 		},
 	],
 	formatter(value, row, column, data, default_formatter) {
-		const html = default_formatter(value, row, column, data);
+		// Text (category, machine, notes) is escaped before it is wrapped in HTML.
+		const aman = typeof value === "string" ? frappe.utils.escape_html(value) : value;
+		const html = default_formatter(aman, row, column, data);
 		if (!data) return html;
 		// The report view indents rows with `indent` itself (tree view); sub-rows are muted, the rest bold.
 		return data.indent ? `<span class="text-muted">${html}</span>` : `<b>${html}</b>`;
