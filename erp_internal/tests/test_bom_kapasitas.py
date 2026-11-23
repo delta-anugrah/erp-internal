@@ -181,6 +181,7 @@ class TestBomKapasitas(IntegrationTestCase):
 		# A submitted order's machine changes while Not Started or In Process, never once it is done
 		gudang = frappe.db.get_value("Warehouse", {"company": self.pabrik, "is_group": 0})
 		self.buat(self.row(self.v[0], self.m1))
+		self.row(self.v[0], self.m2)  # listed on both machines: the move is allowed
 		a = frappe.get_doc(
 			{
 				"doctype": "Work Order",

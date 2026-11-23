@@ -27,7 +27,8 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 1: profiles renamed Super Admin / Admin / Produksi (`9cc5116`, patch `profil_tiga`).
 - [x] Plan Task 2: Produksi records production only (`ERP User` alone), Admin only views it, `batas_user.py`
       removed, Finish on a Work Order Super Admin's only, new Work Orders skip the transfer.
-- [ ] Build the plan's Tasks 3-12: Work Order machine lock;
+- [x] Plan Task 3: Work Order machine lock (`kapasitas.mesin_terdaftar`, `cari_mesin`).
+- [ ] Build the plan's Tasks 4-12:
       warehouse Pluit; Daily Input page like Samuel's Excel with print and Excel; monthly expenses (operator shifts
       from the daily input); PO print; real documents attached; pigment.
 - [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.

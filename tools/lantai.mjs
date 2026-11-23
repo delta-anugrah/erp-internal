@@ -759,10 +759,17 @@ if (jalankan("wo") || jalankan("xss")) await kasus("wo/xss", async () => {
 	let diajukan = false;
 	const modelAsli = ambilBench("Workstation", "Mesin 03", "erp_model");
 	try {
-		const bom = await p.evaluate(async () => {
-			const q = new URLSearchParams({ doctype: "BOM", filters: JSON.stringify({ is_default: 1, docstatus: 1, is_active: 1 }), fieldname: JSON.stringify(["name", "item", "quantity"]) });
-			return (await (await fetch(`/api/method/frappe.client.get_value?${q}`, { headers: { Accept: "application/json" } })).json()).message;
-		});
+		// An item listed for Mesin 03 in Machine Capacity, or with no row at all (the machine lock, `kapasitas.mesin_terdaftar`).
+		// Through bench execute as Administrator: the sample User reads no BOM.
+		const json = (...a) => JSON.parse(bench("execute", ...a).trim().split("\n").pop());
+		let bom = null;
+		for (const b of json("frappe.get_all", "--kwargs", JSON.stringify({ doctype: "BOM", filters: { is_default: 1, docstatus: 1, is_active: 1 }, fields: ["name", "item", "quantity"], limit_page_length: 30 }))) {
+			const daftar = json("erp_internal.planning.kapasitas.mesin_item", "--args", JSON.stringify([b.item]));
+			if (!daftar.length || daftar.includes("Mesin 03")) {
+				bom = b;
+				break;
+			}
+		}
 		if (!bom?.name) throw new Error("no default BOM on the site for a sample Work Order");
 		// Four BOM batches, so no raw material row turns fractional.
 		const q = Number(bom.quantity) || 1;

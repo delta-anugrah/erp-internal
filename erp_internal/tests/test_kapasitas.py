@@ -6,8 +6,16 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from erp_internal.planning import kapasitas as kapasitas_modul
-from erp_internal.planning.kapasitas import jenis_varian, kapasitas
-from erp_internal.tests.utils import buat_barang, buat_kapasitas, buat_mesin, buat_varian
+from erp_internal.planning.kapasitas import cari_mesin, jenis_varian, kapasitas
+from erp_internal.tests.utils import (
+	buat_barang,
+	buat_bom,
+	buat_kapasitas,
+	buat_mesin,
+	buat_perusahaan,
+	buat_varian,
+	buat_wo,
+)
 
 TEMPLATE = "_UJI-KAP"
 
@@ -24,6 +32,31 @@ class TestKapasitas(IntegrationTestCase):
 		cls.pp = buat_barang("_UJI-PP", "Bahan Baku", "Kg")
 		cls.mb = buat_barang("_UJI-MB", "Bahan Baku", "Kg")
 		cls.kemasan_pcs = buat_barang("_UJI-KEMASAN", "Kemasan", "Pcs")
+		# the Work Order's machine lock: two products with a BOM, a company, two machines
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
+		cls.bahan = cls.pp
+		cls.mesin_a, cls.mesin_b = cls.m1, cls.m2
+		cls.barang = buat_barang("_UJI-KAP-WO", "Barang Jadi")
+		cls.barang_tanpa_baris = buat_barang("_UJI-KAP-BEBAS", "Barang Jadi")
+		for kode in (cls.barang, cls.barang_tanpa_baris):
+			buat_bom(kode, {cls.bahan: 0.05}, company=cls.pabrik)
+
+	def setUp(self):
+		# Each test starts from the fixtures only: the class's rollback comes too late for rows a test makes.
+		frappe.db.savepoint("kapasitas")
+		self.addCleanup(frappe.db.rollback, save_point="kapasitas")
+
+	def order_draft(self, mesin, item=None):
+		return frappe.get_doc(
+			{
+				"doctype": "Work Order",
+				"production_item": item or self.barang,
+				"company": self.pabrik,
+				"qty": 1,
+				"erp_mesin": mesin,
+				"bom_no": frappe.db.get_value("BOM", {"item": item or self.barang, "docstatus": 1}),
+			}
+		)
 
 	def test_hitungan(self):
 		# 20 s cycle, 4 cavities, 50 g part, 12 g runner thrown away
@@ -114,3 +147,31 @@ class TestKapasitas(IntegrationTestCase):
 				}
 				with self.assertRaises(frappe.ValidationError):
 					frappe.get_doc({**dasar, **nilai}).insert()
+
+	def test_mesin_di_luar_daftar_ditolak(self):
+		buat_kapasitas(self.barang, self.mesin_a, material=self.bahan)
+		wo = self.order_draft(self.mesin_b)
+		# the message names the right machine
+		with self.assertRaisesRegex(frappe.ValidationError, self.mesin_a):
+			wo.insert()
+
+	def test_barang_tanpa_baris_bebas(self):
+		# No list to check against: any numbered machine (several real products have no row yet).
+		self.assertTrue(self.order_draft(self.mesin_b, item=self.barang_tanpa_baris).insert().name)
+		hasil = cari_mesin("Workstation", "", "name", 0, 50, {"item": self.barang_tanpa_baris})
+		self.assertTrue({self.mesin_a, self.mesin_b} <= {r[0] for r in hasil})
+
+	def test_order_tanpa_mesin_boleh(self):
+		self.assertTrue(self.order_draft(None, item=self.barang_tanpa_baris).insert().name)
+
+	def test_pindah_mesin_setelah_submit(self):
+		buat_kapasitas(self.barang, self.mesin_a, material=self.bahan)
+		wo = frappe.get_doc("Work Order", buat_wo(self.barang, self.mesin_a, company=self.pabrik))
+		wo.erp_mesin = self.mesin_b
+		with self.assertRaises(frappe.ValidationError):
+			wo.save()
+
+	def test_cari_mesin(self):
+		buat_kapasitas(self.barang, self.mesin_a, material=self.bahan)
+		hasil = cari_mesin("Workstation", "", "name", 0, 20, {"item": self.barang})
+		self.assertEqual([r[0] for r in hasil], [self.mesin_a])

@@ -556,6 +556,33 @@ def buat_kapasitas(item: str, mesin: str, **nilai) -> str:
 	)
 
 
+def buat_wo(
+	item: str,
+	mesin: str | None,
+	qty: float = 1000,
+	company: str = "_Uji Pabrik",
+	bom: str | None = None,
+	**lain,
+) -> str:
+	"""Insert and submit a Work Order of `item` on machine `mesin` (skip_transfer 1, `bom` or the item's default
+	BOM); `lain` overrides any field. It makes no Machine Capacity row: the caller adds one when it needs the
+	machine lock."""
+	wo = frappe.get_doc(
+		{
+			"doctype": "Work Order",
+			"production_item": item,
+			"bom_no": bom or frappe.db.get_value("BOM", {"item": item, "is_default": 1, "docstatus": 1}),
+			"qty": qty,
+			"company": company,
+			"erp_mesin": mesin,
+			"skip_transfer": 1,
+			**lain,
+		}
+	).insert(ignore_permissions=True)
+	wo.submit()
+	return wo.name
+
+
 def buat_hasil(wo: str, good: float, rejects: dict[str, float] | None = None, **lain):
 	"""Insert and submit a new Production Entry of `good` pieces and `rejects` (reason → qty) for Work Order
 	`wo`, on the order's machine, dated today, Shift 1; `lain` overrides any field. Made as the current user

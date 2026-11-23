@@ -2,6 +2,13 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 3 (Work Order machine lock)
+- `kapasitas.mesin_item` / `cari_mesin` / `mesin_terdaftar`: a Work Order takes only a machine Machine Capacity
+  lists for its item (variant row, else template); no row at all means any machine; a submitted order already on its
+  machine keeps running. `work_order.js`: Machine link query and a note when the item has no row. New fixture
+  `utils.buat_wo`. Tests fixed for the lock: `test_bom_kapasitas.test_kunci_mesin`, `test_plan_vs_actual.test_kapasitas`;
+  `tools/lantai.mjs` wo/xss picks an item listed for Mesin 03.
+
 ## 2026-11-23, plan Tasks 1 and 2 (Samuel's three roles)
 - Task 1 (`9cc5116`): profiles renamed Developer → Super Admin, User → Produksi (patch `profil_tiga`, users move
   with the rename; it skips a rename when the new name exists: erp-test had a stale "Produksi" profile, deleted by

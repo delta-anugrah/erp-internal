@@ -87,10 +87,14 @@ doc_events = {
 		"on_change": "erp_internal.production_floor.siarkan",
 		# before_validate, not validate: ERPNext builds the required items in validate, from the BOM then set.
 		"before_validate": "erp_internal.planning.kapasitas.pilih_bom",
-		"validate": "erp_internal.planning.kapasitas.mesin_aktif",
+		"validate": [
+			"erp_internal.planning.kapasitas.mesin_aktif",
+			"erp_internal.planning.kapasitas.mesin_terdaftar",
+		],
 		"before_update_after_submit": [
 			"erp_internal.planning.kapasitas.kunci_mesin",
 			"erp_internal.planning.kapasitas.mesin_aktif",
+			"erp_internal.planning.kapasitas.mesin_terdaftar",
 		],
 	},
 	"User": {

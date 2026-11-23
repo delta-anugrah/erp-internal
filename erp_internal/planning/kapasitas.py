@@ -230,3 +230,48 @@ def mesin_aktif(doc, method=None) -> None:
 	if lama and lama.docstatus == 1 and lama.erp_mesin == doc.erp_mesin:
 		return
 	frappe.throw(_("{0} is not in use. Choose another machine.").format(frappe.bold(doc.erp_mesin)))
+
+
+def _mesin_aktif_bernomor() -> list[str]:
+	"""The enabled numbered machines, by number."""
+	return frappe.get_all(
+		"Workstation", {"erp_nomor": (">", 0), "disabled": 0}, pluck="name", order_by="erp_nomor, name"
+	)
+
+
+@frappe.whitelist()
+def mesin_item(item: str) -> list[str]:
+	"""The numbered machines `kapasitas()` finds an enabled row on for `item`, by number. Empty when the item
+	(and its template) has no enabled row on any of them: no list to check against."""
+	if not item:
+		return []
+	return [m for m in _mesin_aktif_bernomor() if kapasitas(item, m)]
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def cari_mesin(doctype, txt, searchfield, start, page_len, filters) -> list[tuple]:
+	"""Link query of the Work Order's machine: the machines listed for `filters["item"]`, else every enabled
+	numbered machine (an item with no Machine Capacity row yet is free)."""
+	item = (frappe.parse_json(filters) or {}).get("item")
+	nama = mesin_item(item) or _mesin_aktif_bernomor()
+	cari = (txt or "").lower()
+	return [(m,) for m in nama if cari in m.lower()][int(start or 0) :][: int(page_len or 20)]
+
+
+def mesin_terdaftar(doc, method=None) -> None:
+	"""Refuse a Work Order on a machine that Machine Capacity does not list for its item. No row at all means
+	no list: any machine goes. A submitted order already on its machine keeps running; a new, draft or moved
+	order is checked."""
+	if not doc.erp_mesin or not doc.production_item:
+		return
+	lama = doc.get_doc_before_save()
+	if lama and lama.docstatus == 1 and lama.erp_mesin == doc.erp_mesin:
+		return
+	daftar = mesin_item(doc.production_item)
+	if daftar and doc.erp_mesin not in daftar:
+		frappe.throw(
+			_("{0} is not made on {1}. Machines for it: {2}.").format(
+				frappe.bold(doc.production_item), frappe.bold(doc.erp_mesin), ", ".join(daftar)
+			)
+		)
