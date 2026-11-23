@@ -301,7 +301,8 @@ erp.input_harian.pasang = function (wrapper) {
 					__("Underlined numbers were recorded in the Production Entry form: change them there.")
 				)
 			);
-		if (bisa) sek.appendChild(tambahTanggal(b));
+		// A completed order's cells can be corrected, but it takes no new dates.
+		if (bisa && !b.selesai) sek.appendChild(tambahTanggal(b));
 		return sek;
 	}
 

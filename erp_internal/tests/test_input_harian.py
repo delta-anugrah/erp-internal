@@ -177,6 +177,17 @@ class TestInputHarian(IntegrationTestCase):
 			self.assertNotIn(self.wo_so, nama)
 			self.assertIn(self.wo, nama)
 
+	def test_order_selesai_bisa_dibetulkan(self):
+		lalu = add_days(self.kemarin, -3)
+		save_cell(self.wo, str(lalu), "Shift 1", "500")
+		blok = save_cell(self.wo, str(self.kemarin), "Shift 1", "500")  # completes the order
+		self.assertTrue(blok["selesai"])
+		self.assertTrue(blok["boleh_isi"])  # the closed block's cells stay editable for Produksi
+		blok = save_cell(self.wo, str(self.kemarin), "Shift 1", "400")
+		self.assertEqual(frappe.db.get_value("Work Order", self.wo, "status"), "In Process")
+		self.assertEqual([q for q, _t in self.entri(self.kemarin, "Shift 1")], [400])
+		self.assertEqual(blok["total"]["semua"], 900)
+
 	def test_teknisi_minggu(self):
 		save_cell(self.wo, str(self.kemarin), "Shift 1", "10", teknisi="Yudi")
 		save_cell(self.wo, str(self.kemarin), "Shift 2", "10", teknisi="Fadli")

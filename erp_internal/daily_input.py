@@ -19,6 +19,8 @@ from erp_internal.setup import JAM_SHIFT, SHIFT_PABRIK, jam_shift
 
 STATUS_SELESAI = "Completed"  # shown as CLOSE/DONE
 STATUS_TUTUP = ("Completed", "Stopped", "Closed")  # shown only when their last entry falls in the week
+# A completed order's cells can still be corrected: cancelling a cell's entry reopens the order.
+STATUS_BISA_DIUBAH = (*STATUS_TERBUKA, STATUS_SELESAI)
 POLA_JUMLAH = re.compile(r"\d+|\d{1,3}(\.\d{3})+")  # whole pieces; dots are thousands separators
 
 
@@ -142,7 +144,7 @@ def _blok(wo, boleh_isi: bool) -> dict:
 		"status": wo.status,
 		"dibuat": str(getdate(wo.creation)),  # the lower bound of "+ Add date"
 		"selesai": wo.status == STATUS_SELESAI,
-		"boleh_isi": boleh_isi and terbuka,
+		"boleh_isi": boleh_isi and wo.status in STATUS_BISA_DIUBAH,
 		"baris": baris,
 		"total": total,
 	}
@@ -234,7 +236,8 @@ def get_data(dari: str | None = None, sampai: str | None = None, work_order: str
 
 
 def _siapkan_tulis(work_order: str, tanggal: str):
-	"""The checks before a write: the user's Production Entry rights, the order locked, open and on a machine,
+	"""The checks before a write: the user's Production Entry rights, the order locked, open (or Completed, to
+	correct a cell) and on a machine,
 	and the date not in the future. Returns the order row and the date."""
 	for hak in ("create", "submit", "cancel"):
 		frappe.has_permission("Production Entry", hak, throw=True)
@@ -249,7 +252,7 @@ def _siapkan_tulis(work_order: str, tanggal: str):
 	)
 	if not wo:
 		frappe.throw(_("Submit Work Order {0} first.").format(frappe.bold(work_order)))
-	if wo.status not in STATUS_TERBUKA:
+	if wo.status not in STATUS_BISA_DIUBAH:
 		frappe.throw(
 			_("Work Order {0} takes no output: it is {1}.").format(frappe.bold(work_order), _(wo.status))
 		)
