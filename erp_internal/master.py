@@ -156,11 +156,24 @@ def muat() -> dict:
 	}
 
 
-def _harga_bawaan(daftar: str, hasil: "Hasil") -> None:
-	"""Make `daftar` the new Sales Order's price list while it is still ERPNext's empty "Standard Selling" (a
-	user's Sales Order otherwise came at price 0); a list someone chose stays."""
-	if frappe.db.get_single_value("Selling Settings", "selling_price_list") in (None, "", "Standard Selling"):
-		frappe.db.set_single_value("Selling Settings", "selling_price_list", daftar)
+HARGA_STANDAR = {
+	"selling_price_list": ("Selling Settings", "Standard Selling"),
+	"buying_price_list": ("Buying Settings", "Standard Buying"),
+}
+
+
+def _harga_bawaan(daftar: str, hasil: "Hasil", kunci: str = "selling_price_list") -> None:
+	"""Make `daftar` the new order's price list while it is still ERPNext's empty standard list (an order
+	otherwise came at price 0); a list someone chose stays. The global default the forms and the server
+	actually read is kept equal to the setting: `set_single_value` skips the Settings' validate that copies it."""
+	pengaturan, standar = HARGA_STANDAR[kunci]
+	nilai = frappe.db.get_single_value(pengaturan, kunci)
+	if nilai in (None, "", standar):
+		frappe.db.set_single_value(pengaturan, kunci, daftar)
+		nilai = daftar
+		hasil.ditulis += 1
+	if frappe.db.get_default(kunci) != nilai:
+		frappe.db.set_default(kunci, nilai)
 		hasil.ditulis += 1
 
 

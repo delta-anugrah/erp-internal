@@ -22,6 +22,22 @@ place in the last column and strike the row.
 | 14 | Sales Excel (2026-10-29), loaded by `penjualan.muat`: (a) sales are per product and type, not per colour; (b) colours of the new types are guessed: Gayung Lumba Soft = DX's (Hijau, Ungu, Orange), Gayung Bajigur DX Soft = DX's, Gantungan Folding Soft = Super's, Gantungan Dinda Hitam = Hitam, Toples Nastar = Bening, Sendok Bebek = one "Campur"; (c) the Excel's prices are lower than the price list (Gayung Lumba Super 16.500 vs 20.500 a lusin): which is the selling price? (d) its Total row leaves out row 1 (Gantungan Dinda Super); (e) "Gayung Bajigur DX, Soft" is one sales figure for two types | (a) spread evenly over the colours (Abel 2026-10-29); (b) as listed; (c) `Harga Pola 2026` stays, the new types have no price; (d) every row counted; (e) spread over both types' colours | `data/penjualan_2026.json` (`produk_baru`, `penjualan`), rerun `penjualan.muat` |
 | 15 | ~~Item-to-machine list (2026-11-02): (a) "Body PLN" (Mesin 02): which product is it? It is not in the price list or the sales Excel. (b) "Stik Folding" (Mesin 02, 03, 06) is one part of Gantungan Folding: on which machines are the Batok and Tongkat moulded? (c) "Gantungan DX" ( 4 ) on Mesin 04, ( 2 ) on Mesin 05: is it Gantungan Dinda DX? (d) Toples Nastar body (30 s) and lid (10 s) on Mesin 05: one set every 40 s? (e) runner weight per shot of each mould?~~ (a)-(c) answered 2026-11-02 (via Abel): Body PLN no longer made; Folding is one item on the machine that moulds the stick; Gantungan DX = Gantungan Dinda DX. (d), (e) optional, not asked yet | (a)-(c) done in `mesin_barang.json` (54 rows); (d) 40 s per set; (e) runner 0, only the piece's weight is counted as material | `data/mesin_barang.json` `barang` (map the name), rerun `mesin_barang.muat` |
 
+## Answers and new requests (Mas Samuel, WhatsApp 2026-11-23), not built yet
+
+Agreed with Abel; to be specced and planned in a new session (items 1-5 now, 6 when the lists arrive).
+
+| # | Decision | What it changes |
+|---|---|---|
+| 1 | Three roles: Super Admin (us = today's Developer, no limits), Admin (Work Orders, POs/Sales Orders, delivery notes, raw material in, expenses; daily production view only, cannot change it), Produksi (only daily production input, sees nothing outside production) | `tampilan.PROFIL_PERAN`, `batas_user.py`, `pengguna.py`; today's User makes Delivery Notes and Material Receipts: those move to Admin |
+| 2 | Work Order refuses a machine not in the item's Machine Capacity list (Samuel: "biar ga masukin mesin yg gbs produksi brg itu") | Work Order validate in `kapasitas.py` |
+| 3 | A second warehouse "Pluit"; a delivery goes from the factory or Pluit, Admin picks per delivery | warehouse setup |
+| 4 | Daily input after the job, one screen per Work Order, like his Excel (picture 2026-11-23): per PO rows per date, columns Shift 1 (08-20) and Shift 2 (20-08), total; technician pagi/malam per period. Production Floor stays how Admin finds an empty machine | Production Entry or a new page |
+| 5 | Monthly expenses: operator 105.000 per 12 h shift, counted from machine state (24 h = 2 shifts, 12 h = 1, off = 0); electricity, fixed salaries and fuel entered by Admin as plain expenses (fuel not linked to deliveries) | new |
+| 6 | Second product line "Seal Cap", one customer PO per run (e.g. "Seal Cap NKP (Neutral) - M1G, 400.000 pcs, kirim 27 Nov 2026, @24/pcs"): machines M1x always 24 h, one type per machine; brand codes (NDY, NKP, PPK, SBU, ...: a fixed set) and colours change per PO; the selling price follows the machine (Rp23 or Rp24 per pcs, by contract). Proposed: items split by price (Rp23/Rp24) with variants per brand code and colour; PO → Sales Order → Work Order on the PO's machine | WAITING: list of machines (Rp23/Rp24), brand codes, colours, pcs per pack and per sack, the customer |
+| 7 | Every Excel/PO screen and print follows Samuel's own templates (no relearning): PO print like his PO picture, daily recap like his Excel, Excel export in the same layout | print formats, report layout |
+| 8 | Hosting: DigitalOcean (Samuel's card, paid); backups to the admin's PC and Cloudflare R2; domain later | deploy, separate session |
+| 9 | Demo videos for Produksi and Admin after it is built; Abel onboards the new admin (hired this week) | after testing |
+
 ## Answers (Mas Samuel, 2026-11-02)
 
 | # | Answer | What it changes |

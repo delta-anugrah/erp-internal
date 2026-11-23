@@ -215,7 +215,7 @@ Yang dibuat (dijalankan dua kali = sama saja, `ditulis` 0):
 | Apa | Isi |
 |---|---|
 | Tipe dan barang baru | yang dijual di Excel tapi tidak ada di daftar harga (`produk_baru`): Gayung Lumba Soft, Gayung Bajigur DX Soft, Gantungan Folding Soft, Gantungan Dinda Hitam, Toples Nastar 1/2 Kg (`TOPLES-NASTAR`), Sendok Bebek Catering (`SENDOK-BEBEK`, stok dalam `Ball Kecil`). Warnanya tebakan, belum ada harga (`docs/menunggu-samuel.md` baris 14) |
-| Bahan baku | 7 barang di grup `Bahan Baku`, stok dalam Kg (`BB-PP-WARNA`, `BB-PP-HITAM`, ...), harga per kg sebagai valuation rate dan di daftar harga beli `Harga Bahan Baku` |
+| Bahan baku | 7 barang di grup `Bahan Baku`, stok dalam Kg (`BB-PP-WARNA`, `BB-PP-HITAM`, ...), harga per kg sebagai valuation rate dan di daftar harga beli `Harga Bahan Baku` (jadi daftar harga bawaan Purchase Order selama Buying Settings masih "Standard Buying") |
 | Riwayat penjualan | Sales History per varian per bulan, dalam satuan stok (Lusin x 12, Gross x 144). Excel tidak memisah warna, jadi angkanya dibagi rata ke warna-warna tipe itu (sisa pembagian ke varian pertama menurut kode). Sendok Panjang JSW = Sendok Makan Pack |
 | Stok minimum | `safety_stock` tiap varian = setengah rata-rata penjualan sebulan, dibulatkan ke atas (`STOK_MIN_BULAN`); dipakai Order Readiness |
 

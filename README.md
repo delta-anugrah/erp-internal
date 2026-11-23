@@ -263,7 +263,8 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   (`docs/impor.md`, tested by `tests/test_master.py`).
 - The factory's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
   reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw
-  materials with their price per kg, Sales History January-September 2026 (spread evenly over the colours) and each
+  materials with their price per kg (buying list `Harga Bahan Baku`, also the Purchase Order default while Buying
+  Settings still says Standard Buying), Sales History January-September 2026 (spread evenly over the colours) and each
   variant's `safety_stock` (half an average month) (`docs/impor.md`, tested by
   `tests/test_penjualan.py`).
 - The item-to-machine list (2026-11-02), after `penjualan.muat`: `bench --site erp.localhost execute

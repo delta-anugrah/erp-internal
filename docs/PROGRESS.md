@@ -2,6 +2,21 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23 (sales and purchase flow with Samuel's data)
+- Samuel asked whether purchasing, selling and production are ready. A script as `admin@` on `erp.localhost`
+  (Samuel's `BASKOM-20-HTM-HTM`, `BB-PP-WARNA`; rolled back): SO → DN → SI → Payment Entry, PO → PR → PI all OK.
+- Bug found and fixed: SO came from Standard Selling and PO at rate 0, because `set_single_value` on Selling/Buying
+  Settings leaves the global defaults the forms and the server read. `master._harga_bawaan` now syncs them (and,
+  via `penjualan._bahan`, makes `Harga Bahan Baku` the buying default); `patches/harga_bawaan.py` for loaded sites.
+- Tests: `test_master` 9 OK, `test_penjualan` 7 OK, `test_alur_jual_beli` 5 OK; ruff OK. `/run-checks` later the
+  same day: both sites migrated (the patch set `Harga Pola 2026` / `Harga Bahan Baku` on `erp.localhost`),
+  `run-tests --app erp_internal` 263 tests (13 unit + 250 integration) all OK, `ruff check`/`format --check` OK.
+- The `erp-mariadb` container was gone (volume kept): recreated with `tools/setup_bench.sh db`.
+- Samuel's WhatsApp the same day: three roles (Super Admin/Admin/Produksi), a machine lock on Work Orders, warehouse
+  Pluit, daily input like his Excel, monthly expenses, the Seal Cap product line (lists pending), screens following
+  his templates, DigitalOcean hosting, demo videos. All written down in `docs/menunggu-samuel.md` (2026-11-23
+  table) and `docs/TODO.md`; nothing of it built yet. Next: commit the fix, then spec + plan items 1-5.
+
 ## 2026-11-05 (make setup, then make up)
 - Abel: `make setup` is the one-time step after the clone (wizard question, accounts, the whole setup through
   `tools/setup_lokal.sh`); `make up` (= `start-local`, `start`) only starts the containers, pings and prints the

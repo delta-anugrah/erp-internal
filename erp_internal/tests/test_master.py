@@ -97,10 +97,14 @@ class TestMaster(IntegrationTestCase):
 
 	def test_daftar_harga_bawaan(self):
 		self.assertEqual(frappe.db.get_single_value("Selling Settings", "selling_price_list"), self.daftar)
+		# The forms and a server-made Sales Order read the global default, not the setting.
+		self.assertEqual(frappe.db.get_default("selling_price_list"), self.daftar)
 		frappe.db.set_single_value("Selling Settings", "selling_price_list", "Harga Lain")
 		master.muat()
 		self.assertEqual(frappe.db.get_single_value("Selling Settings", "selling_price_list"), "Harga Lain")
+		self.assertEqual(frappe.db.get_default("selling_price_list"), "Harga Lain")
 		frappe.db.set_single_value("Selling Settings", "selling_price_list", self.daftar)
+		master.muat()
 
 	def test_mesin(self):
 		self.assertEqual(frappe.db.count("Workstation", {"workstation_type": master.JENIS_MESIN}), MESIN)

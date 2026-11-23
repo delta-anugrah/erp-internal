@@ -18,7 +18,9 @@ saring yang statusnya **Pending**.
 
 1. Dari Material Request: **Create → Purchase Order**. Atau langsung **Buying → Purchase Order → + Add Purchase Order**.
 2. Isi **Supplier** dan **Required By** (tanggal barang harus datang).
-3. Di **Items**: barang, **Quantity**, **Rate**. Gudang tujuan bahan baku: **Gudang Bahan Baku**.
+3. Di **Items**: barang, **Quantity**. **Rate** (harga per kg) terisi sendiri dari daftar harga `Harga Bahan Baku`;
+   ubah kalau harga supplier beda. Rate 0 berarti bahan itu belum punya harga di daftar. Gudang tujuan bahan baku:
+   **Gudang Bahan Baku**.
 4. **Purchase Taxes and Charges Template** dibiarkan kosong: perusahaan tidak PKP.
 5. **Save**, lalu **Submit**. Kirim ke pemasok: **Print** atau **Email**.
 

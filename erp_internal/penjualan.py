@@ -139,6 +139,7 @@ def _bahan(bahan: list[dict], hasil: master.Hasil) -> None:
 		HARGA_BAHAN,
 		{"price_list_name": HARGA_BAHAN, "selling": 0, "buying": 1, "currency": "IDR"},
 	)
+	master._harga_bawaan(HARGA_BAHAN, hasil, "buying_price_list")
 	for b in bahan:
 		hasil.simpan(
 			"Item",

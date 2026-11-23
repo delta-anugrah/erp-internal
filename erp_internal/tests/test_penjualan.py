@@ -101,6 +101,11 @@ class TestPenjualan(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Price List", penjualan.HARGA_BAHAN, ["buying", "selling"]), (1, 0)
 		)
+		# A new Purchase Order takes its rates from it (it came at price 0 from "Standard Buying").
+		self.assertEqual(
+			frappe.db.get_single_value("Buying Settings", "buying_price_list"), penjualan.HARGA_BAHAN
+		)
+		self.assertEqual(frappe.db.get_default("buying_price_list"), penjualan.HARGA_BAHAN)
 
 	def test_stok_minimum(self):
 		# Gayung Lumba Super: 6,140 lusin in 9 months, a third per colour: 73,680 / 3 / 9 / 2 = 1,364.4 -> 1,365.

@@ -2,7 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-06, make setup / make up): 263 tests (13 unit + 250 integration), all OK. Before that
+Last full run (2026-11-23, price list defaults): 263 tests (13 unit + 250 integration), all OK. Before that
+(2026-11-06, make setup / make up): 263 tests, all OK. Before that
 (2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
 OK (then `test_modul_mati` 11 OK after the Employee form fix); before that (module and report lock) 260 tests, all OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
 (2026-11-03, app version): 252 tests, all OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
@@ -14,6 +15,15 @@ Before that (2026-11-03, guide pictures): 233 tests (13 unit + 220 integration),
 Before that (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integration), 231 OK + 1 fixed and rerun.
 Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
+
+## Next: Samuel's requests of 2026-11-23 (decisions in `docs/menunggu-samuel.md`, 2026-11-23 table)
+- [x] Commit the price list default fix, after `/run-checks` (2026-11-23: 263 tests OK).
+- [ ] Spec + plan, then build items 1-5: roles Super Admin / Admin / Produksi; Work Order machine lock; warehouse
+      Pluit; daily input per Work Order like Samuel's Excel (Shift 1/Shift 2); monthly expenses (operator 105.000 per
+      shift from machine state; electricity, fixed salaries, fuel by Admin). Screens and prints follow his templates.
+- [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.
+- [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
+- [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.
 
 ## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
@@ -132,6 +142,11 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
 - [x] Sign in as `user@` and `admin@example.com`: User has no Settings, Admin does; full width. `cek_layar` 3 users OK 2026-10-31.
 - [x] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused). Playwright/API 2026-10-31: Developer refused (403, "You cannot give these roles").
 - [x] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid. API as `user@` 2026-10-31: SAL-ORD-2026-00007 → MAT-DN-2026-00003 → ACC-SINV-2026-00003 Paid (ACC-PAY-2026-00002). Found: the default price list was the empty Standard Selling (Rate 0), fixed in `master._harga_bawaan`.
+- [x] 2026-11-23, with Samuel's items as `admin@` (script, rolled back): SO → DN → SI → Payment, PO → PR → PI all OK.
+      Found: the global defaults `selling_price_list`/`buying_price_list` stayed Standard Selling/Buying (orders made
+      by the server at price 0, PO always), since `set_single_value` skips the Settings' validate. Fixed in
+      `master._harga_bawaan` (buying: `penjualan._bahan` → `Harga Bahan Baku`), `patches/harga_bawaan.py`.
+- [ ] Abel: in the browser as `admin@`, a new Sales Order and Purchase Order fill their rates by themselves.
 - [ ] Optional: the official vector logo from the designer. `delta-anugrah.svg` is our redraw of the 200 px JPEG;
       replace it under the same name and rerender the PNGs (no code change).
 - [x] Add `127.0.0.1 erp.localhost` to `/etc/hosts` (sudo; present, checked 2026-11-03): Node's socket.io can't resolve `*.localhost` on macOS,
