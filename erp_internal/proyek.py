@@ -10,7 +10,7 @@ from frappe import _
 
 from erp_internal.tampilan import PERAN_ADMIN
 
-# Roles that may submit a timesheet for someone else: the Admin and Developer profiles' (a User holds Projects
+# Roles that may submit a timesheet for someone else: the Admin and Super Admin profiles' (a Produksi user holds Projects
 # User, so that role no longer counts).
 PERAN_ATASAN = {"System Manager", PERAN_ADMIN, "Projects Manager", "HR Manager", "HR User"}
 

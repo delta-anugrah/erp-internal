@@ -13,7 +13,6 @@ from erp_internal.batas_user import HANYA_ADMIN
 from erp_internal.tampilan import (
 	ADMIN,
 	APLIKASI,
-	DEVELOPER,
 	IKON,
 	IKON_LINK,
 	IKON_MODUL,
@@ -21,11 +20,12 @@ from erp_internal.tampilan import (
 	MODUL_BOLEH,
 	MODUL_MATI,
 	PINTASAN,
+	PRODUKSI,
 	PROFIL_PERAN,
 	RUMAH_SENDIRI,
 	SEMBUNYI,
 	SIDEBAR,
-	USER,
+	SUPER_ADMIN,
 	modul_aplikasi,
 	pintasan_aktif,
 	terapkan,
@@ -82,7 +82,7 @@ _BUILD = [
 # Receipt and keeps Stock User's other documents read only (test_batas_user).
 _USER_BUAT = ["Production Entry", "Delivery Note", "Stock Entry"]
 IZIN = {
-	USER: (
+	PRODUKSI: (
 		_USER_BUAT,
 		[
 			# HANYA_ADMIN DocTypes pass a check without a document; batas_user refuses their save.
@@ -98,7 +98,7 @@ IZIN = {
 		],
 	),
 	ADMIN: ([*_HARIAN, *_KELOLA, "Project", "Master Production Schedule"], [*_BUILD, "Server Script"]),
-	DEVELOPER: ([*_KELOLA, *_BUILD], []),
+	SUPER_ADMIN: ([*_KELOLA, *_BUILD], []),
 }
 # Business settings Admin changes; System Settings stays with System Manager (Developer).
 PENGATURAN_BISNIS = [
@@ -123,7 +123,7 @@ def pengguna_profil(profil: str, jenis: str) -> str:
 
 
 def surel(profil: str, jenis: str = "izin") -> str:
-	return f"_uji.{jenis}.{profil.lower()}@example.com"
+	return f"_uji.{jenis}.{profil.lower().replace(' ', '')}@example.com"
 
 
 def get_workspaces_pengguna(u: str) -> list[dict]:
@@ -179,11 +179,11 @@ class TestTampilan(IntegrationTestCase):
 			u = pengguna_profil(profil, "atur")
 			for dt in PENGATURAN_BISNIS:
 				self.assertEqual(
-					frappe.has_permission(dt, "write", user=u), profil != USER, f"{profil} write {dt}"
+					frappe.has_permission(dt, "write", user=u), profil != PRODUKSI, f"{profil} write {dt}"
 				)
 			self.assertEqual(
 				frappe.has_permission("System Settings", "write", user=u),
-				profil == DEVELOPER,
+				profil == SUPER_ADMIN,
 				f"{profil} write System Settings",
 			)
 
@@ -206,7 +206,9 @@ class TestTampilan(IntegrationTestCase):
 				tampil = {e["link_to"] for app in APLIKASI for e in resolve_app_dock(app) if not e["hidden"]}
 			finally:
 				frappe.set_user("Administrator")
-			harap = set(IKON) if profil == DEVELOPER else {k for k, siapa in IKON.items() if profil in siapa}
+			harap = (
+				set(IKON) if profil == SUPER_ADMIN else {k for k, siapa in IKON.items() if profil in siapa}
+			)
 			self.assertEqual(tampil, harap, profil)
 
 	def test_layar_apps_per_profil(self):
@@ -266,7 +268,7 @@ class TestTampilan(IntegrationTestCase):
 				self.assertEqual(apps[app]["app_logo_url"], IKON_APLIKASI[app], profil)
 			tampil = {a["app_title"] for a in boot.app_data if a.get("on_apps_screen")}
 			self.assertNotIn("ERPNext", tampil)
-			self.assertEqual("System" in tampil, profil == DEVELOPER, profil)
+			self.assertEqual("System" in tampil, profil == SUPER_ADMIN, profil)
 		self.assertEqual(frappe.get_hooks("app_logo_url", app_name="erpnext")[0][:16], "/assets/erpnext/")
 
 	def test_tile_production_floor(self):
@@ -336,7 +338,7 @@ class TestTampilan(IntegrationTestCase):
 		from erp_internal.tampilan import menu_samping
 
 		semua = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance", "Setup"]
-		harap = {DEVELOPER: semua, ADMIN: semua, USER: ["Stock", "Manufacturing"]}
+		harap = {SUPER_ADMIN: semua, ADMIN: semua, PRODUKSI: ["Stock", "Manufacturing"]}
 		for profil, shells in harap.items():
 			frappe.set_user(pengguna_profil(profil, "menu"))
 			try:
@@ -380,7 +382,7 @@ class TestTampilan(IntegrationTestCase):
 			blok = {b.module for b in frappe.get_doc("Module Profile", profil).block_modules}
 			self.assertEqual(blok, set(modul_aplikasi()) - set(boleh), profil)
 		# Developer blocks only the modules nobody uses.
-		blok = {b.module for b in frappe.get_doc("Module Profile", DEVELOPER).block_modules}
+		blok = {b.module for b in frappe.get_doc("Module Profile", SUPER_ADMIN).block_modules}
 		self.assertEqual(blok, set(modul_aplikasi()) & set(MODUL_MATI))
 
 	def test_profil_modul_ikut_ikon(self):
@@ -445,7 +447,7 @@ class TestTampilan(IntegrationTestCase):
 	def test_user_tetap_bisa_buat_surat_jalan(self):
 		# a Module Profile must not break link fields on a kept form (a direct Delivery Note, Samuel 2026-11-02)
 		pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
-		u = buat_pengguna("_uji.user.pabrik@example.com", USER, USER, pabrik)
+		u = buat_pengguna("_uji.user.pabrik@example.com", PRODUKSI, PRODUKSI, pabrik)
 		pelanggan = buat_pelanggan("_Uji Pelanggan")
 		barang = buat_barang("_UJI-EMBER", "Barang Jadi")
 		harga = daftar_harga("_Uji Harga Jual", jual=True)  # IDR: the test site's own lists are INR
@@ -466,7 +468,7 @@ class TestTampilan(IntegrationTestCase):
 	def test_izin_order_readiness(self):
 		# User and Admin open Order Readiness; a user without a profile does not.
 		laporan = frappe.get_doc("Report", "Order Readiness")
-		for profil, boleh in ((USER, True), (ADMIN, True), (None, False)):
+		for profil, boleh in ((PRODUKSI, True), (ADMIN, True), (None, False)):
 			frappe.set_user(buat_pengguna(surel(profil or "tanpa", "laporan"), profil, profil, None))
 			try:
 				self.assertEqual(bool(laporan.is_permitted()), boleh, profil)

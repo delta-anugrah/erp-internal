@@ -7,7 +7,7 @@
 //
 // For each user it opens the apps screen, the module home and one new form, and asserts: the page is full
 // width, the ERPNext and HRMS rails show only that profile's modules, Frappe's own tile (Build) shows for
-// Developer only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) and HR DocTypes (DOCTYPE_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
+// Super Admin only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) and HR DocTypes (DOCTYPE_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
 
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -25,22 +25,24 @@ const IKON_TILE = {
 };
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
-// Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on. User
+// Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on. Produksi
 // has Stock and Manufacturing only (Samuel, 2026-11-02).
 const KERJA = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance"];
 // Rail module → its home Workspace (tampilan.PINTASAN keys). Every home is shortcuts only, at most PINTASAN_MAKS.
 const RUMAH = { Setup: "Home", "Shift & Attendance": "HR" };
 const PINTASAN_MAKS = 12; // was 10: Plan vs Actual added 3 shortcuts to Manufacturing (12) and 1 to Setup (11)
 const PROFIL = {
-	Developer: { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
+	"Super Admin": { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
 	Admin: { modul: [...KERJA, "Setup"], build: false, rumah: "Home", form: "User" },
-	User: { modul: ["Stock", "Manufacturing"], build: false, rumah: "Stock", form: "Delivery Note" },
+	Produksi: { modul: ["Stock", "Manufacturing"], build: false, rumah: "Stock", form: "Delivery Note" },
 };
 const APLIKASI = ["erpnext", "hrms"]; // the apps whose rails tampilan.py arranges
 // tampilan.LABEL: the menu header of a module shown under another name.
 const LABEL = { "Shift & Attendance": "HR", Setup: "Settings" };
 
-const surel = (profil) => `${profil.toLowerCase()}@example.com`;
+// The sample logins keep their old names (contoh.SUREL).
+const SUREL = { "Super Admin": "developer@example.com", Admin: "admin@example.com", Produksi: "user@example.com" };
+const surel = (profil) => SUREL[profil];
 // frappe.router.shell_slug: lower case, "&" spelled out, spaces to dashes
 const slug = (shell) => shell.toLowerCase().replace(/&/g, " and ").trim().replace(/\s+/g, "-");
 
@@ -236,7 +238,7 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 				const n = await page.locator(".section-item .section-break").count();
 				cek(n === label.length, `Accounts page menu headers: ${n}`);
 			}
-			if (profil === "Developer") {
+			if (profil === "Super Admin") {
 				// Frappe's own System app keeps its rail.
 				await page.goto(`${URL}/desk/build`);
 				await page.waitForLoadState("networkidle");
@@ -321,7 +323,7 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.goto(`${URL}/desk/lead`);
 	await page.waitForLoadState("networkidle");
 	await page.waitForTimeout(800);
-	// Not permitted, or Not found for Developer (System Manager reads Page, so the route falls through to a 404).
+	// Not permitted, or Not found for Super Admin (System Manager reads Page, so the route falls through to a 404).
 	cek(/Not permitted|Not found/i.test(await page.locator("body").innerText()), "/desk/lead opened");
 	const api = await page.request.get(`${URL}/api/resource/Lead?limit=1`);
 	cek(api.status() === 403, `/api/resource/Lead: ${api.status()}`);

@@ -11,7 +11,7 @@ from erp_internal.planning.kapasitas import (
 	pilih_bom,
 	varian_tercakup,
 )
-from erp_internal.tampilan import ADMIN, USER
+from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
@@ -130,7 +130,7 @@ class TestBomKapasitas(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("Guest")
 		self.assertRaises(frappe.PermissionError, buat_bom_kapasitas, tpl)
-		pegawai = buat_pengguna("_uji.bomk.user@example.com", USER, USER, None)
+		pegawai = buat_pengguna("_uji.bomk.user@example.com", PRODUKSI, PRODUKSI, None)
 		frappe.set_user(pegawai)
 		self.assertRaises(frappe.PermissionError, self.buat, tpl)
 		admin = buat_pengguna("_uji.bomk.admin@example.com", ADMIN, ADMIN, None)

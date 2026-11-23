@@ -70,7 +70,7 @@ setup-local: check-local env-local image-local
 	@$(MAKE) --no-print-directory configure-local
 	$(COMPOSE) up -d
 
-# After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (setup_lokal.sh).
+# After the wizard: our setup, the wizard's account as Super Admin, Samuel's data the first time (setup_lokal.sh).
 lanjut:
 	@$(SERVER) lanjut
 

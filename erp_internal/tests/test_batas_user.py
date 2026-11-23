@@ -8,7 +8,7 @@ from frappe.utils import getdate, today
 from erp_internal.batas_user import HANYA_ADMIN, terbatas
 from erp_internal.production_floor import set_status
 from erp_internal.setup import gudang
-from erp_internal.tampilan import ADMIN, USER
+from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
@@ -41,7 +41,7 @@ class TestBatasUser(IntegrationTestCase):
 		cls.mesin = buat_mesin(43)
 		cls.bahan = gudang(cls.pabrik, "Gudang Bahan Baku")
 		cls.jadi = gudang(cls.pabrik, "Gudang Barang Jadi")
-		cls.user = buat_pengguna("_uji.batas.user@example.com", USER, USER, cls.pabrik)
+		cls.user = buat_pengguna("_uji.batas.user@example.com", PRODUKSI, PRODUKSI, cls.pabrik)
 		cls.admin = buat_pengguna("_uji.batas.admin@example.com", ADMIN, ADMIN, cls.pabrik)
 
 	def setUp(self):

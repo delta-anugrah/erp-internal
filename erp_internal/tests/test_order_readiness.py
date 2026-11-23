@@ -158,7 +158,7 @@ class TestOrderReadiness(IntegrationTestCase):
 
 	def test_perusahaan_tanpa_izin_ditolak(self):
 		# A user held to one company by User Permission cannot read another company's figures.
-		u = buat_pengguna("_uji.or.user@example.com", "User", None, self.pabrik)
+		u = buat_pengguna("_uji.or.user@example.com", "Produksi", None, self.pabrik)
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		with self.assertRaises(frappe.PermissionError):

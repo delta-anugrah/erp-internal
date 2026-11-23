@@ -4,7 +4,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from erp_internal import ruang_kerja
-from erp_internal.tampilan import IKON_APLIKASI, NAMA_APLIKASI, USER
+from erp_internal.tampilan import IKON_APLIKASI, NAMA_APLIKASI, PRODUKSI
 from erp_internal.tests.test_tampilan import pengguna_profil
 
 
@@ -27,7 +27,7 @@ class TestRuangKerja(IntegrationTestCase):
 	def test_simpan_tetap_merek_kita(self):
 		# A User saves and deletes a private workspace: both replies carry our tile names and icons, and only
 		# the tiles with something on the User's rail.
-		u = pengguna_profil(USER, "simpan")
+		u = pengguna_profil(PRODUKSI, "simpan")
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		balasan = ruang_kerja.new_page(

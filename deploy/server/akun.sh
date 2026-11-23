@@ -7,7 +7,7 @@
 # The answers go to erp_internal.akun inside the `tools` container in the environment variable ERP_AKUN, never on
 # a command line or in a file.
 
-PROFIL=("Administrator" "Developer" "Admin" "User")
+PROFIL=("Administrator" "Super Admin" "Admin" "Produksi")
 KETERANGAN=(
 	"always created; the built-in super user"
 	"everything, plus system settings (for the IT people)"
@@ -57,8 +57,8 @@ tanya_akun() {
 	echo
 	if [ "${1:-}" = --hanya-admin ]; then
 		DIPILIH=(1 0 0 0)
-		echo "Accounts: only Administrator now. The account you create in the wizard is the Developer;"
-		echo "add the Admin and User accounts in the app after the wizard."
+		echo "Accounts: only Administrator now. The account you create in the wizard is the Super Admin;"
+		echo "add the Admin and Produksi accounts in the app after the wizard."
 	else
 		pilih_akun
 	fi

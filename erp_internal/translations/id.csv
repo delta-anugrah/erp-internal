@@ -49,7 +49,7 @@ Users,Pengguna
 Stock Settings,Pengaturan Stok
 Selling Settings,Pengaturan Penjualan
 Buying Settings,Pengaturan Pembelian
-Only a Developer can change this account.,Hanya Developer yang bisa mengubah akun ini.
+Only a Super Admin can change this account.,Hanya Super Admin yang bisa mengubah akun ini.
 You cannot give these roles: {0},Anda tidak bisa memberi peran ini: {0}
 Bahasa Indonesia,Bahasa Indonesia
 English,English
@@ -325,7 +325,7 @@ ERP User,Pengguna ERP
 "{0} is not in use. Choose another machine.",{0} sedang tidak dipakai. Pilih mesin lain.
 ERP_AKUN is not set: run make setup.,ERP_AKUN belum diisi: jalankan make setup.
 A password needs at least {0} characters.,Password minimal {0} karakter.
-"Create the Developer, Admin and User accounts after the setup wizard; for now only Administrator.","Buat akun Developer, Admin dan User setelah setup wizard; untuk sekarang hanya Administrator."
+"Create the Super Admin, Admin and Produksi accounts after the setup wizard; for now only Administrator.","Buat akun Super Admin, Admin dan Produksi setelah setup wizard; untuk sekarang hanya Administrator."
 Unknown role {0}.,Peran {0} tidak dikenal.
 {0} is not a valid email address.,{0} bukan alamat email yang benar.
 {0} is given twice.,{0} diisi dua kali.

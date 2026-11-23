@@ -1,9 +1,9 @@
 """What an Admin may do to user accounts (Samuel's three roles, 2026-10-28).
 
 The Admin profile manages users through `setup.IZIN_TAMBAHAN` (User create, read and write, roles on permlevel 1),
-but must never hand out more than it holds: no System Manager, no Developer, no role outside the Admin and User
+but must never hand out more than it holds: no System Manager, no Super Admin, no role outside the Admin and Produksi
 profiles (`tampilan.PERAN_BOLEH_ADMIN`), not even to itself. Nor may it touch an account that holds such a role
-(a Developer, Administrator): no edit, rename, password change or disable. The apps' own syncs of such an
+(a Super Admin, Administrator): no edit, rename, password change or disable. The apps' own syncs of such an
 account (an Employee's name, an approver role) still pass. Administrator and System Manager
 holders are not limited. Every path is checked on the server:
 
@@ -59,7 +59,7 @@ FIELD_AKSES = (
 
 
 def _tolak_akun() -> None:
-	frappe.throw(_("Only a Developer can change this account."), frappe.PermissionError)
+	frappe.throw(_("Only a Super Admin can change this account."), frappe.PermissionError)
 
 
 def cek_user_awal(doc, method=None) -> None:

@@ -20,10 +20,13 @@ from frappe.utils.password import update_password
 
 from erp_internal import setup
 from erp_internal.planning.kapasitas import buat_bom_kapasitas
-from erp_internal.tampilan import ADMIN, DEVELOPER, MODUL_BOLEH, PROFIL_PERAN, USER
+from erp_internal.tampilan import ADMIN, MODUL_BOLEH, PRODUKSI, PROFIL_PERAN, SUPER_ADMIN
 from erp_internal.tests import utils
 
 TANDA = "DATA CONTOH"
+
+# The sample user of each Role Profile (`tools/cek_layar.mjs` uses the same logins); unchanged by the rename.
+SUREL = {SUPER_ADMIN: "developer@example.com", ADMIN: "admin@example.com", PRODUKSI: "user@example.com"}
 
 # The one company, factory and office together (Samuel, 2026-10-28), under its real name so the Production Floor
 # shows it; abbreviation CPL kept from the earlier sample name PT Contoh Plastik (renamed on erp.localhost 2026-10-29).
@@ -127,13 +130,13 @@ ALASAN_HARIAN = (
 # Employees: (first name, last name, gender, the Role Profile whose sample user they are, or None).
 KARYAWAN = (
 	("Ayu", "Lestari", "Female", ADMIN),
-	("Citra", "Wulandari", "Female", USER),
+	("Citra", "Wulandari", "Female", PRODUKSI),
 	("Bima", "Saputra", "Male", None),
 	("Dimas", "Pratama", "Male", None),
 	("Eka", "Putri", "Female", None),
 )
 PROYEK = "Katalog Produk Online"
-# The first task goes to the Admin (the User profile has no Projects since 2026-11-02).
+# The first task goes to the Admin (the Produksi profile has no Projects since 2026-11-02).
 TUGAS = ("Desain halaman katalog", "Foto dan data produk", "Uji dan rilis")
 
 # Every DocType this file writes, for the summary and the idempotency test.
@@ -187,8 +190,8 @@ def tandai(doctype: str, nama: str) -> str:
 
 
 def surel(profil: str) -> str:
-	"""The sample user of a Role Profile: `<profile, lower case>@example.com` (as `tools/cek_layar.mjs`)."""
-	return f"{profil.lower()}@example.com"
+	"""The sample user of a Role Profile (`SUREL`, as `tools/cek_layar.mjs`)."""
+	return SUREL[profil]
 
 
 def _logo(company: str) -> None:
@@ -287,11 +290,11 @@ def _jual_beli(company: str, hari_ini: date) -> None:
 
 
 def _pengguna(company: str, sandi: str) -> dict[str, str]:
-	"""One user per Role Profile, with the Module Profile of the same name and, for Admin and User, a
+	"""One user per Role Profile, with the Module Profile of the same name and, for Admin and Produksi, a
 	default permission on the company; all share `sandi`."""
 	pengguna = {}
 	for profil in PROFIL_PERAN:
-		email = utils.buat_pengguna(surel(profil), profil, profil, None if profil == DEVELOPER else company)
+		email = utils.buat_pengguna(surel(profil), profil, profil, None if profil == SUPER_ADMIN else company)
 		update_password(email, sandi)
 		pengguna[profil] = tandai("User", email)
 	return pengguna
@@ -307,7 +310,7 @@ def _kantor(company: str, pengguna: dict[str, str], hari_ini: date) -> None:
 			depan,
 			company,
 			user=pengguna.get(profil),
-			izin_sendiri=profil == USER,  # the Admin sees everyone
+			izin_sendiri=profil == PRODUKSI,  # the Admin sees everyone
 			kelamin=kelamin,
 			last_name=belakang,
 		)

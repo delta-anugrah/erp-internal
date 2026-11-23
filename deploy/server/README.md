@@ -52,14 +52,14 @@ make setup
    else is asked again.
 5. The setup wizard: automatic (default) or by hand in the browser, the company name and abbreviation (kept in
    `.wizard`, never asked again).
-6. The accounts: Administrator's password and, with the automatic wizard, optional Developer / Admin / User
+6. The accounts: Administrator's password and, with the automatic wizard, optional Super Admin / Admin / Produksi
    accounts (`akun.sh`, the same checklist as `make setup` on a computer); asked once (`.akun-siap`).
 
 Then `make env` (from the answers, passwords from `openssl rand`), `langkah` (`check check-env pull db site`),
 `wizard configure` (automatic) or `configure` (by hand), the accounts (the generated `ADMIN_PASSWORD` then
 leaves `.env`), `lanjut` once the wizard is done (`.lanjut-siap`), `up ping cron`, and the last line: `Ready: https://<address>`, or the by-hand wizard's steps
-(Administrator signs in, fills the wizard with the printed values, makes the account that becomes the Developer;
-then `make setup` again, which makes that account the Developer and loads Samuel's data; the background job does it
+(Administrator signs in, fills the wizard with the printed values, makes the account that becomes the Super Admin;
+then `make setup` again, which makes that account the Super Admin and loads Samuel's data; the background job does it
 too, but only after the wizard's own jobs, which can take many minutes). A run that stops halfway goes on where it stopped when run again.
 Afterwards: `make backup` and a restore drill (below).
 
@@ -70,7 +70,7 @@ What the steps do to the site: `site` makes it with erpnext, hrms and erp_intern
 data; `erp_internal.contoh` refuses sample data). The wizard, however filled, runs `erp_internal.wizard.selesai`
 (the `setup_wizard_complete` hook): it ticks the company's `erp_aktif`, keeps the wizard's own account (global
 default `erp_wizard_developer`) and queues `lanjutkan`, which runs our setup (warehouses, groups, UOMs, the order
-flow, holiday lists, PPN templates, the Role Profiles), makes that account a Developer, gives Admin/User accounts
+flow, holiday lists, PPN templates, the Role Profiles), makes that account a Super Admin, gives Admin/Produksi accounts
 the company, and loads Samuel's catalog, sales and machines once (marker `erp_data_samuel`: a new version never
 reloads them; a file lock keeps two runs apart). `setup.sh` also runs `make lanjut` itself once the wizard is done
 (`.lanjut-siap`), so a background job that failed after a by-hand wizard is repaired by the next `make setup`.

@@ -137,7 +137,7 @@ Cek setelah impor: total per bulan di **Sales History** (Report view, group by M
 Kapasitas per produk per mesin (waktu siklus, cavity, berat, bahan) dari Excel Samuel, tanpa Data Import. Buka
 **Machine Capacity** (menu Manufacturing), tombol **Import from Excel**: lampirkan file `.xlsx` atau `.csv`
 (maksimal 2 MB dan 2000 baris), klik **Preview**, cek tabelnya, lalu **Apply**. Sebelum Apply tidak ada yang
-ditulis. Yang boleh: Manufacturing Manager (profil Admin dan Developer). Contoh file yang dites ada di
+ditulis. Yang boleh: Manufacturing Manager (profil Admin dan Super Admin). Contoh file yang dites ada di
 `erp_internal/tests/data/kapasitas.xlsx` (dibuat ulang dengan `tools/contoh_kapasitas.py`; `test_impor_kapasitas.py`
 mengimpornya sungguhan).
 

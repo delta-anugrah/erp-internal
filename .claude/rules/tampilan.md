@@ -13,14 +13,14 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 | Menu (ERP and HR pages) | none | `menu_samping` (`extend_bootinfo`, `erp_menu`) + `public/js/menu_samping.js`: every module of the user as a collapsible header |
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
 | Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards) |
-| Per user | none | `User.block_modules` from the Module Profile of the same name (`blok_profil`: Admin and User outside `MODUL_BOLEH`, Developer only `MODUL_MATI`; `_modul_pengguna` keeps each profile's users on it, and Administrator's own blocks on `MODUL_MATI`) |
+| Per user | none | `User.block_modules` from the Module Profile of the same name (`blok_profil`: Admin and Produksi outside `MODUL_BOLEH`, Super Admin only `MODUL_MATI`; `_modul_pengguna` keeps each profile's users on it, and Administrator's own blocks on `MODUL_MATI`) |
 | Unused modules | DocPerm | `MODUL_MATI` and HR's `DOCTYPE_MATI` (`_kunci_modul`, `doctype_mati()`): one Custom DocPerm for the Administrator role per DocType, so no other user reads, searches or opens them by URL; `saring_modul_mati` (`extend_bootinfo`) drops them and their reports from every boot (Administrator's search). Administrator still opens one by URL |
 
 - `Sidebar` and standard `Dock`/`Workspace` content refuse edits outside developer mode; that is why everything is a
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
 - Short screens (Samuel, 2026-10-28): each home's shortcuts point at exactly its sidebar's links
   (`test_rumah_sama_dengan_sidebar`), taken from the guides' flows (`docs/panduan/`). Modules (Admin): Stock, Selling, Buying,
-  Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), Settings; User: Stock and Manufacturing. Accounts and Leaves have no
+  Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), Settings; Produksi: Stock and Manufacturing. Accounts and Leaves have no
   icon: invoices and payments sit in Selling and Buying, leave in HR. Their modules stay allowed
   (`MODUL_TANPA_IKON`) with a short sidebar and home, for a page Frappe opens in its own module. Admin-only
   shortcuts go last, so a User's home (which drops what they cannot read) has no gap. Stock Reconciliation
@@ -30,11 +30,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   Attendance, `PINTASAN["HR"]` written into it), first in the Shift & Attendance sidebar; a standard Workspace keeps
   its app's title and `Custom Workspace` has no title field. So the page title, breadcrumb and tab read "HR"
   ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
-- Our module `Planning` has no Dock entry or Sidebar and stays blocked in the Admin and User Module Profiles (Developer's blocks only `MODUL_MATI`); its Sales History
+- Our module `Planning` has no Dock entry or Sidebar and stays blocked in the Admin and Produksi Module Profiles (Super Admin's blocks only `MODUL_MATI`); its Sales History
   is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and the Planning
   DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Entry (after Work
   Order), Plan vs Actual (after Order Readiness), Machine Capacity (after BOM); Reject Reason sits in Setup after
-  Manufacturing Settings. The Planning module itself stays blocked for Admin and User.
+  Manufacturing Settings. The Planning module itself stays blocked for Admin and Produksi.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
@@ -54,10 +54,10 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.
 - Reference code: `frappe/desk/doctype/{dock,sidebar,custom_sidebar,custom_workspace}/`, `frappe/desk/layers.py`.
-- Three Role Profiles (`PROFIL_PERAN`): User, Admin, Developer. Admin holds the manager roles plus ERPNext's *User roles (`_PERAN_USER`, not `ERP User`)
+- Three Role Profiles (`PROFIL_PERAN`): Produksi, Admin, Super Admin (were User, Admin, Developer until 2026-11-23: `patches/profil_tiga.py` renames them, `NAMA_LAMA`). Admin holds the manager roles plus ERPNext's *User roles (`_PERAN_USER`, not `ERP User`)
   (Stock Manager alone reads neither Company nor Stock Balance in v16) and `PERAN_ADMIN` ("ERP Admin"). Every
   profile must read Company (`test_izin_per_profil`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
-- User (Samuel, 2026-11-02) is Stock User plus `PERAN_USER` ("ERP User"): modules (menu headers) Stock and Manufacturing only (`IKON`,
+- Produksi (was User; Samuel, 2026-11-02) is Stock User plus `PERAN_USER` ("ERP User"): modules (menu headers) Stock and Manufacturing only (`IKON`,
   `MODUL_BOLEH`, no Accounts or Leaves). `PERAN_USER` holds Production Entry (its JSON), reads Machine Capacity,
   Reject Reason, Sales History (JSON; Order Readiness is built on it), Workstation, Price List, Account,
   Stock Settings and Customer Group (`IZIN_TAMBAHAN`; a Delivery Note checks the customer's account, the Material
@@ -69,11 +69,11 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   Frappe resaves a changed profile's users in a background job; `_pengguna_profil` does it at migrate.
 - Admin's modules (menu headers) add `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons; its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
-  Apps tile (`check_app_permission`) shows for Developer only.
+  Apps tile (`check_app_permission`) shows for Super Admin only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on
-  1). `pengguna.py` limits it: only roles in `PERAN_BOLEH_ADMIN` (Guest, All and Desk User pass; Administrator never does, though Frappe lists it in `AUTOMATIC_ROLES`), nothing that controls a Developer's or
+  1). `pengguna.py` limits it: only roles in `PERAN_BOLEH_ADMIN` (Guest, All and Desk User pass; Administrator never does, though Frappe lists it in `AUTOMATIC_ROLES`), nothing that controls a Super Admin's or
   Administrator's access (`FIELD_AKSES`, roles, password, rename). Frappe's `populate_role_profile_roles` drops any
-  role ticked outside a user's Role Profiles by itself. An Admin- or User-profile user never keeps the Employee role (neither
+  role ticked outside a user's Role Profiles by itself. An Admin- or Produksi-profile user never keeps the Employee role (neither
   profile has it; ERPNext adds it with an Employee record, hence its place in `PERAN_BOLEH_ADMIN`); HR Manager covers their attendance.
 - Branding (`setup.MEREK`, `_pengaturan`): Website Settings `app_name`, `app_logo`, `splash_image`, `favicon` and
   Navbar Settings `app_logo` point at `/assets/erp_internal/images/` (public files, served through the
@@ -103,7 +103,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   Frappe's System app (Build) keeps its rail. No link repeats its module's header icon (`test_ikon_sidebar`: Work
   Order wrench, Purchase Order clipboard-list, Project folder-open, the settings sliders); each home row is
   `IKON_RUMAH` house; every icon we name must exist in the sprite (`test_ikon_ada`). `cek_layar` checks the headers per
-  profile, the open and lit module, a link into another module, an Accounts page (Admin), Build's rail (Developer),
+  profile, the open and lit module, a link into another module, an Accounts page (Admin), Build's rail (Super Admin),
   the folded rail and the phone drawer (also on a Stock page the menu does not list, which lights nothing).
 - Our CSS is one plain file, `public/css/erp_internal.css` (`hooks.app_include_css`, served as-is: no build, no
   `bench start` restart, only `clear-cache` after a hooks change). It gives the Apps screen avatar a pointer and

@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 erp_internal.patches.judul_riwayat
 erp_internal.patches.harga_bawaan
+erp_internal.patches.profil_tiga

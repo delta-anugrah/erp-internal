@@ -6,7 +6,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
 from erp_internal.setup import ALASAN_REJECT, SHIFT_PABRIK, gudang, jam_shift
-from erp_internal.tampilan import ADMIN, USER
+from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
@@ -86,7 +86,7 @@ class TestHasilProduksi(IntegrationTestCase):
 		doc.save()
 		self.assertEqual(frappe.db.get_value("Work Order", wo, "erp_mesin"), self.mesin_lain)
 		self.assertEqual(frappe.db.get_value("Work Order", wo, "docstatus"), 1)
-		frappe.set_user(buat_pengguna("_uji.pe.user@example.com", USER, USER, self.pabrik))
+		frappe.set_user(buat_pengguna("_uji.pe.user@example.com", PRODUKSI, PRODUKSI, self.pabrik))
 		pe = buat_hasil(wo, good=5)
 		self.assertEqual(pe.workstation, self.mesin_lain)
 		self.assertEqual(pe.docstatus, 1)
@@ -158,7 +158,7 @@ class TestHasilProduksi(IntegrationTestCase):
 
 	def test_user_biasa_bisa_ajukan(self):
 		wo = self.order()
-		frappe.set_user(buat_pengguna("_uji.pe@example.com", "User", "User", self.pabrik))
+		frappe.set_user(buat_pengguna("_uji.pe@example.com", PRODUKSI, PRODUKSI, self.pabrik))
 		pe = buat_hasil(wo, good=10, rejects={"Bubble": 1})
 		self.assertEqual(pe.docstatus, 1)
 		for se in (pe.manufacture_entry, pe.reject_entry):

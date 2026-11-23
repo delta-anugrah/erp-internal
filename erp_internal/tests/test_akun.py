@@ -7,7 +7,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.password import check_password
 
 from erp_internal import akun
-from erp_internal.tampilan import ADMIN, DEVELOPER, USER
+from erp_internal.tampilan import ADMIN, PRODUKSI, SUPER_ADMIN
 
 
 def profil(email: str) -> list[str]:
@@ -19,22 +19,24 @@ class TestAkun(IntegrationTestCase):
 		hasil = akun.buat(
 			{
 				"akun": [
-					{"profil": DEVELOPER, "email": "_Uji.Akun.Dev@example.com", "sandi": "rahasia-dev"},
+					{"profil": SUPER_ADMIN, "email": "_Uji.Akun.Dev@example.com", "sandi": "rahasia-dev"},
 					{"profil": ADMIN, "email": "_uji.akun.admin@example.com", "sandi": "rahasia-admin"},
-					{"profil": USER, "email": "_uji.akun.user@example.com", "sandi": "rahasia-user"},
+					{"profil": PRODUKSI, "email": "_uji.akun.user@example.com", "sandi": "rahasia-user"},
 				]
 			}
 		)
 		self.assertEqual(len(hasil), 3)
-		self.assertEqual(profil("_uji.akun.dev@example.com"), [DEVELOPER])  # stored in lower case
+		self.assertEqual(profil("_uji.akun.dev@example.com"), [SUPER_ADMIN])  # stored in lower case
 		self.assertEqual(profil("_uji.akun.admin@example.com"), [ADMIN])
-		self.assertEqual(frappe.db.get_value("User", "_uji.akun.user@example.com", "module_profile"), USER)
+		self.assertEqual(
+			frappe.db.get_value("User", "_uji.akun.user@example.com", "module_profile"), PRODUKSI
+		)
 		self.assertEqual(
 			check_password("_uji.akun.user@example.com", "rahasia-user"), "_uji.akun.user@example.com"
 		)
 		# A second run updates, never duplicates
 		hasil = akun.buat(
-			{"akun": [{"profil": USER, "email": "_uji.akun.user@example.com", "sandi": "sandi-baru"}]}
+			{"akun": [{"profil": PRODUKSI, "email": "_uji.akun.user@example.com", "sandi": "sandi-baru"}]}
 		)
 		self.assertIn("updated", hasil[0])
 		self.assertEqual(
@@ -44,10 +46,10 @@ class TestAkun(IntegrationTestCase):
 	def test_tolak_sebelum_menulis(self):
 		salah = [
 			[{"profil": "Boss", "email": "_uji.akun.x@example.com", "sandi": "12345678"}],
-			[{"profil": USER, "email": "bukan-email", "sandi": "12345678"}],
-			[{"profil": USER, "email": "_uji.akun.x@example.com", "sandi": "pendek"}],
+			[{"profil": PRODUKSI, "email": "bukan-email", "sandi": "12345678"}],
+			[{"profil": PRODUKSI, "email": "_uji.akun.x@example.com", "sandi": "pendek"}],
 			[
-				{"profil": USER, "email": "_uji.akun.x@example.com", "sandi": "12345678"},
+				{"profil": PRODUKSI, "email": "_uji.akun.x@example.com", "sandi": "12345678"},
 				{"profil": ADMIN, "email": "_uji.akun.x@example.com", "sandi": "12345678"},
 			],
 		]

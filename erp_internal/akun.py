@@ -6,7 +6,7 @@ The terminal asks for the accounts and passwords (`deploy/server/akun.sh`) and h
 	{"Administrator": "<password>", "akun": [{"profil": "Admin", "email": "...", "sandi": "..."}]}
 
 `buat()` sets Administrator's password and makes (or updates) one System User per entry with that Role Profile,
-its Module Profile and, for Admin and User, a default permission on the company, like the sample users of
+its Module Profile and, for Admin and Produksi, a default permission on the company, like the sample users of
 `contoh.py`. It prints what it did, never a password (from the terminal it prints and returns nothing, else bench
 prints the result again). Later accounts and password resets are made by an Admin in the app.
 `bench execute` commits afterwards; a refusal read from `ERP_AKUN` is printed and exits 1 (bench
@@ -24,7 +24,7 @@ from frappe.utils import validate_email_address
 from frappe.utils.password import update_password
 
 from erp_internal import setup
-from erp_internal.tampilan import DEVELOPER, MODUL_BOLEH, PROFIL_PERAN
+from erp_internal.tampilan import MODUL_BOLEH, PROFIL_PERAN, SUPER_ADMIN
 from erp_internal.tests import utils
 
 PANJANG_MIN = 8  # the shortest password accepted, also checked in deploy/server/tanya.sh
@@ -72,7 +72,7 @@ def _buat(data: dict) -> list[str]:
 		# The Role Profiles are made by setup after the wizard
 		frappe.throw(
 			_(
-				"Create the Developer, Admin and User accounts after the setup wizard; for now only Administrator."
+				"Create the Super Admin, Admin and Produksi accounts after the setup wizard; for now only Administrator."
 			)
 		)
 	dipakai = set()
@@ -96,7 +96,7 @@ def _buat(data: dict) -> list[str]:
 	for a in akun:
 		profil, email = a["profil"], a["email"]
 		ada = frappe.db.exists("User", email)
-		utils.buat_pengguna(email, profil, profil, None if profil == DEVELOPER else company)
+		utils.buat_pengguna(email, profil, profil, None if profil == SUPER_ADMIN else company)
 		update_password(email, a["sandi"])
 		hasil.append(f"{profil}: {email} {'updated' if ada else 'created'}")
 	return hasil

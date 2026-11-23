@@ -71,9 +71,9 @@ question shows a suggestion in `[brackets]`: press **Enter** to take it.
    ```text
    Which accounts do you want to create?  (Up/Down move, Space tick, Enter continue)
       [x] Administrator  always created; the built-in super user
-    > [ ] Developer      everything, plus system settings (for the IT people)
+    > [ ] Super Admin    everything, plus system settings (for the IT people)
       [ ] Admin          manager: Work Orders, BOMs, users, items, customers, machines
-      [ ] User           daily work: production output, deliveries, raw material in
+      [ ] Produksi       daily work: production output, deliveries, raw material in
    ```
 
    Administrator needs only a password (you sign in with the name `Administrator`); every other account an email and
@@ -91,11 +91,11 @@ When it ends:
   2. fill in the wizard with the values printed under it. Two things the wizard does differently: its Chart of
      Accounts suggests "Indonesia - Chart of Accounts", pick **Standard**; its "A little about you" step (kind of
      work, team size) changes nothing here, answer as you like (Manufacturing);
-  3. in "Create your account" make your own account: it becomes the **Developer** (all rights);
-  4. when the wizard is done, run `make up`: it makes your wizard account the Developer and loads Samuel's data
+  3. in "Create your account" make your own account: it becomes the **Super Admin** (all rights);
+  4. when the wizard is done, run `make up`: it makes your wizard account the Super Admin and loads Samuel's data
      (a few minutes; the background job the wizard starts does it too, but only after the wizard's own jobs,
-     which can take many minutes). Then add the Admin and User accounts in the app (Users, with the
-     Admin or User role profile).
+     which can take many minutes). Then add the Admin and Produksi accounts in the app (Users, with the
+     Admin or Produksi role profile).
 
 ### Every day after
 
@@ -138,14 +138,14 @@ Repo root (`Makefile`, on your computer):
 | `make down` | Stops the stack; the data stays. |
 | `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. Run `make setup` first: on a copy never set up it builds, then only says to run `make setup`. |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done (used for the last line). |
-| `make lanjut` | After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
+| `make lanjut` | After the wizard: our setup, the wizard's account as Super Admin, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
 | `make dev` | For coding (not Docker): starts `erp-mariadb` and `bench start` in the bench of `tools/setup_bench.sh` (Python reloads, JS/CSS rebuild; a DocType change needs `bench migrate`). Without the bench it says so. |
 
 `setup-local` is `check-local`, `env-local`, `image-local`, then the server Makefile's `db`, `site` (also sets
 `erp_produksi`: real data, sample data refused) and, with `WIZARD=otomatis`, `wizard`; then `configure-local`
 (migrate, host name, scheduler); then up. After the wizard, however it was filled, `erp_internal.wizard` ticks the
 company's `erp_aktif` and, in a background job and again through `make lanjut` (run by `setup_lokal.sh` until
-`.local/lanjut-siap`), makes the wizard's own account a Developer and loads Samuel's data once (marker
+`.local/lanjut-siap`), makes the wizard's own account a Super Admin and loads Samuel's data once (marker
 `erp_data_samuel`). `ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
 on `make setup` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
 image is private). `PROYEK=<name>` (with another `PORT` and `ERP_IMAGE`) runs a second stack beside the first, for
@@ -167,7 +167,7 @@ Server (`deploy/server/Makefile`, run in `~/erp` on the server; runbook `deploy/
 | `make site` | Makes the site if missing, installs any missing app, sets `erp_produksi`. |
 | `make wizard` | Completes the setup wizard (skipped when done). |
 | `make configure` | Migrates, sets `host_name`, turns the scheduler on. |
-| `make lanjut` | After the wizard: our setup, the company on Admin/User accounts, Samuel's data the first time. |
+| `make lanjut` | After the wizard: our setup, the company on Admin/Produksi accounts, Samuel's data the first time. |
 | `make up` | Starts the whole stack. |
 | `make ping` | Checks that the stack answers on `127.0.0.1:PORT` (8080 unless `.env` sets PORT). |
 | `make cron` | Adds the nightly backup line to the crontab, once. |
@@ -217,7 +217,7 @@ original 200 px `delta-anugrah.jpeg`, kept beside it), and rendered from the SVG
 transparent), `favicon-32.png` and `favicon-192.png`. Settings point at the SVG; the favicon stays PNG.
 
 The Apps screen tiles are named ERP (ERPNext), HR (Frappe HR), Production Floor (the floor page, for Manufacturing
-User) and System (Frappe, Developer only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
+User) and System (Frappe, Super Admin only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
 (ISC licence): `aplikasi-erp.svg` (factory), `aplikasi-hr.svg` (users), `aplikasi-sistem.svg` (settings), `aplikasi-lantai.svg` (gauge). The
 sidebar header inside an app shows that app's icon (System app: the rail's top slot). That is `tampilan.merek_aplikasi` (`extend_bootinfo`, the boot
 copy of `app_data` only); a workspace saved from the desk keeps them (`erp_internal/ruang_kerja.py`).
@@ -304,7 +304,7 @@ shortcuts to the same links as its menu entries, nothing else:
 The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.
 
-The table is Admin's view. A User's menu has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
+The table is Admin's view. A Produksi user's menu has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
 doctype or report still opens. Unused modules (`tampilan.MODUL_MATI`) and HR's unused DocTypes (`tampilan.DOCTYPE_MATI`:
 recruitment, appraisal, training, expenses, travel, lifecycle, vehicles, skills, overtime) are locked for everyone but
 Administrator and their reports are disabled; remove an entry and migrate to unlock it.
@@ -313,15 +313,15 @@ Administrator and their reports are disabled; remove an entry and migrate to unl
 
 Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one company:
 
-- **User** (decided 2026-11-02): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
+- **Produksi** (decided 2026-11-02, was User; renamed 2026-11-23): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
   directly and Material Receipt stock entries, sets a machine's status on the Production Floor, and reads stock,
   items, Work Orders, BOMs and the production reports; menu Stock and Manufacturing (`erp_internal/batas_user.py`).
   Guide: `docs/panduan/user.md`.
 - **Admin**: also the manager roles (Work Orders, items, suppliers, BOMs, stock reconciliation, selling, buying,
   projects, HR), users and the business
-  settings (menu header Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and User roles and
-  never change a Developer's account. Guide: `docs/panduan/admin.md`.
-- **Developer**: Admin plus System Manager (Build, System Settings).
+  settings (menu header Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and Produksi roles and
+  never change a Super Admin's account. Guide: `docs/panduan/admin.md`.
+- **Super Admin** (was Developer): Admin plus System Manager (Build, System Settings).
 
 ## Office: attendance and projects
 
@@ -329,7 +329,7 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
   attendance (`SHIFT_KANTOR`), Saturday and Sunday off in a yearly "Libur <abbr> <year>" list assigned to the
   company, leave types Cuti Tahunan (12), Sakit, Izin. Staff guide: `docs/panduan/absen.md`.
 - Projects (`setup._proyek`): Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; an
-  employee (Projects User and Employee roles, outside the User profile) submits only their own timesheets (`erp_internal/proyek.py`); Admin and Developer can submit
+  employee (Projects User and Employee roles, outside the Produksi profile) submits only their own timesheets (`erp_internal/proyek.py`); Admin and Super Admin can submit
   anyone's. Staff guide: `docs/panduan/proyek.md`.
 
 ## Sample data

@@ -77,7 +77,7 @@ update_website_context = "erp_internal.versi.di_login"
 doctype_js = {"Sales Forecast": "public/js/sales_forecast.js", "Work Order": "public/js/work_order.js"}
 
 # proyek.py: an employee submits only their own timesheet (IZIN_TAMBAHAN gives the Employee role submit).
-# pengguna.py: an Admin hands out only Admin and User roles and leaves Developer accounts alone.
+# pengguna.py: an Admin hands out only Admin and Produksi roles and leaves Super Admin accounts alone.
 doc_events = {
 	"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"},
 	# production_floor.py: the Production Floor page refreshes the machine that changed. Work Order uses on_change:
@@ -204,7 +204,7 @@ override_whitelisted_methods = {
 
 after_install = "erp_internal.setup.pastikan_setup"
 after_migrate = "erp_internal.setup.pastikan_setup"
-# The wizard, filled by make or in the browser: our company, the wizard's account as Developer, Samuel's data once.
+# The wizard, filled by make or in the browser: our company, the wizard's account as Super Admin, Samuel's data once.
 setup_wizard_complete = "erp_internal.wizard.selesai"
 
 # Frappe runs only the tested app's before_tests: complete the test site's wizard (HRMS's own hook,
