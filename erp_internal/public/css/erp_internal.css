@@ -113,3 +113,183 @@ body.desktop-page .icons .icon-title {
 	font-size: var(--text-xs);
 	color: var(--text-muted);
 }
+
+/* Daily Input (page `daily-input`, public/js/input_harian.bundle.js): Samuel's sheet. Blue column header, green
+   TOTAL, pink machine cell, yellow CLOSE/DONE, as in his Excel; tints that read in both themes. A block's table
+   scrolls inside its own box on a phone; Merk and Warna fold away under 760 px (they are in the block header). */
+.erp-ih {
+	padding: var(--padding-md);
+}
+.erp-ih-kecil {
+	font-size: var(--text-xs);
+	margin: var(--margin-xs) 0 0;
+}
+.erp-ih-kepala {
+	margin-bottom: var(--margin-lg);
+}
+.erp-ih-alat {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--margin-sm);
+	align-items: center;
+	margin-bottom: var(--margin-md);
+}
+.erp-ih-alat .erp-ih-mesin {
+	width: auto;
+	min-width: 10rem;
+}
+.erp-ih-wo {
+	font-weight: 600;
+}
+.erp-ih-info {
+	display: grid;
+	grid-template-columns: max-content max-content minmax(0, 1fr);
+	gap: var(--margin-xs) var(--margin-sm);
+	align-items: center;
+}
+.erp-ih-label {
+	font-weight: 600;
+}
+.erp-ih-nilai {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--margin-sm);
+	align-items: center;
+}
+.erp-ih-teknisi {
+	width: 12rem;
+	max-width: 100%;
+}
+.erp-ih-redup {
+	color: var(--text-muted);
+}
+.erp-ih-catatan {
+	color: var(--text-muted);
+	padding: var(--padding-md) 0;
+}
+.erp-ih-blok {
+	margin-bottom: var(--margin-xl);
+}
+.erp-ih-po {
+	display: inline-block;
+	padding: 2px var(--padding-sm);
+	font-weight: 700;
+	background: rgba(244, 143, 117, 0.22);
+}
+.erp-ih-ringkas {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--margin-xs) var(--margin-xl);
+	margin: var(--margin-xs) 0;
+	font-weight: 600;
+}
+.erp-ih-ringkas a.erp-ih-redup {
+	font-weight: 400;
+}
+.erp-ih-kotak {
+	overflow-x: auto;
+	max-width: 100%;
+}
+.erp-ih-tabel {
+	border-collapse: collapse;
+	min-width: 100%;
+}
+.erp-ih-tabel th,
+.erp-ih-tabel td {
+	border: 1px solid var(--border-color);
+	padding: 2px var(--padding-sm);
+	text-align: center;
+	vertical-align: middle;
+}
+.erp-ih-tabel thead th {
+	background: rgba(66, 133, 244, 0.22);
+	font-weight: 700;
+	white-space: nowrap;
+}
+.erp-ih-jam {
+	font-weight: 600;
+	font-size: var(--text-xs);
+}
+.erp-ih-tabel tfoot td {
+	background: rgba(52, 168, 83, 0.28);
+	font-weight: 700;
+}
+.erp-ih-tabel td.erp-ih-angka {
+	text-align: right;
+	min-width: 7.5rem;
+}
+.erp-ih-tabel .erp-ih-tgl {
+	white-space: nowrap;
+}
+.erp-ih-tabel .erp-ih-ket {
+	min-width: 10rem;
+}
+.erp-ih-tabel th.erp-ih-selesai {
+	background: #ffeb3b;
+	color: #c2185b;
+}
+.erp-ih-tabel th.erp-ih-kosong,
+.erp-ih-tabel td.erp-ih-kosong {
+	background: transparent;
+	border: none;
+}
+.erp-ih-mesin-sel {
+	background: rgba(233, 30, 99, 0.16);
+	color: #d81b60;
+	font-size: var(--text-xl);
+	font-weight: 700;
+	min-width: 7rem;
+}
+.erp-ih-tanpa-mesin {
+	display: block;
+	font-size: var(--text-xs);
+	font-weight: 400;
+	color: var(--text-color);
+	max-width: 12rem;
+}
+.erp-ih-sel {
+	width: 100%;
+	min-width: 6.5rem;
+	border: 1px solid transparent;
+	border-radius: var(--border-radius-sm);
+	background: var(--control-bg);
+	color: var(--text-color);
+	padding: 2px 6px;
+	text-align: right;
+}
+.erp-ih-sel.erp-ih-teks {
+	text-align: left;
+}
+.erp-ih-sel:focus {
+	outline: none;
+	border-color: var(--primary);
+	background: var(--bg-color);
+}
+.erp-ih-sel[aria-invalid="true"] {
+	border-color: var(--red-500, #e03636);
+}
+.erp-ih-galat {
+	color: var(--red-600, #c92a2a);
+	font-size: var(--text-xs);
+	text-align: left;
+	white-space: normal;
+	max-width: 14rem;
+}
+.erp-ih-tautan {
+	text-decoration: underline;
+}
+.erp-ih-tambah {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--margin-sm);
+	align-items: center;
+	margin-top: var(--margin-sm);
+}
+.erp-ih-tambah input[type="date"] {
+	width: auto;
+}
+@media (max-width: 760px) {
+	.erp-ih-tabel .erp-ih-mw {
+		display: none;
+	}
+}

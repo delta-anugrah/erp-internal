@@ -96,17 +96,43 @@ Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, 
 1. Buka Work Order-nya, **Submit**. Work Order baru otomatis mencentang **Skip Material Transfer to WIP**: bahan
    diambil dari Gudang Bahan Baku saat hasil dicatat, jadi Produksi tidak perlu menunggu **Start**.
 2. **Start** (Material Transfer for Manufacture) tidak wajib: cuma untuk Work Order yang centang tadi dihapus Admin.
-3. Hasil produksi dicatat Produksi lewat **Catat hasil produksi** (di bawah; nanti halaman **Daily Input**), bukan
+3. Hasil produksi dicatat Produksi lewat **Input harian** (di bawah, halaman **Daily Input**), bukan
    lewat **Finish**. Tombol **Finish** cuma muncul untuk **Super Admin**; Manufacture yang tidak dibuat Production
    Entry ditolak ("Record output in Daily Input."), supaya semua hasil masuk ke Plan vs Actual.
 
-## Catat hasil produksi
-Tiap mesin, tiap shift, tiap Work Order: satu **Production Entry** (Hasil Produksi). Diisi **Produksi** (petugas
-pabrik) dari catatan operator. Admin cuma bisa melihatnya.
+## Input harian
+Halaman **Daily Input** (menu paling atas, di bawah Production Floor) adalah lembar Excel harian Samuel: satu kotak
+per Work Order, satu baris per tanggal, satu kolom per shift. Diisi **Produksi** (petugas pabrik) dari catatan
+operator; Admin melihat halaman yang sama tanpa kotak isian.
 
-1. Buka Work Order yang sudah di-**Submit** dan belum selesai, klik **Record Output**. (Atau **Manufacturing →
-   Production Entry → + Add Production Entry**, lalu pilih **Work Order**.) **Item**, **Machine** dan **Company**
-   terisi sendiri dari Work Order.
+- **Atas**: minggu (‹, **This week**, ›), filter mesin, **Tanggal** minggu itu, **Teknisi Pagi** (Shift 1) dan
+  **Teknisi Malam** (Shift 2). Nama teknisi terisi nama terakhir yang dipakai; ganti kalau orangnya lain, nama itu
+  ditulis di setiap angka yang disimpan sesudahnya.
+- **Kotak Work Order**: No.Po. (nomor PO pelanggan, atau nomor Work Order), PO (jumlah pesanan), Packing (isi per
+  Pack/Karton/Karung), mesin di kanan (pink), **CLOSE/DONE** kuning kalau Work Order-nya Completed. Work Order yang
+  masih jalan selalu tampil; yang sudah selesai hanya di minggu hasil terakhirnya.
+- **Baris**: semua tanggal yang sudah ada hasilnya, plus baris hari ini. **+ Add date** menambah tanggal lain (dari
+  tanggal Work Order dibuat sampai hari ini).
+- **Isi angka** barang bagus di kolom **Shift 1** atau **Shift 2** (boleh pakai titik, misalnya 13.384), lalu **Enter**
+  atau **Tab**: tersimpan begitu pindah kotak, TOTAL ikut berubah. Ganti angka = hasil lama dibatalkan dan diganti;
+  kosongkan (atau 0) = hasilnya dibatalkan. **Keterangan** tersimpan dengan cara yang sama (harus sudah ada angka di
+  tanggal itu).
+- **Ditolak?** Pesannya muncul merah di bawah kotaknya dan angka yang diketik tetap ada: tanggal di masa depan, Work
+  Order sudah selesai, lebih dari yang boleh dibuat, atau mesin belum diisi ("No machine yet: Admin sets it on the
+  Work Order.").
+- **Angka bergaris bawah** dicatat lewat form Production Entry (ada reject, lebih dari satu entri, atau jam jalan lain):
+  klik angkanya dan ubah di form itu.
+- Tombol **Record Output** di Work Order membuka halaman ini langsung di kotak Work Order itu (**Show all** untuk
+  semua).
+
+Di belakang layar setiap kotak yang terisi adalah satu **Production Entry** (Hasil Produksi), dengan stok yang bergerak
+sendiri (tabel di bawah).
+
+### Lewat form Production Entry (reject)
+Reject tidak ada di Daily Input. Kalau perlu mencatat reject: **Manufacturing → Production Entry** lewat URL
+`/desk/production-entry` (tidak ada di menu lagi), **+ Add Production Entry**, lalu:
+
+1. Pilih **Work Order**. **Item**, **Machine** dan **Company** terisi sendiri dari Work Order.
 2. **Date**: tanggal shift-nya (tidak boleh besok). **Shift**: salah satu shift yang diatur untuk pabrik (dua
    shift, masing-masing 12 jam). **Run Hours** terisi panjang shift itu; ganti kalau mesin cuma jalan sebagian.
 3. **Good Qty**: jumlah barang bagus, angka bulat (Good Qty, Reject Qty dan jumlah reject tampil tanpa koma).

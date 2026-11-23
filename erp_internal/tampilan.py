@@ -58,15 +58,16 @@ IKON_MODUL = {
 }
 IKON_RUMAH = "house"  # each module's home row
 # Sidebar links shown as menu entries of their own, above the module headers, instead of under their module
-# (Abel, 2026-11-03: the Production Floor is a place, not a Manufacturing document). They stay in SIDEBAR, so their
+# (Abel, 2026-11-03: the Production Floor is a place, not a Manufacturing document; Daily Input, Samuel's sheet,
+# 2026-11-23, is the screen Produksi uses every day). They stay in SIDEBAR, so their
 # module's home and route (`/desk/manufacturing/production-floor`) are unchanged.
-MENU_ATAS = ("production-floor",)
+MENU_ATAS = ("production-floor", "daily-input")
 
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
 # guides' flows use (docs/panduan/): each module home shows the same links as shortcuts (`PINTASAN`,
-# `test_rumah_sama_dengan_sidebar`). Sales History, Order Readiness, Plan vs Actual, Machine Capacity and
-# Production Entry (module Planning, ours) sit in Selling and Manufacturing, Reject Reason in Setup: Planning has no
+# `test_rumah_sama_dengan_sidebar`). Sales History, Order Readiness, Plan vs Actual and Machine Capacity
+# (module Planning, ours) sit in Selling and Manufacturing, Reject Reason in Setup: Planning has no
 # rail entry and stays blocked in every Module Profile. Accounts and Leaves keep a short sidebar for a page
 # Frappe opens in its own module (no rail icon). Setup (shown as Settings) holds users, opening stock (Stock
 # Reconciliation, Admin only), the business settings and the reject reasons; System Settings and Build stay
@@ -93,7 +94,7 @@ SIDEBAR = {
 	"Manufacturing": [
 		"production-floor",
 		"Work Order",
-		"Production Entry",
+		"daily-input",  # in place of the Production Entry list, which stays reachable by URL
 		"Plan vs Actual",
 		"Machine Capacity",
 		"Sales History",  # Admin only from here: last, so a Produksi user's home has no gap
@@ -133,7 +134,7 @@ SIDEBAR = {
 }
 
 # A SIDEBAR link whose label is not its name (a Page is named by its route).
-NAMA_LINK = {"production-floor": "Production Floor"}
+NAMA_LINK = {"production-floor": "Production Floor", "daily-input": "Daily Input"}
 
 # A SIDEBAR link → its icon (Frappe's lucide set, `/assets/frappe/icons/lucide/icons.svg`), set on every sidebar
 # that shows it. Our own links and the ERPNext ones whose sidebar row has none, so no link shows the plain list
@@ -144,7 +145,7 @@ IKON_LINK = {
 	"Sales Forecast": "trending-up",
 	"Master Production Schedule": "calendar-range",
 	"Material Requirements Planning Report": "calculator",
-	"Production Entry": "notebook-pen",
+	"daily-input": "sheet",
 	"Order Readiness": "calendar-clock",
 	"Plan vs Actual": "target",
 	"Missing Documents": "paperclip",
@@ -402,7 +403,7 @@ PINTASAN = {
 			format="{} In Process",
 			color="Blue",
 		),
-		_p("Production Entry"),
+		_p("daily-input", "Daily Input", "Page"),
 		_p("Plan vs Actual", jenis="Report"),
 		_p("Machine Capacity"),
 		_p("Sales History"),  # Admin only from here (SIDEBAR's order)

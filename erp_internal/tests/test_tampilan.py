@@ -17,6 +17,7 @@ from erp_internal.tampilan import (
 	IKON_LINK,
 	IKON_MODUL,
 	IKON_RUMAH,
+	MENU_ATAS,
 	MODUL_BOLEH,
 	MODUL_MATI,
 	PINTASAN,
@@ -347,8 +348,8 @@ class TestTampilan(IntegrationTestCase):
 			finally:
 				frappe.set_user("Administrator")
 			self.assertEqual([m["shell"] for m in boot.erp_menu], shells, profil)
-			# Production Floor is a menu entry of its own, not under Manufacturing (Abel 2026-11-03).
-			self.assertEqual(boot.erp_menu_atas, ["production-floor"], profil)
+			# Production Floor and Daily Input are menu entries of their own, not under Manufacturing.
+			self.assertEqual(boot.erp_menu_atas, list(MENU_ATAS), profil)
 			m = {m["shell"]: m for m in boot.erp_menu}
 			self.assertEqual(
 				m["Manufacturing"], {"shell": "Manufacturing", "label": "Manufacturing", "icon": "factory"}
@@ -378,6 +379,13 @@ class TestTampilan(IntegrationTestCase):
 			("production-floor", "Production Floor", "Page"),
 		)
 		self.assertEqual(pintasan_aktif("Manufacturing")[0]["link_to"], "production-floor")
+
+	def test_halaman_input_harian(self):
+		roles = {r.role for r in frappe.get_doc("Page", "daily-input").roles}
+		self.assertEqual(roles, {"ERP User", "Manufacturing User", "Manufacturing Manager", "System Manager"})
+		self.assertIn("daily-input", MENU_ATAS)
+		self.assertIn("daily-input", SIDEBAR["Manufacturing"])
+		self.assertNotIn("Production Entry", SIDEBAR["Manufacturing"])
 
 	def test_profil_modul(self):
 		for profil, boleh in MODUL_BOLEH.items():

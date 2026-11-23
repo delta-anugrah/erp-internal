@@ -40,7 +40,7 @@ const PROFIL = {
 // module that is not in the menu, and a link to follow on a phone.
 const MENU = {
 	Stock: { daftar: "stock-entry", tanpa_link: "batch", awal: "item", link: "Warehouse" },
-	Manufacturing: { daftar: "production-entry", tanpa_link: "workstation", awal: "production-entry", link: "Work Order" },
+	Manufacturing: { daftar: "work-order", tanpa_link: "workstation", awal: "machine-capacity", link: "Work Order" },
 };
 const modul_menu = (harap) => (harap.modul.includes("Stock") ? "Stock" : "Manufacturing");
 const APLIKASI = ["erpnext", "hrms"]; // the apps whose rails tampilan.py arranges
@@ -310,6 +310,87 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.locator(".kembali").click();
 	await page.waitForURL(/\/desk\/manufacturing\/?$/, { timeout: 5000 }).catch(() => {});
 	cek(/\/desk\/manufacturing\/?$/.test(page.url()), `floor back button opened ${page.url()}`);
+	// Daily Input (page daily-input, Samuel 2026-11-23): a menu entry of its own; Produksi types a number into an empty
+	// Shift 1 cell and sees TOTAL change, then clears it; Admin sees no input. 1440, 768 and 390 px, no sideways scroll.
+	const harian = await page.evaluate(() => {
+		const a = [...document.querySelectorAll(".sidebar-items .item-anchor")].find((e) => e.textContent.includes("Daily Input"));
+		return { ada: !!a, sub: !!a?.closest(".nested-container") };
+	});
+	cek(harian.ada && !harian.sub, `Daily Input menu entry: ${JSON.stringify(harian)}`);
+	await page.goto(`${URL}/desk/manufacturing/daily-input`);
+	await page.waitForLoadState("networkidle");
+	await page.locator(".erp-ih-kepala").waitFor({ timeout: 10000 }).catch(() => {});
+	const n_blok = await page.locator(".erp-ih-blok").count();
+	const n_isi = await page.locator(".erp-ih input[data-key]").count();
+	cek(n_blok > 0, "Daily Input: no Work Order block (the sample data has open orders)");
+	if (profil === "Admin") cek(n_isi === 0, `Daily Input: Admin sees ${n_isi} inputs`);
+	if (profil === "Produksi") {
+		// The first block whose empty Shift 1 cell takes a piece (a full order refuses it on the cell: try the next).
+		const angka = (t) => Number((t || "").replace(/\./g, "")) || 0;
+		let ditulis = false;
+		for (const blok of await page.locator(".erp-ih-blok").all()) {
+			const sel = blok.locator('input[data-key$="|Shift 1"]').last();
+			if (!(await sel.count()) || (await sel.inputValue()) !== "") continue;
+			// Room for one more piece, so the order stays open (its block keeps its inputs for the clearing).
+			const po = angka((await blok.locator(".erp-ih-ringkas span").first().innerText()).match(/[\d.]+/)?.[0]);
+			if (angka(await blok.locator("tfoot .erp-ih-semua").innerText()) + 1 >= po) continue;
+			const total = blok.locator("tfoot td.erp-ih-angka").first();
+			const awal = angka(await total.innerText());
+			await sel.fill("1");
+			await sel.press("Enter"); // moves to the next cell, which saves this one
+			const naik = await page
+				.waitForFunction(([wo, n]) => {
+					const s = document.querySelector(`section[data-wo="${CSS.escape(wo)}"]`);
+					return Number(s?.querySelector("tfoot td.erp-ih-angka")?.textContent.replace(/\./g, "")) === n;
+				}, [await blok.getAttribute("data-wo"), awal + 1], { timeout: 15000 })
+				.then(() => true)
+				.catch(() => false);
+			if (!naik) {
+				cek(await blok.locator(".erp-ih-galat").count(), "Daily Input: a cell neither saved nor said why");
+				await sel.fill("");
+				continue;
+			}
+			// Clear it again: the entry is cancelled and TOTAL is back.
+			await page.screenshot({ path: join(HASIL, `${slug(profil)}-harian-isi.png`) });
+			const wo = await blok.getAttribute("data-wo");
+			const lagi = page.locator(`section[data-wo="${wo}"] input[data-key$="|Shift 1"]`).last();
+			if (!(await lagi.count())) {
+				cek(false, `Daily Input: ${wo} lost its inputs after a save; cancel its entry of today by hand`);
+				break;
+			}
+			await lagi.fill("");
+			await lagi.press("Tab");
+			const turun = await page
+				.waitForFunction(([wo, n]) => {
+					const s = document.querySelector(`section[data-wo="${CSS.escape(wo)}"]`);
+					return Number(s?.querySelector("tfoot td.erp-ih-angka")?.textContent.replace(/\./g, "")) === n;
+				}, [wo, awal], { timeout: 15000 })
+				.then(() => true)
+				.catch(() => false);
+			cek(turun, `Daily Input: clearing the cell of ${wo} did not bring TOTAL back to ${awal}`);
+			ditulis = true;
+			break;
+		}
+		cek(ditulis, "Daily Input: no block took a number in an empty Shift 1 cell");
+		// "Record Output" on a Work Order opens the page at that order's block only.
+		const wo = await page.locator(".erp-ih-blok").first().getAttribute("data-wo");
+		await page.evaluate(() => frappe.set_route("List", "Work Order"));
+		await page.waitForTimeout(1000);
+		await page.evaluate((wo) => {
+			frappe.route_options = { work_order: wo };
+			frappe.set_route("daily-input");
+		}, wo);
+		await page.waitForFunction(() => document.querySelectorAll(".erp-ih-blok").length === 1, null, { timeout: 10000 }).catch(() => {});
+		cek((await page.locator(".erp-ih-blok").count()) === 1, "Daily Input at one Work Order: not one block");
+	}
+	for (const lebar of [1440, 768, 390]) {
+		await page.setViewportSize({ width: lebar, height: 900 });
+		await page.waitForTimeout(500);
+		const geser = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+		cek(geser <= 0, `Daily Input at ${lebar} px scrolls sideways by ${geser} px`);
+		await page.screenshot({ path: join(HASIL, `${slug(profil)}-harian-${lebar}.png`), fullPage: true });
+	}
+	await page.setViewportSize({ width: 1440, height: 900 });
 	// The user's Settings dialog (avatar menu > My Settings) ends its left menu with the app version (public/js/versi.js).
 	await page.evaluate(() => frappe.require("user_settings_dialog.bundle.js").then(() => frappe.ui.show_user_settings("profile")));
 	const versi = page.locator(".settings-dialog-sidebar .erp-versi");

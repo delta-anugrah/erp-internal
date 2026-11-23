@@ -278,7 +278,7 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   other companies' stock is refused. Staff guide: `docs/panduan/produksi.md`.
 - Production (capacity and output): Machine Capacity per product per machine (`planning/kapasitas.py`). "Make BOMs"
   and the Excel import (`docs/impor.md` section 6) build one default BOM per variant per machine; a draft Work Order
-  with a machine gets that machine's BOM (`pilih_bom`). Production Entry ("Record Output" on a Work Order) books the
+  with a machine gets that machine's BOM (`pilih_bom`). Production Entry (typed in the Daily Input page; "Record Output" on a Work Order opens it) books the
   good pieces (Manufacture) and the rejects (Repack into Gudang Reject) as two Stock Entries; the Plan vs Actual
   report compares them with the target. Guide: `docs/panduan/produksi.md`.
 
@@ -296,7 +296,7 @@ shortcuts to the same links as its menu entries, nothing else:
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
 | Production Floor (own menu entry, first) | the floor page |
-| Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Production Entry, Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
+| Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |

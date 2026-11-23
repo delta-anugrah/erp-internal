@@ -11,7 +11,8 @@ di tampilan bahasa Inggris.
 
 | Kerjaan | Di mana | Panduan |
 |---|---|---|
-| Hasil produksi per shift (bagus dan reject) | **Manufacturing → Production Entry**, atau tombol **Record Output** di Work Order | `produksi.md`, "Catat hasil produksi" |
+| Hasil produksi per shift (barang bagus) | **Daily Input** (menu paling atas), atau tombol **Record Output** di Work Order | `produksi.md`, "Input harian" |
+| Reject (jarang) | form **Production Entry** lewat `/desk/production-entry` | `produksi.md`, "Lewat form Production Entry (reject)" |
 
 Stok bergerak sendiri saat Production Entry di-Submit (barang jadi masuk, bahan keluar); Produksi tidak membuat
 Stock Entry sendiri.

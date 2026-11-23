@@ -347,3 +347,32 @@ Change it in the Production Entry form.,Ubah lewat form Production Entry.
 Technician,Teknisi
 Who ran the machine in this shift.,Yang menjalankan mesin di shift ini.
 "The date cannot be before the Work Order was made ({0}).","Tanggalnya tidak boleh sebelum Work Order dibuat ({0})."
+Daily Input,Input Harian
+The daily input could not be loaded.,Input harian tidak bisa dimuat.
+Not saved (HTTP {0}).,Tidak tersimpan (HTTP {0}).
+No connection: try again.,Tidak ada koneksi: coba lagi.
+No open Work Orders.,Tidak ada Perintah Produksi yang terbuka.
+Previous week,Minggu sebelumnya
+This week,Minggu ini
+Next week,Minggu berikutnya
+All machines,Semua mesin
+Work Order {0},Perintah Produksi {0}
+Show all,Tampilkan semua
+Tanggal,Tanggal
+Teknisi Pagi,Teknisi Pagi
+Teknisi Malam,Teknisi Malam
+This week: {0},Minggu ini: {0}
+No.Po.,No.Po.
+PO,PO
+Packing,Packing
+{0} of {1} {2},{0} isi {1} {2}
+No,No
+Merk,Merk
+Warna,Warna
+Keterangan,Keterangan
+CLOSE/DONE,CLOSE/DONE
+TOTAL,TOTAL
++ Add date,+ Tambah tanggal
+Add date,Tambah tanggal
+"Pick a date from {0} to {1}.","Pilih tanggal dari {0} sampai {1}."
+"Underlined numbers were recorded in the Production Entry form: change them there.","Angka bergaris bawah dicatat lewat form Production Entry: ubah di sana."

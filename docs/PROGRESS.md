@@ -2,6 +2,12 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 7 (Daily Input page)
+- Page `daily-input` (`input_harian.bundle.js`, `.erp-ih-*` CSS) in Samuel's Excel layout; menu entry under the
+  Production Floor (`MENU_ATAS`), in Manufacturing's sidebar and home in place of the Production Entry list; "Record
+  Output" opens it at the order. `run-tests --app erp_internal` 301 tests (13 unit + 288 integration) OK; `cek_layar`
+  3 users OK (Produksi types and clears a cell, Admin no input, 1440/768/390 px). Next: Task 8.
+
 ## 2026-11-23, plan Task 6 (Daily Input, server side)
 - `erp_internal/daily_input.py`: `get_data` (week's Work Order blocks), `save_cell` (one submitted Production Entry
   per filled cell, replaced or cancelled inside a savepoint), `save_note`, `baca_jumlah`, `minggu`. Production Entry

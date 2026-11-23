@@ -33,7 +33,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Our module `Planning` has no Dock entry or Sidebar and stays blocked in the Admin and Produksi Module Profiles (Super Admin's blocks only `MODUL_MATI`); its Sales History
   is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and the Planning
   DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Floor, Work Order,
-  Production Entry, Plan vs Actual, Machine Capacity first (what Produksi reads), then Admin's (Sales History, MPS,
+  Daily Input (page `daily-input`, in place of the Production Entry list), Plan vs Actual, Machine Capacity first (what Produksi reads), then Admin's (Sales History, MPS,
   MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time); Reject Reason sits in Setup after
   Manufacturing Settings. The Planning module itself stays blocked for Admin and Produksi.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
@@ -103,7 +103,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `bench build`) patches Frappe's `Sidebar` on a shell named there, or on Accounts/Leaves (`MODUL_TANPA_IKON`): its
   items become one `Section Break` per module (icon drawn by us, open/closed state under one key `erp_menu`) with that
   module's resolved items as children, each routed into its own shell (`TypeLink.get_path`); the page's module
-  opens by itself (`make_sidebar`). `MENU_ATAS` links (Production Floor) are entries of their own above the headers
+  opens by itself (`make_sidebar`). `MENU_ATAS` links (Production Floor, Daily Input) are entries of their own above the headers
   (`erp_menu_atas`), still in `SIDEBAR` so their module's home and route stay. `Sidebar.dock_enabled` returns false there, so Frappe runs dock-less: search,
   notifications and the user menu sit in the sidebar, the header shows the app's icon and the module, and folding
   leaves a rail of module icons (our CSS hides the links). Every patch falls back to Frappe's own code on an error.
