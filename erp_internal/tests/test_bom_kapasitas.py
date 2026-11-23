@@ -389,6 +389,39 @@ class TestPigmen(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			self.isi_kemasan("_UJI-KM-GAYUNG", self.kemasan("_UJI Plastik isi 560"), 0)
 
+	def test_kemasan_satuan_bulat_ditolak(self):
+		# a packing item in a whole-number UOM would make every BOM using it fail in the background rebuild
+		buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		bulat = buat_barang("_UJI Kardus Pcs", "Kemasan", "Pcs")
+		with self.assertRaisesRegex(frappe.ValidationError, "allows fractions"):
+			self.isi_kemasan("_UJI-KM-GAYUNG", bulat, 10)
+
+	def test_reject_tanpa_kemasan(self):
+		# A reject is reground, never packed: its Repack takes material and pigment, no packing.
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		pg = self.pigmen("Merah", rasio=1)
+		plastik = self.kemasan("_UJI Plastik isi 50")
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 50)
+		buat_bom_kapasitas(self.kapasitas("_UJI-KM-GAYUNG"), company=self.pabrik)
+		stok_awal(self.pabrik, pg, 1000, "Gudang Bahan Baku")
+		stok_awal(self.pabrik, self.bahan, 100, "Gudang Bahan Baku")
+		stok_awal(self.pabrik, plastik, 10, "Gudang Bahan Baku")
+		pe = buat_hasil(buat_wo(merah, self.mesin, qty=1000), good=100, rejects={"Short Shot": 10})
+		self.assertAlmostEqual(self.stok(plastik, "Gudang Bahan Baku"), 10 - 2)  # 100 good / 50
+		reject = [d.item_code for d in frappe.get_doc("Stock Entry", pe.reject_entry).items if d.s_warehouse]
+		self.assertEqual(sorted(reject), sorted([self.bahan, pg]))
+
+	def test_satu_reject_pigmen_kecil(self):
+		# One reject whose pigment line rounds to 0 at the entry's precision still submits, without that line.
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		pg = self.pigmen("Merah", rasio=0.001)  # 0.05 kg x 0.001 g/kg = 0.00005 g per piece
+		buat_bom_kapasitas(self.kapasitas("_UJI-KM-GAYUNG"), company=self.pabrik)
+		stok_awal(self.pabrik, pg, 1000, "Gudang Bahan Baku")
+		stok_awal(self.pabrik, self.bahan, 100, "Gudang Bahan Baku")
+		pe = buat_hasil(buat_wo(merah, self.mesin, qty=1000), good=0, rejects={"Short Shot": 1})
+		reject = [d.item_code for d in frappe.get_doc("Stock Entry", pe.reject_entry).items if d.s_warehouse]
+		self.assertEqual(reject, [self.bahan])
+
 	def test_beli_per_kg(self):
 		pg = self.pigmen("Merah", rasio=1)
 		wh = gudang(self.pabrik, "Gudang Bahan Baku")

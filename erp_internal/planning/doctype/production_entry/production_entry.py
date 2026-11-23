@@ -4,7 +4,8 @@ Submit moves the stock through two Stock Entries, made by the system (Produksi h
 `FLAG_HASIL`; `cek_stock_entry` refuses any other Manufacture and any other way of cancelling them:
 - good pieces: ERPNext's own Manufacture entry for the order (`make_stock_entry`), so the order's produced qty
   and status stay ERPNext's; the material for them is backflushed by the BOM;
-- rejects: a Repack entry that takes the BOM's material for the rejected pieces from the order's source
+- rejects: a Repack entry that takes the BOM's material for the rejected pieces (material and pigment; no
+  packing, a reject is reground, never packed; no line that rounds to 0) from the order's source
   warehouse (Gudang Bahan Baku), never from work in progress, and puts the pieces, as the same item, into the
   company's Default Scrap Warehouse (Gudang Reject). Rejects are material used on top of what was transferred
   for the good pieces, so the transferred material stays whole for them. The entry is not linked to the order,
@@ -17,6 +18,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, nowtime, today
 
+from erp_internal.planning.kapasitas import GRUP_KEMASAN
 from erp_internal.setup import jam_shift
 
 STATUS_TERBUKA = ("Not Started", "In Process")  # Work Order statuses that take output
@@ -174,7 +176,12 @@ class ProductionEntry(Document):
 		se.purpose = "Repack"
 		se.company = self.company
 		se.set_stock_entry_type()
+		presisi = frappe.get_precision("Stock Entry Detail", "qty")
 		for b in bahan.values():
+			# A reject is reground, never packed; a line too small to show at the entry's precision (a pigment's
+			# grams on one reject) would make the entry refuse a zero qty.
+			if b.item_group == GRUP_KEMASAN or not flt(b.qty, presisi):
+				continue
 			se.append(
 				"items",
 				{

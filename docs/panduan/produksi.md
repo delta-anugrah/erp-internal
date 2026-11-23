@@ -83,8 +83,9 @@ Pigmen baru (Admin): **Stock → Item → + Add Item**, atau buka barang **PIGME
 **Kemasan.** Tiap baris tabel **Packing** di barang produk (punya varian sendiri, atau dari templatenya) jadi satu
 baris BOM: 1 / **Pieces per Packing** barang kemasan itu per buah. Contoh: plastik isi 560 = 0,001785714 plastik per
 buah, jadi 1.120 buah memakai 2 plastik. Baris Packing diubah atau barang kemasan dinonaktifkan: BOM dibuat ulang
-seperti pigmen. Cara mengisi tabelnya: `admin.md` "Kemasan per produk". Reject ikut memakai bahan BOM-nya, kemasan
-juga.
+seperti pigmen. Cara mengisi tabelnya: `admin.md` "Kemasan per produk". Reject memakai bahan baku dan pigmennya, tapi tidak
+memakai kemasan (reject digiling ulang, tidak dikemas). Barang kemasan harus distok dalam satuan yang boleh pecahan
+(**Buah**); kemasan bersatuan Pcs ditolak di tabel Packing.
 
 ## Tiap bulan
 

@@ -10,6 +10,10 @@ Newest first. One entry per working session: what changed, test results as run, 
   `pigmen_berubah`) queue the same `_antre` rebuild; `cek_kemasan` refuses 0 pieces. Monthly Expenses:
   `BIAYA_STOK`, `pemakaian()` (stock value used by Production Entries' Manufacture/Repack), rows Pigmen and Kemasan
   before Total. `test_bom_kapasitas` 20 OK (3 new), `test_biaya` 12 OK (1 new). Next: Task 12 (sample data).
+- Review fixes: `cek_kemasan` refuses a packing item stocked in a whole-number UOM; `contoh.py` CTH-KARDUS in Buah
+  (new sites; erp.localhost's existing item keeps Pcs, `buat_contoh` still runs). A reject's Repack skips packing
+  lines (reground, never packed) and any line that rounds to 0. `test_bom_kapasitas` 23 OK, `test_biaya` 12 OK,
+  `test_hasil_produksi` 17 OK, `test_contoh` 8 OK.
 
 ## 2026-11-23, plan Task 11 (Pigment)
 - Item Group Pigmen, UOM Gram (fractions), Item field `erp_rasio_pigmen` (g per kg); `penjualan._pigmen` makes the

@@ -42,7 +42,7 @@ BARANG = {
 	"CTH-BIJI-PP": ("Biji Plastik PP", "Bahan Baku", "Kg", {"Sak": 25}, 18000, 2000),
 	"CTH-BIJI-HDPE": ("Biji Plastik HDPE", "Bahan Baku", "Kg", {"Sak": 25}, 19000, 1500),
 	"CTH-PEWARNA": ("Pewarna Masterbatch", "Bahan Baku", "Kg", {}, 45000, 100),
-	"CTH-KARDUS": ("Kardus", "Kemasan", "Pcs", {}, 3500, 500),
+	"CTH-KARDUS": ("Kardus", "Kemasan", setup.SATUAN_KEMASAN, {}, 3500, 500),
 }
 # Product → (units per BOM: one carton, materials for that carton in their stock UOM).
 RESEP = {

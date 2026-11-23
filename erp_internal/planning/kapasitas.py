@@ -304,10 +304,21 @@ def cek_pigmen(doc, method=None) -> None:
 
 
 def cek_kemasan(doc, method=None) -> None:
-	"""Each Packing row holds more than 0 pieces (Item validate)."""
+	"""Each Packing row holds more than 0 pieces, and its packing item is stocked in a UOM that allows fractions
+	(a BOM line of 1/560 in a whole-number UOM is refused by the BOM, inside the background rebuild) (Item
+	validate)."""
+	from erp_internal.setup import SATUAN_KEMASAN
+
 	for r in doc.get("erp_kemasan") or ():
 		if cint(r.pieces) <= 0:
 			frappe.throw(_("Row {0}: Pieces per Packing must be more than 0.").format(r.idx))
+		uom = frappe.db.get_value("Item", r.packing_item, "stock_uom")
+		if uom and frappe.db.get_value("UOM", uom, "must_be_whole_number"):
+			frappe.throw(
+				_("Row {0}: {1} must be stocked in a UOM that allows fractions ({2}).").format(
+					r.idx, frappe.bold(r.packing_item), SATUAN_KEMASAN
+				)
+			)
 
 
 def _isi_kemasan(doc) -> list[tuple]:

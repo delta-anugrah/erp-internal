@@ -213,6 +213,7 @@ Packing Item,Barang Kemasan
 Pieces per Packing,Isi per Kemasan (pcs)
 Row {0}: Pieces per Packing must be more than 0.,Baris {0}: Isi per Kemasan harus lebih dari 0.
 Used by production,Dipakai produksi
+Row {0}: {1} must be stocked in a UOM that allows fractions ({2}).,Baris {0}: {1} harus distok dalam satuan yang boleh pecahan ({2}).
 Apply,Terapkan
 Cavities must be a whole number.,Cavity harus bilangan bulat.
 Columns ignored: {0},Kolom diabaikan: {0}

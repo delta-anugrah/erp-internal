@@ -202,15 +202,16 @@ class TestBiaya(IntegrationTestCase):
 		stok_awal(self.pabrik, pg, 1000, "Gudang Bahan Baku", rate=150, tanggal=awal)
 		stok_awal(self.pabrik, plastik, 100, "Gudang Bahan Baku", rate=2000, tanggal=awal)
 		wo = buat_wo(merah, self.mesin, qty=100, company=self.pabrik)
-		buat_hasil(wo, good=100, posting_date=date(2026, 11, 10))
-		# 100 pcs x 0.05 kg x 2 g/kg = 10 g at 150; 100 / 50 = 2 bags at 2.000
+		buat_hasil(wo, good=100, rejects={"Short Shot": 10}, posting_date=date(2026, 11, 10))
+		# good: 100 pcs x 0.05 kg x 2 g/kg = 10 g at 150; 100 / 50 = 2 bags at 2.000. The 10 rejects take 1 g of
+		# pigment (their Repack) and no packing.
 		self.assertEqual(
-			pemakaian(self.pabrik, awal, date(2026, 11, 30)), {"Pigmen": 1_500, "Kemasan": 4_000}
+			pemakaian(self.pabrik, awal, date(2026, 11, 30)), {"Pigmen": 1_650, "Kemasan": 4_000}
 		)
 		nov = self.bulan(awal)
-		self.assertAlmostEqual(nov["Pigmen"], 1_500)
+		self.assertAlmostEqual(nov["Pigmen"], 1_650)
 		self.assertAlmostEqual(nov["Kemasan"], 4_000)
-		self.assertAlmostEqual(nov["Total"], 5_500)
+		self.assertAlmostEqual(nov["Total"], 5_650)
 		des = self.bulan(date(2026, 12, 1))
 		self.assertNotIn("Pigmen", des)
 		self.assertNotIn("Kemasan", des)

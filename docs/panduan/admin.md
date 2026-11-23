@@ -67,7 +67,7 @@ per kategori dan Total. Di bawah Gaji Operator ada satu baris per mesin: jumlah 
 hari 12 jam (satu shift).
 
 Dua baris dihitung sendiri, tanpa Expense Entry: **Pigmen** dan **Kemasan** ("Used by production"), yaitu nilai stok
-pigmen dan kemasan yang dipakai hasil produksi bulan itu (Production Entry yang di-Submit, termasuk reject),
+pigmen dan kemasan yang dipakai hasil produksi bulan itu (Production Entry yang di-Submit; reject ikut memakai pigmen, tidak memakai kemasan),
 dengan harga stoknya. Yang dihitung pemakaian, bukan pembelian: beli banyak sekaligus tidak jadi biaya satu bulan.
 Barisnya muncul kalau nilainya tidak nol, dan ikut Total.
 
@@ -78,7 +78,8 @@ Di form barang produk (template atau varian, grup Barang Jadi), tabel **Packing*
 dalam satu kemasan, lebih dari 0). Isi di template berlaku untuk semua variannya; varian yang punya baris sendiri
 memakai barisnya sendiri. Setelah Save, BOM kapasitas dibuat ulang di belakang layar (sama seperti pigmen), jadi
 tiap buah hasil produksi memakai 1 / Pieces per Packing kemasan. Barang kemasan dibuat di **Stock → Item → + Add
-Item** dengan Item Group **Kemasan** dan Default Unit of Measure **Buah**; menonaktifkan barang kemasan juga
+Item** dengan Item Group **Kemasan** dan Default Unit of Measure **Buah** (satuan yang boleh pecahan; kemasan
+bersatuan Pcs ditolak di tabel Packing); menonaktifkan barang kemasan juga
 membuat ulang BOM tanpa baris itu.
 
 **Saat go-live** Admin membuat satu catatan: Category **Gaji Operator**, Amount **105.000**, Repeat **Per machine
