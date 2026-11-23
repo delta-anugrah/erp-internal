@@ -1153,7 +1153,11 @@ if (jalankan("strip")) await kasus("strip", async () => {
 		sb.apply_page_visibility = () => setTimeout(orig, 1200);
 	});
 	for (const cara of ["link", "back"]) {
-		await p.evaluate(() => frappe.set_route("Form", "Work Order", "new"));
+		// An existing order: Produksi reads Work Orders but may not create one (a new form is refused).
+		await p.evaluate(async () => {
+			const { message } = await frappe.db.get_value("Work Order", { docstatus: 1 }, "name");
+			frappe.set_route("Form", "Work Order", message.name);
+		});
 		await p.waitForFunction(() => window.cur_frm?.doctype === "Work Order", null, { timeout: 8000 });
 		await p.waitForTimeout(800);
 		if (cara === "link") {
