@@ -2,6 +2,19 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, final review fixes (Samuel's 2026-11-23 requests)
+- Daily Input: a Completed order's cells stay editable for Produksi (`STATUS_BISA_DIUBAH`; the cancel reopens the
+  order), no "+ Add date" on a completed block; both shifts fit 390 px and the 768 px view beside the sidebar
+  (container query on `.erp-ih`). `test_order_selesai_bisa_dibetulkan` (red first: `boleh_isi` False).
+- `kapasitas._ingatkan_stok`: an orange note when a pigment or packing item has no stock in Gudang Bahan Baku
+  (`test_peringatan_tanpa_stok`, red first). Work Order Item `rate`/`amount` on permlevel 1 (`setup.HARGA_TERSEMBUNYI`),
+  read by the Manufacturing roles (`test_harga_wo_tersembunyi`). PO print labels in `_()`; Monthly Expenses escapes text.
+- `e2e_samuel.mjs` prints the Purchase Order in `PO Samuel Beli` and checks it is the default (15/15); `lantai.mjs`
+  `strip` opens an existing Work Order. Docs synced (guides: stock before pigment/packing, Sales/Purchase Orders used
+  by Admin since 2026-11-23).
+- Tests as run: `run-tests --app erp_internal` 349 (13 unit + 336 integration) OK; ruff clean; `cek_layar` 3 users OK;
+  `e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK (perf 60.0 fps, 0 dropped).
+
 ## 2026-11-23, plan Task 12 (sample data, guides, full check): Samuel's 2026-11-23 requests built (Tasks 1-14)
 - What the plan built (entries below per task): roles Super Admin / Admin / Produksi (1-2), Work Order machine lock
   (3), Gudang Pluit (4), attachments + Missing Documents (5), Daily Input server, page, Print and Excel (6-8),
@@ -27,12 +40,14 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Guide pictures retaken (`panduan_gambar.mjs`, 12): new `produksi-2` (Daily Input), `admin-1` (Monthly Expenses),
   `admin-2` (Missing Documents), shown in `produksi.md` and `admin.md`. The access PDF was not regenerated: no tool
   or source for it exists (made by hand 2026-11-02, gone from the Desktop).
+- `lantai.mjs` rerun 2026-11-23 (final review): all cases OK, perf 60.0 fps, 0 dropped, 34 draw calls; `strip` failed
+  first (Produksi may not open a new Work Order form since Task 2) and now opens an existing order.
 - Next: Abel reviews and approves the PR/tag; Samuel's full PO header, pigment list and item 6 lists.
 
 ## 2026-11-23, plan Task 14 (Seal Cap brand codes and their mould inserts)
 - `data/merek_epp.json` (21 rows of Samuel's "List Insert EPP - Delta"), Brand custom field `erp_jumlah_insert`
   ("Inserts (pcs)", `setup.FIELD_MEREK`), `master._merek` (count and KET set only when the Brand is new, so an
-  Admin's count stays); Brand is in Stock's sidebar and home (Admin has Item Manager). `test_master` 11 OK
+  Admin's count stays); Brand is in Stock's sidebar and home (Admin has Item Manager). `test_master` 10 OK
   (1 new). Next: Task 12 (sample data).
 
 ## 2026-11-23, plan Task 13 (Packing, Pigmen and Kemasan in Monthly Expenses)
@@ -93,12 +108,14 @@ Newest first. One entry per working session: what changed, test results as run, 
   Note. Report Missing Documents (Stock sidebar and home, Admin and Super Admin, icon `paperclip`), orange note on the
   forms (`public/js/lampiran.js`, `frappe.boot.erp_lampiran`). Tests and `contoh.py` attach through
   `tests.utils.lampirkan` before every submit of a covered DocType.
+  No module run recorded; covered by the full runs (301 at Task 7, 346 at Task 12).
 
 ## 2026-11-23, plan Task 4 (Warehouse Pluit)
 - `setup.GUDANG_PABRIK` gains Gudang Pluit, `GUDANG_JUAL` = Barang Jadi + Pluit; `_gudang_kirim` makes Delivery Note
   `set_warehouse` required (Property Setter); `pengiriman.ikut_gudang` (Delivery Note `validate`) copies it to every
   line. Order Readiness stock sums both selling warehouses when no warehouse is picked (`_stok` takes a list). Delivery
   notes in `test_alur_jual_beli`, `test_tampilan` and `tools/panduan_gambar.mjs` now set `set_warehouse`.
+  No module run recorded; covered by the full runs (301 at Task 7, 346 at Task 12).
 
 ## 2026-11-23, plan Task 3 (Work Order machine lock)
 - `kapasitas.mesin_item` / `cari_mesin` / `mesin_terdaftar`: a Work Order takes only a machine Machine Capacity
@@ -106,6 +123,7 @@ Newest first. One entry per working session: what changed, test results as run, 
   machine keeps running. `work_order.js`: Machine link query and a note when the item has no row. New fixture
   `utils.buat_wo`. Tests fixed for the lock: `test_bom_kapasitas.test_kunci_mesin`, `test_plan_vs_actual.test_kapasitas`;
   `tools/lantai.mjs` wo/xss picks an item listed for Mesin 03.
+  No module run recorded; covered by the full runs (301 at Task 7, 346 at Task 12).
 
 ## 2026-11-23, plan Tasks 1 and 2 (Samuel's three roles)
 - Task 1 (`9cc5116`): profiles renamed Developer → Super Admin, User → Produksi (patch `profil_tiga`, users move

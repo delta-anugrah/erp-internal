@@ -43,7 +43,7 @@ template ikut berbahasa Indonesia; dua-duanya diterima.
 | `Item Code` | kode barang, unik |
 | `Item Name` | nama barang |
 | `Item Group` | `Barang Jadi`, `Bahan Baku`, `Bahan Penolong`, `Kemasan`, `Sparepart` atau `Pigmen` |
-| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Ball Kecil`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll`, `Kg` atau `Gram` (hanya `Kg` dan `Gram` boleh pecahan) |
+| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Ball Kecil`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll`, `Kg`, `Gram` atau `Buah` (hanya `Kg`, `Gram` dan `Buah` boleh pecahan; `Buah` untuk barang kemasan) |
 | `Maintain Stock` | `1` untuk barang yang distok |
 | `Safety Stock` | stok minimum |
 | `UOM (uoms)` | satuan lain, misalnya `Karton` |

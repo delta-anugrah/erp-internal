@@ -1,7 +1,7 @@
 # Panduan Pembelian
 
-> **Belum dipakai** (Mas Samuel, 2026-11-02): bahan baku masuk dicatat dengan Stock Entry `Material Receipt`
-> (`gudang.md`, "Terima bahan baku"). Panduan ini untuk nanti, dan cuma **Admin** yang bisa membuka menu Buying.
+> **Dipakai Admin sejak 2026-11-23** (Mas Samuel: PO dan Sales Order, cetak format PO Samuel). Surat jalan boleh
+> tetap langsung tanpa Sales Order (`gudang.md`). Cuma **Admin** yang bisa membuka menu Buying.
 
 Untuk **Admin**. Urutannya: **Material Request → Purchase Order → Purchase Receipt → Purchase Invoice**.
 Barang tidak bisa diterima tanpa Purchase Order; sistem menolaknya.
@@ -30,6 +30,8 @@ saring yang statusnya **Pending**.
 
 **Pigmen** dibeli per **Kg** (satuan beli bawaannya Kg) tapi distok dalam **gram**: pesan `2` Kg, stok bertambah
 2.000 g. Harga per Kg diisi di daftar harga `Harga Bahan Baku` (**Buying → Item Price**, **UOM** `Kg`).
+Pigmen dan kemasan harus sudah ada stoknya di **Gudang Bahan Baku** sebelum Produksi mencatat hasil produk
+yang memakainya, kalau tidak pencatatan gagal (`produksi.md` "Pigmen", `admin.md` "Kemasan per produk").
 
 **Kemasan** (plastik, karung, karton) dibeli seperti bahan baku: barang grup **Kemasan**, satuan **Buah**, gudang
 bawaannya Gudang Bahan Baku, harganya di `Harga Bahan Baku`. Stoknya berkurang lewat BOM saat hasil produksi dicatat

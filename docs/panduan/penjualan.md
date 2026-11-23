@@ -1,7 +1,7 @@
 # Panduan Penjualan
 
-> **Belum dipakai** (Mas Samuel, 2026-11-02): surat jalan dibuat langsung tanpa Sales Order (`gudang.md`, "Kirim
-> barang ke pelanggan"). Panduan ini untuk nanti, dan cuma **Admin** yang bisa membuka menu Selling.
+> **Dipakai Admin sejak 2026-11-23** (Mas Samuel: PO dan Sales Order, cetak format PO Samuel). Surat jalan boleh
+> tetap langsung tanpa Sales Order (`gudang.md`). Cuma **Admin** yang bisa membuka menu Selling.
 
 Untuk **Admin**. Urutannya: **Sales Order → Delivery Note → Sales Invoice → Payment Entry**.
 

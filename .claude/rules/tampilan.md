@@ -1,5 +1,5 @@
 ---
-paths: ["erp_internal/tampilan.py", "erp_internal/setup.py", "erp_internal/pengguna.py", "erp_internal/tests/test_tampilan.py", "tools/cek_layar.mjs", "erp_internal/contoh.py", "erp_internal/planning/**"]
+paths: ["erp_internal/tampilan.py", "erp_internal/setup.py", "erp_internal/pengguna.py", "erp_internal/tests/test_tampilan.py", "tools/cek_layar.mjs", "erp_internal/contoh.py", "erp_internal/planning/**", "erp_internal/daily_input.py", "erp_internal/lampiran.py"]
 ---
 # Navigation in Frappe v16.53 (what `tampilan.py` changes)
 
@@ -35,7 +35,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Floor, Work Order,
   Daily Input (page `daily-input`, in place of the Production Entry list), Plan vs Actual, Machine Capacity first (what Produksi reads), then Admin's (Sales History, MPS,
   MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time); Expense Entry and Monthly Expenses (Admin only) close
-  `SIDEBAR["Buying"]` and `PINTASAN["Buying"]`; Reject Reason sits in Setup after
+  `SIDEBAR["Buying"]` and `PINTASAN["Buying"]`; Brand and Missing Documents (Admin only) close `SIDEBAR["Stock"]` and
+  `PINTASAN["Stock"]`; Reject Reason sits in Setup after
   Manufacturing Settings. The Planning module itself stays blocked for Admin and Produksi.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no

@@ -6,13 +6,11 @@ Alurnya:
 
 1. sekali per produk: **lama produksi** dan **resep (BOM)**;
 2. tiap bulan: **perkiraan penjualan → jadwal produksi → MRP → perintah produksi**;
-3. tiap shift: **catat hasil produksi** per mesin (bagus dan reject);
+3. tiap shift: **catat hasil produksi** per mesin (bagus lewat Daily Input; reject lewat form Production Entry);
 4. tiap Senin: cek **Order Readiness** (Siap Order).
 
 Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
-
-> Gambar layar lainnya menyusul (lihat `docs/TODO.md`).
 
 ## Lantai produksi (Production Floor)
 
@@ -80,6 +78,10 @@ Pigmen baru (Admin): **Stock → Item → + Add Item**, atau buka barang **PIGME
 **Warna**, isi **Pigment Ratio (g per kg)** (lebih dari 0, bawaan 1). Stoknya dalam gram, belinya per Kg
 (`pembelian.md`).
 
+Stok dulu: begitu pigmen dibuat, BOM warna itu langsung memakainya. Terima stoknya di **Gudang Bahan Baku**
+(Material Receipt, `gudang.md`) sebelum Produksi mencatat hasil warna itu, kalau tidak pencatatan gagal (stok tidak
+boleh minus). Setelah Save, sistem memberi catatan oranye kalau pigmennya belum ada stok di Gudang Bahan Baku.
+
 **Kemasan.** Tiap baris tabel **Packing** di barang produk (punya varian sendiri, atau dari templatenya) jadi satu
 baris BOM: 1 / **Pieces per Packing** barang kemasan itu per buah. Contoh: plastik isi 560 = 0,001785714 plastik per
 buah, jadi 1.120 buah memakai 2 plastik. Baris Packing diubah atau barang kemasan dinonaktifkan: BOM dibuat ulang
@@ -137,8 +139,10 @@ operator; Admin melihat halaman yang sama tanpa kotak isian.
   atau **Tab**: tersimpan begitu pindah kotak, TOTAL ikut berubah. Ganti angka = hasil lama dibatalkan dan diganti;
   kosongkan (atau 0) = hasilnya dibatalkan. **Keterangan** tersimpan dengan cara yang sama (harus sudah ada angka di
   tanggal itu).
+- **Salah ketik di Work Order yang sudah CLOSE/DONE?** Angkanya tetap bisa diganti: hasil lama dibatalkan, Work
+  Order kembali In Process, lalu angka baru dicatat. Tanggal baru tidak bisa ditambah di Work Order yang sudah selesai.
 - **Ditolak?** Pesannya muncul merah di bawah kotaknya dan angka yang diketik tetap ada: tanggal di masa depan, Work
-  Order sudah selesai, lebih dari yang boleh dibuat, atau mesin belum diisi ("No machine yet: Admin sets it on the
+  Order sudah berhenti atau ditutup, lebih dari yang boleh dibuat, atau mesin belum diisi ("No machine yet: Admin sets it on the
   Work Order.").
 - **Angka bergaris bawah** dicatat lewat form Production Entry (ada reject, lebih dari satu entri, atau jam jalan lain):
   klik angkanya dan ubah di form itu.
@@ -193,7 +197,7 @@ cukup dicentang **Disabled**, jangan dihapus.
 **Manufacturing → Order Readiness** Satu baris per produk jadi (per varian, misalnya per warna; template seperti "BASKOM-20" tidak ikut karena tidak pernah distok atau dijual), untuk bulan yang dipilih:
 
 Pilih Company dan (kalau perlu) Warehouse milik company itu. Kalau muncul izin ditolak atau "Warehouse ... does
-not belong to company", akunmu nggak boleh buka company atau gudang itu.
+not belong to company", akunmu tidak boleh buka company atau gudang itu.
 
 
 | Kolom | Artinya |
@@ -246,4 +250,4 @@ mesin × hari × Work Order × shift, lalu dijumlahkan sesuai pilihan.
 | (nama alasan) | satu kolom per alasan reject yang muncul di hasil |
 
 Hari yang punya target tetapi belum ada hasil tetap muncul: bagus 0, Achieved % 0. Grafik batang di atas tabel
-menampilkan Target, Good dan Reject per baris. Kalau muncul izin ditolak, akunmu nggak boleh buka company itu.
+menampilkan Target, Good dan Reject per baris. Kalau muncul izin ditolak, akunmu tidak boleh buka company itu.

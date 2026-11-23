@@ -22,7 +22,8 @@ di tampilan bahasa Inggris.
 ## Harian
 
 ### Terima bahan baku
-Pembelian (Purchase Order) belum dipakai (Mas Samuel, 2026-11-02), jadi bahan masuk dicatat langsung:
+Purchase Order dipakai Admin sejak 2026-11-23 (Mas Samuel: PO dan Sales Order, cetak format PO Samuel;
+`pembelian.md`). Bahan yang masuk tanpa pesanan dicatat langsung:
 1. **Stock → Stock Entry → + Add Stock Entry**, **Stock Entry Type** `Material Receipt`.
 2. **Default Target Warehouse**: `Gudang Bahan Baku`.
 3. Di **Items**: bahan (misalnya biji plastik) dan jumlahnya dalam Kg. **Save**.
@@ -33,7 +34,8 @@ Pembelian (Purchase Order) belum dipakai (Mas Samuel, 2026-11-02), jadi bahan ma
 ![Material Receipt](gambar/gudang-2.png)
 
 ### Kirim barang ke pelanggan
-Surat jalan dibuat langsung, tanpa Sales Order (penjualan belum dipakai, Mas Samuel 2026-11-02):
+Sales Order dipakai Admin sejak 2026-11-23 (Mas Samuel: PO dan Sales Order, cetak format PO Samuel). Surat
+jalan boleh tetap langsung tanpa Sales Order:
 1. **Stock → Delivery Note → + Add Delivery Note**.
 2. **Customer**: pelanggannya (pelanggan baru dibuat Admin).
 3. **Source Warehouse** (wajib): pilih `Gudang Barang Jadi` atau `Gudang Pluit`, sesuai tempat barangnya

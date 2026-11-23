@@ -125,6 +125,7 @@ Needs `bench start` and the sample users. `perf` and `adaptive` open a visible b
 representative). The header of `tools/lantai.mjs` lists every case. It turns every disabled numbered machine on for
 the run (`frappe.db.set_value` disabled 0, no controller) and back to disabled + Off when it exits (also on Ctrl-C; after
 a SIGKILL rerun `master.muat`). It sets and restores machine statuses, and for wo/xss makes, submits and removes a Work
-Order through `bench execute` as Administrator (the sample User may not create Work Orders since 2026-11-02): run it on
+Order through `bench execute` as Administrator (the sample Produksi user may not create Work Orders), on an item
+Machine Capacity lists for Mesin 03 (the Work Order machine lock, `kapasitas.mesin_terdaftar`): run it on
 `erp.localhost`, never on a real site. Also run `tools/cek_layar.mjs`
 (the Manufacturing link) after a navigation change.

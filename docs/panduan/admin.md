@@ -75,6 +75,9 @@ pigmen dan kemasan yang dipakai hasil produksi bulan itu (Production Entry yang 
 dengan harga stoknya. Yang dihitung pemakaian, bukan pembelian: beli banyak sekaligus tidak jadi biaya satu bulan.
 Barisnya muncul kalau nilainya tidak nol, dan ikut Total.
 
+**Saat go-live** Admin membuat satu catatan: Category **Gaji Operator**, Amount **105.000**, Repeat **Per machine
+shift**, Date = hari produksi pertama, lalu Submit.
+
 ## Kemasan per produk
 
 Di form barang produk (template atau varian, grup Barang Jadi), tabel **Packing** berisi kemasan yang dipakai:
@@ -86,8 +89,9 @@ Item** dengan Item Group **Kemasan** dan Default Unit of Measure **Buah** (satua
 bersatuan Pcs ditolak di tabel Packing); menonaktifkan barang kemasan juga
 membuat ulang BOM tanpa baris itu.
 
-**Saat go-live** Admin membuat satu catatan: Category **Gaji Operator**, Amount **105.000**, Repeat **Per machine
-shift**, Date = hari produksi pertama, lalu Submit.
+Stok dulu: terima barang kemasan di **Gudang Bahan Baku** (Material Receipt, `gudang.md`) sebelum mengisi tabel
+Packing sebuah produk. Kalau stoknya belum ada, pencatatan hasil produksi produk itu gagal (stok tidak boleh minus);
+setelah Save, sistem memberi catatan oranye kalau kemasannya belum ada stok di Gudang Bahan Baku.
 
 ## Akun pengguna
 
@@ -112,7 +116,7 @@ bisa diubah Admin ("Only a Super Admin can change this account").
 Di **Settings**: **Company**, **Opening Stock & Stock Count** (Stock Reconciliation: stok awal dan stok
 opname, `docs/panduan/gudang.md`), **Stock Settings**, **Selling Settings**, **Buying Settings**, **Manufacturing
 Settings**, **Accounts Settings**, **Projects Settings**, **HR Settings**. Ubah hanya kalau tahu akibatnya; sistem
-sudah diatur (pesanan dulu baru kirim atau terima, stok tidak boleh minus) dan setelan itu dipasang lagi tiap
+sudah diatur (pesanan dulu baru terima barang (pembelian); surat jalan boleh langsung; stok tidak boleh minus) dan setelan itu dipasang lagi tiap
 pembaruan.
 
 Perusahaan tidak PKP: template PPN ada, tapi tidak dipakai bawaan. Faktur hanya untuk mencatat.

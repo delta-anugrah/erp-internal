@@ -217,7 +217,7 @@ original 200 px `delta-anugrah.jpeg`, kept beside it), and rendered from the SVG
 transparent), `favicon-32.png` and `favicon-192.png`. Settings point at the SVG; the favicon stays PNG.
 
 The Apps screen tiles are named ERP (ERPNext), HR (Frappe HR), Production Floor (the floor page, for Manufacturing
-User) and System (Frappe, Super Admin only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
+User and Produksi) and System (Frappe, Super Admin only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
 (ISC licence): `aplikasi-erp.svg` (factory), `aplikasi-hr.svg` (users), `aplikasi-sistem.svg` (settings), `aplikasi-lantai.svg` (gauge). The
 sidebar header inside an app shows that app's icon (System app: the rail's top slot). That is `tampilan.merek_aplikasi` (`extend_bootinfo`, the boot
 copy of `app_data` only); a workspace saved from the desk keeps them (`erp_internal/ruang_kerja.py`).
@@ -248,18 +248,24 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
 13002, a Redis from an earlier run is still up: `lsof -nP -iTCP:11002 -iTCP:13002 -sTCP:LISTEN`, stop those
 `redis-server` processes, start again.
 
+`tools/e2e_samuel.mjs` runs each profile's main flow for Samuel's 2026-11-23 requests in the browser (Produksi's
+Daily Input, Admin's Work Order, Sales Order, Delivery Note from Gudang Pluit, expenses and reports, Super Admin's
+PO print): `ERP_SANDI=<password> node tools/e2e_samuel.mjs`, exit code 1 on a failed step. It deletes what it made
+where ERPNext allows; each run leaves a cancelled Production Entry, its cancelled Stock Entries and a cancelled
+Delivery Note on `erp.localhost`.
+
 ## Factory flow and data import
 
-- A Delivery Note is made directly (decided 2026-11-02: no Sales Orders for now), every Purchase Receipt comes from
-  an order, stock never goes negative, stock posts no journal
+- Purchase Orders and Sales Orders are Admin's since 2026-11-23 (Samuel; printed in his PO layout, `PO Samuel`); a
+  Delivery Note may still be made directly without a Sales Order, every Purchase Receipt comes from an order, stock never goes negative, stock posts no journal
   entries, and the company gets PPN templates that are never the default (not PKP: invoices only record) (`setup._alur_jual_beli`). Staff guides:
   `docs/panduan/{penjualan,pembelian,gudang}.md`.
 - Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
   by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`). Sales History (monthly quantities per item):
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
 - The factory's master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
-  execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin}.json` (templates with only the listed
-  variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`); rerun after a new file
+  execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin,merek_epp}.json` (templates with only the listed
+  variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`, the 21 Seal Cap brands with their Inserts (pcs)); rerun after a new file
   (`docs/impor.md`, tested by `tests/test_master.py`).
 - The factory's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
   reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw
@@ -288,7 +294,7 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   Per machine shift) and the Monthly Expenses report with pigment and packing used by production; print formats
   `PO Samuel` / `PO Samuel Beli`; pigment per colour (`PIGMEN`, grams) and packing per product (Item Packing) in the
   capacity BOMs; the Seal Cap brand codes with their mould inserts. Guides: `docs/panduan/admin.md`, `produksi.md`.
-  Browser run of each profile's flow: `ERP_SANDI=… node tools/e2e_samuel.mjs` (cleans up after itself).
+  Browser run of each profile's flow: `ERP_SANDI=… node tools/e2e_samuel.mjs` (see Tests).
 
 ## Screens
 

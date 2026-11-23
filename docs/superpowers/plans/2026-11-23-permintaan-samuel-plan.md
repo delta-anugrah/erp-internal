@@ -1,5 +1,7 @@
 # Samuel's requests of 2026-11-23 Implementation Plan
 
+Status: built 2026-11-23 (Tasks 1-14); progress in docs/TODO.md; deviations under each task.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Three roles (Super Admin, Admin, Produksi), a Work Order machine lock, warehouse Pluit, a daily input page
@@ -412,6 +414,9 @@ git commit -m "feat(peran): Produksi only records production, Admin views it; ba
 
 ### Task 6: Daily input, server side
 
+> Deviation (as built): each block also carries `dibuat` (the order's creation date, the lower bound of "+ Add
+> date", added in Task 8). Final review: a Completed order's cells stay editable (`STATUS_BISA_DIUBAH`).
+
 **Files:**
 - Modify: `erp_internal/planning/doctype/production_entry/production_entry.json` (field `technician` Data "Technician" after `hours`; `notes` `allow_on_submit` 1)
 - Modify: `erp_internal/setup.py` (`JAM_SHIFT = {"Shift 1": "08.00-20.00", "Shift 2": "20.00-08.00"}` beside `SHIFT_PABRIK`; `PENGATURAN_PRODUKSI["overproduction_percentage_for_work_order"] = 10`)
@@ -553,6 +558,9 @@ the savepoint and re-raise. A cell whose value and note are unchanged writes not
 ---
 
 ### Task 7: Daily Input page
+
+> Deviation (as built): "+ Add date" reads the block's `dibuat` instead of a `frappe.client.get_value` call; a
+> completed block has no "+ Add date"; the layout tightens by a container query so both shifts fit 390 px.
 
 **Files:**
 - Create: `erp_internal/erp_internal/page/daily_input/` (`daily_input.json`: roles `ERP User`, Manufacturing User, Manufacturing Manager, System Manager; `daily_input.js`, small: loads the bundle and calls `erp.input_harian.pasang(wrapper)`; `__init__.py`)
@@ -803,6 +811,10 @@ that date and shift (`buat_hasil(..., posting_date=…, shift=…)`).
 
 ### Task 11: Pigment
 
+> Deviation (as built): the rebuild is `_antre` after commit (cache flag `KUNCI_SEGARKAN_LAGI`) and `segarkan_bom`
+> runs pass after pass until the flag stays clear; `pigmen_berubah` became `item_berubah` with `perlu_segarkan`
+> (Task 13), which also shows an orange note when the pigment has no stock in Gudang Bahan Baku.
+
 > **Amended 2026-11-23 17:06 (spec Addendum A1): pigment is stocked in grams, bought in kg.** Where this task
 > says Kg for the pigment, read: stock UOM Gram (a UOM with `must_be_whole_number` 0; make it in setup if the
 > site lacks one), UOM conversion Kg = 1000, `purchase_uom` Kg, Item Price per Kg in `Harga Bahan Baku`. The BOM
@@ -883,6 +895,8 @@ that date and shift (`buat_hasil(..., posting_date=…, shift=…)`).
 
 ### Task 12: Sample data, guides and the full check
 
+> Deviation (as built): the access PDF was not regenerated (no tool or source in the repo; the old one is gone).
+
 > **Order amended 2026-11-23 17:06:** run Tasks 13 and 14 (below) before this one. This task's sample data also
 > gets packing (two packing items, packing rows on the sample products, stock and prices) and the Seal Cap
 > brands are loaded by `master.muat`; `test_contoh_baru` also asserts a capacity BOM with a packing line. Its
@@ -922,6 +936,9 @@ that date and shift (`buat_hasil(..., posting_date=…, shift=…)`).
 ---
 
 ### Task 13: Packing used up through the capacity BOM, and pigment/packing in Monthly Expenses
+
+> Deviation (as built): packing items are stocked in UOM Buah (fractional, `setup.SATUAN_KEMASAN`); `cek_kemasan`
+> refuses 0 pieces and a whole-number UOM; a reject's Repack takes no packing line and no line that rounds to 0.
 
 Added 2026-11-23 17:06 (spec Addendum A2, A3). Runs after Task 11, before Task 12.
 

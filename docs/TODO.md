@@ -2,7 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-23, plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),
+Last full run (2026-11-23, final review fixes): 349 tests (13 unit + 336 integration), all OK; `cek_layar` 3 users
+OK; `tools/e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK. Before that (plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),
 all OK; `cek_layar` 3 users OK; `tools/e2e_samuel.mjs` 14/14. Before that (plan Task 2: Produksi records production
 only): 262 tests (13 unit + 249 integration), all OK; `cek_layar` 3 users OK. Before that (Task 1, profile rename): 265 tests, all OK. Before that
 (price list defaults): 263 tests (13 unit + 250 integration), all OK. Before that
@@ -23,8 +24,8 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Commit the price list default fix, after `/run-checks` (2026-11-23: 263 tests OK).
 - [x] Spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` (items 1-5, 7, plus Abel's attachments and
       pigment; Samuel's two pictures beside it) and plan `docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md`
-      (12 tasks), 2026-11-23.
-- [ ] Abel: read the spec's "Calls made" (11) and agree or change them before the build.
+      (14 tasks), 2026-11-23.
+- [ ] Abel: read the spec's "Calls made" (11) and the addendum's four (A1-A4) and agree or change them.
 - [x] Plan Task 1: profiles renamed Super Admin / Admin / Produksi (`9cc5116`, patch `profil_tiga`).
 - [x] Plan Task 2: Produksi records production only (`ERP User` alone), Admin only views it, `batas_user.py`
       removed, Finish on a Work Order Super Admin's only, new Work Orders skip the transfer.
@@ -84,7 +85,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       only start the containers), `stop` (now `down`), `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
       makes later accounts and resets passwords in the app. Compose project `erp-local`, `.local/`
       git-ignored, image `erp-internal:local` built from the repo or a released `ERP_IMAGE`.
-- [x] `tools/akun.sh` checklist (Administrator always; Super Admin, Admin, Produksi optional; were Developer, Admin, User), Administrator password only; the others each email + password, typed twice,
+- [x] `deploy/server/akun.sh` checklist (Administrator always; Super Admin, Admin, Produksi optional; were Developer, Admin, User), Administrator password only; the others each email + password, typed twice,
       shown as `*` (echo off for the whole answer) → `erp_internal/akun.py` in env `ERP_AKUN`; `test_akun` OK.
 - [x] `deploy/server/Makefile` targets in English: check, check-env, configure, backup. `.gitattributes` LF everywhere.
 - [x] Real run on the Mac 2026-11-03 from an empty `.local` and no volumes: setup 7 min 40 s (image already built,
@@ -93,6 +94,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [ ] Samuel: a fresh clone on his Mac. Not tried yet: Windows + WSL, `make update-local`.
 
 ## Done: a simpler User role (Samuel 2026-11-02)
+(superseded 2026-11-23: batas_user.py removed, row 1 of the 2026-11-23 table in `docs/menunggu-samuel.md`)
 Samuel agreed: User records only the three daily jobs, everything else is view only; purchasing and selling are not
 used for now. Admin makes Work Orders, BOMs and master data (items, customers, machines).
 - [x] User = Stock User + our role `ERP User` (`tampilan.PERAN_USER`): creates only Production Entry, a Delivery Note
@@ -106,8 +108,9 @@ used for now. Admin makes Work Orders, BOMs and master data (items, customers, m
 - [x] Production Entry still makes its Manufacture/Repack entries as the User (flag `FLAG_HASIL`), and cancels them.
 - [x] Admin unchanged. Projects and HR are Admin's now (`test_proyek` uses an office worker with the roles given directly).
 - [x] Guides: `docs/panduan/user.md` (new), `gudang.md` (raw material in, direct delivery), `penjualan.md`/
-      `pembelian.md` "not used yet", `admin.md`, `produksi.md`, `proyek.md`, `absen.md`.
+      `pembelian.md` "not used yet" (used by Admin since 2026-11-23), `admin.md`, `produksi.md`, `proyek.md`, `absen.md`.
 - [x] Access PDF rebuilt from the live permissions: `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` (Abel sends it).
+      Since gone from the Desktop, and it described the old roles: see the open access PDF item under "Next".
 - [x] `cek_layar` 3 users 2026-11-02 (web only, no socket.io): User rail Stock + Manufacturing, Sales Forecast moved
       last in Manufacturing so User's home has no gap. `run-tests --app erp_internal`: 222 OK (13 unit + 209 integration).
 - [x] Retook `docs/panduan/gambar/` with `tools/panduan_gambar.mjs` (9 pictures, as `admin@`; `gudang-2` Material
@@ -254,6 +257,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
+- [ ] Ask Samuel `docs/menunggu-samuel.md` rows 16-18: his full PO header, his pigment list, his packing list.
 - [ ] Plan vs Actual: reject types (`docs/menunggu-samuel.md` row 10): no answer, keep the defaults (editable list).
       Shifts answered 2026-11-02: two of 12 h (done). Runner: answered 2026-10-29, thrown away (default kept).
 - [x] Capacity: which item runs on which machine (asked 2026-10-29; list received 2026-11-02, loaded by `mesin_barang.muat`, see above). Samuel's Excel (2026-10-29) gave cycle time,
@@ -285,7 +289,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [~] Task 7: server image, compose, backups (image, compose boot, backup and restore drill done locally
       2026-10-31; the server itself waits on Samuel's budget and domain)
 - [~] Task 8: go-live wave 1 (local dry run done 2026-10-28; the real go-live waits on Samuel: PT Delta Anugrah,
-      tick `erp_aktif`, users as Admin or User)
+      tick `erp_aktif`, users as Admin or Produksi)
 - [x] Revision 4: one company, three roles (`test_pengguna` 9 OK, `test_tampilan` 14 OK)
 
 ## Part B: production and forecast
