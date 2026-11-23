@@ -1,0 +1,185 @@
+"""Daily Input: one submitted Production Entry per filled grid cell (order, date, shift), replaced when the
+number changes, cancelled when emptied, all or nothing."""
+
+from datetime import date
+
+import frappe
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, getdate, today
+
+from erp_internal.daily_input import baca_jumlah, get_data, minggu, save_cell, save_note
+from erp_internal.tampilan import ADMIN, PRODUKSI
+from erp_internal.tests.utils import (
+	buat_barang,
+	buat_bom,
+	buat_hasil,
+	buat_mesin,
+	buat_order,
+	buat_pelanggan,
+	buat_pengguna,
+	buat_perusahaan,
+	buat_wo,
+	lampirkan,
+	stok_awal,
+)
+
+JADI, PP = "_UJI-IH-EMBER", "_UJI-IH-PP"
+PO = "039-NKP/EPP/DA/2026-11"
+
+
+class TestInputHarian(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
+		buat_barang(JADI, "Barang Jadi", konversi={"Karton": 24})
+		buat_barang(PP, "Bahan Baku", satuan="Kg")
+		buat_bom(JADI, {PP: 0.05}, company=cls.pabrik)
+		cls.mesin_a, cls.mesin_b = buat_mesin(61), buat_mesin(62)
+		cls.pelanggan = buat_pelanggan("_Uji Pelanggan IH")
+		cls.admin = buat_pengguna("_uji.ih.admin@example.com", ADMIN, ADMIN, cls.pabrik)
+		cls.produksi = buat_pengguna("_uji.ih.produksi@example.com", PRODUKSI, PRODUKSI, cls.pabrik)
+
+	def setUp(self):
+		frappe.db.savepoint("uji_input_harian")
+		self.addCleanup(frappe.db.rollback, save_point="uji_input_harian")
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.hari_ini = getdate(today())
+		self.kemarin = add_days(self.hari_ini, -1)
+		awal = add_days(self.hari_ini, -30)
+		stok_awal(self.pabrik, PP, 1000, "Gudang Bahan Baku", tanggal=awal)
+		self.wo = buat_wo(JADI, self.mesin_a, qty=1000, company=self.pabrik)
+		so = buat_order(self.pabrik, self.pelanggan, JADI, 1000, awal, self.hari_ini, submit=False)
+		so.po_no = PO
+		so.save(ignore_permissions=True)
+		lampirkan("Sales Order", so.name)
+		so.submit()
+		self.wo_so = buat_wo(JADI, self.mesin_a, qty=1000, company=self.pabrik, sales_order=so.name)
+		self.wo_tanpa_mesin = buat_wo(JADI, None, qty=1000, company=self.pabrik)
+		frappe.set_user(self.produksi)
+
+	def entri(self, tanggal: date, shift: str, wo: str | None = None) -> list[tuple]:
+		return [
+			(int(r.good_qty), r.technician)
+			for r in frappe.get_all(
+				"Production Entry",
+				filters={
+					"work_order": wo or self.wo,
+					"posting_date": tanggal,
+					"shift": shift,
+					"docstatus": 1,
+				},
+				fields=["good_qty", "technician"],
+				order_by="creation asc",
+			)
+		]
+
+	def baris(self, wo: str, tanggal: date) -> dict:
+		blok = get_data(str(tanggal), str(tanggal), work_order=wo)["blok"][0]
+		return next(b for b in blok["baris"] if b["tanggal"] == str(tanggal))
+
+	def pindah_mesin(self, wo: str, mesin: str) -> None:
+		frappe.set_user(self.admin)
+		doc = frappe.get_doc("Work Order", wo)
+		doc.erp_mesin = mesin
+		doc.save()
+		frappe.set_user(self.produksi)
+
+	def mesin_entri(self, tanggal: date) -> str:
+		return frappe.db.get_value(
+			"Production Entry",
+			{"work_order": self.wo, "posting_date": tanggal, "docstatus": 1},
+			"workstation",
+		)
+
+	def test_minggu(self):
+		self.assertEqual(minggu(date(2026, 11, 26)), (date(2026, 11, 23), date(2026, 11, 29)))
+
+	def test_baca_jumlah(self):
+		self.assertEqual(baca_jumlah("13.384"), 13384)
+		self.assertEqual(baca_jumlah("13384"), 13384)
+		self.assertEqual(baca_jumlah(""), 0)
+		for salah in ("13,5", "-5", "abc", "1.2.3x"):
+			with self.assertRaises(frappe.ValidationError):
+				baca_jumlah(salah)
+
+	def test_sel_baru(self):
+		blok = save_cell(self.wo, str(self.kemarin), "Shift 1", "300", teknisi="Yudi")
+		self.assertEqual(self.entri(self.kemarin, "Shift 1"), [(300, "Yudi")])
+		self.assertEqual(blok["total"], {"Shift 1": 300, "Shift 2": 0, "semua": 300})
+
+	def test_sel_diganti(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "300")
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "250")
+		self.assertEqual([q for q, _t in self.entri(self.kemarin, "Shift 1")], [250])
+		self.assertEqual(frappe.db.get_value("Work Order", self.wo, "produced_qty"), 250)
+
+	def test_sel_dikosongkan(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 2", "300")
+		save_cell(self.wo, str(self.kemarin), "Shift 2", "")
+		self.assertEqual(self.entri(self.kemarin, "Shift 2"), [])
+
+	def test_dua_kali_satu_entri(self):
+		for _ in range(2):
+			save_cell(self.wo, str(self.kemarin), "Shift 1", "300")
+		self.assertEqual(len(self.entri(self.kemarin, "Shift 1")), 1)
+
+	def test_sel_gagal_tetap_lama(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "300")  # order qty 1000, 10 % over allowed
+		stok = sum(frappe.get_all("Bin", {"item_code": JADI}, pluck="actual_qty"))
+		with self.assertRaises(frappe.ValidationError):
+			save_cell(self.wo, str(self.kemarin), "Shift 1", "1200")
+		self.assertEqual([q for q, _t in self.entri(self.kemarin, "Shift 1")], [300])
+		self.assertEqual(sum(frappe.get_all("Bin", {"item_code": JADI}, pluck="actual_qty")), stok)
+		self.assertEqual(frappe.db.get_value("Work Order", self.wo, "produced_qty"), 300)
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "1.100")  # the last shift's real count, 10 % over
+		self.assertEqual(frappe.db.get_value("Work Order", self.wo, "produced_qty"), 1100)
+
+	def test_catatan(self):
+		with self.assertRaises(frappe.ValidationError):
+			save_note(self.wo, str(self.kemarin), "mesin panas")
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "300")
+		save_cell(self.wo, str(self.kemarin), "Shift 2", "200")
+		blok = save_note(self.wo, str(self.kemarin), "mesin panas")
+		self.assertEqual(blok["baris"][0]["catatan"], "mesin panas")
+
+	def test_blok(self):
+		save_cell(self.wo_so, str(self.kemarin), "Shift 1", "1000")  # the whole order
+		blok = next(
+			b for b in get_data(str(self.kemarin), str(self.kemarin))["blok"] if b["work_order"] == self.wo_so
+		)
+		self.assertEqual(blok["po_no"], PO)
+		self.assertTrue(blok["selesai"])
+		self.assertEqual(blok["kemasan"], [{"uom": "Karton", "isi": 24}])
+
+	def test_teknisi_minggu(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "10", teknisi="Yudi")
+		save_cell(self.wo, str(self.kemarin), "Shift 2", "10", teknisi="Fadli")
+		data = get_data(str(self.kemarin), str(self.kemarin))
+		self.assertEqual(data["teknisi"], {"Shift 1": ["Yudi"], "Shift 2": ["Fadli"]})
+		self.assertEqual(data["teknisi_terakhir"]["Shift 2"], "Fadli")
+
+	def test_admin_tidak_bisa_isi(self):
+		frappe.set_user(self.admin)
+		self.assertFalse(get_data()["boleh_isi"])
+		with self.assertRaises(frappe.PermissionError):
+			save_cell(self.wo, str(self.kemarin), "Shift 1", "5")
+
+	def test_order_tanpa_mesin(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "machine"):
+			save_cell(self.wo_tanpa_mesin, str(self.kemarin), "Shift 1", "5")
+
+	def test_sel_dari_form_terkunci(self):
+		pe = buat_hasil(self.wo, good=50, rejects={"Bubble": 3}, posting_date=self.kemarin)
+		baris = self.baris(self.wo, self.kemarin)
+		self.assertEqual(baris["kunci"]["Shift 1"], pe.name)
+		with self.assertRaisesRegex(frappe.ValidationError, "Production Entry form"):
+			save_cell(self.wo, str(self.kemarin), "Shift 1", "60")
+		self.assertEqual(frappe.db.get_value("Production Entry", pe.name, "docstatus"), 1)
+
+	def test_mesin_diganti(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "10")
+		self.pindah_mesin(self.wo, self.mesin_b)
+		save_cell(self.wo, str(self.hari_ini), "Shift 1", "10")
+		self.assertEqual(self.mesin_entri(self.kemarin), self.mesin_a)
+		self.assertEqual(self.mesin_entri(self.hari_ini), self.mesin_b)

@@ -2,6 +2,12 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 6 (Daily Input, server side)
+- `erp_internal/daily_input.py`: `get_data` (week's Work Order blocks), `save_cell` (one submitted Production Entry
+  per filled cell, replaced or cancelled inside a savepoint), `save_note`, `baca_jumlah`, `minggu`. Production Entry
+  gains `technician`; `notes` changes after submit. `setup.JAM_SHIFT`; Manufacturing Settings allow 10 %
+  overproduction. `test_input_harian` 14 OK. Next: Task 7, the Desk page.
+
 ## 2026-11-23, plan Task 5 (real documents attached)
 - `lampiran.WAJIB_LAMPIRAN` (Sales Order, Sales Invoice, Purchase Order, Purchase Receipt, Purchase Invoice,
   Payment Entry, Stock Entry only for Material Receipt) with `before_submit` `cek_lampiran`; `LAMPIRAN_NANTI` = Delivery

@@ -30,6 +30,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 3: Work Order machine lock (`kapasitas.mesin_terdaftar`, `cari_mesin`).
 - [x] Plan Task 4: warehouse Pluit (`GUDANG_JUAL`, `pengiriman.ikut_gudang`, Order Readiness sums both).
 - [x] Plan Task 5: real documents attached (`lampiran.py`, report Missing Documents, `test_lampiran`).
+- [x] Plan Task 6: Daily Input server (`daily_input.py`, one Production Entry per cell, `test_input_harian`).
 - [ ] Build the plan's remaining tasks:
       Daily Input page like Samuel's Excel with print and Excel; monthly expenses (operator shifts
       from the daily input); PO print; pigment.

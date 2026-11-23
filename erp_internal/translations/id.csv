@@ -340,3 +340,9 @@ Document Type,Jenis Dokumen
 Document,Dokumen
 "Attach a photo or scan of the real document before you submit.","Lampirkan foto atau hasil scan dokumen aslinya sebelum diajukan."
 Attach the signed delivery note.,Lampirkan surat jalan yang sudah ditandatangani.
+"Enter whole pieces, like 13.384.","Isi jumlah pcs utuh, misalnya 13.384."
+"No machine yet: Admin sets it on the Work Order.","Belum ada mesin: Admin mengisinya di Work Order."
+Change it in the Production Entry form.,Ubah lewat form Production Entry.
+"Enter a number first: a note needs an entry to hold it.","Isi angkanya dulu: keterangan butuh entri untuk disimpan."
+Technician,Teknisi
+Who ran the machine in this shift.,Yang menjalankan mesin di shift ini.

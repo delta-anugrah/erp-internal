@@ -158,10 +158,16 @@ GUDANG_PRODUKSI = {
 	"default_fg_warehouse": "Gudang Barang Jadi",
 	"default_scrap_warehouse": "Gudang Reject",
 }
-PENGATURAN_PRODUKSI = {"backflush_raw_materials_based_on": "BOM"}  # Manufacturing Settings
+# Manufacturing Settings. 10 % over a Work Order's qty lets a last shift's real count be entered (Daily Input).
+PENGATURAN_PRODUKSI = {
+	"backflush_raw_materials_based_on": "BOM",
+	"overproduction_percentage_for_work_order": 10,
+}
 # The factory's shifts (name, hours) for Production Entry: its Shift choices and the default run hours (Samuel
 # 2026-11-02: two shifts of 12 h). Written as a Property Setter on Production Entry.shift.
 SHIFT_PABRIK = (("Shift 1", 12), ("Shift 2", 12))
+# Each shift's clock times, shown in Daily Input. Shift 2 belongs to the date its evening started.
+JAM_SHIFT = {"Shift 1": "08.00-20.00", "Shift 2": "20.00-08.00"}
 # The Reject Reasons setup makes when missing (until Samuel lists his). Admin may add more; none is deleted.
 ALASAN_REJECT = (
 	"Short Shot",

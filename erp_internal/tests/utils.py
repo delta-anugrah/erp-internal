@@ -174,11 +174,13 @@ def daftar_harga(nama: str, jual: bool) -> str:
 	return nama
 
 
-def stok_awal(company: str, kode: str, qty: float, nama_gudang: str, rate: float = 1000) -> None:
+def stok_awal(
+	company: str, kode: str, qty: float, nama_gudang: str, rate: float = 1000, tanggal: date | None = None
+) -> None:
 	"""Set the stock of `kode` in warehouse `nama_gudang` of `company` to `qty` with a submitted Stock
-	Reconciliation: Opening Stock the first time, a plain reconciliation after (ERPNext refuses a second
-	opening), nothing when the stock is already `qty`."""
-	from frappe.utils import nowdate
+	Reconciliation dated `tanggal` (default today): Opening Stock the first time, a plain reconciliation after
+	(ERPNext refuses a second opening), nothing when the stock is already `qty`."""
+	from frappe.utils import getdate, nowdate
 
 	from erp_internal.setup import gudang
 
@@ -187,12 +189,15 @@ def stok_awal(company: str, kode: str, qty: float, nama_gudang: str, rate: float
 		return
 	ada = frappe.db.exists("Stock Ledger Entry", {"item_code": kode, "warehouse": wh, "is_cancelled": 0})
 	abbr = frappe.get_cached_value("Company", company, "abbr")
+	if tanggal:
+		tahun_fiskal(getdate(tanggal))
 	frappe.get_doc(
 		{
 			"doctype": "Stock Reconciliation",
 			"company": company,
 			"purpose": "Stock Reconciliation" if ada else "Opening Stock",
-			"posting_date": nowdate(),
+			"posting_date": tanggal or nowdate(),
+			"set_posting_time": int(bool(tanggal)),
 			"expense_account": f"Temporary Opening - {abbr}",
 			"items": [{"item_code": kode, "warehouse": wh, "qty": qty, "valuation_rate": rate}],
 		}
