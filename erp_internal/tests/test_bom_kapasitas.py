@@ -9,6 +9,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate, today
 
 from erp_internal import master, penjualan
+from erp_internal.planning import kapasitas
 from erp_internal.planning.kapasitas import (
 	_isi_bom,
 	baris_bom,
@@ -18,7 +19,7 @@ from erp_internal.planning.kapasitas import (
 	pilih_bom,
 	varian_tercakup,
 )
-from erp_internal.setup import gudang
+from erp_internal.setup import gudang, pastikan_setup
 from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
@@ -264,10 +265,7 @@ class TestPigmen(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.savepoint("pigmen")
 		self.addCleanup(frappe.db.rollback, save_point="pigmen")
-		# The rebuild job (`segarkan_bom`) makes its BOMs in the default company.
-		bawaan = patch("erpnext.get_default_company", return_value=self.pabrik)
-		bawaan.start()
-		self.addCleanup(bawaan.stop)
+		self.addCleanup(frappe.cache.delete_value, kapasitas.KUNCI_SEGARKAN_LAGI)
 
 	def pigmen(self, warna, rasio):
 		"""Get or create the PIGMEN template (as `penjualan._pigmen`) and its variant for `warna`."""
@@ -325,6 +323,30 @@ class TestPigmen(IntegrationTestCase):
 		frappe.get_doc("Item", pg).update({"disabled": 1}).save()
 		self.assertNotIn(pg, [k for k, _q in self.isi_bom(merah)])
 
+	def test_minta_lagi_saat_jalan(self):
+		# A change saved while a pass runs (the flag set again) gets a pass of its own; none is lost.
+		panggilan = []
+
+		def sekali():
+			panggilan.append(1)
+			if len(panggilan) == 1:
+				frappe.cache.set_value(kapasitas.KUNCI_SEGARKAN_LAGI, 1)
+			return 0
+
+		with patch.object(kapasitas, "_segarkan_sekali", side_effect=sekali):
+			kapasitas._antre()
+		self.assertEqual(len(panggilan), 2)
+		self.assertFalse(frappe.cache.get_value(kapasitas.KUNCI_SEGARKAN_LAGI))
+
+	def test_template_dari_setup(self):
+		# A migrate brings the PIGMEN template to a site whose colours exist (Samuel's data loaded earlier).
+		buat_varian("_UJI-PG-WARNA", ["Super"], ["Merah"])
+		if not frappe.db.exists("Item", {"variant_of": "PIGMEN"}):
+			frappe.delete_doc("Item", "PIGMEN", force=True, ignore_missing=True)  # rolled back after the test
+			self.assertFalse(frappe.db.exists("Item", "PIGMEN"))
+		pastikan_setup()
+		self.assertEqual(frappe.db.get_value("Item", "PIGMEN", ["stock_uom", "has_variants"]), ("Gram", 1))
+
 	def test_rasio_nol_ditolak(self):
 		with self.assertRaises(frappe.ValidationError):
 			self.pigmen("Biru", rasio=0)
@@ -343,13 +365,23 @@ class TestPigmen(IntegrationTestCase):
 		wh = gudang(self.pabrik, "Gudang Bahan Baku")
 		sebelum = self.stok(pg, "Gudang Bahan Baku")
 		tahun_fiskal(getdate(today()))
+		harga = daftar_harga(penjualan.HARGA_BAHAN, jual=False)
+		frappe.get_doc(
+			{
+				"doctype": "Item Price",
+				"item_code": pg,
+				"price_list": harga,
+				"uom": "Kg",
+				"price_list_rate": 150000,
+			}
+		).insert()
 		po = frappe.get_doc(
 			{
 				"doctype": "Purchase Order",
 				"company": self.pabrik,
 				"supplier": buat_pemasok("_Uji Pemasok"),
 				"currency": "IDR",
-				"buying_price_list": daftar_harga("_Uji Harga Beli", jual=False),
+				"buying_price_list": harga,
 				"transaction_date": today(),
 				"schedule_date": add_days(today(), 7),
 				"set_warehouse": wh,
@@ -358,13 +390,13 @@ class TestPigmen(IntegrationTestCase):
 						"item_code": pg,
 						"qty": 2,
 						"uom": "Kg",
-						"rate": 150000,
 						"warehouse": wh,
 						"schedule_date": add_days(today(), 7),
 					}
 				],
 			}
 		).insert()
+		self.assertEqual((po.items[0].rate, po.items[0].stock_qty), (150000, 2000))  # the price per Kg
 		lampirkan("Purchase Order", po.name)
 		po.submit()
 		pr = make_purchase_receipt(po.name).insert()

@@ -293,6 +293,7 @@ def pastikan_setup() -> None:
 	_grup_barang()
 	_satuan()
 	_varian()
+	_pigmen()
 	for company in perusahaan():
 		_gudang_pabrik(company)
 	_gudang_kirim()
@@ -399,6 +400,16 @@ def _satuan() -> None:
 			)
 		elif frappe.db.get_value("UOM", nama, "must_be_whole_number") != bulat:
 			frappe.db.set_value("UOM", nama, "must_be_whole_number", bulat)
+
+
+def _pigmen() -> None:
+	"""The PIGMEN template (`penjualan._pigmen`) on a site whose colours exist (Samuel's data or the sample data
+	loaded), so a migrate brings it to a site loaded earlier. Writes nothing once it is right."""
+	from erp_internal import master, penjualan
+	from erp_internal.planning.kapasitas import ATRIBUT_WARNA
+
+	if frappe.db.exists("Item Attribute", ATRIBUT_WARNA):
+		penjualan._pigmen(master.Hasil())
 
 
 def _varian() -> None:

@@ -8,6 +8,10 @@ Newest first. One entry per working session: what changed, test results as run, 
   `kapasitas.baris_bom(row, item)` adds the colour's pigment in grams (part kg x ratio); `cek_pigmen` (ratio > 0),
   `pigmen_berubah` (Item on_update) queues `segarkan_bom`. `test_bom_kapasitas` 15 OK (6 new), `test_penjualan` 8 OK.
   Next: sample data (Task 12).
+- Review fixes: the rebuild never loses a change (`_antre` after commit sets a cache flag, `segarkan_bom` repeats
+  passes with a fresh snapshot until it stays clear), BOMs in `setup.perusahaan()[0]`, a PermissionError row is
+  logged too, `setup._pigmen` brings the template at migrate. `test_bom_kapasitas` 17 OK, `test_penjualan` 8 OK,
+  `test_setup` 10 OK.
 
 ## 2026-11-23, plan Task 10 (PO print in Samuel's layout)
 - Print formats "PO Samuel" (Sales Order) and "PO Samuel Beli" (Purchase Order), both standard, custom Jinja, one body

@@ -18,6 +18,8 @@ TEMPLATE_PIGMEN = "PIGMEN"
 ATRIBUT_WARNA = "Warna"
 # The fields of a pigment whose change (or a new pigment) rebuilds the capacity BOMs (`pigmen_berubah`).
 PEMICU_PIGMEN = ("erp_rasio_pigmen", "disabled")
+# Cache flag: a rebuild was asked for (`_antre`); `segarkan_bom` runs passes until it stays clear.
+KUNCI_SEGARKAN_LAGI = "erp_segarkan_bom_lagi"
 
 
 @frappe.whitelist()
@@ -220,21 +222,50 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 
 
 def segarkan_bom() -> int:
-	"""`buat_bom_kapasitas` for every enabled Machine Capacity row with a material (a pigment changed): identical
-	BOMs stay, others are replaced. A row that fails is rolled back and logged; the rest go on. Returns how many
-	rows it ran."""
+	"""Rebuild the capacity BOMs (a pigment changed), pass after pass while `_antre` asked again during one: each
+	pass first clears the request and commits, so it reads every change committed before it. Returns how many rows
+	it ran over all passes."""
+	n = 0
+	while True:
+		frappe.cache.delete_value(KUNCI_SEGARKAN_LAGI)
+		if not frappe.in_test:
+			frappe.db.commit()  # nosemgrep: a fresh snapshot, so this pass sees the change that asked for it
+		n += _segarkan_sekali()
+		if not frappe.cache.get_value(KUNCI_SEGARKAN_LAGI):
+			return n
+
+
+def _segarkan_sekali() -> int:
+	"""One pass: `buat_bom_kapasitas` for every enabled Machine Capacity row with a material, in the company this
+	app runs (identical BOMs stay, others are replaced). A row that fails is rolled back and logged; the rest go
+	on. Returns how many rows it ran."""
+	from erp_internal.setup import perusahaan
+
+	company = next(iter(perusahaan()), None)
 	n = 0
 	for nama in frappe.get_all("Machine Capacity", {"disabled": 0, "material": ("is", "set")}, pluck="name"):
 		frappe.db.savepoint("segarkan_bom")
 		try:
-			buat_bom_kapasitas(nama)
-		except frappe.ValidationError:
+			buat_bom_kapasitas(nama, company)
+		except frappe.ValidationError, frappe.PermissionError:
 			frappe.db.rollback(save_point="segarkan_bom")
 			frappe.clear_messages()
 			frappe.log_error(f"Capacity BOM rebuild {nama}")
 			continue
 		n += 1
 	return n
+
+
+def _antre() -> None:
+	"""Ask for a rebuild: set the request flag, then queue `segarkan_bom` (deduplicated: a job already queued or
+	running sees the flag and runs another pass). Any rebuild trigger calls this after its commit."""
+	frappe.cache.set_value(KUNCI_SEGARKAN_LAGI, 1)
+	if frappe.in_test:
+		segarkan_bom()
+		return
+	frappe.enqueue(
+		"erp_internal.planning.kapasitas.segarkan_bom", job_id="erp_segarkan_bom", deduplicate=True
+	)
 
 
 def cek_pigmen(doc, method=None) -> None:
@@ -251,13 +282,11 @@ def pigmen_berubah(doc, method=None) -> None:
 	lama = doc.get_doc_before_save()
 	if lama and all(lama.get(f) == doc.get(f) for f in PEMICU_PIGMEN):
 		return
-	frappe.enqueue(
-		"erp_internal.planning.kapasitas.segarkan_bom",
-		enqueue_after_commit=True,
-		job_id="erp_segarkan_bom",
-		deduplicate=True,
-		now=frappe.in_test,
-	)
+	# Tests never commit, so the after-commit callback would never run there.
+	if frappe.in_test:
+		_antre()
+	else:
+		frappe.db.after_commit.add(_antre)
 
 
 def pilih_bom(doc, method=None) -> None:
