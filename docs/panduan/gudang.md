@@ -1,8 +1,7 @@
 # Panduan Gudang
 
-Untuk **User** yang pegang stok: User mengisi bahan baku masuk dan surat jalan (`user.md`); pindah gudang dan
-stok opname (Stock Reconciliation) dikerjakan **Admin**. Pabrik punya empat
-gudang:
+Untuk **Admin**: bahan baku masuk, surat jalan, pindah gudang dan stok opname (Stock Reconciliation). Akun
+**Produksi** tidak membuka menu Stock (Mas Samuel, 2026-11-23). Pabrik punya empat gudang:
 
 | Gudang | Isinya |
 |---|---|
@@ -26,8 +25,6 @@ Pembelian (Purchase Order) belum dipakai (Mas Samuel, 2026-11-02), jadi bahan ma
 
 ![Material Receipt](gambar/gudang-2.png)
 
-User cuma bisa membuat jenis `Material Receipt`; jenis lain ditolak ("You may only record a Material Receipt").
-
 ### Kirim barang ke pelanggan
 Surat jalan dibuat langsung, tanpa Sales Order (penjualan belum dipakai, Mas Samuel 2026-11-02):
 1. **Stock → Delivery Note → + Add Delivery Note**.
@@ -39,7 +36,7 @@ Surat jalan dibuat langsung, tanpa Sales Order (penjualan belum dipakai, Mas Sam
 
 Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minus.
 
-### Pindah barang antar gudang (Admin)
+### Pindah barang antar gudang
 1. **Stock → Stock Entry → + Add Stock Entry**, **Stock Entry Type** `Material Transfer`.
 2. Isi **Default Source Warehouse** dan **Default Target Warehouse** (misalnya Bahan Baku ke Produksi).
 3. Di **Items**: barang dan jumlah. **Save**, **Submit**.
@@ -50,7 +47,7 @@ Stok tidak cukup? Sistem menolak Submit. Cek stoknya dulu; stok tidak boleh minu
 - Stok sekarang per gudang: **Stock → Stock Balance**.
 - Riwayat keluar masuk satu barang: **Stock → Stock Ledger**, saring **Item**.
 
-## Bulanan: stok opname (Admin)
+## Bulanan: stok opname
 
 1. Hitung fisik.
 2. **Settings → Opening Stock & Stock Count → + Add Stock Reconciliation**, **Purpose** `Stock Reconciliation`.

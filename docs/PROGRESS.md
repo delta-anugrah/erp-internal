@@ -2,6 +2,23 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Tasks 1 and 2 (Samuel's three roles)
+- Task 1 (`9cc5116`): profiles renamed Developer → Super Admin, User → Produksi (patch `profil_tiga`, users move
+  with the rename; it skips a rename when the new name exists: erp-test had a stale "Produksi" profile, deleted by
+  hand). 265 tests OK.
+- Task 2: Produksi = `ERP User` only (no Stock User): creates Production Entries, sets machine status, reads Work
+  Order, Workstation, Machine Capacity, Reject Reason, Company, Plan vs Actual; menu Manufacturing only. Admin only
+  views Production Entry. A PE's stock entries are made with permissions ignored; `production_entry.cek_stock_entry`
+  refuses a Manufacture no PE made (Work Order Finish, System Manager excepted; `work_order.js` hides Finish) and
+  cancelling a PE's own entry directly. `setup.IZIN_DICABUT` drops the old User's reads (Price List, Account, Stock
+  Settings, Customer Group); Sales History and Order Readiness lose `ERP User`. New Work Orders skip the transfer
+  (`setup.BAWAAN_WO`). `batas_user.py` and its test removed. Manufacturing's sidebar and home put Produksi's links
+  first (no gaps on its home). Delivery notes and Material Receipts are Admin's (guides updated, gudang-2/3
+  pictures retaken as admin@).
+- Tests: `run-tests --app erp_internal` 262 (13 unit + 249 integration) all OK; ruff OK; `cek_layar` 3 users OK;
+  Finish hidden for Admin and Produksi, shown for Super Admin at 1440/768/390 px (scratch Playwright check).
+- Next: plan Task 3 (Work Order machine lock).
+
 ## 2026-11-23, later (spec and plan for Samuel's requests)
 - Committed the price list fix (`2300877`) after `/run-checks` (263 tests OK).
 - Spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` and plan

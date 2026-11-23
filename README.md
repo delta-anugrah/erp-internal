@@ -73,7 +73,7 @@ question shows a suggestion in `[brackets]`: press **Enter** to take it.
       [x] Administrator  always created; the built-in super user
     > [ ] Super Admin    everything, plus system settings (for the IT people)
       [ ] Admin          manager: Work Orders, BOMs, users, items, customers, machines
-      [ ] Produksi       daily work: production output, deliveries, raw material in
+      [ ] Produksi       production output and machine status only
    ```
 
    Administrator needs only a password (you sign in with the name `Administrator`); every other account an email and
@@ -238,7 +238,7 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 
 Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@example.com` of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
-(the password is `SAMPLE_PASSWORD` in the bench's `.env`). It also checks the app version under the login card (as a guest) and at the foot of each role's Settings dialog. Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`; Admin's screens as `admin@`, the User's `gudang-2`/`gudang-3` as `user@`).
+(the password is `SAMPLE_PASSWORD` in the bench's `.env`). It also checks the app version under the login card (as a guest) and at the foot of each role's Settings dialog. Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`; Admin's screens as `admin@`, `gudang-2`/`gudang-3` too, since Produksi records production only).
 `tools/lantai.mjs` checks the Production Floor page (`/desk/production-floor`, Manufacturing's first link) the same
 way: the 14 machines in floor order, status lamps, labels, the side panel and its status buttons, live updates, the
 info bar, the attention card, the loading screen, the dark decor, the glass look in light and dark, a plain table without WebGL, and the smoothness budget (frame rate,
@@ -296,7 +296,7 @@ shortcuts to the same links as its menu entries, nothing else:
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
 | Production Floor (own menu entry, first) | the floor page |
-| Manufacturing | Production Floor (home shortcut only), Sales History, Master Production Schedule, MRP, Work Orders in Process (Work Order), Production Entry, Order Readiness, Plan vs Actual, BOM, Machine Capacity, Sales Forecast, Item Lead Time |
+| Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Production Entry, Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |
@@ -304,7 +304,7 @@ shortcuts to the same links as its menu entries, nothing else:
 The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.
 
-The table is Admin's view. A Produksi user's menu has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
+The table is Admin's view. A Produksi user's menu has only Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
 doctype or report still opens. Unused modules (`tampilan.MODUL_MATI`) and HR's unused DocTypes (`tampilan.DOCTYPE_MATI`:
 recruitment, appraisal, training, expenses, travel, lifecycle, vehicles, skills, overtime) are locked for everyone but
 Administrator and their reports are disabled; remove an entry and migrate to unlock it.
@@ -313,15 +313,16 @@ Administrator and their reports are disabled; remove an entry and migrate to unl
 
 Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one company:
 
-- **Produksi** (decided 2026-11-02, was User; renamed 2026-11-23): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
-  directly and Material Receipt stock entries, sets a machine's status on the Production Floor, and reads stock,
-  items, Work Orders, BOMs and the production reports; menu Stock and Manufacturing (`erp_internal/batas_user.py`).
-  Guide: `docs/panduan/user.md`.
-- **Admin**: also the manager roles (Work Orders, items, suppliers, BOMs, stock reconciliation, selling, buying,
-  projects, HR), users and the business
+- **Produksi** (was User; Samuel 2026-11-23): `ERP User` only, no stock role. Creates only Production Entries (their
+  stock moves are made by the system), sets a machine's status on the Production Floor, and reads Work Orders,
+  machines, Machine Capacity and Plan vs Actual; menu Manufacturing only. Guide: `docs/panduan/user.md`.
+- **Admin**: the manager roles (Work Orders, items, suppliers, BOMs, stock, delivery notes, raw material in, stock
+  reconciliation, selling, buying, projects, HR), users and the business
   settings (menu header Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and Produksi roles and
-  never change a Super Admin's account. Guide: `docs/panduan/admin.md`.
-- **Super Admin** (was Developer): Admin plus System Manager (Build, System Settings).
+  never change a Super Admin's account. Admin only views Production Entries; a Manufacture straight from a Work
+  Order (its Finish button) is refused, so all output goes through a Production Entry. Guide: `docs/panduan/admin.md`.
+- **Super Admin** (was Developer): Admin plus System Manager (Build, System Settings, the Work Order's Finish, and
+  Production Entries).
 
 ## Office: attendance and projects
 

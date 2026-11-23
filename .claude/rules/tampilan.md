@@ -20,10 +20,10 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   layer. A saved dock layer drops entries it does not name, so `_dok` names every entry.
 - Short screens (Samuel, 2026-10-28): each home's shortcuts point at exactly its sidebar's links
   (`test_rumah_sama_dengan_sidebar`), taken from the guides' flows (`docs/panduan/`). Modules (Admin): Stock, Selling, Buying,
-  Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), Settings; Produksi: Stock and Manufacturing. Accounts and Leaves have no
+  Manufacturing, Projects, HR (`Shift & Attendance`, `LABEL`), Settings; Produksi: Manufacturing only. Accounts and Leaves have no
   icon: invoices and payments sit in Selling and Buying, leave in HR. Their modules stay allowed
   (`MODUL_TANPA_IKON`) with a short sidebar and home, for a page Frappe opens in its own module. Admin-only
-  shortcuts go last, so a User's home (which drops what they cannot read) has no gap. Stock Reconciliation
+  shortcuts go last, so a Produksi home (which drops what they cannot read) has no gap. Stock Reconciliation
   (opening stock and stock count) is under Settings ("Opening Stock & Stock Count"). `_baris_sidebar` skips a
   base Dashboard row named like a DocType (Project, Attendance).
 - The HR home is our own site Workspace "HR" (`RUMAH_SENDIRI`, `_rumah_sendiri`: public, module Shift and
@@ -32,8 +32,9 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   ("SDM" in Indonesian). The base "Shift & Attendance" home is hidden in the sidebar; its route still opens.
 - Our module `Planning` has no Dock entry or Sidebar and stays blocked in the Admin and Produksi Module Profiles (Super Admin's blocks only `MODUL_MATI`); its Sales History
   is in `SIDEBAR["Selling"]` and `SIDEBAR["Manufacturing"]`, Order Readiness in Manufacturing, and the Planning
-  DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Entry (after Work
-  Order), Plan vs Actual (after Order Readiness), Machine Capacity (after BOM); Reject Reason sits in Setup after
+  DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Floor, Work Order,
+  Production Entry, Plan vs Actual, Machine Capacity first (what Produksi reads), then Admin's (Sales History, MPS,
+  MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time); Reject Reason sits in Setup after
   Manufacturing Settings. The Planning module itself stays blocked for Admin and Produksi.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
@@ -57,16 +58,22 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Three Role Profiles (`PROFIL_PERAN`): Produksi, Admin, Super Admin (were User, Admin, Developer until 2026-11-23: `patches/profil_tiga.py` renames them, `NAMA_LAMA`). Admin holds the manager roles plus ERPNext's *User roles (`_PERAN_USER`, not `ERP User`)
   (Stock Manager alone reads neither Company nor Stock Balance in v16) and `PERAN_ADMIN` ("ERP Admin"). Every
   profile must read Company (`test_izin_per_profil`); `setup.IZIN_TAMBAHAN` gives Manufacturing User that read.
-- Produksi (was User; Samuel, 2026-11-02) is Stock User plus `PERAN_USER` ("ERP User"): modules (menu headers) Stock and Manufacturing only (`IKON`,
-  `MODUL_BOLEH`, no Accounts or Leaves). `PERAN_USER` holds Production Entry (its JSON), reads Machine Capacity,
-  Reject Reason, Sales History (JSON; Order Readiness is built on it), Workstation, Price List, Account,
-  Stock Settings and Customer Group (`IZIN_TAMBAHAN`; a Delivery Note checks the customer's account, the Material
-  Receipt and Delivery Note forms read the last two, `test_baca_untuk_form`), opens the Production Floor, Plan vs Actual and
-  Order Readiness, and sets a machine's status through `production_floor.set_status` only. `batas_user.py`:
-  Stock Entry `validate`/`before_cancel` allow a User only `TUJUAN_USER` (Material Receipt) unless the entry carries
-  `FLAG_HASIL` (Production Entry's own Manufacture and Repack); the `has_permission` hook on `HANYA_ADMIN` keeps Stock
-  User's other documents read only. Delivery Note without a Sales Order: `setup.PENGATURAN_ALUR` `so_required` No.
-  Frappe resaves a changed profile's users in a background job; `_pengguna_profil` does it at migrate.
+- Produksi (was User; Samuel, 2026-11-23) is `PERAN_USER` ("ERP User") alone, no stock role: menu header
+  Manufacturing only (`IKON`, `MODUL_BOLEH`). `PERAN_USER` holds Production Entry (create, submit, cancel, amend;
+  its JSON), reads Machine Capacity and Reject Reason (JSON), Workstation, Work Order and Company
+  (`setup.IZIN_TAMBAHAN`), opens the Production Floor and Plan vs Actual, and sets a machine's status through
+  `production_floor.set_status` only; its Manufacturing sidebar shows only what it reads. No Sales History or Order
+  Readiness. `setup.IZIN_DICABUT` deletes the old User's Custom DocPerm rows on Price List, Account, Stock Settings
+  and Customer Group at migrate. A Production Entry's Manufacture and Repack are made and cancelled with
+  permissions ignored and `production_entry.FLAG_HASIL`; `production_entry.cek_stock_entry` (Stock Entry
+  `validate`/`before_cancel`) refuses a Manufacture without it except for System Manager ("Record output in Daily
+  Input."), and cancelling a Production Entry's own entry except through it. `work_order.js` hides ERPNext's
+  Finish from anyone without System Manager; `setup.BAWAAN_WO` makes new Work Orders `skip_transfer` 1 (Property
+  Setter `default`), so Produksi's output never waits for Start.
+- Admin views Production Entry only (Manufacturing Manager and User keep read, report, export, print, email, share in
+  its JSON) and does the stock work: Material Receipt, Delivery Note without a Sales Order (`setup.PENGATURAN_ALUR`
+  `so_required` No). Frappe resaves a changed profile's users in a background job; `_pengguna_profil` does it at
+  migrate.
 - Admin's modules (menu headers) add `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons; its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Super Admin only.

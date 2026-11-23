@@ -172,7 +172,7 @@
  "index_web_pages_for_search": 0,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-02 13:30:00.000000",
+ "modified": "2026-11-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Planning",
  "name": "Production Entry",
@@ -201,13 +201,7 @@
    "export": 1,
    "print": 1,
    "email": 1,
-   "share": 1,
-   "create": 1,
-   "write": 1,
-   "delete": 1,
-   "submit": 1,
-   "cancel": 1,
-   "amend": 1
+   "share": 1
   },
   {
    "role": "Manufacturing User",
@@ -216,12 +210,7 @@
    "export": 1,
    "print": 1,
    "email": 1,
-   "share": 1,
-   "create": 1,
-   "write": 1,
-   "submit": 1,
-   "cancel": 1,
-   "amend": 1
+   "share": 1
   },
   {
    "role": "ERP User",

@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "json": "{}",
  "letterhead": null,
- "modified": "2026-11-02 13:30:00.000000",
+ "modified": "2026-11-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Planning",
  "name": "Order Readiness",
@@ -35,9 +35,6 @@
   },
   {
    "role": "System Manager"
-  },
-  {
-   "role": "ERP User"
   }
  ],
  "timeout": 0

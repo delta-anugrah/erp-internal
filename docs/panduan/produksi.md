@@ -1,7 +1,7 @@
 # Panduan Produksi
 
-Untuk **Admin** (perkiraan, jadwal, resep, perintah produksi) dan **User** (catat hasil produksi, lihat Work
-Order dan laporan; `user.md`). **Sales History** juga ada di menu **Selling**.
+Untuk **Admin** (perkiraan, jadwal, resep, perintah produksi; hasil produksi cuma dilihat) dan **Produksi** (catat
+hasil produksi, lihat Work Order dan Plan vs Actual; `user.md`). **Sales History** juga ada di menu **Selling**.
 Alurnya:
 
 1. sekali per produk: **lama produksi** dan **resep (BOM)**;
@@ -36,7 +36,7 @@ Floor** (pilihan paling atas).
 - **Tampilan gelap**: gedung, truk, dan tulisan di lantai ikut menjadi gelap kalau Desk dipasang ke tema gelap.
 - **Klik satu mesin**: panel di kanan menunjukkan detailnya dan link ke Work Order-nya. Enam tombol status mengubah
   status mesin itu (sama dengan mengubah **Status** di formulir Workstation-nya); **Open machine** membuka
-  formulirnya. User cuma bisa lewat tombol ini; formulir Workstation cuma bisa dilihat.
+  formulirnya. Produksi cuma bisa lewat tombol ini; formulir Workstation cuma bisa dilihat.
 - **Work Order di mesin mana?** Isi **Machine** di Work Order. Tanpa itu Work Order tidak muncul di lantai.
   Mesin yang tidak dipakai (1, 7, 9-14: Disabled, status Off) tidak bisa dipilih untuk Work Order baru; tetap
   tampil di lantai sebagai Off. Statusnya juga tidak bisa diganti lewat tombol di panel: muncul catatan "Mesin NN
@@ -88,16 +88,16 @@ dibeli, per hari. Centang baris yang mau dibuat, klik **Make Purchase / Work Ord
 
 ### 4. Perintah produksi (Work Order, Admin)
 Gudang terisi sendiri: bahan dari Gudang Bahan Baku, proses di Gudang Produksi, hasil ke Gudang Barang Jadi.
-1. Buka Work Order-nya, **Submit**.
-2. Bahan diambil ke mesin: **Start** (Material Transfer for Manufacture), **Submit** Stock Entry-nya.
-3. Produk selesai: **Finish** (Manufacture), isi jumlah yang jadi, **Submit**. Stok barang jadi bertambah, bahan
-   berkurang sesuai BOM. Untuk mesin cetak, lebih enak lewat **Catat hasil produksi** (di bawah): sekali isi,
-   barang bagus dan reject langsung tercatat. **Start** dan **Finish** cuma Admin; User mencatat hasil lewat
-   Production Entry.
+1. Buka Work Order-nya, **Submit**. Work Order baru otomatis mencentang **Skip Material Transfer to WIP**: bahan
+   diambil dari Gudang Bahan Baku saat hasil dicatat, jadi Produksi tidak perlu menunggu **Start**.
+2. **Start** (Material Transfer for Manufacture) tidak wajib: cuma untuk Work Order yang centang tadi dihapus Admin.
+3. Hasil produksi dicatat Produksi lewat **Catat hasil produksi** (di bawah; nanti halaman **Daily Input**), bukan
+   lewat **Finish**. Tombol **Finish** cuma muncul untuk **Super Admin**; Manufacture yang tidak dibuat Production
+   Entry ditolak ("Record output in Daily Input."), supaya semua hasil masuk ke Plan vs Actual.
 
 ## Catat hasil produksi
-Tiap mesin, tiap shift, tiap Work Order: satu **Production Entry** (Hasil Produksi). Diisi **User** (petugas pabrik) dari catatan
-operator.
+Tiap mesin, tiap shift, tiap Work Order: satu **Production Entry** (Hasil Produksi). Diisi **Produksi** (petugas
+pabrik) dari catatan operator. Admin cuma bisa melihatnya.
 
 1. Buka Work Order yang sudah di-**Submit** dan belum selesai, klik **Record Output**. (Atau **Manufacturing →
    Production Entry → + Add Production Entry**, lalu pilih **Work Order**.) **Item**, **Machine** dan **Company**
@@ -127,12 +127,12 @@ atau sudah selesai/berhenti, atau alasan reject-nya sudah dinonaktifkan. Bahan k
 tidak ada stok yang berubah. Work Order yang di-**Stop** tidak bisa di-Cancel hasilnya: **Re-open** dulu Work Order-nya.
 
 Salah isi? Buka Production Entry-nya, **Cancel** (kedua Stock Entry ikut batal, stok kembali), lalu **Amend** dan
-perbaiki.
+perbaiki. Stock Entry-nya tidak bisa di-Cancel sendiri ("Cancel Production Entry ... instead.").
 
 Daftar alasan reject: **Settings → Reject Reason** (Admin). Tambah alasan baru di sana; alasan yang tidak dipakai lagi
 cukup dicentang **Disabled**, jangan dihapus.
 
-## Tiap Senin: Order Readiness (Siap Order)
+## Tiap Senin: Order Readiness (Siap Order, Admin)
 
 **Manufacturing → Order Readiness** Satu baris per produk jadi (per varian, misalnya per warna; template seperti "BASKOM-20" tidak ikut karena tidak pernah distok atau dijual), untuk bulan yang dipilih:
 

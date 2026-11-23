@@ -2,7 +2,9 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-23, price list defaults): 263 tests (13 unit + 250 integration), all OK. Before that
+Last full run (2026-11-23, plan Task 2: Produksi records production only): 262 tests (13 unit + 249
+integration), all OK; `cek_layar` 3 users OK. Before that (Task 1, profile rename): 265 tests, all OK. Before that
+(price list defaults): 263 tests (13 unit + 250 integration), all OK. Before that
 (2026-11-06, make setup / make up): 263 tests, all OK. Before that
 (2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
 OK (then `test_modul_mati` 11 OK after the Employee form fix); before that (module and report lock) 260 tests, all OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
@@ -22,7 +24,10 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       pigment; Samuel's two pictures beside it) and plan `docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md`
       (12 tasks), 2026-11-23.
 - [ ] Abel: read the spec's "Calls made" (11) and agree or change them before the build.
-- [ ] Build the plan's Tasks 1-12 (new session): roles Super Admin / Admin / Produksi; Work Order machine lock;
+- [x] Plan Task 1: profiles renamed Super Admin / Admin / Produksi (`9cc5116`, patch `profil_tiga`).
+- [x] Plan Task 2: Produksi records production only (`ERP User` alone), Admin only views it, `batas_user.py`
+      removed, Finish on a Work Order Super Admin's only, new Work Orders skip the transfer.
+- [ ] Build the plan's Tasks 3-12: Work Order machine lock;
       warehouse Pluit; Daily Input page like Samuel's Excel with print and Excel; monthly expenses (operator shifts
       from the daily input); PO print; real documents attached; pigment.
 - [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.
@@ -62,7 +67,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       only start the containers), `stop` (now `down`), `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
       makes later accounts and resets passwords in the app. Compose project `erp-local`, `.local/`
       git-ignored, image `erp-internal:local` built from the repo or a released `ERP_IMAGE`.
-- [x] `tools/akun.sh` checklist (Administrator always; Developer, Admin, User optional), Administrator password only; Developer, Admin, User each email + password, typed twice,
+- [x] `tools/akun.sh` checklist (Administrator always; Super Admin, Admin, Produksi optional; were Developer, Admin, User), Administrator password only; the others each email + password, typed twice,
       shown as `*` (echo off for the whole answer) → `erp_internal/akun.py` in env `ERP_AKUN`; `test_akun` OK.
 - [x] `deploy/server/Makefile` targets in English: check, check-env, configure, backup. `.gitattributes` LF everywhere.
 - [x] Real run on the Mac 2026-11-03 from an empty `.local` and no volumes: setup 7 min 40 s (image already built,

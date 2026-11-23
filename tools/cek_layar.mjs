@@ -26,7 +26,7 @@ const IKON_TILE = {
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
 // Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on. Produksi
-// has Stock and Manufacturing only (Samuel, 2026-11-02).
+// has Manufacturing only (Samuel, 2026-11-23).
 const KERJA = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance"];
 // Rail module → its home Workspace (tampilan.PINTASAN keys). Every home is shortcuts only, at most PINTASAN_MAKS.
 const RUMAH = { Setup: "Home", "Shift & Attendance": "HR" };
@@ -34,8 +34,15 @@ const PINTASAN_MAKS = 12; // was 10: Plan vs Actual added 3 shortcuts to Manufac
 const PROFIL = {
 	"Super Admin": { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
 	Admin: { modul: [...KERJA, "Setup"], build: false, rumah: "Home", form: "User" },
-	Produksi: { modul: ["Stock", "Manufacturing"], build: false, rumah: "Stock", form: "Delivery Note" },
+	Produksi: { modul: ["Manufacturing"], build: false, rumah: "Manufacturing", form: "Production Entry" },
 };
+// The module whose pages the menu checks open (Stock where the profile has it): a list in the menu, a list of the
+// module that is not in the menu, and a link to follow on a phone.
+const MENU = {
+	Stock: { daftar: "stock-entry", tanpa_link: "batch", awal: "item", link: "Warehouse" },
+	Manufacturing: { daftar: "production-entry", tanpa_link: "workstation", awal: "production-entry", link: "Work Order" },
+};
+const modul_menu = (harap) => (harap.modul.includes("Stock") ? "Stock" : "Manufacturing");
 const APLIKASI = ["erpnext", "hrms"]; // the apps whose rails tampilan.py arranges
 // tampilan.LABEL: the menu header of a module shown under another name.
 const LABEL = { "Shift & Attendance": "HR", Setup: "Settings" };
@@ -192,7 +199,8 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			// One labelled menu instead of the rail (public/js/menu_samping.js, Abel 2026-11-03): no dock, the
 			// profile's modules as headers in rail order, each with an icon, the page's module open with its link lit
 			// (on a list: Admin's new User form is a dialog over the desk, which lights nothing).
-			await page.goto(`${URL}/desk/stock/stock-entry`);
+			const mm = modul_menu(harap);
+			await page.goto(`${URL}/desk/${slug(mm)}/${MENU[mm].daftar}`);
 			await page.waitForLoadState("networkidle");
 			await page.waitForTimeout(800);
 			const menu = await page.evaluate(() => ({
@@ -212,24 +220,26 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			cek(JSON.stringify(menu.kepala.map((k) => k.label)) === JSON.stringify(label), `menu headers: ${menu.kepala.map((k) => k.label)}`);
 			cek(menu.kepala.every((k) => k.ikon), "a menu header has no icon");
 			const lit = menu.kepala.filter((k) => k.aktif);
-			cek(lit.length === 1 && lit[0].label === "Stock" && lit[0].buka, `Stock not open and lit: ${JSON.stringify(lit)}`);
+			cek(lit.length === 1 && lit[0].label === mm && lit[0].buka, `${mm} not open and lit: ${JSON.stringify(lit)}`);
 			await page.screenshot({ path: join(HASIL, `${slug(profil)}-menu.png`) });
 			// Another module's link opens in its own shell, with that module open and only that link lit. Delivery
-			// Note sits under both Stock and Selling; the User has no Selling, so it goes Stock → Manufacturing.
-			const [dari, ke, link] = harap.modul.includes("Selling") ? ["Stock", "Selling", "Delivery Note"] : ["Stock", "Manufacturing", "Work Order"];
-			await page.evaluate((s) => frappe.set_route("Workspaces", s), dari);
-			await page.waitForLoadState("networkidle");
-			await page.waitForTimeout(800);
-			const kepala_ke = page.locator(`.section-item[data-id="${LABEL[ke] || ke}"]`);
-			if (await kepala_ke.locator(":scope > .nested-container.hidden").count()) await kepala_ke.locator(".section-break").first().click();
-			await kepala_ke.locator(".nested-container .item-anchor", { hasText: link }).first().click();
-			await page.waitForLoadState("networkidle");
-			await page.waitForTimeout(1000);
-			cek(page.url().includes(`/desk/${slug(ke)}/${slug(link)}`), `${ke} ▸ ${link} opened ${page.url()}`);
-			const lit2 = await page.evaluate(() =>
-				[...document.querySelectorAll(".active-sidebar")].map((e) => e.closest(".section-item")?.dataset.id)
-			);
-			cek(lit2.length === 1 && lit2[0] === (LABEL[ke] || ke), `lit after ${ke} ▸ ${link}: ${lit2}`);
+			// Note sits under both Stock and Selling. Produksi has one module only.
+			const [dari, ke, link] = ["Stock", "Selling", "Delivery Note"];
+			if (harap.modul.includes(ke)) {
+				await page.evaluate((s) => frappe.set_route("Workspaces", s), dari);
+				await page.waitForLoadState("networkidle");
+				await page.waitForTimeout(800);
+				const kepala_ke = page.locator(`.section-item[data-id="${LABEL[ke] || ke}"]`);
+				if (await kepala_ke.locator(":scope > .nested-container.hidden").count()) await kepala_ke.locator(".section-break").first().click();
+				await kepala_ke.locator(".nested-container .item-anchor", { hasText: link }).first().click();
+				await page.waitForLoadState("networkidle");
+				await page.waitForTimeout(1000);
+				cek(page.url().includes(`/desk/${slug(ke)}/${slug(link)}`), `${ke} ▸ ${link} opened ${page.url()}`);
+				const lit2 = await page.evaluate(() =>
+					[...document.querySelectorAll(".active-sidebar")].map((e) => e.closest(".section-item")?.dataset.id)
+				);
+				cek(lit2.length === 1 && lit2[0] === (LABEL[ke] || ke), `lit after ${ke} ▸ ${link}: ${lit2}`);
+			}
 			if (profil === "Admin") {
 				// Accounts has no header; a page Frappe opens there still shows the menu.
 				await page.goto(`${URL}/desk/accounts/sales-invoice`);
@@ -341,26 +351,28 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	const hp = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: undefined });
 	const ph = await hp.newPage();
 	await ph.request.post(`${URL}/api/method/login`, { form: { usr: surel(profil), pwd: SANDI } });
-	// A Stock page with no link of its own in the menu lights nothing: the drawer still opens on Stock.
-	await ph.goto(`${URL}/desk/stock/batch`);
+	// A page of the module with no link of its own in the menu lights nothing: the drawer still opens on it.
+	const mm = modul_menu(harap);
+	await ph.goto(`${URL}/desk/${slug(mm)}/${MENU[mm].tanpa_link}`);
 	await ph.waitForLoadState("networkidle");
 	await ph.locator(".sidebar-toggle-btn").first().click();
 	await ph.waitForTimeout(600);
 	cek(
-		await ph.locator('.section-item[data-id="Stock"] > .nested-container:not(.hidden) .item-anchor').first().isVisible(),
-		"phone drawer on a Stock page with no menu link: Stock not open"
+		await ph.locator(`.section-item[data-id="${mm}"] > .nested-container:not(.hidden) .item-anchor`).first().isVisible(),
+		`phone drawer on a ${mm} page with no menu link: ${mm} not open`
 	);
-	await ph.goto(`${URL}/desk/stock/item`);
+	await ph.goto(`${URL}/desk/${slug(mm)}/${MENU[mm].awal}`);
 	await ph.waitForLoadState("networkidle");
 	await ph.locator(".sidebar-toggle-btn").first().click();
 	await ph.waitForTimeout(600);
 	const n_hp = await ph.locator(".section-item .section-break:visible").count();
 	cek(n_hp === harap.modul.length, `phone drawer menu headers: ${n_hp}`);
 	await ph.screenshot({ path: join(HASIL, `${slug(profil)}-menu-hp.png`) });
-	await ph.locator('.section-item[data-id="Stock"] .nested-container .item-anchor', { hasText: "Warehouse" }).click();
+	await ph.locator(`.section-item[data-id="${mm}"] .nested-container .item-anchor`, { hasText: MENU[mm].link }).first().click();
 	// The router writes the shell into the URL a moment after the click.
-	await ph.waitForURL(/\/desk\/stock\/warehouse/, { timeout: 5000 }).catch(() => {});
-	cek(ph.url().includes("/desk/stock/warehouse"), `phone link opened ${ph.url()}`);
+	const tujuan = `/desk/${slug(mm)}/${slug(MENU[mm].link)}`;
+	await ph.waitForURL((u) => u.pathname.startsWith(tujuan), { timeout: 5000 }).catch(() => {});
+	cek(ph.url().includes(tujuan), `phone link opened ${ph.url()}`);
 	cek(!(await ph.locator(".body-sidebar-container.expanded").count()), "phone drawer still open after a link");
 	// The Production Floor on a phone: its back button and the output card stay on screen, no sideways scroll.
 	await ph.goto(`${URL}/desk/manufacturing/production-floor`);

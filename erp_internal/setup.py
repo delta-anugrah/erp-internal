@@ -210,9 +210,9 @@ JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")
 #   defaults ("No permission for Company" on a new Stock Entry, seen by tools/cek_layar.mjs).
 # - The Admin role manages users (roles sit on permlevel 1) and reads the profiles it hands out; what it may give
 #   is limited by `pengguna.cek_user`. Projects Settings is System Manager's only in v16.
-# - The User role (PERAN_USER, next to Stock User) reads the machines (the Production Floor, a Production Entry's
-#   machine; `production_floor.set_status` changes only the status), and the price lists and accounts a Delivery
-#   Note uses (ERPNext checks the customer's receivable account).
+# - The Produksi role (PERAN_USER, its only role) reads the machines (the Production Floor, a Production Entry's
+#   machine; `production_floor.set_status` changes only the status), the Work Orders it records output for, and
+#   the Company every form reads its defaults from.
 IZIN_TAMBAHAN = (
 	("Timesheet", "Employee", 0, ("submit",)),
 	("Company", "Manufacturing User", 0, ("read",)),
@@ -222,12 +222,20 @@ IZIN_TAMBAHAN = (
 	("Module Profile", tampilan.PERAN_ADMIN, 0, ("read",)),
 	("Projects Settings", "Projects Manager", 0, ("read", "write")),
 	("Workstation", tampilan.PERAN_USER, 0, ("read",)),
+	("Work Order", tampilan.PERAN_USER, 0, ("read",)),
+	("Company", tampilan.PERAN_USER, 0, ("read",)),
+)
+# Grants of IZIN_TAMBAHAN taken back (same shape): `_proyek` deletes their Custom DocPerm row. The old User read
+# these for the delivery note and Material Receipt forms, now Admin's (Samuel, 2026-11-23).
+IZIN_DICABUT = (
 	("Price List", tampilan.PERAN_USER, 0, ("read",)),
 	("Account", tampilan.PERAN_USER, 0, ("read",)),
-	# The forms of a Material Receipt and a direct Delivery Note read these while being filled in.
 	("Stock Settings", tampilan.PERAN_USER, 0, ("read",)),
 	("Customer Group", tampilan.PERAN_USER, 0, ("read",)),
 )
+# New Work Orders' defaults (a Property Setter `default` per field): no material transfer, so Produksi's entries
+# never wait for Admin's Start; the material leaves Gudang Bahan Baku as output is entered. Admin may untick it.
+BAWAAN_WO = {"skip_transfer": 1}
 
 
 def pastikan_setup() -> None:
@@ -247,6 +255,7 @@ def pastikan_setup() -> None:
 	_bawaan()
 	_alur_jual_beli()
 	_produksi()
+	_bawaan_wo()
 	_shift_pabrik()
 	_alasan_reject()
 	_kantor()
@@ -520,6 +529,18 @@ def jam_shift(nama: str) -> float:
 	return float(dict(SHIFT_PABRIK).get(nama, 0))
 
 
+def _bawaan_wo() -> None:
+	"""BAWAAN_WO as Property Setter defaults on Work Order."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	meta = frappe.get_meta("Work Order")
+	for field, nilai in BAWAAN_WO.items():
+		if str(meta.get_field(field).default) != str(nilai):
+			make_property_setter(
+				"Work Order", field, "default", str(nilai), "Text", validate_fields_for_doctype=False
+			)
+
+
 def _shift_pabrik() -> None:
 	"""Production Entry's Shift choices: a blank, then the SHIFT_PABRIK names."""
 	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
@@ -647,7 +668,8 @@ def pastikan_libur(company: str, tahun: int) -> str:
 
 
 def _proyek() -> None:
-	"""The Activity Types of a timesheet, without rates, and the extra rights of IZIN_TAMBAHAN."""
+	"""The Activity Types of a timesheet, without rates, the extra rights of IZIN_TAMBAHAN, and IZIN_DICABUT's
+	rows gone."""
 	for nama in JENIS_KEGIATAN:
 		if not frappe.db.exists("Activity Type", nama):
 			frappe.get_doc(
@@ -669,3 +691,10 @@ def _proyek() -> None:
 			if not frappe.db.exists("Custom DocPerm", syarat):
 				add_permission(doctype, peran, level)
 			update_permission_property(doctype, peran, level, h, 1)
+
+	# Frappe has no remove_permission helper (the Role Permission Manager's `remove` is the UI path).
+	for doctype, peran, level, _hak in IZIN_DICABUT:
+		syarat = {"parent": doctype, "role": peran, "permlevel": level}
+		if frappe.db.exists("Custom DocPerm", syarat):
+			frappe.db.delete("Custom DocPerm", syarat)
+			frappe.clear_cache(doctype=doctype)

@@ -1,5 +1,5 @@
 // Screenshots for the staff guides (docs/panduan/*.md → docs/panduan/gambar/). Needs `bench start` and the
-// sample data of `erp_internal.contoh.buat_contoh` with its users (`user@example.com`) and their password.
+// sample data of `erp_internal.contoh.buat_contoh` with its users (`admin@example.com`) and their password.
 //
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs produksi-1   # only the named pictures
@@ -57,8 +57,7 @@ const buka = (page, dt) =>
 
 const besok = () => new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
 
-const ADMIN = "admin@example.com"; // since 2026-11-02 User opens no Selling or Buying
-const USER = "user@example.com";
+const ADMIN = "admin@example.com"; // since 2026-11-23 Produksi records production only
 
 // file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it,
 // the user (Admin when left out)]
@@ -120,7 +119,7 @@ const GAMBAR_LIST = {
 						.evaluate((el) => el.scrollIntoView({ block: "start" }))
 				),
 	],
-	// The User's two stock jobs: raw material in, and a Delivery Note made directly (no Sales Order).
+	// Admin's two stock jobs: raw material in, and a Delivery Note made directly (no Sales Order).
 	"gudang-2": [
 		"Stock",
 		(p) =>
@@ -131,7 +130,6 @@ const GAMBAR_LIST = {
 				"items",
 				{ item_code: "BB-PP-BENING-ORI", qty: 500 }
 			),
-		USER,
 	],
 	"gudang-3": [
 		"Stock",
@@ -141,7 +139,6 @@ const GAMBAR_LIST = {
 				qty: 200,
 				warehouse: "Gudang Barang Jadi - CPL",
 			}),
-		USER,
 	],
 };
 

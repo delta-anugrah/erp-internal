@@ -12,7 +12,7 @@ place in the last column and strike the row.
 | 4b | Production recording (asked 2026-10-29; shifts answered 2026-11-02, see 9): the reject types the operators use; is the runner reground and reused (counts less material) or thrown away; the column headers of the capacity Excel he will send | 7 reject types (Short Shot, Flashing, Belang / Warna, Pecah / Retak, Bubble, Sink Mark, Lainnya); runner thrown away (`runner_reground` 0); the headers `KOLOM_IMPOR` already reads (by meaning, so a renamed header still maps) | `setup.SHIFT_PABRIK`, `setup.ALASAN_REJECT` (Reject Reason rows), `kapasitas.RUNNER_DIGILING`, `impor_kapasitas.KOLOM_IMPOR` |
 | ~~5~~ | ~~Attendance by phone (location) or fingerprint (brand)?~~ answered: fingerprint, HR not a priority (2026-10-28, again 2026-10-31). Still open later: the fingerprint brand, office hours, headcount | phone check-in stays built, 08:00-17:00 | `setup.SHIFT_KANTOR`, Task 15 |
 | 6 | Budget, domain, off-site backup bucket (DigitalOcean, confirmed by Samuel 2026-11-23 on his card; backups to the admin's PC and Cloudflare R2; domain later: 2026-11-23 table, item 8) | local compose stack only; the backup bucket is not needed to go live (`make setup` lets you skip it: backups stay in `~/erp/cadangan`) | `deploy/server/.env`, Task 7/8 |
-| 7 | Who uses it, and which of them are Admin (roles today: Admin, User and our Developer; 2026-11-23 Samuel asked for Super Admin/Admin/Produksi, planned, not built: 2026-11-23 table, item 1; a new admin hired this week) | one sample user per role (`developer@`, `admin@`, `user@example.com`) | users at go-live |
+| 7 | Who uses it, and which of them are Admin (roles since 2026-11-23: Super Admin, Admin, Produksi, built: 2026-11-23 table, item 1; a new admin hired this week) | one sample user per role (`developer@` Super Admin, `admin@` Admin, `user@example.com` Produksi) | users at go-live |
 | 8 | Office days off and leave: Saturday off? Which leave types and how many days of annual leave? | Saturday and Sunday off; Cuti Tahunan 12, Sakit, Izin (unpaid); national holidays entered by HR from the SKB | `setup.LIBUR_MINGGUAN`, `setup.JENIS_CUTI`, Task 15/17 |
 | ~~9~~ | ~~Factory shifts: how many, and their hours?~~ answered 2026-11-02: two shifts of 12 h (clock times Shift 1 08.00-20.00, Shift 2 20.00-08.00, his Excel 2026-11-23; not used by the app yet) | done: `setup.SHIFT_PABRIK` Shift 1 and 2, 12 h each | Plan vs Actual target per shift, Production Entry |
 | 10 | Which reject types are recorded? (asked 2026-10-29) | the sample Reject Reasons: Short Shot, Flashing, Belang / Warna, Bubble, Pecah / Retak, Sink Mark | Reject Reason list, Plan vs Actual reason columns |
@@ -24,7 +24,7 @@ place in the last column and strike the row.
 | 16 | His full PO: the header (logo, number, customer, date); only the lines table came 2026-11-23 | our header in the same style (spec section 6, plan Task 10) | print formats `PO Samuel`, `PO Samuel Beli` |
 | 17 | His pigment list: colour, ratio (g per kg of material; "1 gram pigment : 1 kg bahan"), price per kg | Admin makes pigments by hand, ratio 1 (spec section 8, plan Task 11) | `PIGMEN` variants, `penjualan.muat` |
 
-## Answers and new requests (Mas Samuel, WhatsApp 2026-11-23), not built yet
+## Answers and new requests (Mas Samuel, WhatsApp 2026-11-23), item 1 built, the rest not yet
 
 Agreed with Abel. Items 1-5 and 7 are specced and planned (`docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md`,
 `docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md`); 6 waits for the lists. Two new asks are rows 16
@@ -32,7 +32,7 @@ and 17 of the first table.
 
 | # | Decision | What it changes |
 |---|---|---|
-| 1 | Three roles: Super Admin (us = today's Developer, no limits), Admin (Work Orders, POs/Sales Orders, delivery notes, raw material in, expenses; daily production view only, cannot change it), Produksi (only daily production input, sees nothing outside production) | `tampilan.PROFIL_PERAN`, `batas_user.py`, `pengguna.py`; today's User makes Delivery Notes and Material Receipts: those move to Admin |
+| 1 | Three roles: Super Admin (us = today's Developer, no limits), Admin (Work Orders, POs/Sales Orders, delivery notes, raw material in, expenses; daily production view only, cannot change it), Produksi (only daily production input, sees nothing outside production) | done 2026-11-23 (plan Tasks 1-2): profiles renamed, Produksi = `ERP User` only (Production Entry, machine status, read Work Order and Plan vs Actual), Admin only views Production Entry and makes Delivery Notes and Material Receipts; `batas_user.py` removed; Finish on a Work Order is Super Admin's only |
 | 2 | Work Order refuses a machine not in the item's Machine Capacity list (Samuel: "biar ga masukin mesin yg gbs produksi brg itu") | Work Order validate in `kapasitas.py` |
 | 3 | A second warehouse "Pluit"; a delivery goes from the factory or Pluit, Admin picks per delivery | warehouse setup |
 | 4 | Daily input after the job, one screen per Work Order, like his Excel (picture 2026-11-23): per PO rows per date, columns Shift 1 (08-20) and Shift 2 (20-08), total; technician pagi/malam per period. Production Floor stays how Admin finds an empty machine | Production Entry or a new page |
@@ -62,6 +62,6 @@ and 17 of the first table.
 | 3 | No invoices for now, only recording; invoices may stay for recording | done: invoice screens kept, PPN templates never default |
 | 4 | All of it exists; he will send the data. 2026-10-28: the price list "POLA PLASTIK TAHUN 2026" (Dinda House Ware, 20 products) and the 14 machines arrived | done: `erp_internal/master.py` loads them (21 templates, 84 variants, 157 prices in `Harga Pola 2026`, `Mesin 01`..`14`); BOMs, Item Lead Time and minimum stock is suggested from sales (`penjualan.muat`, 2026-10-29); BOMs and Item Lead Time wait for the rest of 4 |
 | 5 | Fingerprint, but HR is not a priority now | attendance waits; phone check-in stays built |
-| 6 | Roles: admin and user only | done: Role Profiles User, Admin, Developer (plan Revision 4) |
+| 6 | Roles: admin and user only | done: Role Profiles User, Admin, Developer (plan Revision 4); renamed Produksi, Admin, Super Admin 2026-11-23 |
 | 7 | "host" (meaning still to confirm) | server, Task 7/8 |
 | 4 (2026-10-28 17:40) | Machines often switch products; material price changes per purchase batch; minimum stock is what he wants the software to work out; reject is internal only (bad or broken pieces), never from customers | machine per Work Order (`erp_mesin`), so switching is fine; material cost follows each purchase through stock valuation, so only grams per pcs and PP/HDPE are needed; minimum stock to be suggested from the sales history (Excel, row 2; done 2026-10-29: `safety_stock` = half an average month, `penjualan.STOK_MIN_BULAN`); reject goes to Gudang Reject at production, no customer-return flow |

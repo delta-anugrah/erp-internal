@@ -77,7 +77,7 @@ class TestHasilProduksi(IntegrationTestCase):
 		self.assertFalse(frappe.db.get_value("Stock Entry", pe.manufacture_entry, "process_loss_qty"))
 
 	def test_mesin_diganti_setelah_submit(self):
-		# A submitted order's machine can change (a breakdown, Admin's call); a User's output then goes on the new
+		# A submitted order's machine can change (a breakdown, Admin's call); Produksi's output then goes on the new
 		# machine only.
 		wo = self.order()
 		frappe.set_user(buat_pengguna("_uji.pe.admin@example.com", ADMIN, ADMIN, self.pabrik))
@@ -156,13 +156,45 @@ class TestHasilProduksi(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			frappe.get_doc({**dasar, "work_order": "_UJI-TIDAK-ADA"}).insert()
 
-	def test_user_biasa_bisa_ajukan(self):
+	def test_produksi_bisa_ajukan(self):
 		wo = self.order()
 		frappe.set_user(buat_pengguna("_uji.pe@example.com", PRODUKSI, PRODUKSI, self.pabrik))
 		pe = buat_hasil(wo, good=10, rejects={"Bubble": 1})
 		self.assertEqual(pe.docstatus, 1)
 		for se in (pe.manufacture_entry, pe.reject_entry):
 			self.assertEqual(frappe.db.get_value("Stock Entry", se, "docstatus"), 1)
+		pe.cancel()
+		self.assertEqual(frappe.db.get_value("Stock Entry", pe.manufacture_entry, "docstatus"), 2)
+
+	def test_produksi_tanpa_hak_stok(self):
+		# Produksi holds no stock role: its Production Entry still moves the stock, and its cancel puts it back.
+		wo = self.order()
+		j0, r0 = stok(JADI, self.jadi), stok(JADI, self.reject)
+		frappe.set_user(buat_pengguna("_uji.pe.produksi@example.com", PRODUKSI, PRODUKSI, self.pabrik))
+		self.assertFalse(frappe.has_permission("Stock Entry", "read"))
+		pe = buat_hasil(wo, good=10, rejects={"Bubble": 2})
+		self.assertEqual((stok(JADI, self.jadi) - j0, stok(JADI, self.reject) - r0), (10, 2))
+		pe.cancel()
+		self.assertEqual((stok(JADI, self.jadi), stok(JADI, self.reject)), (j0, r0))
+
+	def test_finish_hanya_super_admin(self):
+		# Output only through a Production Entry: the Work Order's own Finish (a Manufacture straight from the
+		# order) is refused to Admin, allowed to System Manager.
+		from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
+
+		wo = self.order()
+		frappe.set_user(buat_pengguna("_uji.pe.admin@example.com", ADMIN, ADMIN, self.pabrik))
+		with self.assertRaisesRegex(frappe.ValidationError, "Daily Input"):
+			frappe.get_doc(make_stock_entry(wo, "Manufacture", 5)).insert()
+		frappe.set_user("Administrator")
+		self.assertTrue(frappe.get_doc(make_stock_entry(wo, "Manufacture", 5)).insert().name)
+
+	def test_entri_pe_batal_lewat_pe(self):
+		wo = self.order()
+		pe = buat_hasil(wo, good=10)
+		with self.assertRaisesRegex(frappe.ValidationError, f"Cancel Production Entry {pe.name} instead"):
+			frappe.get_doc("Stock Entry", pe.manufacture_entry).cancel()
+		pe.reload()
 		pe.cancel()
 		self.assertEqual(frappe.db.get_value("Stock Entry", pe.manufacture_entry, "docstatus"), 2)
 

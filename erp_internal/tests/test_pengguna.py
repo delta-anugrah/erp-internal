@@ -50,7 +50,7 @@ class TestPengguna(IntegrationTestCase):
 	def test_admin_kelola_user(self):
 		# Create a User, make them an Admin, disable them: all allowed.
 		baru = frappe.get_doc(user_baru("_uji.peng.baru@example.com", PRODUKSI)).insert()
-		self.assertIn("Stock User", peran(baru.name))
+		self.assertIn("ERP User", peran(baru.name))
 		baru.set("role_profiles", [{"role_profile": ADMIN}])
 		baru.save()
 		self.assertIn("ERP Admin", peran(baru.name))

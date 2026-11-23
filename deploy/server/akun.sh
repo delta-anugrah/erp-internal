@@ -12,7 +12,7 @@ KETERANGAN=(
 	"always created; the built-in super user"
 	"everything, plus system settings (for the IT people)"
 	"manager: Work Orders, BOMs, users, items, customers, machines"
-	"daily work: production output, deliveries, raw material in"
+	"production output and machine status only"
 )
 
 # The checklist: arrow keys (or j/k) move, Space ticks, Enter goes on. Administrator stays ticked. Into DIPILIH.

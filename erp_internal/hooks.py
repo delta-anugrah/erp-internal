@@ -5,8 +5,6 @@ app_description = "ERP for the plastic factory and the office"
 app_email = "marcoabel25@gmail.com"
 app_license = "mit"
 
-from erp_internal.batas_user import HANYA_ADMIN
-
 # Apps
 # ------------------
 
@@ -103,17 +101,14 @@ doc_events = {
 		"before_insert": "erp_internal.pengguna.cek_peran",
 		"validate": "erp_internal.pengguna.cek_peran",
 	},
-	# batas_user.py: a User makes only a Material Receipt by hand.
+	# Output only through a Production Entry (no Finish from the Work Order but for System Manager), and its
+	# own stock entries cancelled only through it.
 	"Stock Entry": {
-		"validate": "erp_internal.batas_user.cek_stock_entry",
-		"before_cancel": "erp_internal.batas_user.cek_stock_entry",
+		"validate": "erp_internal.planning.doctype.production_entry.production_entry.cek_stock_entry",
+		"before_cancel": "erp_internal.planning.doctype.production_entry.production_entry.cek_stock_entry",
 	},
 }
-# batas_user.HANYA_ADMIN: Stock User's other documents, read only for a User.
-has_permission = {
-	"User": "erp_internal.pengguna.boleh_ubah",
-	**dict.fromkeys(HANYA_ADMIN, "erp_internal.batas_user.boleh_ubah"),
-}
+has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

@@ -24,16 +24,16 @@ SUPER_ADMIN, ADMIN, PRODUKSI = "Super Admin", "Admin", "Produksi"
 # The profiles' names before 2026-11-23 (`patches/profil_tiga.py` renames them, users included).
 NAMA_LAMA = {"Developer": SUPER_ADMIN, "User": PRODUKSI}
 PERAN_ADMIN = "ERP Admin"  # our role: user management (setup.IZIN_TAMBAHAN), checked by pengguna.py
-# Our role for the Produksi profile: Production Entry, the machine status, and the reads Stock User lacks
-# (setup.IZIN_TAMBAHAN). batas_user.py keeps its holder to the three daily jobs.
+# Our role, the Produksi profile's only one: Production Entry, the machine status, and the reads production needs
+# (setup.IZIN_TAMBAHAN).
 PERAN_USER = "ERP User"
 
 # Dock entry (the module's sidebar name) → the profiles that see it. System Manager sees every kept one.
 # Order is the rail's order. Every other entry of the APLIKASI docks is hidden for everyone. Kept short (Samuel,
 # 2026-10-28): invoices and payments live in Selling and Buying, leave in HR, so Accounts and Leaves have no
-# icon of their own. Produksi keeps Stock and Manufacturing only (Samuel, 2026-11-02: three daily jobs, the rest read).
+# icon of their own. Produksi keeps Manufacturing only (Samuel, 2026-11-23: it records production, nothing else).
 IKON = {
-	"Stock": (ADMIN, PRODUKSI),
+	"Stock": (ADMIN,),
 	"Selling": (ADMIN,),
 	"Buying": (ADMIN,),
 	"Manufacturing": (ADMIN, PRODUKSI),
@@ -84,16 +84,16 @@ SIDEBAR = {
 	"Buying": ["Supplier", "Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice"],
 	"Manufacturing": [
 		"production-floor",
-		"Sales History",
-		"Master Production Schedule",
-		"Material Requirements Planning Report",
 		"Work Order",
 		"Production Entry",
-		"Order Readiness",
 		"Plan vs Actual",
-		"BOM",
 		"Machine Capacity",
-		"Sales Forecast",  # Admin only from here: last, so a Produksi user's home has no gap
+		"Sales History",  # Admin only from here: last, so a Produksi user's home has no gap
+		"Master Production Schedule",
+		"Material Requirements Planning Report",
+		"Order Readiness",
+		"BOM",
+		"Sales Forecast",
 		"Item Lead Time",
 	],
 	"Accounts": ["Sales Invoice", "Purchase Invoice", "Payment Entry"],
@@ -184,7 +184,7 @@ _MODUL_KERJA = (
 	"Shift and Attendance",
 	*MODUL_TANPA_IKON,
 )
-MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), PRODUKSI: ("Stock", "Manufacturing")}
+MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), PRODUKSI: ("Manufacturing",)}
 
 # Modules nobody uses here (Abel, 2026-11-04). A block hides only the way in, never a document (Frappe keeps that to
 # DocPerm), so `_kunci_modul` also gives each of their DocTypes one Custom DocPerm for the Administrator role: no other
@@ -286,10 +286,8 @@ KUNCI_GLOBAL = "erp_modul_terkunci"
 LAPORAN_GLOBAL = "erp_laporan_mati"
 
 # Role Profile → standard ERPNext/HRMS roles. Read from the v16 DocPerms (`test_izin_per_profil`):
-# - Produksi (Samuel, 2026-11-02; was User): Stock User (Stock Entry, Delivery Note, and reads stock, items, Work Orders and
-#   BOMs) plus PERAN_USER (Production Entry, machine status). `batas_user.py` keeps them to Production Entry,
-#   Delivery Note and a Material Receipt Stock Entry; everything else is read only. No Employee or Projects User:
-#   HR and Projects are Admin's.
+# - Produksi (Samuel, 2026-11-23; was User): PERAN_USER only (Production Entry, machine status, and the reads of
+#   setup.IZIN_TAMBAHAN). No stock role: a Production Entry's own stock entries are made by the system.
 # - Admin: every manager role of the used modules plus the *User roles (Stock Manager alone reads neither Company
 #   nor Stock Balance), and PERAN_ADMIN for users. No Employee: HR Manager covers attendance.
 # - Super Admin (was Developer): Admin plus System Manager.
@@ -319,7 +317,7 @@ _PERAN_ADMIN = (
 PROFIL_PERAN = {
 	SUPER_ADMIN: ("System Manager", *_PERAN_ADMIN),
 	ADMIN: _PERAN_ADMIN,
-	PRODUKSI: ("Stock User", PERAN_USER),
+	PRODUKSI: (PERAN_USER,),
 }
 # The roles an Admin may hand out (`pengguna.cek_user`): those of the Admin and Produksi profiles, the approver
 # roles HRMS adds itself when HR names someone a department's leave or expense approver, and Employee, which
@@ -387,9 +385,6 @@ PINTASAN = {
 	),
 	"Manufacturing": (
 		_p("production-floor", "Production Floor", "Page"),
-		_p("Sales History"),
-		_p("Master Production Schedule"),
-		_p("Material Requirements Planning Report", "MRP", "Report"),
 		_p(
 			"Work Order",
 			"Work Orders in Process",
@@ -398,10 +393,13 @@ PINTASAN = {
 			color="Blue",
 		),
 		_p("Production Entry"),
-		_p("Order Readiness", jenis="Report"),
 		_p("Plan vs Actual", jenis="Report"),
-		_p("BOM"),
 		_p("Machine Capacity"),
+		_p("Sales History"),  # Admin only from here (SIDEBAR's order)
+		_p("Master Production Schedule"),
+		_p("Material Requirements Planning Report", "MRP", "Report"),
+		_p("Order Readiness", jenis="Report"),
+		_p("BOM"),
 		_p("Sales Forecast"),
 		_p("Item Lead Time"),
 	),

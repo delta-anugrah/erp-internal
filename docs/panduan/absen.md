@@ -1,7 +1,7 @@
 # Panduan Absen dan Cuti
 
 > Sementara (Mas Samuel, 2026-10-31 dan 2026-11-02): kantor absen pakai sidik jari, HR belum prioritas, dan
-> peran **User** tidak membuka HR. Panduan ini untuk nanti.
+> peran **Produksi** tidak membuka HR. Panduan ini untuk nanti.
 
 Untuk karyawan yang diberi peran Employee; bagian "Untuk Admin (HR)" dikerjakan **Admin**. Absen lewat HP, pakai lokasi. Jam kantor **08:00-17:00** (sampai Mas Samuel
 menentukan lain), Sabtu dan Minggu libur.

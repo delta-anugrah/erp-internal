@@ -125,7 +125,7 @@ configure:
 		bench --site "$$SITE" set-config host_name "https://$$SITE"; \
 		bench --site "$$SITE" enable-scheduler'
 
-# After the wizard: our setup, the company on Admin/User accounts, and the first time Samuel's data (minutes).
+# After the wizard: our setup, the company on Admin/Produksi accounts, and the first time Samuel's data (minutes).
 lanjut:
 	$(TOOLS) 'bench --site "$$SITE" execute erp_internal.wizard.lanjutkan'
 

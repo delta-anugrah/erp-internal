@@ -36,7 +36,7 @@ CONTOH_MATI = (
 # HR's used DocTypes stay open for Admin (and Developer).
 HR_TETAP = ("Employee", "Attendance", "Employee Checkin", "Leave Application", "Shift Type", "Holiday List")
 # Used DocTypes each profile still reads.
-TETAP = {SUPER_ADMIN: "Sales Order", ADMIN: "Sales Order", PRODUKSI: "Delivery Note"}
+TETAP = {SUPER_ADMIN: "Sales Order", ADMIN: "Sales Order", PRODUKSI: "Production Entry"}
 
 
 def custom(dt: str) -> list:

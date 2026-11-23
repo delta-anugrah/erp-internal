@@ -9,7 +9,6 @@ from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
-from erp_internal.batas_user import HANYA_ADMIN
 from erp_internal.tampilan import (
 	ADMIN,
 	APLIKASI,
@@ -78,15 +77,12 @@ _BUILD = [
 	"User Permission",
 	"Data Import",
 ]
-# User (Samuel, 2026-11-02) creates only the three daily jobs; batas_user.py narrows Stock Entry to a Material
-# Receipt and keeps Stock User's other documents read only (test_batas_user).
-_USER_BUAT = ["Production Entry", "Delivery Note", "Stock Entry"]
+# Produksi (Samuel, 2026-11-23) records production only; Admin views it, Super Admin may still fix it.
 IZIN = {
 	PRODUKSI: (
-		_USER_BUAT,
+		["Production Entry"],
 		[
-			# HANYA_ADMIN DocTypes pass a check without a document; batas_user refuses their save.
-			*(dt for dt in _HARIAN if dt not in _USER_BUAT and dt not in HANYA_ADMIN),
+			*_HARIAN,
 			"BOM",
 			"Workstation",
 			"Machine Capacity",
@@ -97,8 +93,11 @@ IZIN = {
 			"Server Script",
 		],
 	),
-	ADMIN: ([*_HARIAN, *_KELOLA, "Project", "Master Production Schedule"], [*_BUILD, "Server Script"]),
-	SUPER_ADMIN: ([*_KELOLA, *_BUILD], []),
+	ADMIN: (
+		[*_HARIAN, *_KELOLA, "Project", "Master Production Schedule"],
+		[*_BUILD, "Server Script", "Production Entry"],
+	),
+	SUPER_ADMIN: ([*_KELOLA, *_BUILD, "Production Entry"], []),
 }
 # Business settings Admin changes; System Settings stays with System Manager (Developer).
 PENGATURAN_BISNIS = [
@@ -338,7 +337,7 @@ class TestTampilan(IntegrationTestCase):
 		from erp_internal.tampilan import menu_samping
 
 		semua = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance", "Setup"]
-		harap = {SUPER_ADMIN: semua, ADMIN: semua, PRODUKSI: ["Stock", "Manufacturing"]}
+		harap = {SUPER_ADMIN: semua, ADMIN: semua, PRODUKSI: ["Manufacturing"]}
 		for profil, shells in harap.items():
 			frappe.set_user(pengguna_profil(profil, "menu"))
 			try:
@@ -350,7 +349,9 @@ class TestTampilan(IntegrationTestCase):
 			# Production Floor is a menu entry of its own, not under Manufacturing (Abel 2026-11-03).
 			self.assertEqual(boot.erp_menu_atas, ["production-floor"], profil)
 			m = {m["shell"]: m for m in boot.erp_menu}
-			self.assertEqual(m["Stock"], {"shell": "Stock", "label": "Stock", "icon": "warehouse"})
+			self.assertEqual(
+				m["Manufacturing"], {"shell": "Manufacturing", "label": "Manufacturing", "icon": "factory"}
+			)
 			if "Setup" in m:
 				self.assertEqual(m["Setup"]["label"], "Settings")
 		self.assertEqual(set(IKON_MODUL), set(IKON))
@@ -444,10 +445,11 @@ class TestTampilan(IntegrationTestCase):
 		self.assertFalse({"Accounts", "Leaves"} & set(IKON))
 		self.assertEqual(IKON["Setup"], (ADMIN,))
 
-	def test_user_tetap_bisa_buat_surat_jalan(self):
-		# a Module Profile must not break link fields on a kept form (a direct Delivery Note, Samuel 2026-11-02)
+	def test_admin_bisa_buat_surat_jalan(self):
+		# a Module Profile must not break link fields on a kept form (a direct Delivery Note, Samuel 2026-11-02;
+		# Admin's since 2026-11-23)
 		pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
-		u = buat_pengguna("_uji.user.pabrik@example.com", PRODUKSI, PRODUKSI, pabrik)
+		u = buat_pengguna("_uji.admin.pabrik@example.com", ADMIN, ADMIN, pabrik)
 		pelanggan = buat_pelanggan("_Uji Pelanggan")
 		barang = buat_barang("_UJI-EMBER", "Barang Jadi")
 		harga = daftar_harga("_Uji Harga Jual", jual=True)  # IDR: the test site's own lists are INR
@@ -466,9 +468,9 @@ class TestTampilan(IntegrationTestCase):
 		dn.insert()
 
 	def test_izin_order_readiness(self):
-		# User and Admin open Order Readiness; a user without a profile does not.
+		# Admin opens Order Readiness (selling and stock planning); Produksi and a user without a profile do not.
 		laporan = frappe.get_doc("Report", "Order Readiness")
-		for profil, boleh in ((PRODUKSI, True), (ADMIN, True), (None, False)):
+		for profil, boleh in ((PRODUKSI, False), (ADMIN, True), (None, False)):
 			frappe.set_user(buat_pengguna(surel(profil or "tanpa", "laporan"), profil, profil, None))
 			try:
 				self.assertEqual(bool(laporan.is_permitted()), boleh, profil)
