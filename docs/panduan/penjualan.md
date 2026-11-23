@@ -18,6 +18,8 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 4. Klik **Save**, cek lagi. **Lampirkan foto atau scan dokumen aslinya** (pesanan dari pelanggan) lewat
    **Attach** di kanan form; selama belum ada lampiran, form menampilkan catatan oranye dan **Submit** ditolak.
 5. Klik **Submit**. Pesanan yang belum di-Submit belum dihitung.
+6. Cetak: **Print**. Hasilnya langsung format PO Samuel (tabel NO., ORDER, QTY, SATUAN, TGL KIRIM, HARGA dan kotak
+   TOTAL merah). Nomor di atasnya adalah **Customer's Purchase Order** kalau diisi, kalau kosong nomor Sales Order.
 
 ![Sales Order](gambar/penjualan-1.png)
 

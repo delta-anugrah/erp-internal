@@ -160,10 +160,8 @@ has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "erp_internal.utils.jinja_methods",
-# 	"filters": "erp_internal.utils.jinja_filters"
-# }
+# cetak.py: the long Indonesian date of the PO print formats (templates/po_samuel.html).
+jinja = {"methods": ["erp_internal.cetak.tanggal_panjang"]}
 
 # User menu
 # ---------

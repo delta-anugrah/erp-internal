@@ -275,6 +275,7 @@ def pastikan_setup() -> None:
 	_produksi()
 	_bawaan_wo()
 	_shift_pabrik()
+	_format_cetak()
 	_alasan_reject()
 	_kategori_biaya()
 	_kantor()
@@ -579,6 +580,17 @@ def _shift_pabrik() -> None:
 		make_property_setter(
 			"Production Entry", "shift", "options", pilihan, "Text", validate_fields_for_doctype=False
 		)
+
+
+def _format_cetak() -> None:
+	"""cetak.FORMAT_CETAK as the default print format of Sales Order and Purchase Order (a Property Setter)."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	from erp_internal.cetak import FORMAT_CETAK
+
+	for doctype, nama in FORMAT_CETAK.items():
+		if frappe.db.exists("Print Format", nama) and frappe.get_meta(doctype).default_print_format != nama:
+			make_property_setter(doctype, None, "default_print_format", nama, "Link", for_doctype=True)
 
 
 def _alasan_reject() -> None:

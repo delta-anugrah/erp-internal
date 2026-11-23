@@ -2,6 +2,11 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 10 (PO print in Samuel's layout)
+- Print formats "PO Samuel" (Sales Order) and "PO Samuel Beli" (Purchase Order), both standard, custom Jinja, one body
+  `templates/po_samuel.html`; `cetak.py` (`FORMAT_CETAK`, `tanggal_panjang`, jinja method in `hooks.py`);
+  `setup._format_cetak` makes each the default print format. `test_cetak` OK. Next: pigment (Task 11).
+
 ## 2026-11-23, plan Task 9 (Monthly expenses)
 - DocTypes Expense Entry and Expense Category (seeded from `setup.KATEGORI_BIAYA`), report Monthly Expenses
   (`jumlah`, `shift_mesin`), Once entries need an attachment (`lampiran`), Buying sidebar and home. `test_biaya`
