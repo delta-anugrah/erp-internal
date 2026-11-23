@@ -206,6 +206,8 @@ A machine that no longer runs this mould.,Mesin yang tidak lagi menjalankan ceta
 Make BOMs,Buat BOM
 "BOMs made: {0}, unchanged: {1}, switched off: {2}.","BOM dibuat: {0}, tetap: {1}, dinonaktifkan: {2}."
 Set the material of this row before making BOMs.,Isi bahan baris ini dulu sebelum membuat BOM.
+Pigment Ratio (g per kg),Rasio Pigmen (g per kg)
+The pigment ratio must be more than 0 g per kg.,Rasio pigmen harus lebih dari 0 g per kg.
 Apply,Terapkan
 Cavities must be a whole number.,Cavity harus bilangan bulat.
 Columns ignored: {0},Kolom diabaikan: {0}

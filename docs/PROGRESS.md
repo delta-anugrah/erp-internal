@@ -2,6 +2,13 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 11 (Pigment)
+- Item Group Pigmen, UOM Gram (fractions), Item field `erp_rasio_pigmen` (g per kg); `penjualan._pigmen` makes the
+  template `PIGMEN` (stock Gram, Kg = 1000, purchase UOM Kg, variants on Warna; no variants until Samuel's list).
+  `kapasitas.baris_bom(row, item)` adds the colour's pigment in grams (part kg x ratio); `cek_pigmen` (ratio > 0),
+  `pigmen_berubah` (Item on_update) queues `segarkan_bom`. `test_bom_kapasitas` 15 OK (6 new), `test_penjualan` 8 OK.
+  Next: sample data (Task 12).
+
 ## 2026-11-23, plan Task 10 (PO print in Samuel's layout)
 - Print formats "PO Samuel" (Sales Order) and "PO Samuel Beli" (Purchase Order), both standard, custom Jinja, one body
   `templates/po_samuel.html`; `cetak.py` (`FORMAT_CETAK`, `tanggal_panjang`, jinja method in `hooks.py`);

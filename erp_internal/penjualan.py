@@ -25,11 +25,13 @@ from frappe import _
 from frappe.utils import getdate
 
 from erp_internal import master, setup
+from erp_internal.planning.kapasitas import ATRIBUT_WARNA, TEMPLATE_PIGMEN
 from erp_internal.planning.rumus import bulatkan
 
 BERKAS = "penjualan_2026.json"
 HARGA_BAHAN = "Harga Bahan Baku"
 GRUP_BAHAN = "Bahan Baku"
+GRUP_PIGMEN = "Pigmen"
 STOK_MIN_BULAN = 0.5  # minimum stock = half an average month's sales, about two weeks (Abel, 2026-10-29)
 
 
@@ -51,6 +53,7 @@ def muat(company: str | None = None) -> dict:
 			master._varian(p, v, hasil, {})
 
 	_bahan(data["bahan_baku"], hasil)
+	_pigmen(hasil)
 	per_varian = riwayat(data, hasil)
 	_riwayat(company, per_varian, hasil)
 	_stok_minimum(per_varian, len(data["bulan"]), hasil)
@@ -132,6 +135,29 @@ def _stok_minimum(per_varian: dict[str, dict[str, int]], bulan: int, hasil: mast
 	for kode, per_bulan in per_varian.items():
 		rata = sum(per_bulan.values()) / bulan
 		hasil.simpan("Item", kode, {"safety_stock": bulatkan(rata * STOK_MIN_BULAN)})
+
+
+def _pigmen(hasil: master.Hasil) -> None:
+	"""The pigment template (spec section 8, A1): one variant per colour (`Warna`), stocked in grams, bought
+	per Kg (1 Kg = 1000 g). Samuel's list of pigments is still to come: Admin adds the variants."""
+	hasil.simpan(
+		"Item",
+		TEMPLATE_PIGMEN,
+		{
+			"item_name": "Pigmen",
+			"item_group": GRUP_PIGMEN,
+			"purchase_uom": "Kg",
+			"uoms": [{"uom": "Gram", "conversion_factor": 1}, {"uom": "Kg", "conversion_factor": 1000}],
+		},
+		{
+			"item_code": TEMPLATE_PIGMEN,
+			"stock_uom": "Gram",
+			"is_stock_item": 1,
+			"has_variants": 1,
+			"variant_based_on": "Item Attribute",
+			"attributes": [{"attribute": ATRIBUT_WARNA}],
+		},
+	)
 
 
 def _bahan(bahan: list[dict], hasil: master.Hasil) -> None:

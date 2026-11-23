@@ -36,7 +36,8 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 8: Daily Input print and Excel (`buku`, `export_excel`, `print_html`).
 - [x] Plan Task 9: monthly expenses (Expense Entry, Expense Category, report Monthly Expenses, `test_biaya`).
 - [x] Plan Task 10: Sales and Purchase Order print in Samuel's PO layout (`cetak.py`, `test_cetak`).
-- [ ] Build the plan's remaining tasks: pigment.
+- [x] Plan Task 11: pigment per colour in the capacity BOMs (template `PIGMEN` in grams, bought per Kg, `test_bom_kapasitas`).
+- [ ] Build the plan's remaining tasks (12-14).
 - [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
 - [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.

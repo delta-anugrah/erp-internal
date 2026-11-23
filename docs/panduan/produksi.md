@@ -69,6 +69,17 @@ Produk yang punya baris **Machine Capacity** tidak perlu BOM manual: buka barisn
 membuat satu BOM per varian per mesin (biji plastik dan masterbatch dihitung dari berat produk dan runner), lalu
 menonaktifkan BOM lama dari baris itu yang tidak dipakai Work Order yang masih jalan. BOM buatan tangan tidak diubah.
 
+**Pigmen.** Varian berwarna (misalnya Merah) dapat baris pigmen tambahan kalau ada pigmen aktif untuk warna itu
+(barang `PIGMEN` varian Merah). Jumlahnya dalam **gram** per buah: berat bahan per buah (kg) x **Pigment Ratio
+(g per kg)** pigmen itu. Contoh: 50 g per buah = 0,05 kg x 2 g/kg = 0,1 g. Baris bahan baku tidak berkurang (pigmen
+di atasnya). Warna tanpa pigmen (Bening, Campur) tidak dapat baris. Pigmen baru, dinonaktifkan atau rasionya diubah:
+sistem membuat ulang semua BOM dari Machine Capacity di belakang layar (BOM yang sudah benar tetap, Work Order yang
+masih jalan tetap pakai BOM lamanya).
+
+Pigmen baru (Admin): **Stock → Item → + Add Item**, atau buka barang **PIGMEN** → **Create → Variant**, pilih
+**Warna**, isi **Pigment Ratio (g per kg)** (lebih dari 0, bawaan 1). Stoknya dalam gram, belinya per Kg
+(`pembelian.md`).
+
 ## Tiap bulan
 
 ### 1. Perkiraan penjualan (Sales Forecast)

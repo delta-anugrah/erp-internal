@@ -28,6 +28,9 @@ saring yang statusnya **Pending**.
 
 ![Purchase Order](gambar/pembelian-2.png)
 
+**Pigmen** dibeli per **Kg** (satuan beli bawaannya Kg) tapi distok dalam **gram**: pesan `2` Kg, stok bertambah
+2.000 g. Harga per Kg diisi di daftar harga `Harga Bahan Baku` (**Buying → Item Price**, **UOM** `Kg`).
+
 ## 3. Terima barang (Purchase Receipt)
 
 Biasanya dikerjakan Gudang saat truk datang.

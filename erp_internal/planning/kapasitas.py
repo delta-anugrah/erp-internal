@@ -13,6 +13,11 @@ from frappe.utils import flt
 RUNNER_DIGILING = 0
 
 ATRIBUT_JENIS = "Jenis"
+# The pigment template (spec section 8): one variant per colour, stocked in grams, its ratio in g per kg of resin.
+TEMPLATE_PIGMEN = "PIGMEN"
+ATRIBUT_WARNA = "Warna"
+# The fields of a pigment whose change (or a new pigment) rebuilds the capacity BOMs (`pigmen_berubah`).
+PEMICU_PIGMEN = ("erp_rasio_pigmen", "disabled")
 
 
 @frappe.whitelist()
@@ -83,14 +88,40 @@ def varian_tercakup(nama: str) -> list[str]:
 	return [v for v in varian if (r := kapasitas(v, row.workstation)) and r.name == nama]
 
 
-def baris_bom(row) -> list[dict]:
-	"""The BOM lines of one piece, in kg: the material, less the masterbatch, then the masterbatch (the percent
-	is of the whole resin mix). No masterbatch line unless both the item and a percent are given."""
+def pigmen(item: str) -> tuple[str, float] | None:
+	"""(pigment item, ratio in g per kg) for the variant's `Warna`: the enabled `PIGMEN` variant with that
+	colour, or None (no colour, or no pigment for it: Bening, Campur, ...)."""
+	warna = frappe.db.get_value(
+		"Item Variant Attribute", {"parent": item, "attribute": ATRIBUT_WARNA}, "attribute_value"
+	)
+	if not warna:
+		return None
+	pg = frappe.db.get_value(
+		"Item Variant Attribute",
+		{
+			"attribute": ATRIBUT_WARNA,
+			"attribute_value": warna,
+			"parent": (
+				"in",
+				frappe.get_all("Item", {"variant_of": TEMPLATE_PIGMEN, "disabled": 0}, pluck="name"),
+			),
+		},
+		"parent",
+	)
+	return (pg, flt(frappe.db.get_value("Item", pg, "erp_rasio_pigmen"))) if pg else None
+
+
+def baris_bom(row, item: str | None = None) -> list[dict]:
+	"""The BOM lines of one piece of `item`: the material, less the masterbatch, then the masterbatch (the
+	percent is of the whole resin mix), in kg; then the pigment of the item's colour, in grams (stock UOM Gram),
+	on top of the material. No masterbatch line unless both the item and a percent are given."""
 	campuran = flt(row.material_per_pcs) / 1000
 	mb = campuran * flt(row.masterbatch_percent) / 100 if row.masterbatch else 0
 	baris = [{"item_code": row.material, "qty": round(campuran - mb, 6)}]
 	if mb:
 		baris.append({"item_code": row.masterbatch, "qty": round(mb, 6)})
+	if item and (pg := pigmen(item)):
+		baris.append({"item_code": pg[0], "qty": round(campuran * pg[1], 6)})
 	return baris
 
 
@@ -134,7 +165,8 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 	hasil = {"dibuat": [], "tetap": [], "nonaktif": []}
 	aman = set()
 	for item in varian_tercakup(nama):
-		isi = sorted((b["item_code"], b["qty"]) for b in baris_bom(row))
+		baris = baris_bom(row, item)
+		isi = sorted((b["item_code"], b["qty"]) for b in baris)
 		ada = next(
 			(
 				b
@@ -166,7 +198,7 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 						"qty": b["qty"],
 						"uom": frappe.db.get_value("Item", b["item_code"], "stock_uom"),
 					}
-					for b in baris_bom(row)
+					for b in baris
 				],
 			}
 		)
@@ -185,6 +217,47 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 		doc.save()
 		hasil["nonaktif"].append(lama)
 	return hasil
+
+
+def segarkan_bom() -> int:
+	"""`buat_bom_kapasitas` for every enabled Machine Capacity row with a material (a pigment changed): identical
+	BOMs stay, others are replaced. A row that fails is rolled back and logged; the rest go on. Returns how many
+	rows it ran."""
+	n = 0
+	for nama in frappe.get_all("Machine Capacity", {"disabled": 0, "material": ("is", "set")}, pluck="name"):
+		frappe.db.savepoint("segarkan_bom")
+		try:
+			buat_bom_kapasitas(nama)
+		except frappe.ValidationError:
+			frappe.db.rollback(save_point="segarkan_bom")
+			frappe.clear_messages()
+			frappe.log_error(f"Capacity BOM rebuild {nama}")
+			continue
+		n += 1
+	return n
+
+
+def cek_pigmen(doc, method=None) -> None:
+	"""A pigment's ratio (g per kg) must be above 0 (Item validate)."""
+	if doc.variant_of == TEMPLATE_PIGMEN and flt(doc.get("erp_rasio_pigmen")) <= 0:
+		frappe.throw(_("The pigment ratio must be more than 0 g per kg."))
+
+
+def pigmen_berubah(doc, method=None) -> None:
+	"""A pigment new, or with another ratio or enabled state, rebuilds the capacity BOMs in the background
+	(Item on_update), as the user who saved it."""
+	if doc.variant_of != TEMPLATE_PIGMEN:
+		return
+	lama = doc.get_doc_before_save()
+	if lama and all(lama.get(f) == doc.get(f) for f in PEMICU_PIGMEN):
+		return
+	frappe.enqueue(
+		"erp_internal.planning.kapasitas.segarkan_bom",
+		enqueue_after_commit=True,
+		job_id="erp_segarkan_bom",
+		deduplicate=True,
+		now=frappe.in_test,
+	)
 
 
 def pilih_bom(doc, method=None) -> None:

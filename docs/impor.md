@@ -42,8 +42,8 @@ template ikut berbahasa Indonesia; dua-duanya diterima.
 |---|---|
 | `Item Code` | kode barang, unik |
 | `Item Name` | nama barang |
-| `Item Group` | `Barang Jadi`, `Bahan Baku`, `Bahan Penolong`, `Kemasan` atau `Sparepart` |
-| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Ball Kecil`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll` atau `Kg` (hanya `Kg` boleh pecahan) |
+| `Item Group` | `Barang Jadi`, `Bahan Baku`, `Bahan Penolong`, `Kemasan`, `Sparepart` atau `Pigmen` |
+| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Ball Kecil`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll`, `Kg` atau `Gram` (hanya `Kg` dan `Gram` boleh pecahan) |
 | `Maintain Stock` | `1` untuk barang yang distok |
 | `Safety Stock` | stok minimum |
 | `UOM (uoms)` | satuan lain, misalnya `Karton` |
@@ -217,6 +217,7 @@ Yang dibuat (dijalankan dua kali = sama saja, `ditulis` 0):
 | Tipe dan barang baru | yang dijual di Excel tapi tidak ada di daftar harga (`produk_baru`): Gayung Lumba Soft, Gayung Bajigur DX Soft, Gantungan Folding Soft, Gantungan Dinda Hitam, Toples Nastar 1/2 Kg (`TOPLES-NASTAR`), Sendok Bebek Catering (`SENDOK-BEBEK`, stok dalam `Ball Kecil`). Warnanya tebakan, belum ada harga (`docs/menunggu-samuel.md` baris 14) |
 | Bahan baku | 7 barang di grup `Bahan Baku`, stok dalam Kg (`BB-PP-WARNA`, `BB-PP-HITAM`, ...), harga per kg sebagai valuation rate dan di daftar harga beli `Harga Bahan Baku` (jadi daftar harga bawaan Purchase Order selama Buying Settings masih "Standard Buying") |
 | Riwayat penjualan | Sales History per varian per bulan, dalam satuan stok (Lusin x 12, Gross x 144). Excel tidak memisah warna, jadi angkanya dibagi rata ke warna-warna tipe itu (sisa pembagian ke varian pertama menurut kode). Sendok Panjang JSW = Sendok Makan Pack |
+| Pigmen | barang template `PIGMEN` (grup `Pigmen`, stok dalam `Gram`, beli per `Kg` = 1000 g, varian per `Warna`). Variannya belum dibuat: daftar pigmen Samuel belum datang (`docs/menunggu-samuel.md`), sampai itu Admin menambahkannya (`panduan/produksi.md` "Resep produk") |
 | Stok minimum | `safety_stock` tiap varian = setengah rata-rata penjualan sebulan, dibulatkan ke atas (`STOK_MIN_BULAN`); dipakai Order Readiness |
 
 Cek: total per baris Excel per bulan sama dengan jumlah Sales History varian-variannya (`test_penjualan`).

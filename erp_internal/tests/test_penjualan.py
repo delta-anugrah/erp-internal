@@ -114,5 +114,15 @@ class TestPenjualan(IntegrationTestCase):
 		for k in penjualan.varian("GANTUNGAN-BABY-LOVE", "DX"):
 			self.assertLessEqual(frappe.db.get_value("Item", k, "safety_stock"), 864 / 9 / 2 + 1)
 
+	def test_pigmen(self):
+		# The pigment template: stocked in grams, bought per Kg, variants per colour (spec section 8, A1).
+		item = frappe.get_doc("Item", "PIGMEN")
+		self.assertEqual(
+			(item.item_group, item.stock_uom, item.purchase_uom, item.has_variants),
+			("Pigmen", "Gram", "Kg", 1),
+		)
+		self.assertEqual([a.attribute for a in item.attributes], ["Warna"])
+		self.assertEqual({u.uom: u.conversion_factor for u in item.uoms}, {"Gram": 1, "Kg": 1000})
+
 	def test_kedua_kali_tidak_menulis(self):
 		self.assertEqual(penjualan.muat(self.company)["ditulis"], 0)
