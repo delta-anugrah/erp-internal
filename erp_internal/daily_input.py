@@ -3,12 +3,16 @@ shift. A filled cell is exactly one submitted Production Entry (its good pieces,
 number replaces it, an emptied cell cancels it, all or nothing. A cell made another way (several entries,
 rejects, other hours) is left to the Production Entry form."""
 
+import io
 import re
 from datetime import date, timedelta
 
 import frappe
 from frappe import _
 from frappe.utils import flt, formatdate, getdate, today
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
 
 from erp_internal.planning.doctype.production_entry.production_entry import STATUS_TERBUKA
 from erp_internal.setup import JAM_SHIFT, SHIFT_PABRIK, jam_shift
@@ -136,6 +140,7 @@ def _blok(wo, boleh_isi: bool) -> dict:
 		"mesin": wo.erp_mesin,
 		"nomor_mesin": wo.erp_mesin and frappe.db.get_value("Workstation", wo.erp_mesin, "erp_nomor"),
 		"status": wo.status,
+		"dibuat": str(getdate(wo.creation)),  # the lower bound of "+ Add date"
 		"selesai": wo.status == STATUS_SELESAI,
 		"boleh_isi": boleh_isi and terbuka,
 		"baris": baris,
@@ -143,7 +148,7 @@ def _blok(wo, boleh_isi: bool) -> dict:
 	}
 
 
-_FIELD_WO = ["name", "status", "production_item", "qty", "stock_uom", "sales_order", "erp_mesin"]
+_FIELD_WO = ["name", "status", "production_item", "qty", "stock_uom", "sales_order", "erp_mesin", "creation"]
 
 
 def _blok_order(work_order: str) -> dict:
@@ -238,7 +243,7 @@ def _siapkan_tulis(work_order: str, tanggal: str):
 	wo = frappe.db.get_value(
 		"Work Order",
 		{"name": work_order, "docstatus": 1},
-		[*_FIELD_WO, "creation"],
+		_FIELD_WO,
 		as_dict=True,
 		for_update=True,
 	)
@@ -343,3 +348,176 @@ def save_note(work_order: str, tanggal: str, catatan: str) -> dict:
 		frappe.db.rollback(save_point="input_harian")
 		raise
 	return _blok_order(work_order)
+
+
+# Fills read off Samuel's sheet (input-harian.jpeg); CLOSE/DONE and the machine are written in red.
+WARNA_EXCEL = {
+	"no_po": "FCE4D6",
+	"kepala": "9DC3E6",
+	"total": "A9D08E",
+	"mesin": "F2CEEF",
+	"selesai": "FFFF00",
+}
+MERAH = "FF0000"
+FORMAT_ANGKA = "#,##0"
+FORMAT_TANGGAL = "dd-mmm-yy"
+LEBAR_KOLOM = {1: 6, 2: 13, 3: 10, 4: 14}  # No, Tanggal, Merk, Warna; the shifts, Keterangan, machine follow
+LEBAR_SHIFT, LEBAR_KETERANGAN, LEBAR_MESIN = 16, 24, 12
+LABEL_TEKNISI = ("Teknisi Pagi", "Teknisi Malam")  # Shift 1, Shift 2 (other shifts: their own name)
+TEMPLATE_CETAK = "erp_internal/templates/input_harian_cetak.html"
+
+
+def angka_teks(n: float) -> str:
+	"""13384 as "13.384", the way Samuel writes pieces in text."""
+	return f"{round(flt(n)):,}".replace(",", ".")
+
+
+def _label_shift(x: dict) -> str:
+	kata = x["nama"]
+	return f"{_(kata)}\n({x['jam']})" if x.get("jam") else _(kata)
+
+
+def _label_teknisi(i: int, x: dict) -> str:
+	kata = x["nama"]
+	return _(LABEL_TEKNISI[i]) if i < len(LABEL_TEKNISI) else _(kata)
+
+
+def _packing(b: dict) -> list[str]:
+	"""One text per packing UOM: "Karton of 24 Nos"."""
+	return [_("{0} of {1} {2}").format(k["uom"], angka_teks(k["isi"]), b["uom"]) for k in b["kemasan"]]
+
+
+def buku(data: dict) -> Workbook:
+	"""One sheet in Samuel's layout from a `get_data` dict: his three header rows, then the blocks one under
+	another (No.Po. cell, PO and packing line, blue column header, a row per date, green TOTAL, the machine in a
+	pink cell beside them, CLOSE/DONE above it)."""
+	wb = Workbook()
+	ws = wb.active
+	ws.title = "Input Harian"
+	n = len(data["shift"])
+	k_ket, k_mesin = 5 + n, 6 + n
+	garis = Side(style="thin", color="000000")
+	batas = Border(left=garis, right=garis, top=garis, bottom=garis)
+	for k in range(1, k_mesin + 1):
+		lebar = LEBAR_KOLOM.get(k) or (
+			LEBAR_SHIFT if k < k_ket else LEBAR_KETERANGAN if k == k_ket else LEBAR_MESIN
+		)
+		ws.column_dimensions[get_column_letter(k)].width = lebar
+
+	def tulis(
+		baris, k1, k2, nilai=None, *, warna=None, merah=False, rata="center", format=None, kotak=False, **gaya
+	):
+		"""Write `nilai` into the cells k1..k2 of `baris` (merged when more than one)."""
+		if k2 > k1:
+			ws.merge_cells(start_row=baris, start_column=k1, end_row=baris, end_column=k2)
+		for k in range(k1, k2 + 1):
+			sel = ws.cell(baris, k)
+			sel.alignment = Alignment(horizontal=rata, vertical="center", wrap_text=True)
+			if warna:
+				sel.fill = PatternFill("solid", fgColor=warna)
+			if kotak:
+				sel.border = batas
+		sel = ws.cell(baris, k1, nilai)
+		sel.font = Font(bold=merah or gaya.get("tebal", False), color=MERAH if merah else None)
+		if format:
+			sel.number_format = format
+
+	tulis(1, 1, 2, _("Tanggal"), rata="left", tebal=True)
+	tulis(1, 3, 3, ":")
+	tulis(1, 4, 4, f"{getdate(data['dari']):%d.%m.%Y} - {getdate(data['sampai']):%d.%m.%Y}", rata="left")
+	for i, x in enumerate(data["shift"]):
+		tulis(2 + i, 1, 2, _label_teknisi(i, x), rata="left", tebal=True)
+		tulis(2 + i, 3, 3, ":")
+		tulis(2 + i, 4, 4, ", ".join(data["teknisi"].get(x["nama"], [])), rata="left", tebal=True)
+
+	baris = 3 + n + 1  # one blank row after the header rows
+	for b in data["blok"]:
+		tulis(baris, 1, 3, f"{_('No.Po.')} {b['po_no']}", warna=WARNA_EXCEL["no_po"], rata="left", tebal=True)
+		baris += 1
+		packing = _packing(b)
+		tulis(baris, 1, 2, f"{_('PO')} : {angka_teks(b['qty'])} {b['uom']}", rata="left", tebal=True)
+		tulis(baris, 3, 4 + n // 2, f"{_('Packing')}: {packing[0]}" if packing else None, tebal=True)
+		tulis(baris, 5 + n // 2, k_ket, " · ".join(packing[1:]) or None, rata="right", tebal=True)
+		baris += 1
+		kepala = [
+			_("No"),
+			_("Tanggal"),
+			_("Merk"),
+			_("Warna"),
+			*map(_label_shift, data["shift"]),
+			_("Keterangan"),
+		]
+		for k, teks in enumerate(kepala, 1):
+			tulis(baris, k, k, teks, warna=WARNA_EXCEL["kepala"], kotak=True, tebal=True)
+		ws.row_dimensions[baris].height = 32
+		if b["selesai"]:
+			tulis(baris, k_mesin, k_mesin, _("CLOSE/DONE"), warna=WARNA_EXCEL["selesai"], merah=True)
+		baris += 1
+		awal = baris
+		for i, r in enumerate(b["baris"], 1):
+			tulis(baris, 1, 1, i, kotak=True)
+			tulis(baris, 2, 2, getdate(r["tanggal"]), format=FORMAT_TANGGAL, kotak=True)
+			tulis(baris, 3, 3, b["merk"], kotak=True)
+			tulis(baris, 4, 4, b["warna"], kotak=True)
+			for k, x in enumerate(data["shift"], 5):
+				tulis(baris, k, k, r["nilai"].get(x["nama"]), format=FORMAT_ANGKA, kotak=True)
+			tulis(baris, k_ket, k_ket, r["catatan"], rata="left", kotak=True)
+			baris += 1
+		tulis(baris, 1, 4, _("TOTAL"), warna=WARNA_EXCEL["total"], kotak=True, tebal=True)
+		for k, x in enumerate(data["shift"], 5):
+			tulis(
+				baris,
+				k,
+				k,
+				b["total"][x["nama"]],
+				warna=WARNA_EXCEL["total"],
+				format=FORMAT_ANGKA,
+				kotak=True,
+				tebal=True,
+			)
+		tulis(
+			baris,
+			k_ket,
+			k_ket,
+			b["total"]["semua"],
+			warna=WARNA_EXCEL["total"],
+			format=FORMAT_ANGKA,
+			kotak=True,
+			tebal=True,
+		)
+		# The machine: one pink cell beside the dates and the TOTAL row.
+		ws.merge_cells(start_row=awal, start_column=k_mesin, end_row=baris, end_column=k_mesin)
+		for r in range(awal, baris + 1):
+			ws.cell(r, k_mesin).fill = PatternFill("solid", fgColor=WARNA_EXCEL["mesin"])
+		ws.cell(awal, k_mesin, b["mesin"] or "").font = Font(bold=True, color=MERAH)
+		ws.cell(awal, k_mesin).alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+		baris += 2  # a blank row between blocks
+	return wb
+
+
+@frappe.whitelist(methods=["GET"])
+def export_excel(dari: str, sampai: str) -> None:
+	"""Download the week's blocks as an .xlsx in Samuel's layout (the same data as the page, same read check)."""
+	arsip = io.BytesIO()
+	buku(get_data(dari, sampai)).save(arsip)
+	frappe.response["filename"] = f"input-harian-{dari}-{sampai}.xlsx"
+	frappe.response["filecontent"] = arsip.getvalue()
+	frappe.response["type"] = "binary"
+
+
+@frappe.whitelist(methods=["GET"])
+def print_html(dari: str, sampai: str) -> str:
+	"""The week's blocks as a printable page (A4 landscape) for the page's Print button to open in a new window."""
+	data = get_data(dari, sampai)
+	return frappe.render_template(
+		TEMPLATE_CETAK,
+		{
+			"data": data,
+			"angka": angka_teks,
+			"tgl": lambda iso: getdate(iso).strftime("%d-%b-%y"),
+			"periode": f"{getdate(data['dari']):%d.%m.%Y} - {getdate(data['sampai']):%d.%m.%Y}",
+			"label_shift": _label_shift,
+			"label_teknisi": _label_teknisi,
+			"packing": _packing,
+		},
+	)

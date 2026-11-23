@@ -26,6 +26,12 @@ muncul di pencarian, dan tidak bisa dibuka lewat alamat. Kalau suatu hari dibutu
 Versi aplikasi (misalnya `v0.0.1`) ada di bawah kotak login dan di bagian bawah menu kiri **My Settings**. Sebut
 versinya kalau melaporkan masalah.
 
+## Rekap harian: cetak dan Excel
+Halaman **Daily Input** (menu paling atas, di bawah Production Floor) bisa dibaca Admin tanpa kotak isian. Tombol
+**Print** membuka rekap minggu yang tampil sebagai halaman cetak (A4 mendatar) di jendela baru; tombol **Excel**
+mengunduh `input-harian-<dari>-<sampai>.xlsx`, satu sheet dengan susunan lembar Excel Samuel. Cara bacanya ada di
+`produksi.md` "Input harian".
+
 ## Dokumen asli dilampirkan
 
 Dokumen kertas harus ada foto atau scan-nya sebelum di-Submit: Sales Order, Sales Invoice, Purchase Order, Purchase

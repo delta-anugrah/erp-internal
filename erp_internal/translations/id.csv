@@ -376,3 +376,6 @@ TOTAL,TOTAL
 Add date,Tambah tanggal
 "Pick a date from {0} to {1}.","Pilih tanggal dari {0} sampai {1}."
 "Underlined numbers were recorded in the Production Entry form: change them there.","Angka bergaris bawah dicatat lewat form Production Entry: ubah di sana."
+Print,Cetak
+Excel,Excel
+Allow pop-ups for this site to print.,Izinkan pop-up untuk situs ini agar bisa mencetak.

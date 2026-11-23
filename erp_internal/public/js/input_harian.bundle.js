@@ -73,7 +73,6 @@ erp.input_harian.pasang = function (wrapper) {
 		data: null,
 		nomor: 0,
 		tambahan: {}, // work order → dates added with "+ Add date", shown until they hold a number
-		dibuat: {}, // work order → its creation date (the lower bound of "+ Add date")
 		mengganti: false,
 	};
 	let antri = Promise.resolve(); // one write at a time: each answer redraws its block
@@ -137,6 +136,9 @@ erp.input_harian.pasang = function (wrapper) {
 				muat();
 			});
 		}
+		// The shown week's blocks, in Samuel's layout (the server reads the same data as this page).
+		tombol(__("Print"), null, () => cetak(d.dari, d.sampai));
+		tombol(__("Excel"), null, () => unduh(d.dari, d.sampai));
 
 		const info = k.appendChild(el("div", "erp-ih-info"));
 		const baris = (label, isi) => {
@@ -164,6 +166,40 @@ erp.input_harian.pasang = function (wrapper) {
 			baris(label, isi);
 		});
 		return k;
+	}
+
+	const galatAlert = (e) => frappe.show_alert({ message: e.message, indicator: "red" });
+
+	// Print: the server's page in a new window. The window opens first (inside the click) or the browser blocks
+	// it as a pop-up.
+	async function cetak(dari, sampai) {
+		const w = window.open("", "_blank");
+		if (!w) return galatAlert(new Error(__("Allow pop-ups for this site to print.")));
+		try {
+			const html = await panggil(`${DAILY}print_html`, { dari, sampai });
+			w.document.write(html);
+			w.document.close();
+			w.focus();
+			w.print();
+		} catch (e) {
+			w.close();
+			galatAlert(e);
+		}
+	}
+
+	// Excel: fetched as a file so a refusal shows here, not as a page of JSON.
+	async function unduh(dari, sampai) {
+		try {
+			const r = await fetch(`${API}${DAILY}export_excel?${new URLSearchParams({ dari, sampai })}`);
+			if (!r.ok) throw new Error(pesanGalat(await r.json().catch(() => ({})), r.status));
+			const a = el("a");
+			a.href = URL.createObjectURL(await r.blob());
+			a.download = `input-harian-${dari}-${sampai}.xlsx`;
+			a.click();
+			URL.revokeObjectURL(a.href);
+		} catch (e) {
+			galatAlert(e instanceof TypeError ? new Error(__("No connection: try again.")) : e);
+		}
 	}
 
 	function saring() {
@@ -370,16 +406,8 @@ erp.input_harian.pasang = function (wrapper) {
 		const galat = bar.appendChild(el("span", "erp-ih-galat"));
 		galat.setAttribute("role", "alert");
 		const hari_ini = frappe.datetime.get_today();
-		t.addEventListener("click", async () => {
-			if (s.dibuat[b.work_order] === undefined) {
-				const r = await panggil("frappe.client.get_value", {
-					doctype: "Work Order",
-					filters: b.work_order,
-					fieldname: "creation",
-				}).catch(() => null);
-				s.dibuat[b.work_order] = r?.creation ? r.creation.slice(0, 10) : "";
-			}
-			pilih.min = s.dibuat[b.work_order];
+		t.addEventListener("click", () => {
+			pilih.min = b.dibuat;
 			pilih.max = hari_ini;
 			pilih.hidden = false;
 			pilih.focus();

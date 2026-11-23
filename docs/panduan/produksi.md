@@ -124,6 +124,11 @@ operator; Admin melihat halaman yang sama tanpa kotak isian.
   klik angkanya dan ubah di form itu.
 - Tombol **Record Output** di Work Order membuka halaman ini langsung di kotak Work Order itu (**Show all** untuk
   semua).
+- **Print** dan **Excel** (di atas, sebelah filter mesin; Produksi dan Admin sama-sama bisa) mengeluarkan semua kotak
+  minggu yang tampil dengan susunan yang sama seperti lembar Samuel: **Print** membuka halaman cetak A4 mendatar di
+  jendela baru (izinkan pop-up kalau diminta), **Excel** mengunduh `input-harian-<dari>-<sampai>.xlsx` (biru untuk
+  judul kolom, hijau untuk TOTAL, pink untuk mesin, kuning untuk CLOSE/DONE; angka berformat ribuan, tanggal seperti
+  `11-Nov-26`). Filter mesin di layar tidak ikut: yang keluar selalu semua mesin di minggu itu.
 
 Di belakang layar setiap kotak yang terisi adalah satu **Production Entry** (Hasil Produksi), dengan stok yang bergerak
 sendiri (tabel di bawah).

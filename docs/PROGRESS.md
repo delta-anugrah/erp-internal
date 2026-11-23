@@ -2,6 +2,12 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 8 (Daily recap print and Excel)
+- `daily_input.py`: `WARNA_EXCEL`, `buku` (openpyxl, Samuel's layout), `export_excel`, `print_html` (template
+  `templates/input_harian_cetak.html`, A4 landscape, record text escaped); `get_data` blocks gain `dibuat` (the order's
+  creation date), which "+ Add date" now uses instead of a `frappe.client.get_value` call. Print and Excel buttons in
+  the page header. Checked in a browser as `admin@`: print page, downloaded xlsx colours, 768 and 390 px.
+
 ## 2026-11-23, plan Task 7 (Daily Input page)
 - Page `daily-input` (`input_harian.bundle.js`, `.erp-ih-*` CSS) in Samuel's Excel layout; menu entry under the
   Production Floor (`MENU_ATAS`), in Manufacturing's sidebar and home in place of the Production Entry list; "Record

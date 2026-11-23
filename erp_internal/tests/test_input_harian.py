@@ -7,7 +7,17 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate, today
 
-from erp_internal.daily_input import baca_jumlah, get_data, minggu, save_cell, save_note
+from erp_internal.daily_input import (
+	WARNA_EXCEL,
+	baca_jumlah,
+	buku,
+	export_excel,
+	get_data,
+	minggu,
+	print_html,
+	save_cell,
+	save_note,
+)
 from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
@@ -46,6 +56,7 @@ class TestInputHarian(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.hari_ini = getdate(today())
 		self.kemarin = add_days(self.hari_ini, -1)
+		self.jauh = add_days(self.hari_ini, -400)  # a week with no entries
 		awal = add_days(self.hari_ini, -30)
 		stok_awal(self.pabrik, PP, 1000, "Gudang Bahan Baku", tanggal=awal)
 		self.wo = buat_wo(JADI, self.mesin_a, qty=1000, company=self.pabrik)
@@ -229,3 +240,58 @@ class TestInputHarian(IntegrationTestCase):
 			pluck="notes",
 		)
 		self.assertEqual(notes, ["b", "b"])
+
+	def test_dibuat(self):
+		blok = get_data(str(self.kemarin), str(self.kemarin), work_order=self.wo)["blok"][0]
+		self.assertEqual(blok["dibuat"], str(add_days(self.hari_ini, -7)))
+
+	def test_excel_tata_letak(self):
+		save_cell(self.wo_so, str(self.kemarin), "Shift 1", "400")
+		ws = buku(get_data(str(self.kemarin), str(self.kemarin), work_order=self.wo_so)).active
+		self.assertEqual(ws["A1"].value, "Tanggal")
+		sel = {c.value: c for row in ws.iter_rows() for c in row if c.value}
+		self.assertEqual(sel["No.Po. 039-NKP/EPP/DA/2026-11"].fill.fgColor.rgb[-6:], WARNA_EXCEL["no_po"])
+		self.assertEqual(sel["Shift 1\n(08.00-20.00)"].fill.fgColor.rgb[-6:], WARNA_EXCEL["kepala"])
+		self.assertEqual(sel["TOTAL"].fill.fgColor.rgb[-6:], WARNA_EXCEL["total"])
+		self.assertIn(400, [c.value for c in ws[sel["TOTAL"].row]])
+		self.assertEqual(sel[self.mesin_a].fill.fgColor.rgb[-6:], WARNA_EXCEL["mesin"])
+		self.assertEqual(sel[self.mesin_a].font.color.rgb[-6:], "FF0000")
+
+	def test_excel_selesai(self):
+		save_cell(self.wo_so, str(self.kemarin), "Shift 1", "1.000")  # the whole order
+		ws = buku(get_data(str(self.kemarin), str(self.kemarin), work_order=self.wo_so)).active
+		sel = {c.value: c for row in ws.iter_rows() for c in row if c.value}
+		self.assertEqual(sel["CLOSE/DONE"].fill.fgColor.rgb[-6:], WARNA_EXCEL["selesai"])
+
+	def test_excel_kosong(self):
+		ws = buku({**get_data(str(self.jauh), str(self.jauh)), "blok": []}).active
+		self.assertEqual(ws["A1"].value, "Tanggal")
+		self.assertEqual(ws.max_row, 3)  # Tanggal, Teknisi Pagi, Teknisi Malam
+
+	def test_export_excel(self):
+		export_excel(str(self.kemarin), str(self.kemarin))
+		self.assertEqual(frappe.response["filename"], f"input-harian-{self.kemarin}-{self.kemarin}.xlsx")
+		self.assertEqual(frappe.response["type"], "binary")
+		self.assertTrue(frappe.response["filecontent"].startswith(b"PK"))
+
+	def test_cetak(self):
+		save_cell(self.wo_so, str(self.kemarin), "Shift 1", "1000")
+		html = print_html(str(self.kemarin), str(self.kemarin))
+		for teks in ("No.Po. 039-NKP/EPP/DA/2026-11", "TOTAL", "CLOSE/DONE", "08.00-20.00"):
+			self.assertIn(teks, html)
+
+	def test_cetak_teks_dilepas(self):
+		frappe.db.set_value(
+			"Sales Order",
+			frappe.db.get_value("Work Order", self.wo_so, "sales_order"),
+			"po_no",
+			"<script>x</script>",
+		)
+		html = print_html(str(self.kemarin), str(self.kemarin))
+		self.assertNotIn("<script>x", html)
+		self.assertIn("&lt;script&gt;x", html)
+
+	def test_cetak_admin_baca(self):
+		frappe.set_user(self.admin)
+		self.assertIn("TOTAL", print_html(str(self.kemarin), str(self.kemarin)))
+		export_excel(str(self.kemarin), str(self.kemarin))
