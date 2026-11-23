@@ -346,3 +346,4 @@ Change it in the Production Entry form.,Ubah lewat form Production Entry.
 "Enter a number first: a note needs an entry to hold it.","Isi angkanya dulu: keterangan butuh entri untuk disimpan."
 Technician,Teknisi
 Who ran the machine in this shift.,Yang menjalankan mesin di shift ini.
+"The date cannot be before the Work Order was made ({0}).","Tanggalnya tidak boleh sebelum Work Order dibuat ({0})."

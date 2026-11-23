@@ -8,7 +8,7 @@ from datetime import date, timedelta
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate, today
+from frappe.utils import flt, formatdate, getdate, today
 
 from erp_internal.planning.doctype.production_entry.production_entry import STATUS_TERBUKA
 from erp_internal.setup import JAM_SHIFT, SHIFT_PABRIK, jam_shift
@@ -56,15 +56,28 @@ def _milik_grid(entri: list, shift: str) -> bool:
 	)
 
 
-def _entri(work_order: str, tanggal: date | str | None = None) -> list:
+def _entri(work_order: str, tanggal: date | str | None = None, kunci: bool = False) -> list:
+	"""The order's submitted entries (of `tanggal`); `kunci` reads them with a locking read."""
 	filters = {"work_order": work_order, "docstatus": 1}
 	if tanggal:
 		filters["posting_date"] = getdate(tanggal)
-	return frappe.get_all(
+	return frappe.db.get_values(
 		"Production Entry",
-		filters=filters,
-		fields=["name", "posting_date", "shift", "good_qty", "reject_qty", "hours", "technician", "notes"],
+		filters,
+		[
+			"name",
+			"posting_date",
+			"shift",
+			"good_qty",
+			"reject_qty",
+			"hours",
+			"technician",
+			"notes",
+			"workstation",
+		],
+		as_dict=True,
 		order_by="posting_date asc, creation asc",
+		for_update=kunci,
 	)
 
 
@@ -150,21 +163,40 @@ def get_data(dari: str | None = None, sampai: str | None = None, work_order: str
 	filters = {"docstatus": 1, "status": ("in", (*STATUS_TERBUKA, *STATUS_TUTUP))}
 	if work_order:
 		filters["name"] = work_order
-	orders = frappe.get_list("Work Order", filters=filters, fields=_FIELD_WO)
-	if not work_order:
-		akhir = {}  # each order's last entry date
-		for e in frappe.get_all(
-			"Production Entry",
-			filters={"docstatus": 1, "work_order": ("in", [o.name for o in orders] or [""])},
-			fields=["work_order", "posting_date"],
-			order_by="posting_date asc",
-		):
-			akhir[e.work_order] = e.posting_date
-		orders = [
-			o
-			for o in orders
-			if o.status in STATUS_TERBUKA or (akhir.get(o.name) and dari <= getdate(akhir[o.name]) <= sampai)
-		]
+	if work_order:
+		orders = frappe.get_list("Work Order", filters=filters, fields=_FIELD_WO)
+	else:
+		filters["status"] = ("in", STATUS_TERBUKA)
+		orders = frappe.get_list("Work Order", filters=filters, fields=_FIELD_WO)
+		# Closed orders: only those with an entry in the week and none after it (their last entry is in it).
+		di_minggu = set(
+			frappe.get_all(
+				"Production Entry",
+				filters={"docstatus": 1, "posting_date": ("between", (dari, sampai))},
+				pluck="work_order",
+			)
+		)
+		if di_minggu:
+			sesudah = set(
+				frappe.get_all(
+					"Production Entry",
+					filters={
+						"docstatus": 1,
+						"work_order": ("in", list(di_minggu)),
+						"posting_date": (">", sampai),
+					},
+					pluck="work_order",
+				)
+			)
+			orders += frappe.get_list(
+				"Work Order",
+				filters={
+					"docstatus": 1,
+					"status": ("in", STATUS_TUTUP),
+					"name": ("in", list(di_minggu - sesudah) or [""]),
+				},
+				fields=_FIELD_WO,
+			)
 	blok = [_blok(o, boleh_isi) for o in orders]
 	blok.sort(key=lambda b: (b["nomor_mesin"] is None, b["nomor_mesin"] or 0, b["work_order"]))
 
@@ -202,8 +234,14 @@ def _siapkan_tulis(work_order: str, tanggal: str):
 	for hak in ("create", "submit", "cancel"):
 		frappe.has_permission("Production Entry", hak, throw=True)
 	frappe.has_permission("Work Order", "read", doc=work_order, throw=True)
-	frappe.db.get_value("Work Order", work_order, "name", for_update=True)
-	wo = frappe.db.get_value("Work Order", {"name": work_order, "docstatus": 1}, _FIELD_WO, as_dict=True)
+	# Locks the order: writes to one order's cells run one at a time.
+	wo = frappe.db.get_value(
+		"Work Order",
+		{"name": work_order, "docstatus": 1},
+		[*_FIELD_WO, "creation"],
+		as_dict=True,
+		for_update=True,
+	)
 	if not wo:
 		frappe.throw(_("Submit Work Order {0} first.").format(frappe.bold(work_order)))
 	if wo.status not in STATUS_TERBUKA:
@@ -215,6 +253,10 @@ def _siapkan_tulis(work_order: str, tanggal: str):
 	tanggal = getdate(tanggal)
 	if tanggal > getdate(today()):
 		frappe.throw(_("The date cannot be in the future."))
+	if tanggal < getdate(wo.creation):
+		frappe.throw(
+			_("The date cannot be before the Work Order was made ({0}).").format(formatdate(wo.creation))
+		)
 	return wo, tanggal
 
 
@@ -241,7 +283,9 @@ def save_cell(
 	if shift not in _shift():
 		frappe.throw(_("Unknown shift {0}.").format(frappe.bold(shift)))
 	jumlah = baca_jumlah(qty)
-	entri_hari = _entri(work_order, tanggal)
+	# A locking read sees the latest committed entries, not this transaction's snapshot: a second request for
+	# the same cell, queued on the order's lock, then finds the first one's entry and writes nothing.
+	entri_hari = _entri(work_order, tanggal, kunci=True)
 	sel = [e for e in entri_hari if e.shift == shift]
 	if not _milik_grid(sel, shift):
 		frappe.throw(_("Change it in the Production Entry form."))
@@ -251,6 +295,10 @@ def save_cell(
 	frappe.db.savepoint("input_harian")
 	try:
 		if sel and int(flt(sel[0].good_qty)) == jumlah:
+			if teknisi is not None and teknisi != (sel[0].technician or ""):
+				doc = frappe.get_doc("Production Entry", sel[0].name)
+				doc.technician = teknisi
+				doc.save()  # technician is allow_on_submit
 			_tulis_catatan(entri_hari, catatan)
 		elif sel or jumlah:
 			if sel:
@@ -261,15 +309,20 @@ def save_cell(
 						"doctype": "Production Entry",
 						"company": frappe.db.get_value("Work Order", work_order, "company"),
 						"work_order": work_order,
-						"workstation": wo.erp_mesin,
+						# A replaced cell amends its entry and keeps its machine (the order may have moved since).
+						"amended_from": sel[0].name if sel else None,
+						"workstation": sel[0].workstation if sel else wo.erp_mesin,
 						"posting_date": tanggal,
 						"shift": shift,
 						"hours": jam_shift(shift),
 						"good_qty": jumlah,
-						"technician": teknisi,
+						"technician": teknisi
+						if teknisi is not None
+						else (sel[0].technician if sel else None),
 						"notes": catatan,
 					}
 				).insert().submit()
+			_tulis_catatan([e for e in entri_hari if e not in sel], catatan)
 	except Exception:
 		frappe.db.rollback(save_point="input_harian")
 		raise

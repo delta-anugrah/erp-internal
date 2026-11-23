@@ -56,6 +56,10 @@ class TestInputHarian(IntegrationTestCase):
 		so.submit()
 		self.wo_so = buat_wo(JADI, self.mesin_a, qty=1000, company=self.pabrik, sales_order=so.name)
 		self.wo_tanpa_mesin = buat_wo(JADI, None, qty=1000, company=self.pabrik)
+		for wo in (self.wo, self.wo_so, self.wo_tanpa_mesin):  # made a week ago: back-dated cells allowed
+			frappe.db.set_value(
+				"Work Order", wo, "creation", add_days(self.hari_ini, -7), update_modified=False
+			)
 		frappe.set_user(self.produksi)
 
 	def entri(self, tanggal: date, shift: str, wo: str | None = None) -> list[tuple]:
@@ -151,6 +155,11 @@ class TestInputHarian(IntegrationTestCase):
 		self.assertEqual(blok["po_no"], PO)
 		self.assertTrue(blok["selesai"])
 		self.assertEqual(blok["kemasan"], [{"uom": "Karton", "isi": 24}])
+		# A closed order shows only in the week of its last entry.
+		for dari in (add_days(self.kemarin, 7), add_days(self.kemarin, -7)):
+			nama = [b["work_order"] for b in get_data(str(dari), str(dari))["blok"]]
+			self.assertNotIn(self.wo_so, nama)
+			self.assertIn(self.wo, nama)
 
 	def test_teknisi_minggu(self):
 		save_cell(self.wo, str(self.kemarin), "Shift 1", "10", teknisi="Yudi")
@@ -183,3 +192,26 @@ class TestInputHarian(IntegrationTestCase):
 		save_cell(self.wo, str(self.hari_ini), "Shift 1", "10")
 		self.assertEqual(self.mesin_entri(self.kemarin), self.mesin_a)
 		self.assertEqual(self.mesin_entri(self.hari_ini), self.mesin_b)
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "20")  # the earlier cell replaced: still machine A
+		self.assertEqual(self.entri(self.kemarin, "Shift 1"), [(20, None)])
+		self.assertEqual(self.mesin_entri(self.kemarin), self.mesin_a)
+
+	def test_teknisi_diganti(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "10", teknisi="Yudi")
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "10", teknisi="Fadli")
+		self.assertEqual(self.entri(self.kemarin, "Shift 1"), [(10, "Fadli")])
+
+	def test_sebelum_order(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "before the Work Order"):
+			save_cell(self.wo, str(add_days(self.hari_ini, -8)), "Shift 1", "10")
+
+	def test_catatan_satu_baris(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "10", catatan="a")
+		save_cell(self.wo, str(self.kemarin), "Shift 2", "10")
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "20", catatan="b")  # replaced: the whole row's note
+		notes = frappe.get_all(
+			"Production Entry",
+			filters={"work_order": self.wo, "posting_date": self.kemarin, "docstatus": 1},
+			pluck="notes",
+		)
+		self.assertEqual(notes, ["b", "b"])

@@ -100,7 +100,8 @@
    "description": "Who ran the machine in this shift.",
    "fieldname": "technician",
    "fieldtype": "Data",
-   "label": "Technician"
+   "label": "Technician",
+   "allow_on_submit": 1
   },
   {
    "fieldname": "section_hasil",
@@ -180,7 +181,7 @@
  "index_web_pages_for_search": 0,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-23 18:00:00.000000",
+ "modified": "2026-11-23 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Planning",
  "name": "Production Entry",
