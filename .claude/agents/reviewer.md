@@ -9,7 +9,9 @@ rest) against `docs/superpowers/specs/2026-10-27-erp-internal-design.md`.
 Plan vs Actual work is reviewed against `docs/superpowers/specs/2026-10-28-plan-vs-actual-design.md` and
 `docs/superpowers/plans/2026-10-29-plan-vs-actual-plan.md`; Production Floor work against
 `docs/superpowers/plans/2026-10-28-production-floor-plan.md`, `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md`
-and `docs/superpowers/specs/2026-10-28-production-floor-design.md`.
+and `docs/superpowers/specs/2026-10-28-production-floor-design.md`. Work on Samuel's 2026-11-23 requests is
+reviewed against `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` and
+`docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md` (its own task numbers).
 
 Check, with file:line evidence:
 1. Every step and every test named in the task exists and asserts what the plan says (exact values).

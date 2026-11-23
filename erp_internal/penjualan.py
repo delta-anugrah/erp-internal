@@ -8,7 +8,8 @@ Reads `data/penjualan_2026.json` (both tables of the Excel, as Abel pasted them)
 - the types and products the Excel sells but the price list lacks (`produk_baru`, made with `master.py`'s own
   helpers; colours assumed, no price): Soft, DX Soft, Gantungan Dinda Hitam, Toples Nastar, Sendok Bebek;
 - one raw material Item per material (group Bahan Baku, stock in Kg, valuation rate = its price) and its price
-  in the buying Price List `HARGA_BAHAN`;
+  in the buying Price List `HARGA_BAHAN`, the Purchase Order default while Buying Settings still says Standard
+  Buying (`master._harga_bawaan`);
 - Sales History: each Excel row's monthly quantity in the stock UOM, spread evenly over the colour variants of
   its product and type (the Excel has no colours; Abel 2026-10-29), whole units, the remainder to the first
   variants by code;

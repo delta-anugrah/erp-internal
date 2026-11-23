@@ -759,9 +759,10 @@ Settings:
   moves).
 - Perpetual inventory is set with `db.set_value` (Company's own save rebuilds default accounts) and ERPNext's
   per-request cache entry is dropped.
-- Price list defaults (2026-10-31, 2026-11-23): `master._harga_bawaan` makes `Harga Pola <year>` / `Harga Bahan
-  Baku` the Selling/Buying Settings default and the global default while they are still Standard Selling/Buying
-  (orders came at rate 0); `patches/harga_bawaan.py` for sites loaded earlier.
+- Price list defaults (2026-10-31, 2026-11-23): `master._harga_bawaan` makes `Harga Pola <year>` (and, through
+  `penjualan._bahan`, `Harga Bahan Baku`) the Selling/Buying Settings default while that is still Standard
+  Selling/Buying (orders came at rate 0) and keeps the global default `selling_price_list`/`buying_price_list`
+  equal to the setting; `patches/harga_bawaan.py` for sites loaded earlier.
 
 ### Task 6: The import guide and tested templates
 

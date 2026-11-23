@@ -18,9 +18,13 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 
 ## Next: Samuel's requests of 2026-11-23 (decisions in `docs/menunggu-samuel.md`, 2026-11-23 table)
 - [x] Commit the price list default fix, after `/run-checks` (2026-11-23: 263 tests OK).
-- [ ] Spec + plan, then build items 1-5: roles Super Admin / Admin / Produksi; Work Order machine lock; warehouse
-      Pluit; daily input per Work Order like Samuel's Excel (Shift 1/Shift 2); monthly expenses (operator 105.000 per
-      shift from machine state; electricity, fixed salaries, fuel by Admin). Screens and prints follow his templates.
+- [x] Spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` (items 1-5, 7, plus Abel's attachments and
+      pigment; Samuel's two pictures beside it) and plan `docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md`
+      (12 tasks), 2026-11-23.
+- [ ] Abel: read the spec's "Calls made" (11) and agree or change them before the build.
+- [ ] Build the plan's Tasks 1-12 (new session): roles Super Admin / Admin / Produksi; Work Order machine lock;
+      warehouse Pluit; Daily Input page like Samuel's Excel with print and Excel; monthly expenses (operator shifts
+      from the daily input); PO print; real documents attached; pigment.
 - [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
 - [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.

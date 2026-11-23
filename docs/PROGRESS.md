@@ -2,6 +2,17 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, later (spec and plan for Samuel's requests)
+- Committed the price list fix (`2300877`) after `/run-checks` (263 tests OK).
+- Spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` and plan
+  `docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md` (12 tasks) for items 1-5 and 7 of the 2026-11-23
+  table, plus Abel's two additions: every document with a paper original gets its photo before submit (delivery
+  note: the signed copy afterwards, listed in a Missing Documents report) and pigment (Samuel: 1 g per kg of
+  material; colour, ratio, price per kg) as `PIGMEN` variants in the capacity BOMs. Samuel's daily Excel and PO
+  pictures, recovered from the morning session, are in `docs/superpowers/specs/2026-11-23-samuel/`.
+- Main calls for Abel (spec "Calls made"): operator shifts counted from the daily input, no machine state to set;
+  the grid takes good pieces only; profiles renamed in place (sample logins unchanged). Nothing built yet.
+
 ## 2026-11-23 (sales and purchase flow with Samuel's data)
 - Samuel asked whether purchasing, selling and production are ready. A script as `admin@` on `erp.localhost`
   (Samuel's `BASKOM-20-HTM-HTM`, `BB-PP-WARNA`; rolled back): SO → DN → SI → Payment Entry, PO → PR → PI all OK.
