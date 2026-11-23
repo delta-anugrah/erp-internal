@@ -405,30 +405,46 @@ def buku(data: dict) -> Workbook:
 		ws.column_dimensions[get_column_letter(k)].width = lebar
 
 	def tulis(
-		baris, k1, k2, nilai=None, *, warna=None, merah=False, rata="center", format=None, kotak=False, **gaya
+		baris,
+		k1,
+		k2,
+		nilai=None,
+		*,
+		warna=None,
+		merah=False,
+		rata="center",
+		format=None,
+		kotak=False,
+		bungkus=True,
+		**gaya,
 	):
 		"""Write `nilai` into the cells k1..k2 of `baris` (merged when more than one)."""
 		if k2 > k1:
 			ws.merge_cells(start_row=baris, start_column=k1, end_row=baris, end_column=k2)
 		for k in range(k1, k2 + 1):
 			sel = ws.cell(baris, k)
-			sel.alignment = Alignment(horizontal=rata, vertical="center", wrap_text=True)
+			sel.alignment = Alignment(horizontal=rata, vertical="center", wrap_text=bungkus)
 			if warna:
 				sel.fill = PatternFill("solid", fgColor=warna)
 			if kotak:
 				sel.border = batas
 		sel = ws.cell(baris, k1, nilai)
 		sel.font = Font(bold=merah or gaya.get("tebal", False), color=MERAH if merah else None)
+		if isinstance(nilai, str):
+			sel.data_type = "s"  # typed text such as "=1+1" must stay text, never a formula
 		if format:
 			sel.number_format = format
 
 	tulis(1, 1, 2, _("Tanggal"), rata="left", tebal=True)
 	tulis(1, 3, 3, ":")
-	tulis(1, 4, 4, f"{getdate(data['dari']):%d.%m.%Y} - {getdate(data['sampai']):%d.%m.%Y}", rata="left")
+	periode = f"{getdate(data['dari']):%d.%m.%Y} - {getdate(data['sampai']):%d.%m.%Y}"
+	tulis(1, 4, 4, periode, rata="left", bungkus=False)
 	for i, x in enumerate(data["shift"]):
 		tulis(2 + i, 1, 2, _label_teknisi(i, x), rata="left", tebal=True)
 		tulis(2 + i, 3, 3, ":")
-		tulis(2 + i, 4, 4, ", ".join(data["teknisi"].get(x["nama"], [])), rata="left", tebal=True)
+		tulis(
+			2 + i, 4, 4, ", ".join(data["teknisi"].get(x["nama"], [])), rata="left", tebal=True, bungkus=False
+		)
 
 	baris = 3 + n + 1  # one blank row after the header rows
 	for b in data["blok"]:
@@ -485,12 +501,15 @@ def buku(data: dict) -> Workbook:
 			kotak=True,
 			tebal=True,
 		)
-		# The machine: one pink cell beside the dates and the TOTAL row.
-		ws.merge_cells(start_row=awal, start_column=k_mesin, end_row=baris, end_column=k_mesin)
+		# The machine: one pink cell beside the dates and the TOTAL row (merged only when that is several rows).
+		if baris > awal:
+			ws.merge_cells(start_row=awal, start_column=k_mesin, end_row=baris, end_column=k_mesin)
 		for r in range(awal, baris + 1):
 			ws.cell(r, k_mesin).fill = PatternFill("solid", fgColor=WARNA_EXCEL["mesin"])
-		ws.cell(awal, k_mesin, b["mesin"] or "").font = Font(bold=True, color=MERAH)
-		ws.cell(awal, k_mesin).alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+		sel = ws.cell(awal, k_mesin, b["mesin"] or "")
+		sel.data_type = "s"
+		sel.font = Font(bold=True, color=MERAH)
+		sel.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 		baris += 2  # a blank row between blocks
 	return wb
 

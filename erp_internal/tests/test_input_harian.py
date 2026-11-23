@@ -1,11 +1,13 @@
 """Daily Input: one submitted Production Entry per filled grid cell (order, date, shift), replaced when the
 number changes, cancelled when emptied, all or nothing."""
 
+import io
 from datetime import date
 
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate, today
+from openpyxl import load_workbook
 
 from erp_internal.daily_input import (
 	WARNA_EXCEL,
@@ -49,6 +51,7 @@ class TestInputHarian(IntegrationTestCase):
 		cls.pelanggan = buat_pelanggan("_Uji Pelanggan IH")
 		cls.admin = buat_pengguna("_uji.ih.admin@example.com", ADMIN, ADMIN, cls.pabrik)
 		cls.produksi = buat_pengguna("_uji.ih.produksi@example.com", PRODUKSI, PRODUKSI, cls.pabrik)
+		cls.tanpa_hak = buat_pengguna("_uji.ih.tanpa@example.com", None, None, None)  # no role at all
 
 	def setUp(self):
 		frappe.db.savepoint("uji_input_harian")
@@ -267,6 +270,29 @@ class TestInputHarian(IntegrationTestCase):
 		ws = buku({**get_data(str(self.jauh), str(self.jauh)), "blok": []}).active
 		self.assertEqual(ws["A1"].value, "Tanggal")
 		self.assertEqual(ws.max_row, 3)  # Tanggal, Teknisi Pagi, Teknisi Malam
+
+	def test_excel_teks_bukan_rumus(self):
+		save_cell(self.wo, str(self.kemarin), "Shift 1", "10", teknisi="=1+2", catatan="=1+1")
+		arsip = io.BytesIO()
+		buku(get_data(str(self.kemarin), str(self.kemarin), work_order=self.wo)).save(arsip)
+		ws = load_workbook(arsip).active  # read back: a formula would come back as data type "f"
+		sel = [c for row in ws.iter_rows() for c in row if c.value in ("=1+1", "=1+2")]
+		self.assertEqual(sorted(c.value for c in sel), ["=1+1", "=1+2"])
+		self.assertEqual({c.data_type for c in sel}, {"s"})
+
+	def test_excel_tanpa_baris_tanpa_gabung_satu_sel(self):
+		data = get_data(str(self.jauh), str(self.jauh))
+		kosong = {**data["blok"][0], "baris": []}
+		for blok in ([kosong], data["blok"]):
+			ws = buku({**data, "blok": blok}).active
+			for rentang in ws.merged_cells.ranges:
+				self.assertGreater(rentang.size["rows"] * rentang.size["columns"], 1, str(rentang))
+
+	def test_cetak_dan_excel_tanpa_hak_baca(self):
+		frappe.set_user(self.tanpa_hak)
+		for fungsi in (print_html, export_excel):
+			with self.assertRaises(frappe.PermissionError):
+				fungsi(str(self.kemarin), str(self.kemarin))
 
 	def test_export_excel(self):
 		export_excel(str(self.kemarin), str(self.kemarin))

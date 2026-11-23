@@ -41,7 +41,7 @@ async function panggil(metode, params, tulis = false) {
 		throw new Error(__("No connection: try again."));
 	}
 	const j = await r.json().catch(() => ({}));
-	if (!r.ok) throw new Error(pesanGalat(j, r.status));
+	if (!r.ok) throw Object.assign(new Error(pesanGalat(j, r.status)), { status: r.status });
 	return j.message;
 }
 
@@ -83,11 +83,13 @@ erp.input_harian.pasang = function (wrapper) {
 		try {
 			data = await panggil(`${DAILY}get_data`, { dari: s.senin, work_order: s.work_order });
 		} catch (e) {
-			if (nomor === s.nomor) akar.replaceChildren(el("p", "erp-ih-catatan", __("The daily input could not be loaded.")));
+			if (nomor === s.nomor) galatMuat(e);
 			return;
 		}
 		if (nomor !== s.nomor) return;
 		s.data = data;
+		// A machine filter with no block in this week would hide everything: back to all machines.
+		if (s.mesin != null && !data.blok.some((b) => (b.mesin || "-") === s.mesin)) s.mesin = null;
 		if (!s.teknisi) s.teknisi = Object.fromEntries(data.shift.map((x) => [x.nama, data.teknisi_terakhir[x.nama] || ""]));
 		gambar();
 	}
@@ -100,8 +102,8 @@ erp.input_harian.pasang = function (wrapper) {
 		saring();
 	}
 
-	// Week, machine filter and the technicians (his sheet's three header rows).
-	function kepala(d) {
+	// The toolbar's start: a box with the week buttons (‹, This week, ›), shared by the header and the load error.
+	function alatPekan() {
 		const k = el("div", "erp-ih-kepala");
 		const alat = k.appendChild(el("div", "erp-ih-alat"));
 		const tombol = (teks, label, aksi) => {
@@ -118,6 +120,22 @@ erp.input_harian.pasang = function (wrapper) {
 		tombol("‹", __("Previous week"), pindah(-7));
 		tombol(__("This week"), null, pindah(null));
 		tombol("›", __("Next week"), pindah(7));
+		return { k, alat, tombol };
+	}
+
+	// A failed load keeps the week buttons and says why, with Try again (a log-in hint when the session is gone).
+	function galatMuat(e) {
+		const { k, alat, tombol } = alatPekan();
+		tombol(__("Try again"), null, muat);
+		const p = k.appendChild(el("p", "erp-ih-catatan", __("The daily input could not be loaded.")));
+		if (e.status === 401 || e.status === 403) p.append(" ", __("Your session may have ended: log in again."));
+		else if (!e.status) p.append(" ", e.message);
+		akar.replaceChildren(k);
+	}
+
+	// Week, machine filter and the technicians (his sheet's three header rows).
+	function kepala(d) {
+		const { k, alat, tombol } = alatPekan();
 		const pilih = alat.appendChild(el("select", "form-control input-sm erp-ih-mesin"));
 		pilih.setAttribute("aria-label", __("Machine"));
 		pilih.appendChild(el("option", null, __("All machines"))).value = "";
@@ -196,7 +214,7 @@ erp.input_harian.pasang = function (wrapper) {
 			a.href = URL.createObjectURL(await r.blob());
 			a.download = `input-harian-${dari}-${sampai}.xlsx`;
 			a.click();
-			URL.revokeObjectURL(a.href);
+			setTimeout(() => URL.revokeObjectURL(a.href), 10000); // the browser reads the blob after the click
 		} catch (e) {
 			galatAlert(e instanceof TypeError ? new Error(__("No connection: try again.")) : e);
 		}
