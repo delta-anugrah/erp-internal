@@ -309,8 +309,8 @@ shortcuts to the same links as its menu entries, nothing else:
 | Stock | Stock Entry, Delivery Note, Item, Brand, Warehouse, Stock Balance, Stock Ledger, Missing Documents |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
 | Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice, Expense Entry, Monthly Expenses |
-| Production Floor (own menu entry, first) | the floor page |
-| Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
+| Production Floor, Daily Input (own menu entries, first) | the floor page; the Daily Input page |
+| Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page; also an own menu entry), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
 | Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |

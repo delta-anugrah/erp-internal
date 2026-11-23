@@ -1,8 +1,9 @@
 # The erp-internal server
 
-Runbook for the production stack. The server, domain and off-site bucket wait on Samuel (question 6 in
-`docs/menunggu-samuel.md`); until then the stack is only built and tested locally (plan, Task 7). Nothing here is
-shared with BPT or the sawit server.
+Runbook for the production stack. Hosting is decided (DigitalOcean, Samuel 2026-11-23; backups to the admin's PC
+and Cloudflare R2; domain later: `docs/menunggu-samuel.md`, 2026-11-23 table, item 8), but the server is not built
+yet; until then the stack is only built and tested locally (plan, Task 7). Nothing here is shared with BPT or the
+sawit server.
 
 | File | What |
 |---|---|
