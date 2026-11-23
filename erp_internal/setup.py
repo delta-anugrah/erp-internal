@@ -225,7 +225,7 @@ IZIN_TAMBAHAN = (
 	("Work Order", tampilan.PERAN_USER, 0, ("read",)),
 	("Company", tampilan.PERAN_USER, 0, ("read",)),
 )
-# Grants of IZIN_TAMBAHAN taken back (same shape): `_proyek` deletes their Custom DocPerm row. The old User read
+# Grants of IZIN_TAMBAHAN taken back (same shape): `_cabut_izin` clears exactly these rights. The old User read
 # these for the delivery note and Material Receipt forms, now Admin's (Samuel, 2026-11-23).
 IZIN_DICABUT = (
 	("Price List", tampilan.PERAN_USER, 0, ("read",)),
@@ -692,9 +692,22 @@ def _proyek() -> None:
 				add_permission(doctype, peran, level)
 			update_permission_property(doctype, peran, level, h, 1)
 
-	# Frappe has no remove_permission helper (the Role Permission Manager's `remove` is the UI path).
-	for doctype, peran, level, _hak in IZIN_DICABUT:
-		syarat = {"parent": doctype, "role": peran, "permlevel": level}
-		if frappe.db.exists("Custom DocPerm", syarat):
-			frappe.db.delete("Custom DocPerm", syarat)
+	_cabut_izin()
+
+
+def _cabut_izin() -> None:
+	"""IZIN_DICABUT: clear exactly the listed rights on those Custom DocPerm rows, and delete a row only when no
+	right is left on it (a right set by someone else stays). Frappe has no remove_permission helper."""
+	from frappe.permissions import rights
+
+	for doctype, peran, level, hak in IZIN_DICABUT:
+		for baris in frappe.get_all(
+			"Custom DocPerm", {"parent": doctype, "role": peran, "permlevel": level}, ["name", *rights]
+		):
+			if not any(baris[h] for h in hak):
+				continue
+			if any(baris[r] for r in rights if r not in hak):
+				frappe.db.set_value("Custom DocPerm", baris.name, dict.fromkeys(hak, 0))
+			else:
+				frappe.db.delete("Custom DocPerm", baris.name)
 			frappe.clear_cache(doctype=doctype)

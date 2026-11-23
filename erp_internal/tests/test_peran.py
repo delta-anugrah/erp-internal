@@ -64,10 +64,35 @@ class TestPeran(IntegrationTestCase):
 			self.assertFalse(frappe.has_permission("Production Entry", hak, user=u), hak)
 
 	def test_izin_dicabut(self):
-		for doctype, peran, level, _hak in IZIN_DICABUT:
-			self.assertFalse(
-				frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": peran, "permlevel": level})
-			)
+		# Only the listed rights go: a right someone else set stays on the row; a row left with none is deleted.
+		from erp_internal import setup
+
+		doctype, peran, level, hak = IZIN_DICABUT[0]
+		syarat = {"parent": doctype, "role": peran, "permlevel": level}
+		self.addCleanup(frappe.clear_cache, doctype=doctype)
+		for lain, sisa in (({"export": 1}, True), ({}, False)):
+			with self.subTest(lain=lain):
+				frappe.db.delete("Custom DocPerm", syarat)
+				frappe.get_doc(
+					{
+						"doctype": "Custom DocPerm",
+						"parent": doctype,
+						"parenttype": "DocType",
+						"parentfield": "permissions",
+						"role": peran,
+						"permlevel": level,
+						**dict.fromkeys(hak, 1),
+						**lain,
+					}
+				).db_insert()
+				setup._cabut_izin()
+				baris = frappe.db.get_value("Custom DocPerm", syarat, ["name", *hak, *lain], as_dict=True)
+				self.assertEqual(bool(baris), sisa)
+				if baris:
+					self.assertFalse(any(baris[h] for h in hak))
+					self.assertTrue(all(baris[k] for k in lain))
+				setup._cabut_izin()  # idempotent
+				self.assertEqual(bool(frappe.db.exists("Custom DocPerm", syarat)), sisa)
 
 	def test_wo_tanpa_transfer(self):
 		# Produksi's entries never wait for Admin's Start: new Work Orders take material as output is entered.

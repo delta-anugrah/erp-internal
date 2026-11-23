@@ -109,7 +109,7 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
   HR pages instead of the icon rail (Abel 2026-11-03; `.claude/rules/tampilan.md`). `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
 - `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Admin and Super Admin
   (`PERAN_ATASAN`) submit someone else's timesheet; `setup.IZIN_TAMBAHAN` gives Employee `submit`, and `ERP User` read on Workstation, Work Order and Company;
-  `setup.IZIN_DICABUT` deletes the old User's Custom DocPerm rows (Price List, Account, Stock Settings, Customer Group).
+  `setup.IZIN_DICABUT` (`_cabut_izin`) clears exactly the old User's listed rights (Price List, Account, Stock Settings, Customer Group), deleting a row only when none is left.
 
 - Pinned tags only, never a develop branch. Change a pin on purpose, with the full test run.
 - Every customisation lives in `erp_internal` and is re-applied idempotently on `after_install`/`after_migrate`.

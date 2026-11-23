@@ -63,8 +63,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   its JSON), reads Machine Capacity and Reject Reason (JSON), Workstation, Work Order and Company
   (`setup.IZIN_TAMBAHAN`), opens the Production Floor and Plan vs Actual, and sets a machine's status through
   `production_floor.set_status` only; its Manufacturing sidebar shows only what it reads. No Sales History or Order
-  Readiness. `setup.IZIN_DICABUT` deletes the old User's Custom DocPerm rows on Price List, Account, Stock Settings
-  and Customer Group at migrate. A Production Entry's Manufacture and Repack are made and cancelled with
+  Readiness. `setup.IZIN_DICABUT` (`_cabut_izin`) clears exactly the old User's listed rights on Price List, Account,
+  Stock Settings and Customer Group at migrate, deleting a row only when no right is left on it. A Production Entry's Manufacture and Repack are made and cancelled with
   permissions ignored and `production_entry.FLAG_HASIL`; `production_entry.cek_stock_entry` (Stock Entry
   `validate`/`before_cancel`) refuses a Manufacture without it except for System Manager ("Record output in Daily
   Input."), and cancelling a Production Entry's own entry except through it. `work_order.js` hides ERPNext's
