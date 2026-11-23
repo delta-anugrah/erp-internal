@@ -35,7 +35,7 @@ mengunduh `input-harian-<dari>-<sampai>.xlsx`, satu sheet dengan susunan lembar 
 ## Dokumen asli dilampirkan
 
 Dokumen kertas harus ada foto atau scan-nya sebelum di-Submit: Sales Order, Sales Invoice, Purchase Order, Purchase
-Receipt, Purchase Invoice, Payment Entry, dan Stock Entry **Material Receipt**. Tanpa lampiran, sistem menolak
+Receipt, Purchase Invoice, Payment Entry, Stock Entry **Material Receipt**, dan Expense Entry **Once**. Tanpa lampiran, sistem menolak
 ("Attach a photo or scan of the real document before you submit.") dan formnya menampilkan catatan oranye. Catatan
 produksi (Production Entry, Work Order, BOM, Stock Entry Manufacture dan Repack), stok opname, dan Delivery Note
 tidak diwajibkan; surat jalan dilampiri setelah ditandatangani. Dokumen hasil Amend membawa lampirannya; dokumen yang
@@ -43,6 +43,31 @@ dibuat dari dokumen lain (Sales Order ke Delivery Note, Purchase Order ke Purcha
 
 Laporan **Stock → Missing Documents** menampilkan dokumen yang sudah di-Submit tapi belum ada lampirannya, plus semua
 surat jalan yang belum dilampiri. Tindak lanjutnya dari situ.
+
+## Biaya bulanan
+
+Menu **Buying → Expense Entry** mencatat biaya pabrik; cuma Admin dan Super Admin yang bisa membuka dan melihatnya.
+Isi **Date**, **Category** (Gaji Operator, Gaji Karyawan Tetap, Listrik, Bensin, Lainnya; kategori baru bisa
+ditambah di Expense Category), **Amount** (Rupiah), dan **Repeat**:
+
+| Repeat | Dihitung di bulan | Lampiran |
+|---|---|---|
+| **Once** | bulan tanggalnya | wajib (nota, kuitansi) |
+| **Every month** | tiap bulan dari bulan tanggalnya sampai bulan **Until** | tidak |
+| **Per machine shift** | Amount x jumlah shift mesin dari tanggalnya sampai **Until** | tidak |
+
+Satu shift mesin = satu mesin yang punya hasil produksi di satu tanggal dan satu shift; dua Work Order di mesin yang
+sama di shift yang sama dihitung satu. **Until** (hari terakhir yang dihitung) boleh diisi setelah Submit; kosong
+berarti masih berjalan. Dua biaya Per machine shift dengan kategori yang sama tidak boleh bertumpuk waktunya
+("End the earlier one first"). Gaji naik: isi Until di catatan lama, lalu buat catatan baru mulai hari berikutnya,
+jadi bulan lalu tetap pakai tarif lama.
+
+Laporan **Buying → Monthly Expenses** (pilih Company dan Month, tanggal mana saja di bulan itu) menampilkan satu baris
+per kategori dan Total. Di bawah Gaji Operator ada satu baris per mesin: jumlah shift, hari 24 jam (dua shift), dan
+hari 12 jam (satu shift).
+
+**Saat go-live** Admin membuat satu catatan: Category **Gaji Operator**, Amount **105.000**, Repeat **Per machine
+shift**, Date = hari produksi pertama, lalu Submit.
 
 ## Akun pengguna
 

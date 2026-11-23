@@ -17,6 +17,7 @@ WAJIB_LAMPIRAN: dict[str, tuple[str, tuple[str, ...]] | None] = {
 	"Purchase Invoice": None,
 	"Payment Entry": None,
 	"Stock Entry": ("purpose", ("Material Receipt",)),
+	"Expense Entry": ("repeat", ("Once",)),  # a repeating expense has no one paper document
 }
 # Submitted as today; the signed copy is attached afterwards (attachments stay open on a submitted document).
 LAMPIRAN_NANTI = ("Delivery Note",)
@@ -30,6 +31,7 @@ TANGGAL_DOK = {
 	"Purchase Invoice": "posting_date",
 	"Payment Entry": "posting_date",
 	"Stock Entry": "posting_date",
+	"Expense Entry": "posting_date",
 }
 
 

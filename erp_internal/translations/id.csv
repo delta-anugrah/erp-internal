@@ -381,3 +381,26 @@ Excel,Excel
 Allow pop-ups for this site to print.,Izinkan pop-up untuk situs ini agar bisa mencetak.
 Try again,Coba lagi
 Your session may have ended: log in again.,Sesi kamu mungkin sudah berakhir: masuk lagi.
+ERP Admin,Admin ERP
+Expense Entry,Catatan Biaya
+Expense Category,Kategori Biaya
+Monthly Expenses,Biaya Bulanan
+Amount,Jumlah
+Category,Kategori
+Details,Rincian
+Total,Total
+Repeat,Ulang
+Until,Sampai
+Once,Sekali
+Every month,Tiap bulan
+Per machine shift,Per shift mesin
+Any day of the month.,Tanggal mana saja di bulan itu.
+End the earlier one first: {0}.,Akhiri dulu yang sebelumnya: {0}.
+Until cannot be before the date.,Sampai tidak boleh sebelum tanggalnya.
+For a repeating expense: the day it starts.,Untuk biaya berulang: hari mulainya.
+No longer offered on new entries; old entries keep it.,Tidak ditawarkan lagi di catatan baru; catatan lama tetap memakainya.
+"One expense of the factory: paid once, every month, or per machine shift (the operator wage). The Monthly Expenses report adds them up per month.","Satu biaya pabrik: dibayar sekali, tiap bulan, atau per shift mesin (gaji operator). Laporan Biaya Bulanan menjumlahkannya per bulan."
+Per machine shift: the amount for one machine in one shift.,Per shift mesin: jumlah untuk satu mesin dalam satu shift.
+"The last day it counts. Empty: still running. A raise: set Until here, then make a new entry.","Hari terakhir yang dihitung. Kosong: masih berjalan. Naik gaji: isi Sampai di sini, lalu buat catatan baru."
+"What a monthly expense is for (Gaji Operator, Listrik, ...). Expense Entry picks one.","Untuk apa biaya bulanan itu (Gaji Operator, Listrik, ...). Catatan Biaya memilih salah satu."
+{0} shifts · {1} days 24 h · {2} days 12 h,{0} shift · {1} hari 24 jam · {2} hari 12 jam

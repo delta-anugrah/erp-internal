@@ -178,6 +178,9 @@ ALASAN_REJECT = (
 	"Sink Mark",
 	"Lainnya",
 )
+# The Expense Categories setup makes when missing (spec section 5), in the Monthly Expenses report's order. Admin
+# may add more; none is deleted.
+KATEGORI_BIAYA = ("Gaji Operator", "Gaji Karyawan Tetap", "Listrik", "Bensin", "Lainnya")
 # Item Group → the warehouse its items default to, per company.
 GUDANG_GRUP = {
 	"Barang Jadi": "Gudang Barang Jadi",
@@ -273,6 +276,7 @@ def pastikan_setup() -> None:
 	_bawaan_wo()
 	_shift_pabrik()
 	_alasan_reject()
+	_kategori_biaya()
 	_kantor()
 	_proyek()
 	tampilan.terapkan()
@@ -581,6 +585,14 @@ def _alasan_reject() -> None:
 	for nama in ALASAN_REJECT:
 		if not frappe.db.exists("Reject Reason", nama):
 			frappe.get_doc({"doctype": "Reject Reason", "reason_name": nama}).insert(ignore_permissions=True)
+
+
+def _kategori_biaya() -> None:
+	for nama in KATEGORI_BIAYA:
+		if not frappe.db.exists("Expense Category", nama):
+			frappe.get_doc({"doctype": "Expense Category", "category_name": nama}).insert(
+				ignore_permissions=True
+			)
 
 
 def _kantor() -> None:

@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "autoname": "EXP-.YYYY.-.#####",
+ "creation": "2026-11-23 21:00:00.000000",
+ "description": "One expense of the factory: paid once, every month, or per machine shift (the operator wage). The Monthly Expenses report adds them up per month.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "posting_date",
+  "category",
+  "amount",
+  "column_break_ulang",
+  "company",
+  "repeat",
+  "until",
+  "notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "description": "For a repeating expense: the day it starts.",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Category",
+   "link_filters": "[[\"Expense Category\", \"disabled\", \"=\", 0]]",
+   "options": "Expense Category",
+   "reqd": 1
+  },
+  {
+   "description": "Per machine shift: the amount for one machine in one shift.",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "Company:company:default_currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ulang",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Once",
+   "fieldname": "repeat",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Repeat",
+   "options": "Once\nEvery month\nPer machine shift",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.repeat!='Once'",
+   "description": "The last day it counts. Empty: still running. A raise: set Until here, then make a new entry.",
+   "fieldname": "until",
+   "fieldtype": "Date",
+   "label": "Until"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Expense Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 0,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-11-23 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Planning",
+ "name": "Expense Entry",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "ERP Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "posting_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "category",
+ "track_changes": 1
+}

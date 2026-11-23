@@ -123,6 +123,7 @@ doc_events = {
 	"Purchase Receipt": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
 	"Purchase Invoice": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
 	"Payment Entry": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Expense Entry": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
 }
 has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}

@@ -34,9 +34,8 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 7: Daily Input page (`daily-input`, `input_harian.bundle.js`) in Samuel's Excel layout, in the menu
       under the Production Floor; "Record Output" opens it.
 - [x] Plan Task 8: Daily Input print and Excel (`buku`, `export_excel`, `print_html`).
-- [ ] Build the plan's remaining tasks:
-      monthly expenses (operator shifts
-      from the daily input); PO print; pigment.
+- [x] Plan Task 9: monthly expenses (Expense Entry, Expense Category, report Monthly Expenses, `test_biaya`).
+- [ ] Build the plan's remaining tasks: PO print; pigment.
 - [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
 - [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.

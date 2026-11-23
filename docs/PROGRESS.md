@@ -2,6 +2,11 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 9 (Monthly expenses)
+- DocTypes Expense Entry and Expense Category (seeded from `setup.KATEGORI_BIAYA`), report Monthly Expenses
+  (`jumlah`, `shift_mesin`), Once entries need an attachment (`lampiran`), Buying sidebar and home. `test_biaya`
+  11 tests OK. Go-live step in `docs/panduan/admin.md` "Biaya bulanan". Next: Task 10.
+
 ## 2026-11-23, plan Task 8 (Daily recap print and Excel)
 - `daily_input.py`: `WARNA_EXCEL`, `buku` (openpyxl, Samuel's layout), `export_excel`, `print_html` (template
   `templates/input_harian_cetak.html`, A4 landscape, record text escaped); `get_data` blocks gain `dibuat` (the order's

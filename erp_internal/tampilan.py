@@ -90,7 +90,15 @@ SIDEBAR = {
 		"Payment Entry",
 		"Sales History",
 	],
-	"Buying": ["Supplier", "Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice"],
+	"Buying": [
+		"Supplier",
+		"Material Request",
+		"Purchase Order",
+		"Purchase Receipt",
+		"Purchase Invoice",
+		"Expense Entry",  # Admin and Super Admin only (Planning, ours)
+		"Monthly Expenses",
+	],
 	"Manufacturing": [
 		"production-floor",
 		"Work Order",
@@ -149,6 +157,8 @@ IKON_LINK = {
 	"Order Readiness": "calendar-clock",
 	"Plan vs Actual": "target",
 	"Missing Documents": "paperclip",
+	"Expense Entry": "wallet",
+	"Monthly Expenses": "chart-column",
 	"Machine Capacity": "cog",
 	"Item Lead Time": "hourglass",
 	"Item": "package",
@@ -393,6 +403,8 @@ PINTASAN = {
 		_p("Purchase Order"),
 		_p("Purchase Receipt"),
 		_p("Purchase Invoice"),
+		_p("Expense Entry"),
+		_p("Monthly Expenses", jenis="Report"),
 	),
 	"Manufacturing": (
 		_p("production-floor", "Production Floor", "Page"),
