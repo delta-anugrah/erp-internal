@@ -6,7 +6,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from erp_internal.planning import kapasitas as kapasitas_modul
-from erp_internal.planning.kapasitas import cari_mesin, jenis_varian, kapasitas
+from erp_internal.planning.kapasitas import ada_baris, cari_mesin, jenis_varian, kapasitas, mesin_item
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
@@ -175,3 +175,31 @@ class TestKapasitas(IntegrationTestCase):
 		buat_kapasitas(self.barang, self.mesin_a, material=self.bahan)
 		hasil = cari_mesin("Workstation", "", "name", 0, 20, {"item": self.barang})
 		self.assertEqual([r[0] for r in hasil], [self.mesin_a])
+
+	def test_baris_hanya_di_mesin_mati_tetap_mengunci(self):
+		# The item's only row sits on a machine that is off: no machine is free for it, not even another one.
+		mati = buat_mesin(3)
+		buat_kapasitas(self.barang, mati, material=self.bahan)
+		frappe.db.set_value("Workstation", mati, "disabled", 1)
+		self.assertEqual(mesin_item(self.barang), [])
+		self.assertEqual(cari_mesin("Workstation", "", "name", 0, 20, {"item": self.barang}), [])
+		with self.assertRaisesRegex(frappe.ValidationError, "none in use"):
+			self.order_draft(self.mesin_a).insert()
+
+	def test_order_jalan_terus_setelah_barisnya_dimatikan(self):
+		# A submitted order stays on its machine when its row is switched off later; a new order there is refused.
+		baris = buat_kapasitas(self.barang, self.mesin_a, material=self.bahan)
+		buat_kapasitas(self.barang, buat_mesin(3), material=self.bahan)
+		wo = frappe.get_doc("Work Order", buat_wo(self.barang, self.mesin_a, company=self.pabrik))
+		frappe.db.set_value("Machine Capacity", baris, "disabled", 1)
+		wo.reload()
+		wo.save()
+		with self.assertRaises(frappe.ValidationError):
+			self.order_draft(self.mesin_a).insert()
+
+	def test_mesin_item_ikut_template(self):
+		buat_kapasitas(self.tpl, self.mesin_a, material=self.bahan)
+		buat_kapasitas(self.v[0], self.mesin_b, material=self.bahan)
+		self.assertEqual(mesin_item(self.v[0]), [self.mesin_a, self.mesin_b])  # own row + template's
+		self.assertEqual(mesin_item(self.v[2]), [self.mesin_a])  # the template's row only
+		self.assertFalse(ada_baris(self.barang_tanpa_baris))

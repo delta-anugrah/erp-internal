@@ -41,22 +41,32 @@ def jenis_template(template: str) -> list[str]:
 	)
 
 
-def kapasitas(item: str, workstation: str) -> frappe._dict | None:
-	"""The enabled capacity row of `item` on `workstation`: the variant's own row, else its template's row for
-	the variant's Jenis, else its template's row with no Jenis, else None."""
+def _saring_baris(item: str) -> list[dict]:
+	"""The enabled-row filters `kapasitas()` tries for `item`, in order: its own row, then (a variant) its
+	template's row for the variant's Jenis, then its template's row with no Jenis."""
 	template = frappe.db.get_value("Item", item, "variant_of")
 	kandidat = [(item, "")]
 	if template:
 		kandidat += [(template, jenis_varian(item) or ""), (template, "")]
-	for kode, jenis in kandidat:
+	return [{"item": kode, "jenis": jenis or ("in", ("", None)), "disabled": 0} for kode, jenis in kandidat]
+
+
+def kapasitas(item: str, workstation: str) -> frappe._dict | None:
+	"""The enabled capacity row of `item` on `workstation`: the variant's own row, else its template's row for
+	the variant's Jenis, else its template's row with no Jenis, else None."""
+	for saring in _saring_baris(item):
 		if row := frappe.db.get_value(
-			"Machine Capacity",
-			{"item": kode, "jenis": jenis or ("in", ("", None)), "workstation": workstation, "disabled": 0},
-			"*",
-			as_dict=True,
+			"Machine Capacity", {**saring, "workstation": workstation}, "*", as_dict=True
 		):
 			return row
 	return None
+
+
+@frappe.whitelist()
+def ada_baris(item: str) -> bool:
+	"""True when `item` has an enabled Machine Capacity row on any machine (a disabled machine too): there is a
+	list to check against. False: no list, any machine goes."""
+	return bool(item) and any(frappe.db.exists("Machine Capacity", s) for s in _saring_baris(item))
 
 
 def varian_tercakup(nama: str) -> list[str]:
@@ -239,10 +249,9 @@ def _mesin_aktif_bernomor() -> list[str]:
 	)
 
 
-@frappe.whitelist()
 def mesin_item(item: str) -> list[str]:
-	"""The numbered machines `kapasitas()` finds an enabled row on for `item`, by number. Empty when the item
-	(and its template) has no enabled row on any of them: no list to check against."""
+	"""The enabled numbered machines `kapasitas()` finds an enabled row on for `item`, by number. Empty when the
+	item has no row at all (`ada_baris` False: any machine goes) or its rows sit on disabled machines only."""
 	if not item:
 		return []
 	return [m for m in _mesin_aktif_bernomor() if kapasitas(item, m)]
@@ -254,7 +263,7 @@ def cari_mesin(doctype, txt, searchfield, start, page_len, filters) -> list[tupl
 	"""Link query of the Work Order's machine: the machines listed for `filters["item"]`, else every enabled
 	numbered machine (an item with no Machine Capacity row yet is free)."""
 	item = (frappe.parse_json(filters) or {}).get("item")
-	nama = mesin_item(item) or _mesin_aktif_bernomor()
+	nama = mesin_item(item) or ([] if ada_baris(item) else _mesin_aktif_bernomor())
 	cari = (txt or "").lower()
 	return [(m,) for m in nama if cari in m.lower()][int(start or 0) :][: int(page_len or 20)]
 
@@ -269,9 +278,11 @@ def mesin_terdaftar(doc, method=None) -> None:
 	if lama and lama.docstatus == 1 and lama.erp_mesin == doc.erp_mesin:
 		return
 	daftar = mesin_item(doc.production_item)
-	if daftar and doc.erp_mesin not in daftar:
+	if doc.erp_mesin not in daftar and ada_baris(doc.production_item):
 		frappe.throw(
 			_("{0} is not made on {1}. Machines for it: {2}.").format(
-				frappe.bold(doc.production_item), frappe.bold(doc.erp_mesin), ", ".join(daftar)
+				frappe.bold(doc.production_item),
+				frappe.bold(doc.erp_mesin),
+				", ".join(daftar) or _("none in use"),
 			)
 		)

@@ -10,16 +10,14 @@ function catatan_mesin(frm) {
 	const item = frm.doc.production_item;
 	if (!item || frm.doc.docstatus === 2) return frm.set_df_property("erp_mesin", "description", "");
 	frappe.call({
-		method: "erp_internal.planning.kapasitas.mesin_item",
+		method: "erp_internal.planning.kapasitas.ada_baris",
 		args: { item },
 		callback: (r) => {
 			if (item !== frm.doc.production_item) return;
 			frm.set_df_property(
 				"erp_mesin",
 				"description",
-				r.message && r.message.length
-					? ""
-					: __("No Machine Capacity row for this item yet: every machine is allowed.")
+				r.message ? "" : __("No Machine Capacity row for this item yet: every machine is allowed.")
 			);
 		},
 	});

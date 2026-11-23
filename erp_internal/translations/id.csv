@@ -326,6 +326,7 @@ Cancel Production Entry {0} instead.,Batalkan Hasil Produksi {0} saja.
 ERP User,Pengguna ERP
 "{0} is not in use. Choose another machine.",{0} sedang tidak dipakai. Pilih mesin lain.
 "{0} is not made on {1}. Machines for it: {2}.","{0} tidak dibuat di {1}. Mesin untuk barang ini: {2}."
+none in use,tidak ada yang dipakai
 "No Machine Capacity row for this item yet: every machine is allowed.","Belum ada baris Machine Capacity untuk barang ini: semua mesin boleh."
 ERP_AKUN is not set: run make setup.,ERP_AKUN belum diisi: jalankan make setup.
 A password needs at least {0} characters.,Password minimal {0} karakter.

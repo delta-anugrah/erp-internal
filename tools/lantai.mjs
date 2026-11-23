@@ -765,7 +765,7 @@ if (jalankan("wo") || jalankan("xss")) await kasus("wo/xss", async () => {
 		let bom = null;
 		for (const b of json("frappe.get_all", "--kwargs", JSON.stringify({ doctype: "BOM", filters: { is_default: 1, docstatus: 1, is_active: 1 }, fields: ["name", "item", "quantity"], limit_page_length: 30 }))) {
 			const daftar = json("erp_internal.planning.kapasitas.mesin_item", "--args", JSON.stringify([b.item]));
-			if (!daftar.length || daftar.includes("Mesin 03")) {
+			if (daftar.includes("Mesin 03") || (!daftar.length && !json("erp_internal.planning.kapasitas.ada_baris", "--args", JSON.stringify([b.item])))) {
 				bom = b;
 				break;
 			}
