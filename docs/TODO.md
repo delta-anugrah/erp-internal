@@ -39,8 +39,10 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 11: pigment per colour in the capacity BOMs (template `PIGMEN` in grams, bought per Kg, `test_bom_kapasitas`).
 - [x] Plan Task 13: packing per product in the capacity BOMs (Item `erp_kemasan`, Item Packing), Pigmen and Kemasan
       rows in Monthly Expenses (`test_bom_kapasitas`, `test_biaya`).
-- [ ] Build the plan's remaining tasks (12, 14).
-- [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, brand codes, M1x machines): waits for Samuel's lists.
+- [x] Plan Task 14: Seal Cap brand codes with their mould inserts (Brand `erp_jumlah_insert`, `master._merek`, `test_master`).
+- [ ] Build the plan's remaining task (12, sample data).
+- [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, M1x machines, colours, pcs per pack and sack): waits for Samuel's lists
+      (the brand codes came 2026-11-23).
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
 - [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.
 

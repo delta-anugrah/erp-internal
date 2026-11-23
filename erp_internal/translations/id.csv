@@ -7,6 +7,7 @@ Projects,Proyek
 Shift & Attendance,Absensi
 Leaves,Cuti
 Item,Barang
+Brand,Merek
 Warehouse,Gudang
 Stock Entry,Mutasi Stok
 Stock Reconciliation,Stok Opname
@@ -129,6 +130,7 @@ HR Settings,Pengaturan SDM
 Opening Stock & Stock Count,Stok Awal & Stok Opname
 Machine No.,No. Mesin
 Machine Brand,Merek Mesin
+Inserts (pcs),Insert (pcs)
 Machine Model,Model Mesin
 Clamping Force (Ton),Daya Jepit (Ton)
 Year Made,Tahun Buat

@@ -138,6 +138,15 @@ FIELD_KEMASAN = {
 	),
 }
 
+# A Seal Cap brand's mould inserts (spec A4): the count Admin keeps current on the Brand.
+FIELD_MEREK = {
+	"fieldname": "erp_jumlah_insert",
+	"label": "Inserts (pcs)",
+	"fieldtype": "Int",
+	"insert_after": "brand",
+	"in_list_view": 1,
+}
+
 GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart", "Pigmen")
 # Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`); Ball Kecil the sales Excel's
 # (`penjualan.py`); Gram the pigments' stock UOM (bought per Kg).
@@ -395,6 +404,7 @@ def _field_aktif() -> None:
 			"Work Order": [FIELD_WO_MESIN],
 			"BOM": FIELD_BOM,
 			"Item": [FIELD_PIGMEN, FIELD_KEMASAN],
+			"Brand": [FIELD_MEREK],
 		},
 		update=True,
 	)

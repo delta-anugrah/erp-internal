@@ -118,6 +118,19 @@ class TestMaster(IntegrationTestCase):
 		nomor = frappe.get_all("Workstation", {"workstation_type": master.JENIS_MESIN}, pluck="erp_nomor")
 		self.assertEqual(sorted(nomor), list(range(1, 15)))
 
+	def test_merek_epp(self):
+		# The Seal Cap list: 21 brand codes, each with its insert count; a count Admin changed stays.
+		baris = master.berkas("merek_epp.json")
+		self.assertEqual(len(baris), 21)
+		for b in baris:
+			self.assertTrue(frappe.db.exists("Brand", b["merk"]), b["merk"])
+		self.assertEqual(frappe.db.get_value("Brand", "NKP", "erp_jumlah_insert"), 21)
+		self.assertEqual(frappe.db.get_value("Brand", "DBI", "description"), "2 pcs dibawa pa Udin")
+		frappe.db.set_value("Brand", "NKP", "erp_jumlah_insert", 19)
+		master.muat()
+		self.assertEqual(frappe.db.get_value("Brand", "NKP", "erp_jumlah_insert"), 19)
+		frappe.db.set_value("Brand", "NKP", "erp_jumlah_insert", 21)
+
 	def test_dua_kali_sama(self):
 		hitung = {
 			dt: frappe.db.count(dt) for dt in ("Item", "Item Price", "Workstation", "UOM Conversion Detail")

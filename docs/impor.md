@@ -258,6 +258,10 @@ yang membaca file dari Samuel apa adanya:
 - `erp_internal/data/katalog.json`: daftar harga "POLA PLASTIK TAHUN 2026" (20 produk, tipe, warna, harga per
   lusin/gross/ball/dus/pack, kemasan). Harga tidak mengikat (sewaktu-waktu dapat berubah).
 - `erp_internal/data/mesin.json`: 14 mesin injection moulding (merek, tonase, negara, tahun, model).
+- `erp_internal/data/merek_epp.json`: 21 kode merek Seal Cap (pelanggan EPP, daftar "List Insert EPP - Delta" dari
+  Samuel 2026-11-23) dengan jumlah insert cetakan dan KET-nya. `muat` membuat satu Brand per kode (APP, BEN, DBI, ...,
+  ZPU) dengan kolom `Inserts (pcs)` dan KET sebagai Description. Dua nilai itu hanya diisi saat Brand baru dibuat:
+  jumlah yang sudah diubah Admin (menu Stock, Brand) tidak ditimpa `muat` berikutnya.
 
 ```bash
 cd ~/Desktop/Projects/erp-internal-bench

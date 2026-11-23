@@ -126,6 +126,7 @@ def muat() -> dict:
 	setup._satuan()  # the packing UOMs, whole numbers (also on every migrate)
 	setup._varian()
 	hasil.simpan("Brand", MEREK, {"brand": MEREK})
+	_merek(hasil)
 	hasil.simpan(
 		"Price List", daftar, {"price_list_name": daftar, "selling": 1, "buying": 0, "currency": "IDR"}
 	)
@@ -154,6 +155,18 @@ def muat() -> dict:
 		"ditulis": hasil.ditulis,
 		"catatan": hasil.catatan,
 	}
+
+
+def _merek(hasil: "Hasil") -> None:
+	"""The Seal Cap brand codes (customer EPP) with their insert counts. The count and the note are only the
+	first load's: Admin keeps the count current afterwards."""
+	for b in berkas("merek_epp.json"):
+		hasil.simpan(
+			"Brand",
+			b["merk"],
+			{"brand": b["merk"]},
+			{"erp_jumlah_insert": b["insert"], "description": b["ket"]},
+		)
 
 
 HARGA_STANDAR = {

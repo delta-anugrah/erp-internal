@@ -2,6 +2,12 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-23, plan Task 14 (Seal Cap brand codes and their mould inserts)
+- `data/merek_epp.json` (21 rows of Samuel's "List Insert EPP - Delta"), Brand custom field `erp_jumlah_insert`
+  ("Inserts (pcs)", `setup.FIELD_MEREK`), `master._merek` (count and KET set only when the Brand is new, so an
+  Admin's count stays); Brand is in Stock's sidebar and home (Admin has Item Manager). `test_master` 11 OK
+  (1 new). Next: Task 12 (sample data).
+
 ## 2026-11-23, plan Task 13 (Packing, Pigmen and Kemasan in Monthly Expenses)
 - Child DocType Item Packing (`packing_item` filtered to group Kemasan, `pieces`), Item field `erp_kemasan`
   ("Packing", on templates, variants and Barang Jadi, not on Kemasan or Pigmen); UOM Buah (fractional,

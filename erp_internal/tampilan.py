@@ -77,6 +77,7 @@ SIDEBAR = {
 		"Stock Entry",
 		"Delivery Note",
 		"Item",
+		"Brand",  # Seal Cap brand codes with their mould inserts (Admin keeps the count)
 		"Warehouse",
 		"Stock Balance",
 		"Stock Ledger",
@@ -162,6 +163,7 @@ IKON_LINK = {
 	"Machine Capacity": "cog",
 	"Item Lead Time": "hourglass",
 	"Item": "package",
+	"Brand": "award",
 	"Stock Entry": "arrow-left-right",
 	"Delivery Note": "truck",
 	"Purchase Order": "clipboard-list",  # its base icon is Buying's own header icon
@@ -364,6 +366,7 @@ PINTASAN = {
 		_p("Stock Entry"),
 		_p("Delivery Note"),
 		_p("Item"),
+		_p("Brand"),
 		_p("Warehouse"),
 		_p("Stock Balance", jenis="Report"),
 		_p("Stock Ledger", jenis="Report"),
