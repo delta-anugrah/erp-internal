@@ -73,10 +73,21 @@ class ProductionEntry(Document):
 		if not frappe.db.get_value("Workstation", self.workstation, "erp_nomor"):
 			frappe.throw(_("{0} is not a numbered machine.").format(frappe.bold(self.workstation)))
 		mesin_order = frappe.db.get_value("Work Order", self.work_order, "erp_mesin")
-		# An amendment keeps the machine of the entry it replaces: that day's output stays where it was made.
-		mesin_lama = self.amended_from and frappe.db.get_value(
-			"Production Entry", self.amended_from, "workstation"
+		# An amendment of the same cell (order, date, shift) keeps the machine of the cancelled entry it replaces:
+		# that day's output stays where it was made.
+		lama = self.amended_from and frappe.db.get_value(
+			"Production Entry",
+			self.amended_from,
+			["docstatus", "work_order", "posting_date", "shift", "workstation"],
+			as_dict=True,
 		)
+		sel_sama = (
+			lama
+			and lama.docstatus == 2
+			and (lama.work_order, getdate(lama.posting_date), lama.shift)
+			== (self.work_order, getdate(self.posting_date), self.shift)
+		)
+		mesin_lama = lama.workstation if sel_sama else None
 		if mesin_order and self.workstation not in (mesin_order, mesin_lama):
 			frappe.throw(
 				_("Work Order {0} runs on {1}. Change the Work Order's machine first.").format(

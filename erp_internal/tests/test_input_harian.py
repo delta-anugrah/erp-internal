@@ -148,7 +148,9 @@ class TestInputHarian(IntegrationTestCase):
 		self.assertEqual(blok["baris"][0]["catatan"], "mesin panas")
 
 	def test_blok(self):
-		save_cell(self.wo_so, str(self.kemarin), "Shift 1", "1000")  # the whole order
+		lalu = add_days(self.kemarin, -3)
+		save_cell(self.wo_so, str(lalu), "Shift 1", "500")
+		save_cell(self.wo_so, str(self.kemarin), "Shift 1", "500")  # the whole order
 		blok = next(
 			b for b in get_data(str(self.kemarin), str(self.kemarin))["blok"] if b["work_order"] == self.wo_so
 		)
@@ -156,7 +158,7 @@ class TestInputHarian(IntegrationTestCase):
 		self.assertTrue(blok["selesai"])
 		self.assertEqual(blok["kemasan"], [{"uom": "Karton", "isi": 24}])
 		# A closed order shows only in the week of its last entry.
-		for dari in (add_days(self.kemarin, 7), add_days(self.kemarin, -7)):
+		for dari in (add_days(self.kemarin, 7), add_days(self.kemarin, -7), lalu):
 			nama = [b["work_order"] for b in get_data(str(dari), str(dari))["blok"]]
 			self.assertNotIn(self.wo_so, nama)
 			self.assertIn(self.wo, nama)
@@ -185,6 +187,18 @@ class TestInputHarian(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Production Entry form"):
 			save_cell(self.wo, str(self.kemarin), "Shift 1", "60")
 		self.assertEqual(frappe.db.get_value("Production Entry", pe.name, "docstatus"), 1)
+
+	def test_amandemen_sel_lain_ditolak(self):
+		# The old machine is kept only when amending the same cell: not another order's cancelled entry.
+		frappe.set_user("Administrator")
+		lain = buat_wo(JADI, self.mesin_b, qty=1000, company=self.pabrik)
+		pe = buat_hasil(lain, good=10, posting_date=self.kemarin)
+		pe.cancel()
+		frappe.set_user(self.produksi)
+		with self.assertRaisesRegex(frappe.ValidationError, "runs on"):
+			buat_hasil(
+				self.wo, good=10, posting_date=self.kemarin, workstation=self.mesin_b, amended_from=pe.name
+			)
 
 	def test_mesin_diganti(self):
 		save_cell(self.wo, str(self.kemarin), "Shift 1", "10")
