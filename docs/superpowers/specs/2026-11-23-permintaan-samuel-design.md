@@ -371,6 +371,44 @@ signed copy), the access PDF (`Hak-Akses-ERP-Delta-Anugrah-revisi.pdf`) regenera
 - His pigment list: colour, ratio, price per kg.
 - Item 6's lists, as already noted.
 
+## Addendum (Samuel's WhatsApp 2026-11-23 15:22-16:39, sent by Abel at 17:06)
+
+Samuel: "beli pigmen per kilo ya, tapi karena bisa kepake nya per gram metric nya per gram aja ya?" (Abel: buying
+and use are separate), and "sm packing mas, itu jadi expense sprti pigment ... barang apa, fit brp piece, harga".
+He also sent `2026-11-23-samuel/insert-epp.png`, "List Insert EPP - Delta": 21 brand codes with the number of
+mould inserts held for each.
+
+**A1. Pigment stocked in grams, bought in kg** (changes section 8). The `PIGMEN` template's stock UOM is Gram
+(a UOM that allows fractions) with a UOM conversion Kg = 1000 g and purchase UOM Kg; its price in `Harga Bahan
+Baku` is per Kg (`uom` Kg on the Item Price). The BOM line is in grams: qty per piece = material per piece in
+kg × ratio (g per kg). A Purchase Order of 2 Kg puts 2.000 g in stock; production takes grams.
+
+**A2. Packing used up like pigment.** Item Group "Kemasan" (default warehouse Gudang Bahan Baku). A packing item
+(plastic bag, sack, carton, ...) is a plain stock item of that group, stock UOM one that allows fractions (pcs),
+priced in `Harga Bahan Baku` ("barang apa ... harga"). Each product says which packing it goes in and how many
+pieces fit ("fit brp piece"): a child table on Item, "Packing" (packing item, pieces per packing), read from the
+variant, else its template. The machine-capacity BOM adds one line per packing row: 1 ÷ pieces per packing of
+the packing item per piece. Changing a product's packing rows or a packing item's state rebuilds the capacity
+BOMs like a pigment change. The daily input's packing text (section 4) stays the item's packing UOMs.
+
+**A3. Pigment and packing in Monthly Expenses.** "Jadi expense": the Monthly Expenses report gets two computed
+rows, Pigmen and Kemasan: the value of those items used by production in the month (the stock value that
+Production Entries' Manufacture and Repack entries took out of stock, from the stock ledger). Buying them is not
+counted again (my call: the report shows the month's cost of what was used, so a big purchase does not show as
+one month's cost).
+
+**A4. Seal Cap brand codes and their inserts** (part of item 6, the rest still waits). The 21 brand codes of the
+list become ERPNext Brand records (APP, BEN, DBI, GIL, GJP, JAKPRO, JUP, MTI, NDY, NKP, PAS, PPN, PT CN, PWP, SAS,
+SBU, SKI, SMP, THP, TSE, ZPU), each with a custom field "Inserts (pcs)" (the count in the list: 20, DBI 18, NKP 21)
+and the KET as its description ("1 pc ada bautnya", "2 pcs dibawa pa Udin"). Loaded from a data file with
+Samuel's master data, idempotent, never overwriting a count Admin changed in the app after the first load (my
+call: the list is a starting point; inserts move). The Seal Cap items, prices per machine and machines M1x stay
+for item 6.
+
+Calls made (addendum): A1 grams in stock, kg to buy; A2 packing per product as a child table with pieces per
+packing, consumed through the capacity BOM; A3 the report counts what was used, not what was bought; A4 brand
+codes as Brand records with an insert count that Admin keeps current.
+
 ## Left to the builder
 
 The page's exact markup, styles and keyboard flow (Tab and Enter move like Excel), icons (from the lucide sprite,

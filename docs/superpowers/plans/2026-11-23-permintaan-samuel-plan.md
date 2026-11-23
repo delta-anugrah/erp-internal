@@ -803,6 +803,14 @@ that date and shift (`buat_hasil(..., posting_date=…, shift=…)`).
 
 ### Task 11: Pigment
 
+> **Amended 2026-11-23 17:06 (spec Addendum A1): pigment is stocked in grams, bought in kg.** Where this task
+> says Kg for the pigment, read: stock UOM Gram (a UOM with `must_be_whole_number` 0; make it in setup if the
+> site lacks one), UOM conversion Kg = 1000, `purchase_uom` Kg, Item Price per Kg in `Harga Bahan Baku`. The BOM
+> line is in grams: `qty = round(flt(row.material_per_pcs) / 1000 * ratio, 6)` (material_per_pcs is in grams, so
+> /1000 gives kg, × g per kg). The tests below change accordingly: `test_pigmen_per_warna` expects `(pg, 0.1)`,
+> `test_rasio_berubah_bom_baru` `(pg, 0.15)`, `test_produksi_memakai_pigmen` stocks 1000 g and expects 950 g
+> left. Add `test_beli_per_kg`: a Purchase Receipt (attached, Task 5) of 2 Kg of a pigment puts 2000 g in stock.
+
 **Files:**
 - Modify: `erp_internal/setup.py` (`GRUP_BARANG` + "Pigmen", `GUDANG_GRUP["Pigmen"] = "Gudang Bahan Baku"`, `FIELD_PIGMEN` on Item in `_field_aktif`: `erp_rasio_pigmen`, Float, "Pigment Ratio (g per kg)", default 1, `depends_on: eval:doc.variant_of=='PIGMEN'`, after `item_group`)
 - Modify: `erp_internal/penjualan.py` (`_pigmen(hasil)`: the "PIGMEN" template, group Pigmen, Kg, variants on `Warna`, called in `muat` after `_bahan`)
@@ -875,6 +883,13 @@ that date and shift (`buat_hasil(..., posting_date=…, shift=…)`).
 
 ### Task 12: Sample data, guides and the full check
 
+> **Order amended 2026-11-23 17:06:** run Tasks 13 and 14 (below) before this one. This task's sample data also
+> gets packing (two packing items, packing rows on the sample products, stock and prices) and the Seal Cap
+> brands are loaded by `master.muat`; `test_contoh_baru` also asserts a capacity BOM with a packing line. Its
+> full check includes an end-to-end browser run (Playwright) of each profile's main flow: Produksi types a day in
+> Daily Input; Admin makes a Work Order on a listed machine, a Sales Order with an attachment, a delivery note
+> from Pluit, an expense, and opens Monthly Expenses and Missing Documents.
+
 **Files:**
 - Modify: `erp_internal/contoh.py` (a week of daily input through `daily_input.save_cell` with technicians "Yudi" and "Fadli"; a Material Transfer to Gudang Pluit and a delivery note from it, attached; two pigments `PIGMEN` Merah and Biru with stock and price in `Harga Bahan Baku`; expense entries: Gaji Operator 105.000 Per machine shift from the first sample production day, Gaji Karyawan Tetap Every month, Listrik and Bensin Once with attachments), `DIBUAT` (+ Expense Entry, Delivery Note), `erp_internal/tests/test_contoh.py`
 - Modify: `tools/panduan_gambar.mjs` and the guide pictures in `docs/panduan/gambar/`, the access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` (regenerated the way PROGRESS 2026-11-02 records), README ("Make commands" untouched; the feature list), CLAUDE.md (status paragraph, test count), `docs/menunggu-samuel.md` (rows 1-5 and 7 done, the open asks: full PO, pigment list), `docs/TODO.md`, `docs/PROGRESS.md`
@@ -903,3 +918,85 @@ that date and shift (`buat_hasil(..., posting_date=…, shift=…)`).
   Production Floor changed; the attribution check; then the `docs-sync` agent with the changed files.
 
 - [ ] **Step 5: Commit** — `git commit -m "docs: guides, sample data and checks for Samuel's 2026-11-23 requests"`
+
+---
+
+### Task 13: Packing used up through the capacity BOM, and pigment/packing in Monthly Expenses
+
+Added 2026-11-23 17:06 (spec Addendum A2, A3). Runs after Task 11, before Task 12.
+
+**Files:**
+- Create: `erp_internal/planning/doctype/item_packing/` (child DocType "Item Packing", `istable`: `packing_item`
+  Link Item reqd, filtered to group Kemasan in the form; `pieces` Int reqd, more than 0, label "Pieces per Packing")
+- Modify: `erp_internal/setup.py` (`GRUP_BARANG` + "Kemasan", `GUDANG_GRUP["Kemasan"] = "Gudang Bahan Baku"`;
+  custom Item field `erp_kemasan`, Table "Item Packing", label "Packing", after the pigment ratio field, shown
+  only when `has_variants` or `variant_of` or the item is a finished product, your call how, not on Kemasan or
+  Pigmen items)
+- Modify: `erp_internal/planning/kapasitas.py` (`GRUP_KEMASAN = "Kemasan"`, `kemasan(item) -> list[tuple[str,
+  int]]`: the variant's rows, else its template's; `baris_bom(row, item)` adds `{"item_code": packing_item, "qty":
+  round(1 / pieces, 9)}` per row; the Item `on_update` hook rebuilds capacity BOMs (`segarkan_bom`, the same
+  dedup job) when a product's packing rows change or a Kemasan item is enabled/disabled)
+- Modify: `erp_internal/planning/report/monthly_expenses/monthly_expenses.py` (`BIAYA_STOK = {"Pigmen":
+  "Pigmen", "Kemasan": "Kemasan"}`: report row label → Item Group; `pemakaian(company, awal, akhir) -> dict[str,
+  float]`: minus the sum of `stock_value_difference` of submitted Stock Ledger Entries in the month whose item is
+  in that group and whose voucher is a Stock Entry named in a submitted Production Entry's `manufacture_entry` or
+  `reject_entry`; rows only when not 0; included in Total)
+- Modify: `erp_internal/tests/test_bom_kapasitas.py`, `test_biaya.py`, `erp_internal/translations/id.csv`
+- Modify: CLAUDE.md, `docs/panduan/pembelian.md` (buying packing), `docs/panduan/produksi.md` (the BOM's packing
+  lines), `docs/panduan/admin.md` (setting a product's packing; Monthly Expenses' Pigmen and Kemasan rows)
+
+**Interfaces:**
+- Produces: `kapasitas.GRUP_KEMASAN`, `kapasitas.kemasan(item)`, `monthly_expenses.BIAYA_STOK`,
+  `monthly_expenses.pemakaian(company, awal, akhir)`.
+
+- [ ] **Step 1: Write the failing tests**
+
+```python
+	# test_bom_kapasitas.py
+	def test_kemasan_di_bom(self):
+		merah, = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		plastik = self.kemasan("_UJI Plastik isi 560")
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 560)  # on the template: the variant inherits it
+		buat_bom_kapasitas(buat_kapasitas("_UJI-KM-GAYUNG", self.mesin, material=self.bahan, part_weight=50, runner_weight=0))
+		self.assertIn((plastik, round(1 / 560, 9)), self.isi_bom(merah))
+
+	def test_kemasan_berubah_bom_baru(self):
+		# changing the template's pieces rebuilds the BOM now under tests (same job as the pigment)
+		...
+
+	# test_biaya.py
+	def test_pemakaian_pigmen_kemasan(self):
+		# a product whose capacity BOM has a pigment and a packing line; stock both with a valuation rate;
+		# one Production Entry in Nov 2026; the November report has rows Pigmen and Kemasan equal to the value
+		# used (qty used x valuation rate), in Total; December has neither.
+		...
+```
+
+- [ ] **Step 2: Run to verify they fail.** **Step 3: Implement.** **Step 4: Run** `bench --site erp-test.localhost
+  migrate`, `test_bom_kapasitas`, `test_biaya`, `test_tampilan`, `test_hasil_produksi`. **Step 5: Commit** —
+  `git commit -m "feat(kapasitas): packing per product in the capacity BOMs; pigment and packing in Monthly Expenses"`
+
+---
+
+### Task 14: Seal Cap brand codes and their mould inserts
+
+Added 2026-11-23 17:06 (spec Addendum A4, picture `docs/superpowers/specs/2026-11-23-samuel/insert-epp.png`).
+Runs after Task 13, before Task 12.
+
+**Files:**
+- Create: `erp_internal/data/merek_epp.json`: `[{"merk": "APP", "insert": 20, "ket": ""}, ...]`, the 21 rows of
+  the picture in its order: APP 20, BEN 20 "1 pc ada bautnya", DBI 18 "2 pcs dibawa pa Udin", GIL 20, GJP 20,
+  JAKPRO 20, JUP 20, MTI 20, NDY 20, NKP 21, PAS 20, PPN 20, PT CN 20, PWP 20, SAS 20, SBU 20, SKI 20, SMP 20,
+  THP 20, TSE 20, ZPU 20
+- Modify: `erp_internal/setup.py` (custom Brand field `erp_jumlah_insert`, Int, label "Inserts (pcs)", after
+  `brand`), `erp_internal/master.py` (`_merek()` in `muat`: a Brand per row, `erp_jumlah_insert` and
+  `description` set only when the Brand is new), `erp_internal/tampilan.py` (Brand in Stock's sidebar for Admin
+  if it is not reachable today; check `test_rumah_sama_dengan_sidebar` and the 12-shortcut cap)
+- Modify: `erp_internal/tests/test_master.py` (or the module that tests `master.muat`), `id.csv`
+- Modify: CLAUDE.md (master.py row), `docs/impor.md`, `docs/menunggu-samuel.md` (row 6: brand codes received
+  with the insert counts, customer EPP; still waiting: machines Rp23/Rp24, colours, pcs per pack and sack)
+
+- [ ] **Step 1: failing test** `test_merek_epp`: after `master.muat`, 21 Brands from the file, NKP has
+  `erp_jumlah_insert` 21 and DBI's description "2 pcs dibawa pa Udin"; set NKP to 19, run `muat` again, NKP
+  stays 19. **Steps 2-4** as usual (`test_master`, `test_tampilan`). **Step 5: Commit** —
+  `git commit -m "feat(master): Seal Cap brand codes with their mould inserts"`
