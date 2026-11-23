@@ -75,7 +75,7 @@ menonaktifkan BOM lama dari baris itu yang tidak dipakai Work Order yang masih j
 1. **Manufacturing → Sales Forecast → + Add Sales Forecast**.
 2. **Company**, **Frequency** `Monthly`, **From Date** tanggal 1 bulan depan, **Number of Periods** misalnya
    `1` (atau `3` untuk tiga bulan).
-3. **Parent Warehouse**: gudang induk perusahaan (yang di atas empat gudang).
+3. **Parent Warehouse**: gudang induk perusahaan (yang di atas lima gudang).
 4. Pilih produknya di **Items** (kotak pilih banyak), **Save**.
 5. Klik **Fill from History**. Tiap produk diisi rata-rata 3 bulan penuh terakhir (riwayat penjualan + pesanan
    yang sudah di-submit), dibulatkan ke atas. Pesannya menyebut bulan yang dipakai.
@@ -147,7 +147,7 @@ not belong to company", akunmu nggak boleh buka company atau gudang itu.
 
 | Kolom | Artinya |
 |---|---|
-| Stock | stok di Gudang Barang Jadi |
+| Stock | stok di Gudang Barang Jadi + Gudang Pluit (kalau gudang tidak dipilih) |
 | Open Orders | pesanan yang belum dikirim |
 | Forecast This Month | angka perkiraan bulan ini |
 | Ordered This Month | yang sudah dipesan bulan ini |
