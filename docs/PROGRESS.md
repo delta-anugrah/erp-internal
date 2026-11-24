@@ -15,6 +15,17 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Guide artifact (manual book, 31 steps incl. Seal Cap and Missing Data) updated for Abel's manual test.
 - Next: Abel's manual test from the guide; Samuel's confirmations (`docs/menunggu-samuel.md`).
 
+## 2026-11-25, CI: database snapshot for pull requests
+- `deploy/ci_tes.sh` `FOTO=<dir>`: the test site starts from `<dir>/dasar.sql.gz` (frappe, erpnext, hrms installed)
+  and installs only erp_internal; without it the site is made in full and the snapshot written first
+  (`HANYA_FOTO=1` stops there). `ci.yml` job "Foto" (push to main) makes it once per `versi.json` + `ci_tes.sh`
+  and saves it to the Actions cache; "Tes" on a pull request restores it; a tag always installs from scratch.
+- Local, as run: actionlint and shellcheck clean; snapshot 1.1 MB in 10.5 min; tests from it 367 OK. Site setup went
+  from about 15.5 to about 5 min, but the whole run was 1820 s against 1795 s before, because the tests themselves
+  took 1530 s against 863 s: the Mac was busy (load average 8-11, another session's bench running), so the local
+  timing is not a fair comparison. To measure on GitHub after the merge (the snapshot exists only once "Foto" ran on
+  main).
+
 ## 2026-11-24, CI: `image.yml` replaced by `ci.yml`
 - `.github/workflows/ci.yml`, one job "Tes": a pull request to main runs ruff 0.17.6, builds the image (GHCR registry
   cache `:buildcache`), `check_image.sh` and the new `deploy/ci_tes.sh` (all tests in the image, own MariaDB and

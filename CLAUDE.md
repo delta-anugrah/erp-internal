@@ -83,6 +83,7 @@ node --test tools/denah.test.mjs                         # the Production Floor'
 # from the repo: the server image and its check (deploy/server/README.md is the runbook)
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
 deploy/ci_tes.sh erp-internal:uji        # every erp_internal test inside the image, as CI runs them (Docker only)
+FOTO=/tmp/foto deploy/ci_tes.sh erp-internal:uji   # same, from the database snapshot (written there on the first run)
 # on the server, in ~/erp: make setup (asks, then deploy/server/Makefile's steps; make backup by hand afterwards)
 make setup                               # from the repo, once after the clone: asks, then builds the Docker stack with Samuel's data
 make up                                  # starts it on http://localhost:8080 (no questions)
@@ -148,7 +149,7 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
   `tests/utils.py`; date records relative to `today()`.
 - Docs follow code in the same commit: CLAUDE.md, README.md, `docs/`.
 - Conventional Commits, no Claude attribution. Work on `feat/lokal`; `main` is protected (PR only). Tag and deploy
-  only with Abel's approval, after bumping `erp_internal.__version__` to the tag (`ci.yml` checks it, and that the tag is on `main`). CI (`.github/workflows/ci.yml`, job "Tes"): a pull request to `main` runs ruff, builds the image, `check_image.sh` and `deploy/ci_tes.sh` (all tests in the image); a tag does the same and then pushes to GHCR; drafts and docs-only pull requests skip the work (README "The image"). Every PR: assignee `marcoabelz`, reviewer `supportusahaai`
+  only with Abel's approval, after bumping `erp_internal.__version__` to the tag (`ci.yml` checks it, and that the tag is on `main`). CI (`.github/workflows/ci.yml`, job "Tes"): a pull request to `main` runs ruff, builds the image, `check_image.sh` and `deploy/ci_tes.sh` (all tests in the image); a tag does the same on a site made from scratch and then pushes to GHCR; drafts and docs-only pull requests skip the work; job "Foto" on a push to `main` caches a database snapshot (frappe, erpnext, hrms) keyed on `versi.json` + `ci_tes.sh` that pull requests start their test site from (`FOTO`; README "The image"). Every PR: assignee `marcoabelz`, reviewer `supportusahaai`
   (`gh pr create --assignee marcoabelz --reviewer supportusahaai`).
 
 ## Working here
