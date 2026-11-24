@@ -2,6 +2,19 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-24, PR #11 merged; browser check of the guide
+- PR #11 (Tasks 1-16) merged into `main` as `2b4a7d0` after CI "Tes" passed on `83d5b92` and Abel's approval.
+- On erp.localhost, as run: `tools/e2e_samuel.mjs` 15/15, `tools/cek_layar.mjs` 3 users OK. A one-off browser run
+  (admin@ and user@) of the guide's Seal Cap and Missing Data steps, all as expected: Seal Cap SKI Biru on Mesin 04
+  → 24, Mesin 14 → 23, no machine refused; `SAL-ORD-2026-00009` submitted, PO Samuel print shows Mesin 04;
+  `MFG-WO-2026-00018` made from it takes Mesin 04 and BOM `BOM-SEAL-CAP-SKI-BRU-001`; Material Receipt
+  `MAT-STE-2026-00278` (BB-SEAL-CAP, PIGMEN-BRU, Plastik 35x50, Karung); Produksi typed 1.000 in Daily Input:
+  stock +1.000 Seal Cap, -0,88 Kg material, -13,2 g pigment, -1 bag, -0,05 sack. Missing Data fix link opens the
+  Packing table; BASKOM-20 note; Sales Order line CTH-BASKOM-40 shows "has no selling price" with its link;
+  Produksi can open neither Missing Data nor Sales Orders. These documents stay on erp.localhost.
+- Guide artifact (manual book, 31 steps incl. Seal Cap and Missing Data) updated for Abel's manual test.
+- Next: Abel's manual test from the guide; Samuel's confirmations (`docs/menunggu-samuel.md`).
+
 ## 2026-11-24, CI: `image.yml` replaced by `ci.yml`
 - `.github/workflows/ci.yml`, one job "Tes": a pull request to main runs ruff 0.17.6, builds the image (GHCR registry
   cache `:buildcache`), `check_image.sh` and the new `deploy/ci_tes.sh` (all tests in the image, own MariaDB and
