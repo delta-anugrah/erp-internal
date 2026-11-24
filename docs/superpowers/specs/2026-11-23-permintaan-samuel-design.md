@@ -409,6 +409,11 @@ Calls made (addendum): A1 grams in stock, kg to buy; A2 packing per product as a
 packing, consumed through the capacity BOM; A3 the report counts what was used, not what was bought; A4 brand
 codes as Brand records with an insert count that Admin keeps current.
 
+**A5. Missing data notices** (Abel 2026-11-24: notices with fix links). Until Samuel's pigment and packing lists
+arrive, products without packing use none and colours without a pigment use none; users must see that. Orange notes
+on the Item, Sales Order, Work Order forms and in Monthly Expenses, and one report for Admin (Settings → Missing
+Data), every notice with a link straight to where it is fixed. Built in `erp_internal/kelengkapan.py` (plan Task 15).
+
 ## Left to the builder
 
 The page's exact markup, styles and keyboard flow (Tab and Enter move like Excel), icons (from the lucide sprite,

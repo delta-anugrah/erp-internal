@@ -2,8 +2,8 @@
 
 Untuk **Admin**. Admin melihat hasil produksi yang dicatat Produksi (`user.md`; mengisinya tidak bisa), dan
 mengerjakan: perintah produksi (Work Order), surat jalan dan bahan masuk (`gudang.md`), barang, pemasok, resep
-(BOM), stok awal dan stok opname, HR, akun pengguna, dan pengaturan usaha. Akun pengguna, stok awal dan opname, dan
-pengaturan ada di menu **Settings** di kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
+(BOM), stok awal dan stok opname, HR, akun pengguna, pengaturan usaha, dan data yang belum lengkap. Akun pengguna,
+stok awal dan opname, pengaturan, dan laporan data yang belum lengkap ada di menu **Settings** di kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
 Manufacturing); HR di menu **HR**.
 
 Ada tiga peran (**Role Profile**):
@@ -109,9 +109,10 @@ punya link (tulisan tebal bergaris bawah) yang langsung membuka tempat membetulk
 | Stok pigmen atau kemasan di Gudang Bahan Baku | pencatatan hasil produksi gagal | Purchase Order baru dengan barangnya |
 
 Warna Bening, Bening Transparan dan Campur memang tanpa pigmen, jadi tidak dicatat. Catatan di form: form barang
-(yang kurang dari barang itu), Sales Order draft ("Line 1: ... has no selling price."), Work Order yang belum
-selesai (kemasan atau pigmen belum ada), dan laporan Monthly Expenses (gaji operator). Catatan tidak pernah menahan
-Save. Di laporan, kolom **Item** menyaring ke satu barang dan variannya.
+(yang kurang dari barang itu), Sales Order draft ("Line 1: ... has no selling price."), Work Order draft atau
+berstatus Not Started / In Process (kemasan atau pigmen belum ada), dan laporan Monthly Expenses (gaji operator).
+Catatan tidak pernah menahan Save. Produksi melihat catatan di Work Order tanpa link; Admin yang membetulkan. Di
+laporan, filter **Item** menyaring ke satu barang dan variannya.
 
 ## Akun pengguna
 

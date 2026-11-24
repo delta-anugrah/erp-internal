@@ -13,7 +13,9 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
 1. Buka **Selling → Sales Order → + Add Sales Order**.
 2. Isi **Customer**, **Delivery Date** (tanggal kirim yang dijanjikan).
 3. Di tabel **Items**: pilih barang, isi **Quantity**. **Rate** (harga satuan) terisi sendiri dari daftar harga
-   `Harga Pola 2026`; ubah kalau harganya beda. Rate 0 berarti barang itu belum punya harga di daftar.
+   `Harga Pola 2026`; ubah kalau harganya beda. Rate 0 berarti barang itu belum punya harga di daftar: form
+   menampilkan catatan oranye ("Line 1: ... has no selling price.") dengan link **Add a selling price** yang
+   langsung membuka harga baru untuk barang itu (`admin.md` "Data belum lengkap").
    Kalau pelanggan pesan per karton, pilih **UOM** `Karton`; sistem menghitung isinya sendiri.
 4. Klik **Save**, cek lagi. **Lampirkan foto atau scan dokumen aslinya** (pesanan dari pelanggan) lewat
    **Attach** di kanan form; selama belum ada lampiran, form menampilkan catatan oranye dan **Submit** ditolak.

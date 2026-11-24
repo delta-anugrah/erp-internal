@@ -13,6 +13,7 @@ from erp_internal.planning.report.monthly_expenses import monthly_expenses
 from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
+	buat_bom,
 	buat_kapasitas,
 	buat_kemasan,
 	buat_mesin,
@@ -20,6 +21,7 @@ from erp_internal.tests.utils import (
 	buat_perusahaan,
 	buat_pigmen,
 	buat_varian,
+	buat_wo,
 	daftar_harga,
 	isi_kemasan,
 	stok_awal,
@@ -168,10 +170,18 @@ class TestKelengkapan(IntegrationTestCase):
 
 	def test_untuk_produksi(self):
 		# Produksi reads Work Orders, not Items: the Work Order note shows packing and pigment only.
+		item = self.merah[0]
+		buat_bom(item, {buat_barang("_UJI-KL-PP", "Bahan Baku", satuan="Kg"): 0.05}, company=self.pabrik)
+		wo = buat_wo(item, None, company=self.pabrik)
 		u = buat_pengguna("_uji.kl.produksi@example.com", PRODUKSI, PRODUKSI, self.pabrik)
 		frappe.set_user(u)
-		pesan = kelengkapan.untuk_produksi(self.merah[0])
+		pesan = kelengkapan.untuk_produksi(wo, item)
 		self.assertEqual(sorted(p["kunci"] for p in pesan), ["kemasan", "pigmen"])
+		# Only that order's product: another item through it, or a new order, is refused.
+		with self.assertRaises(frappe.PermissionError):
+			kelengkapan.untuk_produksi(wo, self.varian[0] if self.varian[0] != item else self.varian[1])
+		with self.assertRaises(frappe.PermissionError):
+			kelengkapan.untuk_produksi("new-work-order-1", item)
 
 	def test_laporan(self):
 		kolom, baris = execute({"company": self.pabrik})

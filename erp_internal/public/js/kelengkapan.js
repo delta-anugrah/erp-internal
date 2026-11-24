@@ -97,26 +97,37 @@ function baris_server(pesan) {
 
 const MUAT = {
 	Item(frm) {
-		if (frm.is_new()) return;
+		if (frm.is_new()) return tampilkan(frm, []);
+		// The form object is reused for the next Item: draw only if it still shows this one.
+		const nama = frm.doc.name;
 		frappe
-			.xcall("erp_internal.kelengkapan.untuk_item", { item: frm.doc.name })
-			.then((pesan) => frm.docname === frm.doc.name && tampilkan(frm, baris_server(pesan)));
+			.xcall("erp_internal.kelengkapan.untuk_item", { item: nama })
+			.then((pesan) => frm.doc.name === nama && tampilkan(frm, baris_server(pesan)));
 	},
 	"Work Order"(frm) {
 		const buka = frm.doc.docstatus === 0 || ["Not Started", "In Process"].includes(frm.doc.status);
 		if (!buka || !frm.doc.production_item) return tampilkan(frm, []);
+		const nama = frm.doc.name;
+		const item = frm.doc.production_item;
 		frappe
-			.xcall("erp_internal.kelengkapan.untuk_produksi", { item: frm.doc.production_item })
-			.then((pesan) => tampilkan(frm, baris_server(pesan)));
+			.xcall("erp_internal.kelengkapan.untuk_produksi", { work_order: nama, item })
+			.then(
+				(pesan) =>
+					frm.doc.name === nama &&
+					frm.doc.production_item === item &&
+					tampilkan(frm, baris_server(pesan))
+			);
 	},
 	"Sales Order"(frm) {
 		if (frm.doc.docstatus !== 0) return tampilkan(frm, []);
+		// No list on the order yet: the default one (master._harga_bawaan keeps the global default set).
+		const daftar = frm.doc.selling_price_list || frappe.defaults.get_default("selling_price_list");
 		const baris = (frm.doc.items || [])
 			.filter((r) => r.item_code && !flt(r.rate))
 			.map((r) => {
 				const fix = {
 					doctype: "Item Price",
-					baru: { item_code: r.item_code, price_list: frm.doc.selling_price_list },
+					baru: { item_code: r.item_code, price_list: daftar },
 				};
 				const teks = __("Line {0}: {1} has no selling price.", [
 					r.idx,

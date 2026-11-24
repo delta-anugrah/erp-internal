@@ -43,12 +43,12 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 13: packing per product in the capacity BOMs (Item `erp_kemasan`, Item Packing), Pigmen and Kemasan
       rows in Monthly Expenses (`test_bom_kapasitas`, `test_biaya`).
 - [x] Plan Task 14: Seal Cap brand codes with their mould inserts (Brand `erp_jumlah_insert`, `master._merek`, `test_master`).
+- [x] Plan Task 12: sample data (daily input with technicians Yudi/Fadli, Pluit delivery, two pigments, packing,
+      four expenses), guide pictures `produksi-2`, `admin-1`, `admin-2`, browser run `tools/e2e_samuel.mjs` (14/14).
 - [x] Task 15 (Abel 2026-11-24): missing data notices with fix links (`kelengkapan.py`, report Settings → Missing
       Data, notes on Item, Sales Order, Work Order and Monthly Expenses, `test_kelengkapan`).
 - [ ] Samuel: pigment list and prices, packing per product (erp.localhost: 23 products without packing, 9 colours
       without a pigment; the Missing Data report lists them).
-- [x] Plan Task 12: sample data (daily input with technicians Yudi/Fadli, Pluit delivery, two pigments, packing,
-      four expenses), guide pictures `produksi-2`, `admin-1`, `admin-2`, browser run `tools/e2e_samuel.mjs` (14/14).
 - [ ] Access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` for the three new roles: not regenerated (no tool or
       source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
 - [ ] Abel: approve tagging (bump `erp_internal.__version__`) and the PR from `feat/lokal` once the review is done.

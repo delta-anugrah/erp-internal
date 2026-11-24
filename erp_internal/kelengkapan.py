@@ -311,11 +311,20 @@ def untuk_item(item: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def untuk_produksi(item: str) -> list[dict]:
-	"""The Work Order form's note: the product has no packing or its colour no pigment. Work Order read is
-	enough (Produksi reads no Item); it only says what is missing."""
-	frappe.has_permission("Work Order", "read", throw=True)
-	return _pesan(periksa(item=item, kunci=CEK_PRODUKSI), item) if item else []
+def untuk_produksi(work_order: str, item: str) -> list[dict]:
+	"""The Work Order form's note: the product has no packing or its colour no pigment. Read on that Work Order
+	is enough (Produksi reads no Item) when `item` is its product, else write on it; a draft not saved yet needs
+	Work Order create (its item is still being chosen)."""
+	if not item:
+		return []
+	if frappe.db.exists("Work Order", work_order):
+		frappe.has_permission("Work Order", "read", doc=work_order, throw=True)
+		# Another item is only being typed into a form its user may change.
+		if frappe.db.get_value("Work Order", work_order, "production_item") != item:
+			frappe.has_permission("Work Order", "write", doc=work_order, throw=True)
+	else:
+		frappe.has_permission("Work Order", "create", throw=True)
+	return _pesan(periksa(item=item, kunci=CEK_PRODUKSI), item)
 
 
 def tautan(teks: str, perbaiki: dict) -> str:

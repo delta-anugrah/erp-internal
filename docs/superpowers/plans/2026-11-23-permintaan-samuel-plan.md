@@ -1,6 +1,6 @@
 # Samuel's requests of 2026-11-23 Implementation Plan
 
-Status: built 2026-11-23 (Tasks 1-14); progress in docs/TODO.md; deviations under each task.
+Status: built 2026-11-23 (Tasks 1-14), Task 15 added 2026-11-24; progress in docs/TODO.md; deviations under each task.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1017,3 +1017,20 @@ Runs after Task 13, before Task 12.
   `erp_jumlah_insert` 21 and DBI's description "2 pcs dibawa pa Udin"; set NKP to 19, run `muat` again, NKP
   stays 19. **Steps 2-4** as usual (`test_master`, `test_tampilan`). **Step 5: Commit** —
   `git commit -m "feat(master): Seal Cap brand codes with their mould inserts"`
+
+---
+
+### Task 15: Missing data notices (Abel 2026-11-24)
+
+Added and built 2026-11-24 (spec Addendum A5). Abel: users must see what is not set up yet; decision: orange notes on
+the forms concerned plus one report for Admin, and every notice links straight to its fix.
+
+**Files:** `erp_internal/kelengkapan.py` (table `CEK`: packing, pigment per colour, selling price, Gaji Operator
+expense, machine capacity, pigment/packing stock; `untuk_item`, `untuk_produksi`, `pesan_gaji`),
+`erp_internal/public/js/kelengkapan.js` (notes and fix links), report `planning/report/missing_data/` (Settings,
+Admin), `monthly_expenses.py` (message), `tampilan.py`, `id.csv`, `tests/test_kelengkapan.py`.
+
+**Deviations:** the Sales Order note is computed client side (lines at rate 0, no server call);
+`WARNA_TANPA_PIGMEN` (Bening, Bening Transparan, Campur) are not flagged; Monthly Expenses `execute` returns three
+values (columns, rows, message); the report shows How to fix before What happens; the stock fix opens a Purchase
+Order. Commit: `feat(kelengkapan): notices and a Missing Data report for incomplete set-up`.
