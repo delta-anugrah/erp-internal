@@ -1066,3 +1066,8 @@ Sales Order `before_update_after_submit` `harga_terkunci` refuses Update Items t
 machine's price; `harga_mesin` also clears margin and pricing rules (an order-level discount still applies); the
 variants carry no Brand (the code is the Merk attribute; Item Variant Settings untouched; erp.localhost cleared
 once); `sales_order.js` also reacts to item, UOM and conversion factor; guides: order discount, Production Plan.
+
+Material (Samuel 2026-11-24 16:40, commit "feat(seal-cap): Seal Cap material and capacity rows"): new raw
+material `BB-SEAL-CAP` "Bahan Seal Cap" (Bahan Baku, Kg, 13.500/kg; "category sendiri" read as its own item, not
+an Item Group) from `seal_cap.json` `bahan` (`seal_cap._bahan`, only when missing); `kapasitas.material` set, so
+`muat` makes the two Machine Capacity rows and their 34 capacity BOMs.

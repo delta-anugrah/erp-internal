@@ -37,7 +37,8 @@ class TestMesinBarang(IntegrationTestCase):
 		mesin = frappe.get_all("Machine Capacity", {"item": ("not like", "%CTH%")}, pluck="workstation")
 		self.assertEqual(
 			sorted(set(mesin) & {f"Mesin {n:02d}" for n in range(1, 15)}),
-			["Mesin 02", "Mesin 03", "Mesin 04", "Mesin 05", "Mesin 06", "Mesin 08"],
+			# Mesin 14: the Seal Cap's row (`seal_cap.py`, through master.muat)
+			["Mesin 02", "Mesin 03", "Mesin 04", "Mesin 05", "Mesin 06", "Mesin 08", "Mesin 14"],
 		)
 
 	def test_rongga_cetakan(self):

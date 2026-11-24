@@ -217,23 +217,58 @@ class TestSealCap(IntegrationTestCase):
 		baris = kelengkapan.periksa(company=self.pabrik, hari_ini=TANGGAL, item=seal_cap.TEMPLATE)
 		self.assertFalse([r for r in baris if r["cek"] == "pigmen"])  # Neutral needs none, the rest have one
 		self.assertFalse([r for r in baris if r["cek"] == "harga"])  # the price follows the machine
-		self.assertTrue([r for r in baris if r["cek"] == "kapasitas"])  # weight and material still asked
+		self.assertFalse([r for r in baris if r["cek"] == "kapasitas"])  # rows on Mesin 04 and 14
 
-	def test_kapasitas_menunggu_berat(self):
-		# Cavities, cycle time and weight are known, the material not: no row, a note says why.
-		self.assertEqual(self.data["kapasitas"]["part_weight"], 0.88)
-		self.assertFalse(frappe.db.exists("Machine Capacity", {"item": seal_cap.TEMPLATE}))
+	def test_kapasitas_tanpa_bahan(self):
+		# A file without the material (or the weight) makes no row; a note says what is missing.
+		k = {**self.data["kapasitas"], "material": None, "machines": ["Mesin 05"]}
+		hasil = master.Hasil()
+		seal_cap._kapasitas(k, hasil)
+		self.assertEqual(hasil.ditulis, 0)
 		self.assertIn(
-			f"{seal_cap.TEMPLATE}: no Machine Capacity yet (material missing in seal_cap.json)",
-			master.muat()["catatan"],
+			f"{seal_cap.TEMPLATE}: no Machine Capacity yet (material missing in seal_cap.json)", hasil.catatan
+		)
+		self.assertFalse(
+			frappe.db.exists("Machine Capacity", {"item": seal_cap.TEMPLATE, "workstation": "Mesin 05"})
 		)
 
-	def test_kapasitas_setelah_berat_diisi(self):
-		data = copy.deepcopy(self.data)
-		data["kapasitas"]["material"] = buat_barang("_UJI-SC-BIJI", "Bahan Baku", "Kg")
-		asli = master.berkas
-		with patch.object(master, "berkas", lambda n: data if n == "seal_cap.json" else asli(n)):
-			master.muat()
+	def test_bahan(self):
+		self.assertEqual(
+			frappe.db.get_value("Item", "BB-SEAL-CAP", ["item_group", "stock_uom", "valuation_rate"]),
+			("Bahan Baku", "Kg", 13500),
+		)
+		self.assertEqual(
+			frappe.db.get_value(
+				"Item Price", {"item_code": "BB-SEAL-CAP", "price_list": HARGA_BAHAN}, "price_list_rate"
+			),
+			13500,
+		)
+
+	def bom(self, merk: str, mesin: str) -> dict:
+		bom = frappe.get_doc(
+			"BOM", {"item": varian(merk), "erp_mesin": mesin, "is_active": 1, "docstatus": 1}
+		)
+		return {i.item_code: i.qty for i in bom.items}
+
+	def test_kapasitas_dan_bom(self):
+		# Material, 0.88 g a piece, the colour's pigment at 1 g per kg, a bag and a sack per their pieces.
+		mhg = self.bom("MHG", "Mesin 04")
+		self.assertEqual(mhg.pop("BB-SEAL-CAP"), 0.00088)
+		self.assertEqual(mhg.pop(pigmen(varian("MHG"))[0]), 0.00088)
+		self.assertEqual(mhg, {"Plastik 35x50": 0.001, "Karung": 0.00005})
+		nkp = self.bom("NKP", "Mesin 14")  # Neutral: no pigment
+		self.assertEqual(
+			nkp, {"BB-SEAL-CAP": 0.00088, "Plastik 30x45": round(1 / 560, 9), "Karung": round(1 / 19600, 9)}
+		)
+
+	def test_work_order_mesin_04(self):
+		from erp_internal.tests.utils import buat_wo
+
+		company = frappe.db.get_value("BOM", {"item": varian("MHG"), "erp_mesin": "Mesin 04"}, "company")
+		wo = buat_wo(varian("MHG"), "Mesin 04", qty=20000, company=company)
+		self.assertEqual(frappe.db.get_value("Work Order", wo, ["docstatus", "erp_mesin"]), (1, "Mesin 04"))
+
+	def test_kapasitas_ada(self):
 		for mesin in ("Mesin 04", "Mesin 14"):
 			row = frappe.db.get_value(
 				"Machine Capacity",

@@ -25,8 +25,14 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Review fixes: Update Items after submit cannot change a Seal Cap price (`harga_terkunci`), margin and pricing
   rules cleared, no Brand on the variants (cleared once on erp.localhost), the form also reacts to item and UOM.
   `test_seal_cap` 16 OK; `run-tests --app erp_internal` 380 (13 unit + 367 integration) OK; browser check rerun OK.
-- Next: Samuel's material for the Seal Cap (one of his 7 raw materials): fill it in `seal_cap.json`, rerun
-  `master.muat`; confirm 0.88 is grams.
+- Material (Samuel 16:40): `BB-SEAL-CAP` "Bahan Seal Cap", Bahan Baku, Kg, 13.500/kg in Harga Bahan Baku ("category
+  sendiri" read as its own item, not a new Item Group); 0.88 g confirmed. `muat` now makes the Machine Capacity rows
+  on Mesin 04 and 14 (5.142,86 pcs/hour) and 34 capacity BOMs (material 0.00088 kg, the colour's pigment 0.00088 g,
+  bag and sack per their pieces). erp.localhost: `master.muat` wrote 39, then 0; a Seal Cap Work Order on Mesin 04
+  (BOM-SEAL-CAP-MHG-CKM-001) submitted through bench, then cancelled and deleted. `test_seal_cap` 19 OK; `run-tests --app erp_internal` 383 (13 unit + 370
+  integration): 382 OK, `test_mesin_barang.test_jumlah` failed (Mesin 14 now has a capacity row: expected list
+  updated), module rerun 8 OK; ruff clean.
+- Next: Samuel confirms "category sendiri"; stock of BB-SEAL-CAP, the new pigments and packing before output.
 
 ## 2026-11-24, Task 15: missing data notices (Abel)
 - `kelengkapan.py`: one table `CEK` (packing, pigment per colour, selling price, Gaji Operator expense, machine

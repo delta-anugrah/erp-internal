@@ -435,12 +435,13 @@ harganya 350.000/kg". "Karungnya 1pc untuk isi 20.000".
   Coklat), ratio 1 g per kg (Samuel 2026-11-23), price 350.000 per Kg in `Harga Bahan Baku` (every pigment, the
   existing ones too); "Neutral" joins `WARNA_TANPA_PIGMEN`.
 - **Customer**: "PT. Empat Putra Pangestu" (EPP).
-- **Waiting**: only the material (one of his 7 raw materials, asked 2026-11-24). Cavities 20 (20 pieces per shot),
-  cycle time 13-14 s (14 s used, so targets are not overstated) and weight 0.88 per piece (read as grams, asked to
-  confirm; runner 0) arrived 2026-11-24 and sit in `data/seal_cap.json` (`kapasitas`, machines Mesin 04 and 14);
-  `muat` makes the Machine Capacity rows and their BOMs as soon as `material` is filled in there. Until then there is no Machine Capacity row and no capacity BOM
-  for Seal Cap, so Missing Data lists it and a Work Order cannot be
-  submitted; nothing else waits. Ignored for now: M1G/M1H in his PO and Excel.
+- **Waiting**: nothing. Cavities 20 (20 pieces per shot), cycle time 13-14 s (14 s used, so targets are not
+  overstated), weight 0.88 g per piece (Samuel 16:40: really 0.8, the extra covers bad material; runner 0) and the
+  material, a new raw material only for Seal Cap at Rp13.500/kg, arrived 2026-11-24 and sit in `data/seal_cap.json`.
+  "Category sendiri" is read as its own raw material item `BB-SEAL-CAP` "Bahan Seal Cap" in Bahan Baku, not a new
+  Item Group (Samuel may confirm). `muat` makes the Machine Capacity rows on Mesin 04 and 14 and their capacity BOMs
+  (only when `part_weight` and `material` are both set), so a Seal Cap Work Order on either machine can be
+  submitted. Ignored for now: M1G/M1H in his PO and Excel.
 
 Calls made (A6): one template with Merk × Warna variants, price by the line's machine; the table's pieces per sack
 over the message's "20.000"; Mesin 14 active; Neutral without pigment; pigment ratio 1 for the new colours.

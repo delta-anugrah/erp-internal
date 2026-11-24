@@ -3,14 +3,20 @@
 	"pelanggan": "PT. Empat Putra Pangestu",
 	"harga_pigmen_kg": 350000,
 	"karung": "Karung",
+	"bahan": {
+		"catatan": "Bahan baku khusus Seal Cap, Rp13.500/kg (Samuel 2026-11-24 16:40: \"category sendiri\", dibaca: item bahan baku sendiri di grup Bahan Baku, bukan grup baru).",
+		"kode": "BB-SEAL-CAP",
+		"nama": "Bahan Seal Cap",
+		"harga_kg": 13500
+	},
 	"kapasitas": {
-		"catatan": "cavities 20 (20 pcs per shot), cycle time 13-14 s, Samuel 2026-11-24: 14 s dipakai supaya target tidak kebesaran. part_weight 0.88 gram per pcs, Samuel 2026-11-24 (dibaca gram, minta konfirmasi); runner 0. material (kode Item bahan, Kg) belum ada: baris Machine Capacity baru dibuat muat begitu material diisi.",
+		"catatan": "cavities 20 (20 pcs per shot), cycle time 13-14 s, Samuel 2026-11-24: 14 s dipakai supaya target tidak kebesaran. part_weight 0.88 gram per pcs, Samuel 2026-11-24 16:40 (aslinya 0,8 g, lebihnya untuk bahan yang jelek); runner 0. material BB-SEAL-CAP (bahan di atas). muat membuat baris Machine Capacity hanya kalau part_weight dan material terisi.",
 		"cavities": 20,
 		"cycle_time": 14,
 		"machines": ["Mesin 04", "Mesin 14"],
 		"part_weight": 0.88,
 		"runner_weight": 0,
-		"material": null
+		"material": "BB-SEAL-CAP"
 	},
 	"baris": [
 		{"merk": "MHG", "warna": "Coklat Muda", "plastik": "Plastik 35x50", "isi_plastik": 1000, "per_karung": 20000},

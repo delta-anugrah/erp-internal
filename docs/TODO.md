@@ -2,7 +2,7 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-24, Task 16 Seal Cap line and its review fixes): 380 tests (13 unit + 367 integration), all OK; `cek_layar` 3 users
+Last full run (2026-11-24, Seal Cap material and capacity): 383 tests (13 unit + 370 integration), 382 OK + 1 fixed (`test_mesin_barang.test_jumlah`: Mesin 14 now has a row) and its module rerun 8 OK. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
 OK. Before that (Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
 3 users OK. Before that (2026-11-23, final review fixes): 349 tests (13 unit + 336 integration), all OK; `cek_layar` 3 users
 OK; `tools/e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK. Before that (plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),
@@ -56,8 +56,9 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Plan Task 16: the Seal Cap line (item 6, spec A6): `seal_cap.py`, `data/seal_cap.json` (17 variants, packing,
   pigments, customer EPP), price by machine on the Sales Order line (Mesin 04 Rp24, Mesin 14 Rp23), Work Order takes
   the line's machine, PO print shows it, Mesin 14 active; cavities 20 and cycle time 14 s stored (`test_seal_cap`).
-- [ ] Seal Cap material (asked 2026-11-24; weight 0.88 g in, to be confirmed as grams): fill `material` in
-  `seal_cap.json` `kapasitas`, rerun `master.muat` (makes the Machine Capacity rows on Mesin 04 and 14 and their BOMs).
+- [x] Seal Cap material `BB-SEAL-CAP` (Rp13.500/kg) and 0.88 g: Machine Capacity rows on Mesin 04 and 14 and their
+  capacity BOMs made by `master.muat`; a Seal Cap Work Order on Mesin 04 submits.
+- [ ] Samuel: confirm "category sendiri" means its own raw material item (built), not a new Item Group.
 - [ ] Item 6 leftovers: M1G/M1H in Samuel's PO and Excel are ignored for now (spec A6); "CN" and "PT CN" kept apart
   until he says they are one.
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).

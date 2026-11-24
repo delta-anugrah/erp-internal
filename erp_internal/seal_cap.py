@@ -2,7 +2,7 @@
 
 `muat` (called by `master.muat`) loads `data/seal_cap.json`: template `SEAL-CAP` with one variant per row (Merk x
 Warna), the brands, the packing items and each variant's two Packing rows, a pigment per colour that needs one with
-its buying price, the customer, and the Machine Capacity rows once the file has the weight per piece and the
+its buying price, the customer, its own raw material (`_bahan`), and the Machine Capacity rows once the file has the weight per piece and the
 material (`_kapasitas`). What exists is left as it is: Admin keeps it current after the first load.
 
 The price per piece follows the machine (`HARGA_MESIN`): a Sales Order line of such an item names its machine
@@ -83,26 +83,51 @@ def muat(hasil: master.Hasil) -> None:
 			doc.erp_rasio_pigmen = RASIO_PIGMEN
 			doc.insert(ignore_permissions=True)
 			hasil.ditulis += 1
-	# Every pigment's price per Kg, only where none is set: a price Admin changed stays.
 	for pg in frappe.get_all("Item", {"variant_of": TEMPLATE_PIGMEN}, pluck="name"):
-		if not frappe.db.exists("Item Price", {"item_code": pg, "price_list": penjualan.HARGA_BAHAN}):
-			frappe.get_doc(
-				{
-					"doctype": "Item Price",
-					"item_code": pg,
-					"price_list": penjualan.HARGA_BAHAN,
-					"uom": "Kg",
-					"price_list_rate": data["harga_pigmen_kg"],
-				}
-			).insert(ignore_permissions=True)
-			hasil.ditulis += 1
+		_harga_beli(pg, data["harga_pigmen_kg"], hasil)
 
 	if not frappe.db.exists("Customer", data["pelanggan"]):
 		frappe.get_doc(
 			{"doctype": "Customer", "customer_name": data["pelanggan"], "customer_type": "Company"}
 		).insert(ignore_permissions=True)
 		hasil.ditulis += 1
+	_bahan(data["bahan"], hasil)
 	_kapasitas(data["kapasitas"], hasil)
+
+
+def _bahan(b: dict, hasil: master.Hasil) -> None:
+	"""The Seal Cap's own raw material (group Bahan Baku, Kg) and its buying price, as `penjualan._bahan` makes the
+	others, but only when missing."""
+	if not frappe.db.exists("Item", b["kode"]):
+		frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": b["kode"],
+				"item_name": b["nama"],
+				"item_group": penjualan.GRUP_BAHAN,
+				"stock_uom": "Kg",
+				"is_stock_item": 1,
+				"valuation_rate": b["harga_kg"],
+				"description": f"{b['nama']}. Bahan baku Seal Cap, harga per kg dari Mas Samuel 2026-11-24.",
+			}
+		).insert(ignore_permissions=True)
+		hasil.ditulis += 1
+	_harga_beli(b["kode"], b["harga_kg"], hasil)
+
+
+def _harga_beli(item: str, per_kg: float, hasil: master.Hasil) -> None:
+	"""A price per Kg in `Harga Bahan Baku`, only where the item has none: a price Admin changed stays."""
+	if not frappe.db.exists("Item Price", {"item_code": item, "price_list": penjualan.HARGA_BAHAN}):
+		frappe.get_doc(
+			{
+				"doctype": "Item Price",
+				"item_code": item,
+				"price_list": penjualan.HARGA_BAHAN,
+				"uom": "Kg",
+				"price_list_rate": per_kg,
+			}
+		).insert(ignore_permissions=True)
+		hasil.ditulis += 1
 
 
 def _kapasitas(k: dict, hasil: master.Hasil) -> None:
