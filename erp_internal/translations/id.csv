@@ -443,3 +443,4 @@ Variants: {0},Varian: {0}
 Line {0}: {1} has no selling price.,Baris {0}: {1} belum punya harga jual.
 "{0}: pick the machine, the price follows it.","{0}: pilih mesinnya, harganya ikut mesin."
 {0} has no price on {1}. Machines: {2},{0} tidak punya harga di {1}. Mesin: {2}
+"{0}: on {1} the price is {2}, not {3}.","{0}: di {1} harganya {2}, bukan {3}."

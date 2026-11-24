@@ -134,7 +134,7 @@ def _blok(wo, boleh_isi: bool) -> dict:
 		"uom": wo.stock_uom or item.stock_uom,
 		"item_code": wo.production_item,
 		"item_name": item.item_name,
-		# A Seal Cap's brand code is its Merk attribute (a template's save copies its own brand over the variants').
+		# A Seal Cap's brand code is its Merk attribute (its variants carry no Brand: a template save would copy its own).
 		"merk": frappe.db.get_value(
 			"Item Variant Attribute", {"parent": wo.production_item, "attribute": "Merk"}, "attribute_value"
 		)

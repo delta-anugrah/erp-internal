@@ -79,7 +79,8 @@ class TestSealCap(IntegrationTestCase):
 		for b in self.data["baris"]:
 			kode = varian(b["merk"])
 			self.assertTrue(kode, b["merk"])
-			self.assertEqual(frappe.db.get_value("Item", kode, "brand"), b["merk"])
+			# The Merk attribute is the code; no Brand on the variant (a template save would copy its own over it).
+			self.assertFalse(frappe.db.get_value("Item", kode, "brand"), b["merk"])
 		for merk in ("MHG", "SE", "RPE", "CN", "PT CN", "DBI"):
 			self.assertTrue(frappe.db.exists("Brand", merk), merk)
 
@@ -122,9 +123,42 @@ class TestSealCap(IntegrationTestCase):
 	def test_mesin_14_aktif(self):
 		self.assertEqual(frappe.db.get_value("Workstation", "Mesin 14", "disabled"), 0)
 
+	def test_harga_terkunci_setelah_submit(self):
+		from erpnext.controllers.accounts_controller import update_child_qty_rate
+
+		so = self.pesanan(varian("MHG"), "Mesin 04", submit=True)
+		d = so.items[0]
+
+		def ubah(rate, qty=20000):
+			update_child_qty_rate(
+				"Sales Order",
+				json.dumps(
+					[
+						{
+							"docname": d.name,
+							"item_code": d.item_code,
+							"qty": qty,
+							"rate": rate,
+							"conversion_factor": 1,
+							"uom": d.uom,
+							"delivery_date": str(d.delivery_date),
+						}
+					]
+				),
+				so.name,
+			)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "the price is 24"):
+			ubah(30)
+		ubah(24, qty=30000)  # more pieces at the machine's price: fine
+		self.assertEqual(frappe.db.get_value("Sales Order", so.name, "grand_total"), 720000)
+
 	def test_harga_ikut_mesin(self):
 		so = self.pesanan(varian("MHG"), "Mesin 04")
 		self.assertEqual((so.items[0].rate, so.items[0].amount), (24, 480000))
+		so.items[0].margin_type, so.items[0].margin_rate_or_amount = "Amount", 5
+		so.save()
+		self.assertEqual((so.items[0].rate, so.items[0].margin_rate_or_amount), (24, 0))
 		so.items[0].erp_mesin = "Mesin 14"
 		so.save()
 		self.assertEqual((so.items[0].rate, so.grand_total), (23, 460000))

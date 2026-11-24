@@ -4,7 +4,7 @@ Newest first. One entry per working session: what changed, test results as run, 
 
 ## 2026-11-24, Task 16: the Seal Cap line (item 6, spec A6)
 - `seal_cap.py` + `data/seal_cap.json` (Samuel's table of 2026-11-24), loaded by `master.muat`: Item Attribute
-  `Merk`, template `SEAL-CAP` with 17 variants (`SEAL-CAP-MHG-CKM` ...; brand = the code), Brands MHG, SE, RPE, CN,
+  `Merk`, template `SEAL-CAP` with 17 variants (`SEAL-CAP-MHG-CKM` ...; the code is the Merk attribute, no Brand on the variants), Brands MHG, SE, RPE, CN,
   packing items Plastik 35x50, Plastik 30x45, Karung and two Packing rows per variant, `PIGMEN` Coklat Muda, Hijau,
   Pink, Putih, Coklat (ratio 1) and 350.000/Kg for pigments without a price in Harga Bahan Baku, customer
   PT. Empat Putra Pangestu. Mesin 14 active.
@@ -22,6 +22,9 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Cavities 20, cycle time 14 s (Samuel 13-14 s), part weight 0.88 g (to be confirmed), runner 0 stored in
   `seal_cap.json` `kapasitas`; `muat` makes the Machine Capacity rows on Mesin 04 and 14 (and their BOMs) once
   `material` is filled in too.
+- Review fixes: Update Items after submit cannot change a Seal Cap price (`harga_terkunci`), margin and pricing
+  rules cleared, no Brand on the variants (cleared once on erp.localhost), the form also reacts to item and UOM.
+  `test_seal_cap` 16 OK; `run-tests --app erp_internal` 380 (13 unit + 367 integration) OK; browser check rerun OK.
 - Next: Samuel's material for the Seal Cap (one of his 7 raw materials): fill it in `seal_cap.json`, rerun
   `master.muat`; confirm 0.88 is grams.
 

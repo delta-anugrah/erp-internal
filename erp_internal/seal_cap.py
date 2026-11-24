@@ -65,7 +65,6 @@ def muat(hasil: master.Hasil) -> None:
 			continue
 		doc = create_variant(TEMPLATE, n)
 		doc.item_name = master.nama_varian("Seal Cap", n)
-		doc.brand = b["merk"]
 		doc.set(
 			"erp_kemasan",
 			[
@@ -139,22 +138,45 @@ def harga(item_code: str, mesin: str) -> float | None:
 	return (_tabel(item_code) or {}).get(mesin)
 
 
+def _harga_baris(d) -> float | None:
+	"""The line's price per its UOM when its item is in `HARGA_MESIN` (None otherwise); refuses a line without a
+	machine of the table."""
+	tabel = _tabel(d.item_code)
+	if not tabel:
+		return None
+	barang = d.item_name or d.item_code
+	if not d.erp_mesin:
+		frappe.throw(_("{0}: pick the machine, the price follows it.").format(barang))
+	if d.erp_mesin not in tabel:
+		frappe.throw(
+			_("{0} has no price on {1}. Machines: {2}").format(barang, d.erp_mesin, ", ".join(tabel))
+		)
+	return tabel[d.erp_mesin] * flt(d.conversion_factor or 1)
+
+
 def harga_mesin(doc, method=None) -> None:
-	"""Sales Order `before_validate`: a line of a `HARGA_MESIN` template names its machine and takes its price
-	(ERPNext's totals follow in validate)."""
+	"""Sales Order `before_validate`: a line of a `HARGA_MESIN` template names its machine and takes its price,
+	no pricing rule, margin or line discount (ERPNext's totals follow in validate)."""
 	for d in doc.items:
-		tabel = _tabel(d.item_code)
-		if not tabel:
+		rp = _harga_baris(d)
+		if rp is None:
 			continue
-		barang = d.item_name or d.item_code
-		if not d.erp_mesin:
-			frappe.throw(_("{0}: pick the machine, the price follows it.").format(barang))
-		if d.erp_mesin not in tabel:
+		d.rate = d.price_list_rate = rp
+		d.discount_percentage = d.discount_amount = d.margin_rate_or_amount = d.rate_with_margin = 0
+		d.margin_type = d.pricing_rules = ""
+
+
+def harga_terkunci(doc, method=None) -> None:
+	"""Sales Order `before_update_after_submit` (Update Items): a machine-priced line keeps its machine's price;
+	refused, not corrected, so nobody is surprised by a total that changed by itself."""
+	for d in doc.items:
+		rp = _harga_baris(d)
+		if rp is not None and flt(d.rate, d.precision("rate")) != flt(rp, d.precision("rate")):
 			frappe.throw(
-				_("{0} has no price on {1}. Machines: {2}").format(barang, d.erp_mesin, ", ".join(tabel))
+				_("{0}: on {1} the price is {2}, not {3}.").format(
+					d.item_name or d.item_code, d.erp_mesin, rp, flt(d.rate)
+				)
 			)
-		d.rate = d.price_list_rate = tabel[d.erp_mesin] * flt(d.conversion_factor or 1)
-		d.discount_percentage = d.discount_amount = 0
 
 
 def mesin_dari_so(doc, method=None) -> None:

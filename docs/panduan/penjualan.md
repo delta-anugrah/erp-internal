@@ -19,7 +19,10 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
    Kalau pelanggan pesan per karton, pilih **UOM** `Karton`; sistem menghitung isinya sendiri.
    **Seal Cap** (pelanggan PT. Empat Putra Pangestu): pilih juga **Machine** di baris itu. Harganya ikut mesin:
    Mesin 04 = Rp24, Mesin 14 = Rp23 per pcs, terisi sendiri begitu mesinnya dipilih (dan dihitung ulang saat
-   Save). Baris Seal Cap tanpa mesin ditolak saat Save ("pick the machine, the price follows it"). Work Order yang
+   Save). Baris Seal Cap tanpa mesin ditolak saat Save ("pick the machine, the price follows it"). Diskon atau
+   margin per baris tidak berlaku untuk Seal Cap (dihapus saat Save); kalau perlu potongan, isi diskon di level
+   pesanan (**Additional Discount** di bawah tabel). Sesudah Submit, **Update Items** tidak bisa mengubah harga
+   Seal Cap (ditolak "on Mesin 04 the price is 24"); jumlahnya boleh diubah. Work Order yang
    dibuat dari Sales Order ini ikut memakai mesin baris itu, dan cetakan PO menulis mesinnya dengan merah setelah
    nama barang (" - Mesin 04").
 4. Klik **Save**, cek lagi. **Lampirkan foto atau scan dokumen aslinya** (pesanan dari pelanggan) lewat

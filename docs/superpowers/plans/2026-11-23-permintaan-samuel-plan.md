@@ -1060,3 +1060,9 @@ Machine Capacity rows and their BOMs only once `part_weight` and `material` are 
 cases).
 Then part weight 0.88 per piece (read as grams, Samuel 2026-11-24, to be confirmed) and runner 0 in the same
 block; only the material is missing, so the rows still wait for it.
+
+Review fixes (2026-11-24, commit "fix(seal-cap): price locked after submit; variants keep no copied brand"):
+Sales Order `before_update_after_submit` `harga_terkunci` refuses Update Items that leaves a Seal Cap line off its
+machine's price; `harga_mesin` also clears margin and pricing rules (an order-level discount still applies); the
+variants carry no Brand (the code is the Merk attribute; Item Variant Settings untouched; erp.localhost cleared
+once); `sales_order.js` also reacts to item, UOM and conversion factor; guides: order discount, Production Plan.

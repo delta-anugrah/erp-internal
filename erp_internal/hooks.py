@@ -136,6 +136,7 @@ doc_events = {
 	# seal_cap.py: a Seal Cap line's price follows its machine.
 	"Sales Order": {
 		"before_validate": "erp_internal.seal_cap.harga_mesin",
+		"before_update_after_submit": "erp_internal.seal_cap.harga_terkunci",
 		"before_submit": "erp_internal.lampiran.cek_lampiran",
 	},
 	"Sales Invoice": {"before_submit": "erp_internal.lampiran.cek_lampiran"},

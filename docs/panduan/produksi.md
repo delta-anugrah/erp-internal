@@ -45,6 +45,10 @@ Floor** (pilihan paling atas).
   barang ini: ...". Barang yang belum punya baris Machine Capacity boleh di mesin mana saja; di bawah kolom
   **Machine** tertulis "Belum ada baris Machine Capacity untuk barang ini: semua mesin boleh." Work Order yang
   sudah jalan di mesinnya tetap jalan. Mau menambah mesin untuk barang itu: tambah baris di Machine Capacity dulu.
+- **Seal Cap**: Work Order yang dibuat dari Sales Order (**Create → Work Order**) ikut memakai mesin di baris
+  pesanan (Mesin 04 atau 14, harganya beda). Lewat **Production Plan**, jangan gabungkan baris Seal Cap dari mesin
+  yang berbeda (jangan centang "Consolidate Sales Order Items"): Work Order gabungan hanya membawa satu mesin.
+  Cek **Machine** di setiap Work Order Seal Cap sebelum Submit.
 - Kalau browser tidak bisa menampilkan 3D, halaman menampilkan tabel biasa dengan isi yang sama.
 
 ## Sekali per produk
