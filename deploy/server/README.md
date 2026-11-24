@@ -14,10 +14,11 @@ sawit server.
 | `tanya.sh`, `akun.sh`, `wizard.sh` | The terminal questions, shared with `make setup` on a computer (`tools/setup_lokal.sh`): plain prompts with a suggestion, blind passwords, the account checklist, the wizard question and its by-hand instructions. |
 | `cadangan.sh` | Nightly backup: `bench backup --with-files --compress`, the newest set to `./cadangan` and, when set, `$RCLONE_REMOTE`; sets older than 14 days deleted on both. Without `RCLONE_REMOTE` it says the set stays on the server. Exits non-zero on any failure. |
 
-The image comes from `.github/workflows/image.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
+The image comes from `.github/workflows/ci.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
 from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`), checks it with
-`deploy/check_image.sh` and pushes it. The workflow refuses a tag that is not `v` + `erp_internal.__version__`
-(the version shown on the login page and in Settings). Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
+`deploy/check_image.sh`, runs every erp_internal test in it (`deploy/ci_tes.sh`) and only then pushes it. The
+workflow refuses a tag that is not on `main` or not `v` + `erp_internal.__version__` (the version shown on the login
+page and in Settings). Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
 `latest`.
 
 ## First install
@@ -86,7 +87,7 @@ refusal ("Sample data is not allowed on a production site"), which a direct call
 ## New version
 
 1. Abel approves; set `__version__ = "X.Y.Z"` in `erp_internal/__init__.py` (merged to `main`), tag `vX.Y.Z` on
-   `main`; wait for the image workflow to pass.
+   `main`; wait for the CI run of the tag ("Tes") to pass: only then is the image in GHCR.
 2. `make backup` first.
 3. Set `ERP_IMAGE` in `.env` to the new tag, then:
 

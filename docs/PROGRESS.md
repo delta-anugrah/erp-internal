@@ -2,6 +2,17 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-24, CI: `image.yml` replaced by `ci.yml`
+- `.github/workflows/ci.yml`, one job "Tes": a pull request to main runs ruff 0.17.6, builds the image (GHCR registry
+  cache `:buildcache`), `check_image.sh` and the new `deploy/ci_tes.sh` (all tests in the image, own MariaDB and
+  Redis); drafts and docs-only pull requests skip the work. A `vX.Y.Z` tag must be on main and equal `__version__`,
+  then the same build, check and tests, then the push to GHCR. No deploy from CI.
+- Local, as run: actionlint and shellcheck clean; `uvx ruff@0.17.6` clean; `docker build` (arm64, no cache) about
+  45 min; `deploy/check_image.sh erp-internal:ci` OK; `deploy/ci_tes.sh erp-internal:ci` 367 tests OK in 863 s,
+  30 min in all (the new site with erpnext and hrms takes about 15 min).
+- Not yet run on GitHub. Next: first pull request run (note its minutes), then Abel makes "Tes" a required check on
+  main and limits `v*` tags to admins.
+
 ## 2026-11-24, Task 16: the Seal Cap line (item 6, spec A6)
 - `seal_cap.py` + `data/seal_cap.json` (Samuel's table of 2026-11-24), loaded by `master.muat`: Item Attribute
   `Merk`, template `SEAL-CAP` with 17 variants (`SEAL-CAP-MHG-CKM` ...; the code is the Merk attribute, no Brand on the variants), Brands MHG, SE, RPE, CN,

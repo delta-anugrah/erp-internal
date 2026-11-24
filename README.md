@@ -407,11 +407,20 @@ done. Afterwards: `make backup` and a restore drill (`deploy/server/README.md`).
 ### The image
 
 The image is built from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`) by
-`.github/workflows/image.yml` on a `vX.Y.Z` tag and checked by `deploy/check_image.sh`. The workflow refuses a tag that is
-not `v` + `erp_internal.__version__` (the version on the login page and in Settings): bump `erp_internal/__init__.py`
-before tagging (`deploy/server/README.md` "New version"). The stack, backups
-(`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:
+`.github/workflows/ci.yml`, checked by `deploy/check_image.sh` and tested by `deploy/ci_tes.sh` (every erp_internal
+test inside the image, with its own MariaDB and Redis). One job, "Tes":
+
+- a pull request to `main`: ruff, build, check, tests. Drafts and docs-only pull requests skip the work. Make "Tes"
+  a required status check on `main`, so a red pull request cannot be merged.
+- a `vX.Y.Z` tag: refused unless the tag is on `main` and equals `v` + `erp_internal.__version__` (the version on the
+  login page and in Settings); then build, check, tests, and only then the push to GHCR. Bump `erp_internal/__init__.py`
+  before tagging (`deploy/server/README.md` "New version").
+
+To spend few Actions minutes: no run on pushes to `feat/lokal`, a newer push cancels a pull request's older run, and
+the build cache is kept in GHCR (`:buildcache`). Browser checks (`cek_layar`, `lantai`, `e2e_samuel`) stay local.
+Nothing deploys by itself. The stack, backups (`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:
 
 ```bash
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
+deploy/ci_tes.sh erp-internal:uji   # the tests in the image, as CI runs them
 ```

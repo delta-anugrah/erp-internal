@@ -53,6 +53,11 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [ ] Access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` for the three new roles: not regenerated (no tool or
       source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
 - [ ] Abel: approve tagging (bump `erp_internal.__version__`) and the PR from `feat/lokal` once the review is done.
+- [x] CI: `.github/workflows/ci.yml` (job "Tes" on pull requests to main and `vX.Y.Z` tags) replaces `image.yml`;
+      `deploy/ci_tes.sh` runs the tests inside the image.
+- [ ] Abel: make "Tes" a required status check on `main` and allow only admins to create `v*` tags (rulesets);
+      today `main` only requires one review.
+- [ ] First CI run on a real pull request: check it passes and note its minutes.
 - [x] Plan Task 16: the Seal Cap line (item 6, spec A6): `seal_cap.py`, `data/seal_cap.json` (17 variants, packing,
   pigments, customer EPP), price by machine on the Sales Order line (Mesin 04 Rp24, Mesin 14 Rp23), Work Order takes
   the line's machine, PO print shows it, Mesin 14 active; cavities 20 and cycle time 14 s stored (`test_seal_cap`).
@@ -75,7 +80,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       "wait a minute": the wizard's own jobs kept the background load waiting over 3 minutes (Abel 2026-11-06).
 - [ ] On the real server: `make setup` (needs the server, Samuel question 6).
 - [x] The app version (`v0.0.1`) under the login card and at the foot of the Settings dialog's left menu
-      (`erp_internal/versi.py`, `public/js/versi.js`); the image workflow refuses a tag other than
+      (`erp_internal/versi.py`, `public/js/versi.js`); CI (`ci.yml`) refuses a tag other than
       `v` + `erp_internal.__version__`. Tests `test_versi`, `cek_layar` checks both.
 - [ ] Abel: look at the version on the login page and in Settings (avatar menu, My Settings).
 - [x] Unused modules locked (`tampilan.MODUL_MATI`, Abel 2026-11-04): no menu, search or URL for anyone but Administrator.

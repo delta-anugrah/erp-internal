@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 # The erp-internal image: Frappe, ERPNext and HRMS at the tags in versi.json, plus erp_internal from this repo.
-# Built by .github/workflows/image.yml on a version tag; the server only pulls it (deploy/server/).
+# Built by .github/workflows/ci.yml (tested on every pull request to main, pushed to GHCR on a version tag); the
+# server only pulls it (deploy/server/).
 # Adapted from bpt's deploy/Containerfile; layout follows frappe_docker's images/layered/Containerfile, so
 # frappe_docker's compose runs it unchanged.
 
