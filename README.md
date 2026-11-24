@@ -408,26 +408,21 @@ done. Afterwards: `make backup` and a restore drill (`deploy/server/README.md`).
 
 The image is built from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`) by
 `.github/workflows/ci.yml`, checked by `deploy/check_image.sh` and tested by `deploy/ci_tes.sh` (every erp_internal
-test inside the image, with its own MariaDB and Redis). Two jobs:
+test inside the image, with its own MariaDB and Redis). One job, "Tes":
 
-- "Tes" on a pull request to `main`: ruff, build, check, tests. Drafts and docs-only pull requests skip the work.
+- a pull request to `main`: ruff, build, check, tests. Drafts and docs-only pull requests skip the work.
   "Tes" is a required status check on `main` (repository ruleset `main-ci`), so a red pull request cannot be merged.
-- "Tes" on a `vX.Y.Z` tag (only repository admins may create one, ruleset `tag-release`): refused unless the tag is
-  on `main` and equals `v` + `erp_internal.__version__` (the version on the login page and in Settings); then build,
-  check, tests on a site made from scratch, and only then the push to GHCR. Bump `erp_internal/__init__.py` before
-  tagging (`deploy/server/README.md` "New version").
-- "Foto" on a push to `main`: the database snapshot of a site with only frappe, erpnext and hrms (`FOTO` in
-  `deploy/ci_tes.sh`), cached under a key from `versi.json` and `deploy/ci_tes.sh`. Made only when that key has none,
-  otherwise the job ends after the lookup. A pull request's test site starts from it (about 8 min less) and installs
-  only erp_internal; without it, or on a tag, the site is made in full.
+- a `vX.Y.Z` tag (only repository admins may create one, ruleset `tag-release`): refused unless the tag is on `main`
+  and equals `v` + `erp_internal.__version__` (the version on the login page and in Settings); then build, check,
+  tests, and only then the push to GHCR. Bump `erp_internal/__init__.py` before tagging (`deploy/server/README.md`
+  "New version").
 
-To spend few Actions minutes: no run on pushes to `feat/lokal`, a newer push cancels a pull request's older run, the
-build cache is kept in GHCR (`:buildcache`) and the snapshot in the Actions cache. Run `/run-checks` locally before a
+A pull request run takes about 28 min: build about 10 (cached), site and tests about 15 (the erpnext + hrms install
+is about 1.5 of it, so a database snapshot was tried and dropped). To spend few Actions minutes: no run on pushes to
+`feat/lokal`, a newer push cancels a pull request's older run, the build cache is kept in GHCR (`:buildcache`). Run `/run-checks` locally before a
 pull request leaves draft, so CI runs once and passes. Browser checks (`cek_layar`, `lantai`, `e2e_samuel`) stay local.
 Nothing deploys by itself. The stack, backups (`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:
 
 ```bash
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
-deploy/ci_tes.sh erp-internal:uji   # the tests in the image, as CI runs them
-FOTO=/tmp/foto deploy/ci_tes.sh erp-internal:uji   # the same from the snapshot (written there on the first run)
-```
+deploy/ci_tes.sh erp-internal:uji   # the tests in the image, as CI runs them```

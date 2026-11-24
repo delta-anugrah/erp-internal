@@ -58,8 +58,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] Repository rulesets (Abel 2026-11-24): `main-ci` makes "Tes" a required check on `main` (not "up to date");
       `tag-release` lets only repository admins create, move or delete `v*` tags.
 - [ ] First CI run on a real pull request: check it passes and note its minutes.
-- [ ] After the snapshot change is merged: "Foto" ran on main and saved it, then a pull request's "Tes" log says
-      "Site from the snapshot"; note its minutes against a run without it (drop the snapshot if it saves nothing).
+- [x] Database snapshot for CI measured on GitHub and dropped (2026-11-25): the site install is about 1.5 min there.
 - [x] Plan Task 16: the Seal Cap line (item 6, spec A6): `seal_cap.py`, `data/seal_cap.json` (17 variants, packing,
   pigments, customer EPP), price by machine on the Sales Order line (Mesin 04 Rp24, Mesin 14 Rp23), Work Order takes
   the line's machine, PO print shows it, Mesin 14 active; cavities 20 and cycle time 14 s stored (`test_seal_cap`).
