@@ -2,6 +2,29 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-24, Task 16: the Seal Cap line (item 6, spec A6)
+- `seal_cap.py` + `data/seal_cap.json` (Samuel's table of 2026-11-24), loaded by `master.muat`: Item Attribute
+  `Merk`, template `SEAL-CAP` with 17 variants (`SEAL-CAP-MHG-CKM` ...; brand = the code), Brands MHG, SE, RPE, CN,
+  packing items Plastik 35x50, Plastik 30x45, Karung and two Packing rows per variant, `PIGMEN` Coklat Muda, Hijau,
+  Pink, Putih, Coklat (ratio 1) and 350.000/Kg for pigments without a price in Harga Bahan Baku, customer
+  PT. Empat Putra Pangestu. Mesin 14 active.
+- Price by machine: `HARGA_MESIN` (Mesin 04 Rp24, Mesin 14 Rp23); Sales Order Item `erp_mesin`, set in the form
+  (`public/js/sales_order.js`) and on save (`before_validate`), refused without a machine of the table; a Work Order
+  from the line takes the machine; PO Samuel prints " - Mesin 04" in red. Neutral needs no pigment; Missing Data
+  skips the selling-price check for Seal Cap; Daily Input's Merk reads the `Merk` attribute.
+- erp.localhost: `master.muat` wrote 39 records, the second run 0.
+- Tests as run: `test_seal_cap` 15 OK (red first: import error); `run-tests --app erp_internal` 379 (13 unit + 366 integration)
+  OK (first run: `test_mesin_barang.test_bom` failed, its BOM now has the Biru pigment line: test updated; after the
+  0.88 g weight only `test_seal_cap` rerun, 15 OK); ruff clean;
+  `bench build` + clear-cache; browser check as admin@ (Sales Order for EPP, Seal Cap MHG on Mesin 04: rate 24 in the
+  form and after save, 480.000; print "Seal Cap MHG Coklat Muda - Mesin 04" in red; 1440/768/390 px; draft deleted);
+  `cek_layar` 3 users OK.
+- Cavities 20, cycle time 14 s (Samuel 13-14 s), part weight 0.88 g (to be confirmed), runner 0 stored in
+  `seal_cap.json` `kapasitas`; `muat` makes the Machine Capacity rows on Mesin 04 and 14 (and their BOMs) once
+  `material` is filled in too.
+- Next: Samuel's material for the Seal Cap (one of his 7 raw materials): fill it in `seal_cap.json`, rerun
+  `master.muat`; confirm 0.88 is grams.
+
 ## 2026-11-24, Task 15: missing data notices (Abel)
 - `kelengkapan.py`: one table `CEK` (packing, pigment per colour, selling price, Gaji Operator expense, machine
   capacity, pigment/packing stock), each row with a fix the desk opens (`public/js/kelengkapan.js`, Abel: every

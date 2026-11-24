@@ -61,7 +61,10 @@ class TestMesinBarang(IntegrationTestCase):
 		row = kapasitas(varian, "Mesin 02")
 		bom = frappe.get_doc("BOM", {"item": varian, "erp_mesin": "Mesin 02", "is_active": 1, "docstatus": 1})
 		self.assertEqual(bom.erp_kapasitas, row.name)
-		self.assertEqual([(i.item_code, i.qty) for i in bom.items], [("BB-PP-WARNA", 0.07)])
+		baris = [(i.item_code, i.qty) for i in bom.items]
+		self.assertEqual(baris[0], ("BB-PP-WARNA", 0.07))
+		# master.muat adds a pigment (1 g per kg) for each Seal Cap colour, Biru too: 70 g x 1 g/kg = 0.07 g.
+		self.assertTrue(all(k.startswith("PIGMEN-") and q == 0.07 for k, q in baris[1:]), baris)
 
 	def test_dinda_dx_dan_folding(self):
 		# "Gantungan DX" is Gantungan Dinda DX: ( 4 ) on Mesin 04, ( 2 ) on Mesin 05.
@@ -73,11 +76,12 @@ class TestMesinBarang(IntegrationTestCase):
 		self.assertEqual(self.hasil["catatan"], [])
 
 	def test_mesin_tidak_aktif(self):
-		for n in (1, 7, 9, 14):
+		for n in (1, 7, 9, 13):
 			self.assertEqual(
 				frappe.db.get_value("Workstation", f"Mesin {n:02d}", ["disabled", "status"]), (1, "Off")
 			)
-		self.assertEqual(frappe.db.get_value("Workstation", "Mesin 02", "disabled"), 0)
+		for n in (2, 14):  # Mesin 14 runs the Seal Cap (Samuel 2026-11-24)
+			self.assertEqual(frappe.db.get_value("Workstation", f"Mesin {n:02d}", "disabled"), 0)
 
 	def test_kedua_kali_tidak_menulis(self):
 		self.assertEqual(mesin_barang.muat(self.company)["ditulis"], 0)

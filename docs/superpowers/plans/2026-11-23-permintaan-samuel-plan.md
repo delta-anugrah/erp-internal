@@ -1034,3 +1034,29 @@ Admin), `monthly_expenses.py` (message), `tampilan.py`, `id.csv`, `tests/test_ke
 `WARNA_TANPA_PIGMEN` (Bening, Bening Transparan, Campur) are not flagged; Monthly Expenses `execute` returns three
 values (columns, rows, message); the report shows How to fix before What happens; the stock fix opens a Purchase
 Order. Commit: `feat(kelengkapan): notices and a Missing Data report for incomplete set-up`.
+
+### Task 16: Seal Cap line (item 6, Samuel 2026-11-24)
+
+Added and built 2026-11-24 (spec Addendum A6), from Samuel's table `2026-11-23-samuel/seal-cap-epp.png` and his WhatsApp.
+
+**Files:** `erp_internal/seal_cap.py` (`muat`, `HARGA_MESIN`, `harga`, `harga_mesin`, `mesin_dari_so`),
+`erp_internal/data/seal_cap.json`, `master.py` (calls `seal_cap.muat`; Warna abbreviations CKM, PTH, NTR),
+`data/mesin.json` (Mesin 14 active), `penjualan.py` (`daftar_beli`), `setup.py` (`FIELD_SO_MESIN`), `hooks.py`
+(Sales Order `before_validate`, Work Order `before_validate`, `doctype_js` Sales Order), `public/js/sales_order.js`,
+`kelengkapan.py` (Neutral; no selling-price check for `HARGA_MESIN` templates), `daily_input.py` (Merk column),
+`templates/po_samuel.html`, `id.csv`, `tests/test_seal_cap.py`, `tests/test_mesin_barang.py`.
+
+**Deviations:** the machine prices live in `HARGA_MESIN` (code), not in `seal_cap.json`; a line on a machine
+outside the table is refused too ("{0} has no price on {1}. Machines: {2}"); the rate is set on the server in
+`before_validate` (so ERPNext's totals follow) and in the form when the machine is picked; the variants, packing
+items, pigments, prices and customer are only created, never corrected (Admin keeps them); the Missing Data
+selling-price check skips `HARGA_MESIN` templates (their price is by machine); Daily Input's Merk reads the `Merk`
+attribute first, since a template save copies the template's (empty) brand over its variants'. Pigments that already
+had a price in `Harga Bahan Baku` keep it (the spec says every pigment; the brief says only without a price).
+Commit: `feat(seal-cap): Seal Cap items, price by machine, packing and pigment from Samuel's table`.
+Folded in (Samuel 2026-11-24, via the coordinator): cavities 20 and cycle time 14 s (he said 13-14 s; the slower
+figure keeps targets honest) in `seal_cap.json` `kapasitas` for Mesin 04 and 14; `seal_cap._kapasitas` makes the
+Machine Capacity rows and their BOMs only once `part_weight` and `material` are filled in there (tests for both
+cases).
+Then part weight 0.88 per piece (read as grams, Samuel 2026-11-24, to be confirmed) and runner 0 in the same
+block; only the material is missing, so the rows still wait for it.

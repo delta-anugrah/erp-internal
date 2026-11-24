@@ -414,6 +414,37 @@ arrive, products without packing use none and colours without a pigment use none
 on the Item, Sales Order, Work Order forms and in Monthly Expenses, and one report for Admin (Settings → Missing
 Data), every notice with a link straight to where it is fixed. Built in `erp_internal/kelengkapan.py` (plan Task 15).
 
+**A6. Seal Cap line (item 6), Samuel's WhatsApp 2026-11-24 15:09** and his table `2026-11-23-samuel/seal-cap-epp.png`
+("Merk Segel Gas PT. Empat Putra Pangestu"): 17 brands, each with one colour, its plastic bag (35 × 50 holding
+1.000, or 30 × 45 holding 560) and pieces per sack (20.000; NDY and APP 12.000; NKP and RPE 19.600). "Nomor 4 210 ton
+= 24, Nomor 14 160 ton = 23": the price per piece follows the machine, Rp24 on Mesin 04, Rp23 on Mesin 14. "Pigmen
+harganya 350.000/kg". "Karungnya 1pc untuk isi 20.000".
+
+- **Item**: one template `SEAL-CAP` ("Seal Cap", finished goods, stock UOM Pcs) with attributes Merk (the brand code)
+  and `Warna`; one variant per row of the table (17), loaded from a data file with Samuel's master data, idempotent.
+  The 17 brands also become Brand records (MHG, SE, RPE, CN are new; the insert list's brands stay; "CN" and "PT CN"
+  are kept apart until Samuel says they are one).
+- **Price by machine**: a table `HARGA_MESIN` (template → machine → price per piece: SEAL-CAP: Mesin 04 24, Mesin 14
+  23). A Sales Order line gets a Machine field; for a template in the table, choosing the machine sets the rate
+  (and a line without a machine is refused for those templates). A Work Order made from that Sales Order takes the
+  line's machine. The PO print shows the machine after the item name in red ("- Mesin 04"), as `po.png` does.
+- **Mesin 14** becomes active (Samuel names it as running).
+- **Packing**: items "Plastik 35x50", "Plastik 30x45", "Karung" (group Kemasan, Buah); each Seal Cap variant gets
+  its two Packing rows from the table (bag with its pieces, sack with its pieces per sack).
+- **Pigment**: a `PIGMEN` variant for each Seal Cap colour that needs one (Coklat Muda, Hijau, Biru, Pink, Putih,
+  Coklat), ratio 1 g per kg (Samuel 2026-11-23), price 350.000 per Kg in `Harga Bahan Baku` (every pigment, the
+  existing ones too); "Neutral" joins `WARNA_TANPA_PIGMEN`.
+- **Customer**: "PT. Empat Putra Pangestu" (EPP).
+- **Waiting**: only the material (one of his 7 raw materials, asked 2026-11-24). Cavities 20 (20 pieces per shot),
+  cycle time 13-14 s (14 s used, so targets are not overstated) and weight 0.88 per piece (read as grams, asked to
+  confirm; runner 0) arrived 2026-11-24 and sit in `data/seal_cap.json` (`kapasitas`, machines Mesin 04 and 14);
+  `muat` makes the Machine Capacity rows and their BOMs as soon as `material` is filled in there. Until then there is no Machine Capacity row and no capacity BOM
+  for Seal Cap, so Missing Data lists it and a Work Order cannot be
+  submitted; nothing else waits. Ignored for now: M1G/M1H in his PO and Excel.
+
+Calls made (A6): one template with Merk × Warna variants, price by the line's machine; the table's pieces per sack
+over the message's "20.000"; Mesin 14 active; Neutral without pigment; pigment ratio 1 for the new colours.
+
 ## Left to the builder
 
 The page's exact markup, styles and keyboard flow (Tab and Enter move like Excel), icons (from the lucide sprite,

@@ -147,6 +147,10 @@ FIELD_MEREK = {
 	"in_list_view": 1,
 }
 
+# The machine a Sales Order line is made on: for a `seal_cap.HARGA_MESIN` item the price follows it, and a Work
+# Order made from the line takes it (`seal_cap.py`).
+FIELD_SO_MESIN = {**FIELD_WO_MESIN, "insert_after": "item_code", "allow_on_submit": 0, "in_list_view": 1}
+
 GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart", "Pigmen")
 # Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`); Ball Kecil the sales Excel's
 # (`penjualan.py`); Gram the pigments' stock UOM (bought per Kg).
@@ -410,6 +414,7 @@ def _field_aktif() -> None:
 			"Company": [FIELD_AKTIF],
 			"Workstation": FIELD_MESIN,
 			"Work Order": [FIELD_WO_MESIN],
+			"Sales Order Item": [FIELD_SO_MESIN],
 			"BOM": FIELD_BOM,
 			"Item": [FIELD_PIGMEN, FIELD_KEMASAN],
 			"Brand": [FIELD_MEREK],

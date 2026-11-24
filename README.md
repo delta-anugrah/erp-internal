@@ -265,7 +265,8 @@ Delivery Note on `erp.localhost`.
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
 - The factory's master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
   execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin,merek_epp}.json` (templates with only the listed
-  variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`, the 21 Seal Cap brands with their Inserts (pcs)); rerun after a new file
+  variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`, the 21 Seal Cap brands with their Inserts (pcs), and the Seal Cap line of `data/seal_cap.json`: 17 variants,
+  their packing and pigments, customer EPP, price by machine on the Sales Order line, `seal_cap.py`); rerun after a new file
   (`docs/impor.md`, tested by `tests/test_master.py`).
 - The factory's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
   reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw
@@ -275,7 +276,7 @@ Delivery Note on `erp.localhost`.
   `tests/test_penjualan.py`).
 - The item-to-machine list (2026-11-02), after `penjualan.muat`: `bench --site erp.localhost execute
   erp_internal.mesin_barang.muat` reads `erp_internal/data/mesin_barang.json` and makes a Machine Capacity row per
-  template + Jenis and machine ("( n )" = the mould's cavities) (54 rows) and their BOMs (`docs/impor.md`, tested by `tests/test_mesin_barang.py`). Machines 1, 7, 9-14 are inactive (`mesin.json` `aktif`).
+  template + Jenis and machine ("( n )" = the mould's cavities) (54 rows) and their BOMs (`docs/impor.md`, tested by `tests/test_mesin_barang.py`). Machines 1, 7, 9-13 are inactive (`mesin.json` `aktif`).
 - Production (`erp_internal/planning/`, module Planning): the company's Work Orders default to its Gudang
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted

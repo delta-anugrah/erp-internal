@@ -25,10 +25,11 @@ from frappe.utils.translations import _lt
 from erp_internal.master import GRUP as GRUP_PRODUK
 from erp_internal.planning.doctype.expense_entry.expense_entry import PER_SHIFT
 from erp_internal.planning.kapasitas import ATRIBUT_JENIS, ATRIBUT_WARNA, GRUP_KEMASAN, TEMPLATE_PIGMEN
+from erp_internal.seal_cap import HARGA_MESIN
 
 # Colours made without a pigment: the clear resin itself and the mixed leftovers (the Warna values on
 # erp.localhost, 2026-11-24). Every other colour of a product needs an enabled PIGMEN variant.
-WARNA_TANPA_PIGMEN = ("Bening", "Bening Transparan", "Campur")
+WARNA_TANPA_PIGMEN = ("Bening", "Bening Transparan", "Campur", "Neutral")
 KATEGORI_GAJI = "Gaji Operator"  # setup.KATEGORI_BIAYA[0]
 GRUP_STOK = ("Pigmen", GRUP_KEMASAN)  # used up by recording output: no stock, no output
 GUDANG_STOK = "Gudang Bahan Baku"  # setup.GUDANG_GRUP of both groups
@@ -109,11 +110,11 @@ def _harga(k) -> list[tuple]:
 			"Item Price", {"price_list": daftar, "item_code": _ke(k.item, nama)}, pluck="item_code"
 		)
 	)
-	# Per variant: ERPNext v16 refuses an Item Price on a template.
+	# Per variant: ERPNext v16 refuses an Item Price on a template. A price by machine needs none.
 	return [
 		(p.name, daftar, {"doctype": "Item Price", "baru": {"item_code": p.name, "price_list": daftar}})
 		for p in k.produk
-		if p.name not in ada
+		if p.name not in ada and (p.variant_of or p.name) not in HARGA_MESIN
 	]
 
 

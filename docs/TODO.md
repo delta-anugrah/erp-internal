@@ -2,7 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-24, Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
+Last full run (2026-11-24, Task 16 Seal Cap line): 379 tests (13 unit + 366 integration), all OK; `cek_layar` 3 users
+OK. Before that (Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
 3 users OK. Before that (2026-11-23, final review fixes): 349 tests (13 unit + 336 integration), all OK; `cek_layar` 3 users
 OK; `tools/e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK. Before that (plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),
 all OK; `cek_layar` 3 users OK; `tools/e2e_samuel.mjs` 14/14. Before that (plan Task 2: Produksi records production
@@ -52,8 +53,13 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [ ] Access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` for the three new roles: not regenerated (no tool or
       source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
 - [ ] Abel: approve tagging (bump `erp_internal.__version__`) and the PR from `feat/lokal` once the review is done.
-- [ ] Item 6 Seal Cap (Rp23/Rp24 by machine, M1x machines, colours, pcs per pack and sack): waits for Samuel's lists
-      (the brand codes came 2026-11-23).
+- [x] Plan Task 16: the Seal Cap line (item 6, spec A6): `seal_cap.py`, `data/seal_cap.json` (17 variants, packing,
+  pigments, customer EPP), price by machine on the Sales Order line (Mesin 04 Rp24, Mesin 14 Rp23), Work Order takes
+  the line's machine, PO print shows it, Mesin 14 active; cavities 20 and cycle time 14 s stored (`test_seal_cap`).
+- [ ] Seal Cap material (asked 2026-11-24; weight 0.88 g in, to be confirmed as grams): fill `material` in
+  `seal_cap.json` `kapasitas`, rerun `master.muat` (makes the Machine Capacity rows on Mesin 04 and 14 and their BOMs).
+- [ ] Item 6 leftovers: M1G/M1H in Samuel's PO and Excel are ignored for now (spec A6); "CN" and "PT CN" kept apart
+  until he says they are one.
 - [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
 - [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.
 

@@ -11,7 +11,8 @@ Reads `data/katalog.json` (the price list "POLA PLASTIK TAHUN 2026", as Samuel s
 - the selling Price List "Harga Pola <year>" with one Item Price per variant and packing the list prices, and the
   Sales Order default while that is still "Standard Selling";
 - one Workstation per machine, "Mesin 01".."Mesin 14", of type Injection Moulding; a machine with `"aktif": false`
-  is disabled and Off (no new Work Order on it, `kapasitas.mesin_aktif`).
+  is disabled and Off (no new Work Order on it, `kapasitas.mesin_aktif`);
+- the Seal Cap line of `data/seal_cap.json` (`seal_cap.muat`).
 
 Idempotent: every record is looked up by its key and saved only when it differs, so a second run writes nothing.
 Rerun it after Samuel sends a new file (docs/impor.md). It removes nothing but the price list's own prices that
@@ -96,6 +97,10 @@ SINGKATAN = {
 		"Bening Transparan": "BTR",
 		"Putih Susu": "PTS",
 		"Campur": "CMP",
+		# The Seal Cap colours (`seal_cap.py`)
+		"Coklat Muda": "CKM",
+		"Putih": "PTH",
+		"Neutral": "NTR",
 	},
 	"Ukuran": {"1 KG": "1KG", "1,5 KG": "1.5KG"},
 }
@@ -145,6 +150,10 @@ def muat() -> dict:
 	mesin = berkas("mesin.json")["machines"]
 	for m in mesin:
 		_mesin(m, hasil)
+
+	from erp_internal import seal_cap  # it builds on this module
+
+	seal_cap.muat(hasil)
 
 	return {
 		"template": len(produk),

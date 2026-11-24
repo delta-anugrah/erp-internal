@@ -18,7 +18,7 @@ Stok bergerak sendiri saat Production Entry di-Submit (barang jadi masuk, bahan 
 Stock Entry sendiri.
 
 Produksi juga boleh ganti **status mesin** (Production, Idle, Problem, dan lainnya) di **Production Floor**.
-Mesin yang tidak aktif (1, 7, 9-14) tetap Off: tombolnya menolak dengan catatan, minta Admin mengaktifkannya.
+Mesin yang tidak aktif (1, 7, 9-13) tetap Off: tombolnya menolak dengan catatan, minta Admin mengaktifkannya.
 
 ## Yang cuma dilihat
 

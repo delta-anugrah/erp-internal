@@ -17,6 +17,11 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
    menampilkan catatan oranye ("Line 1: ... has no selling price.") dengan link **Add a selling price** yang
    langsung membuka harga baru untuk barang itu (`admin.md` "Data belum lengkap").
    Kalau pelanggan pesan per karton, pilih **UOM** `Karton`; sistem menghitung isinya sendiri.
+   **Seal Cap** (pelanggan PT. Empat Putra Pangestu): pilih juga **Machine** di baris itu. Harganya ikut mesin:
+   Mesin 04 = Rp24, Mesin 14 = Rp23 per pcs, terisi sendiri begitu mesinnya dipilih (dan dihitung ulang saat
+   Save). Baris Seal Cap tanpa mesin ditolak saat Save ("pick the machine, the price follows it"). Work Order yang
+   dibuat dari Sales Order ini ikut memakai mesin baris itu, dan cetakan PO menulis mesinnya dengan merah setelah
+   nama barang (" - Mesin 04").
 4. Klik **Save**, cek lagi. **Lampirkan foto atau scan dokumen aslinya** (pesanan dari pelanggan) lewat
    **Attach** di kanan form; selama belum ada lampiran, form menampilkan catatan oranye dan **Submit** ditolak.
 5. Klik **Submit**. Pesanan yang belum di-Submit belum dihitung.

@@ -28,6 +28,7 @@
 	.po-samuel .barang tr:nth-child(odd) td { background: #e1e3e6; }
 	.po-samuel .barang td.no { text-align: left; width: 5%; }
 	.po-samuel .barang td.order { text-align: left; width: 31%; }
+	.po-samuel .barang .mesin { color: #ff1111; }
 	.po-samuel .total { margin-top: 14px; text-align: right; }
 	.po-samuel .total span { display: inline-block; background: #ff1111; color: #fff; font-weight: 700; padding: 10px 18px; }
 	.po-samuel .total span b { margin-left: 24px; }
@@ -66,7 +67,8 @@
 			{% set kirim = (row.delivery_date or doc.delivery_date) if jual else (row.schedule_date or doc.schedule_date) %}
 			<tr>
 				<td class="no">{{ loop.index }}.</td>
-				<td class="order">{{ (row.item_name or row.item_code) | e }}</td>
+				<td class="order">{{ (row.item_name or row.item_code) | e }}
+					{%- if row.get("erp_mesin") %}<span class="mesin"> - {{ row.erp_mesin | e }}</span>{% endif %}</td>
 				<td>{{ angka(row.qty) }}</td>
 				<td>{{ (row.uom or "") | upper | e }}</td>
 				<td>{{ tanggal_panjang(kirim) | e }}</td>

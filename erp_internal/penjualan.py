@@ -160,13 +160,18 @@ def _pigmen(hasil: master.Hasil) -> None:
 	)
 
 
-def _bahan(bahan: list[dict], hasil: master.Hasil) -> None:
+def daftar_beli(hasil: master.Hasil) -> None:
+	"""The buying price list `HARGA_BAHAN`, the purchase default while that is still ERPNext's standard one."""
 	hasil.simpan(
 		"Price List",
 		HARGA_BAHAN,
 		{"price_list_name": HARGA_BAHAN, "selling": 0, "buying": 1, "currency": "IDR"},
 	)
 	master._harga_bawaan(HARGA_BAHAN, hasil, "buying_price_list")
+
+
+def _bahan(bahan: list[dict], hasil: master.Hasil) -> None:
+	daftar_beli(hasil)
 	for b in bahan:
 		hasil.simpan(
 			"Item",

@@ -36,7 +36,7 @@ Floor** (pilihan paling atas).
   status mesin itu (sama dengan mengubah **Status** di formulir Workstation-nya); **Open machine** membuka
   formulirnya. Produksi cuma bisa lewat tombol ini; formulir Workstation cuma bisa dilihat.
 - **Work Order di mesin mana?** Isi **Machine** di Work Order. Tanpa itu Work Order tidak muncul di lantai.
-  Mesin yang tidak dipakai (1, 7, 9-14: Disabled, status Off) tidak bisa dipilih untuk Work Order baru; tetap
+  Mesin yang tidak dipakai (1, 7, 9-13: Disabled, status Off) tidak bisa dipilih untuk Work Order baru; tetap
   tampil di lantai sebagai Off. Statusnya juga tidak bisa diganti lewat tombol di panel: muncul catatan "Mesin NN
   tidak aktif. Admin bisa mengaktifkannya di Workstation-nya." Admin mengaktifkan mesin dengan menghapus centang
   **Disabled** di Workstation-nya.

@@ -14,6 +14,6 @@
     {"no": 11, "mesin": "JSW", "tonase": "150 TON", "country": "JAPAN", "year": 1988, "model": "J150 SA II", "aktif": false},
     {"no": 12, "mesin": "CHENDE", "tonase": "250 TON", "country": "HONGKONG", "year": 2009, "model": "EM 250 - V", "aktif": false},
     {"no": 13, "mesin": "NISSEI", "tonase": "260 TON", "country": "JAPAN", "year": 1995, "model": "FE260S71ASE", "aktif": false},
-    {"no": 14, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1994, "model": "FE 160S36ASE", "aktif": false}
+    {"no": 14, "mesin": "NISSEI", "tonase": "160 TON", "country": "JAPAN", "year": 1994, "model": "FE 160S36ASE"}
   ]
 }
