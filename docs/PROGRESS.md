@@ -2,6 +2,30 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-24, PR #11 merged; browser check of the guide
+- PR #11 (Tasks 1-16) merged into `main` as `2b4a7d0` after CI "Tes" passed on `83d5b92` and Abel's approval.
+- On erp.localhost, as run: `tools/e2e_samuel.mjs` 15/15, `tools/cek_layar.mjs` 3 users OK. A one-off browser run
+  (admin@ and user@) of the guide's Seal Cap and Missing Data steps, all as expected: Seal Cap SKI Biru on Mesin 04
+  → 24, Mesin 14 → 23, no machine refused; `SAL-ORD-2026-00009` submitted, PO Samuel print shows Mesin 04;
+  `MFG-WO-2026-00018` made from it takes Mesin 04 and BOM `BOM-SEAL-CAP-SKI-BRU-001`; Material Receipt
+  `MAT-STE-2026-00278` (BB-SEAL-CAP, PIGMEN-BRU, Plastik 35x50, Karung); Produksi typed 1.000 in Daily Input:
+  stock +1.000 Seal Cap, -0,88 Kg material, -13,2 g pigment, -1 bag, -0,05 sack. Missing Data fix link opens the
+  Packing table; BASKOM-20 note; Sales Order line CTH-BASKOM-40 shows "has no selling price" with its link;
+  Produksi can open neither Missing Data nor Sales Orders. These documents stay on erp.localhost.
+- Guide artifact (manual book, 31 steps incl. Seal Cap and Missing Data) updated for Abel's manual test.
+- Next: Abel's manual test from the guide; Samuel's confirmations (`docs/menunggu-samuel.md`).
+
+## 2026-11-25, CI: database snapshot for pull requests
+- `deploy/ci_tes.sh` `FOTO=<dir>`: the test site starts from `<dir>/dasar.sql.gz` (frappe, erpnext, hrms installed)
+  and installs only erp_internal; without it the site is made in full and the snapshot written first
+  (`HANYA_FOTO=1` stops there). `ci.yml` job "Foto" (push to main) makes it once per `versi.json` + `ci_tes.sh`
+  and saves it to the Actions cache; "Tes" on a pull request restores it; a tag always installs from scratch.
+- Local, as run: actionlint and shellcheck clean; snapshot 1.1 MB in 10.5 min; tests from it 367 OK. Site setup went
+  from about 15.5 to about 5 min, but the whole run was 1820 s against 1795 s before, because the tests themselves
+  took 1530 s against 863 s: the Mac was busy (load average 8-11, another session's bench running), so the local
+  timing is not a fair comparison. To measure on GitHub after the merge (the snapshot exists only once "Foto" ran on
+  main).
+
 ## 2026-11-24, CI: `image.yml` replaced by `ci.yml`
 - `.github/workflows/ci.yml`, one job "Tes": a pull request to main runs ruff 0.17.6, builds the image (GHCR registry
   cache `:buildcache`), `check_image.sh` and the new `deploy/ci_tes.sh` (all tests in the image, own MariaDB and
