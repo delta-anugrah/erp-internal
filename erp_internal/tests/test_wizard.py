@@ -7,7 +7,7 @@ from frappe.tests import IntegrationTestCase
 
 from erp_internal import wizard
 from erp_internal.setup import perusahaan
-from erp_internal.tampilan import ADMIN, DEVELOPER
+from erp_internal.tampilan import ADMIN, SUPER_ADMIN
 from erp_internal.tests.utils import buat_pengguna, buat_perusahaan
 
 MUAT = [f"erp_internal.{m}.muat" for m in wizard.MUAT]
@@ -54,7 +54,7 @@ class TestWizard(IntegrationTestCase):
 		with patch("erp_internal.setup.pastikan_setup"):
 			wizard.lanjutkan(cetak=False, developer=EMAIL)
 			wizard.lanjutkan(cetak=False, developer="_uji.tidak.ada@example.com")  # no user: nothing
-		self.assertEqual(profil(EMAIL), [DEVELOPER])
+		self.assertEqual(profil(EMAIL), [SUPER_ADMIN])
 
 	def test_developer_dari_penanda(self):
 		# The wizard's account is kept, so a rerun of lanjutkan (make lanjut) without it still makes the Developer
@@ -63,7 +63,7 @@ class TestWizard(IntegrationTestCase):
 		buat_pengguna(EMAIL, None, None, None)  # no profile again
 		with patch("erp_internal.setup.pastikan_setup"):
 			wizard.lanjutkan(cetak=False)
-		self.assertEqual(profil(EMAIL), [DEVELOPER])
+		self.assertEqual(profil(EMAIL), [SUPER_ADMIN])
 
 	def test_tidak_pernah_gagal(self):
 		# One step failing never fails the wizard, and the rest still runs

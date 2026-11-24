@@ -42,8 +42,8 @@ template ikut berbahasa Indonesia; dua-duanya diterima.
 |---|---|
 | `Item Code` | kode barang, unik |
 | `Item Name` | nama barang |
-| `Item Group` | `Barang Jadi`, `Bahan Baku`, `Bahan Penolong`, `Kemasan` atau `Sparepart` |
-| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Ball Kecil`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll` atau `Kg` (hanya `Kg` boleh pecahan) |
+| `Item Group` | `Barang Jadi`, `Bahan Baku`, `Bahan Penolong`, `Kemasan`, `Sparepart` atau `Pigmen` |
+| `Default Unit of Measure` | satuan stok: `Pcs`, `Lusin`, `Gross`, `Karton`, `Ball`, `Ball Kecil`, `Dus`, `Ikat`, `Pack`, `Sak`, `Roll`, `Kg`, `Gram` atau `Buah` (hanya `Kg`, `Gram` dan `Buah` boleh pecahan; `Buah` untuk barang kemasan) |
 | `Maintain Stock` | `1` untuk barang yang distok |
 | `Safety Stock` | stok minimum |
 | `UOM (uoms)` | satuan lain, misalnya `Karton` |
@@ -137,7 +137,7 @@ Cek setelah impor: total per bulan di **Sales History** (Report view, group by M
 Kapasitas per produk per mesin (waktu siklus, cavity, berat, bahan) dari Excel Samuel, tanpa Data Import. Buka
 **Machine Capacity** (menu Manufacturing), tombol **Import from Excel**: lampirkan file `.xlsx` atau `.csv`
 (maksimal 2 MB dan 2000 baris), klik **Preview**, cek tabelnya, lalu **Apply**. Sebelum Apply tidak ada yang
-ditulis. Yang boleh: Manufacturing Manager (profil Admin dan Developer). Contoh file yang dites ada di
+ditulis. Yang boleh: Manufacturing Manager (profil Admin dan Super Admin). Contoh file yang dites ada di
 `erp_internal/tests/data/kapasitas.xlsx` (dibuat ulang dengan `tools/contoh_kapasitas.py`; `test_impor_kapasitas.py`
 mengimpornya sungguhan).
 
@@ -215,8 +215,9 @@ Yang dibuat (dijalankan dua kali = sama saja, `ditulis` 0):
 | Apa | Isi |
 |---|---|
 | Tipe dan barang baru | yang dijual di Excel tapi tidak ada di daftar harga (`produk_baru`): Gayung Lumba Soft, Gayung Bajigur DX Soft, Gantungan Folding Soft, Gantungan Dinda Hitam, Toples Nastar 1/2 Kg (`TOPLES-NASTAR`), Sendok Bebek Catering (`SENDOK-BEBEK`, stok dalam `Ball Kecil`). Warnanya tebakan, belum ada harga (`docs/menunggu-samuel.md` baris 14) |
-| Bahan baku | 7 barang di grup `Bahan Baku`, stok dalam Kg (`BB-PP-WARNA`, `BB-PP-HITAM`, ...), harga per kg sebagai valuation rate dan di daftar harga beli `Harga Bahan Baku` |
+| Bahan baku | 7 barang di grup `Bahan Baku`, stok dalam Kg (`BB-PP-WARNA`, `BB-PP-HITAM`, ...), harga per kg sebagai valuation rate dan di daftar harga beli `Harga Bahan Baku` (jadi daftar harga bawaan Purchase Order selama Buying Settings masih "Standard Buying") |
 | Riwayat penjualan | Sales History per varian per bulan, dalam satuan stok (Lusin x 12, Gross x 144). Excel tidak memisah warna, jadi angkanya dibagi rata ke warna-warna tipe itu (sisa pembagian ke varian pertama menurut kode). Sendok Panjang JSW = Sendok Makan Pack |
+| Pigmen | barang template `PIGMEN` (grup `Pigmen`, stok dalam `Gram`, beli per `Kg` = 1000 g, varian per `Warna`). `penjualan.muat` tidak membuat varian; `seal_cap.muat` (lewat `master.muat`) membuat warna Seal Cap (Coklat Muda, Hijau, Biru, Pink, Putih, Coklat, 1 g/kg, 350.000/Kg). Warna lain menunggu daftar pigmen Samuel (`docs/menunggu-samuel.md`), sampai itu Admin menambahkannya (`panduan/produksi.md` "Resep produk") |
 | Stok minimum | `safety_stock` tiap varian = setengah rata-rata penjualan sebulan, dibulatkan ke atas (`STOK_MIN_BULAN`); dipakai Order Readiness |
 
 Cek: total per baris Excel per bulan sama dengan jumlah Sales History varian-variannya (`test_penjualan`).
@@ -257,6 +258,14 @@ yang membaca file dari Samuel apa adanya:
 - `erp_internal/data/katalog.json`: daftar harga "POLA PLASTIK TAHUN 2026" (20 produk, tipe, warna, harga per
   lusin/gross/ball/dus/pack, kemasan). Harga tidak mengikat (sewaktu-waktu dapat berubah).
 - `erp_internal/data/mesin.json`: 14 mesin injection moulding (merek, tonase, negara, tahun, model).
+- `erp_internal/data/merek_epp.json`: 21 kode merek Seal Cap (pelanggan EPP, daftar "List Insert EPP - Delta" dari
+  Samuel 2026-11-23) dengan jumlah insert cetakan dan KET-nya. `muat` membuat satu Brand per kode (APP, BEN, DBI, ...,
+  ZPU) dengan kolom `Inserts (pcs)` dan KET sebagai Description. Dua nilai itu hanya diisi saat Brand baru dibuat:
+  jumlah yang sudah diubah Admin (menu Stock, Brand) tidak ditimpa `muat` berikutnya.
+- `erp_internal/data/seal_cap.json`: tabel Seal Cap EPP dari Samuel 2026-11-24 ("Merk Segel Gas PT. Empat Putra
+  Pangestu"): 17 baris merk, warna, plastik, isi plastik, isi per karung; harga pigmen 350.000/kg; nama pelanggan.
+  Harga Seal Cap per mesin ada di kode (`seal_cap.HARGA_MESIN`: Mesin 04 Rp24, Mesin 14 Rp23 per pcs).
+  `seal_cap.muat` dipanggil oleh `master.muat`; tidak ada perintah terpisah.
 
 ```bash
 cd ~/Desktop/Projects/erp-internal-bench
@@ -273,7 +282,8 @@ Yang dibuat:
 | Barang (template + varian) | satu template per produk di grup `Barang Jadi`, merek `Dinda House Ware`; varian **hanya** kombinasi yang ada di daftar (atribut `Jenis`, `Warna`, dan `Ukuran` untuk Toples Dinda). Kode: `GAYUNG-LUMBA` → `GAYUNG-LUMBA-SPR-MRH` |
 | Satuan | stok dalam `Pcs`; `Lusin` = 12, `Gross` = 144; `Ball`/`Dus`/`Ikat` per varian dari teks kemasan, misalnya "1 Ball (20 Lusin)" = 240 Pcs |
 | Daftar harga | `Harga Pola 2026` (jual, IDR), satu Item Price per varian per satuan yang ada harganya; jadi daftar harga bawaan Sales Order dan Delivery Note selama Selling Settings masih "Standard Selling" |
-| Mesin | Workstation `Mesin 01`..`Mesin 14`, tipe `Injection Moulding`; nomor urut lantai (`Machine No.`), merek, model, tonase, tahun, negara. Mesin dengan `"aktif": false` di `mesin.json` (1, 7, 9-14, Samuel 2026-11-02) jadi `Disabled` dan status `Off`: tidak bisa dipilih untuk Work Order baru |
+| Mesin | Workstation `Mesin 01`..`Mesin 14`, tipe `Injection Moulding`; nomor urut lantai (`Machine No.`), merek, model, tonase, tahun, negara. Mesin dengan `"aktif": false` di `mesin.json` (1, 7, 9-13, Samuel 2026-11-02; Mesin 14 aktif lagi 2026-11-24 untuk Seal Cap) jadi `Disabled` dan status `Off`: tidak bisa dipilih untuk Work Order baru |
+| Seal Cap (`seal_cap.py`) | atribut `Merk` (kode merk), template `SEAL-CAP` "Seal Cap" (Barang Jadi, Pcs, atribut Merk + Warna) dengan 17 varian, misalnya `SEAL-CAP-MHG-CKM` "Seal Cap MHG Coklat Muda" (kode merk ada di atribut `Merk`; kolom Brand varian sengaja kosong, karena ERPNext menimpa Brand varian dengan Brand template setiap template disimpan); Brand baru MHG, SE, RPE, CN; barang kemasan `Plastik 35x50`, `Plastik 30x45`, `Karung` (grup Kemasan, satuan Buah) dan dua baris Packing per varian (plastik + isinya, karung + isi per karung); varian `PIGMEN` rasio 1 g/kg untuk Coklat Muda, Hijau, Biru, Pink, Putih, Coklat (Neutral tanpa pigmen); harga 350.000 per Kg di `Harga Bahan Baku` untuk setiap pigmen yang belum punya harga di sana; pelanggan "PT. Empat Putra Pangestu". Yang sudah ada tidak diubah (Admin yang merawat sesudahnya). Bahan: `BB-SEAL-CAP` "Bahan Seal Cap" (grup Bahan Baku, Kg, harga 13.500/kg di `Harga Bahan Baku`; Samuel: "category sendiri", dibaca item bahan sendiri, bukan grup baru), dibuat kalau belum ada. Kapasitas: `kapasitas` di `seal_cap.json` berisi cavities 20, cycle time 14 detik (Samuel: 13-14 detik), berat 0,88 gram per pcs (aslinya 0,8, lebihnya untuk bahan jelek), runner 0 dan bahan BB-SEAL-CAP untuk Mesin 04 dan 14; `muat` membuat baris Machine Capacity di dua mesin itu dan BOM-nya (hanya kalau berat dan bahan terisi; baris yang sudah ada tidak diubah) |
 
 Pilihan model:
 

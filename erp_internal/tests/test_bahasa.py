@@ -27,7 +27,7 @@ class TestBahasa(IntegrationTestCase):
 			self.assertEqual(semua.get(sumber), target, sumber)
 
 	def test_ganti_bahasa(self):
-		u = buat_pengguna("_uji.bahasa@example.com", "User", None, None)
+		u = buat_pengguna("_uji.bahasa@example.com", "Produksi", None, None)
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		ganti("id")

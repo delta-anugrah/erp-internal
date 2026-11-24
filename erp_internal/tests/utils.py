@@ -174,11 +174,13 @@ def daftar_harga(nama: str, jual: bool) -> str:
 	return nama
 
 
-def stok_awal(company: str, kode: str, qty: float, nama_gudang: str, rate: float = 1000) -> None:
+def stok_awal(
+	company: str, kode: str, qty: float, nama_gudang: str, rate: float = 1000, tanggal: date | None = None
+) -> None:
 	"""Set the stock of `kode` in warehouse `nama_gudang` of `company` to `qty` with a submitted Stock
-	Reconciliation: Opening Stock the first time, a plain reconciliation after (ERPNext refuses a second
-	opening), nothing when the stock is already `qty`."""
-	from frappe.utils import nowdate
+	Reconciliation dated `tanggal` (default today): Opening Stock the first time, a plain reconciliation after
+	(ERPNext refuses a second opening), nothing when the stock is already `qty`."""
+	from frappe.utils import getdate, nowdate
 
 	from erp_internal.setup import gudang
 
@@ -187,12 +189,15 @@ def stok_awal(company: str, kode: str, qty: float, nama_gudang: str, rate: float
 		return
 	ada = frappe.db.exists("Stock Ledger Entry", {"item_code": kode, "warehouse": wh, "is_cancelled": 0})
 	abbr = frappe.get_cached_value("Company", company, "abbr")
+	if tanggal:
+		tahun_fiskal(getdate(tanggal))
 	frappe.get_doc(
 		{
 			"doctype": "Stock Reconciliation",
 			"company": company,
 			"purpose": "Stock Reconciliation" if ada else "Opening Stock",
-			"posting_date": nowdate(),
+			"posting_date": tanggal or nowdate(),
+			"set_posting_time": int(bool(tanggal)),
 			"expense_account": f"Temporary Opening - {abbr}",
 			"items": [{"item_code": kode, "warehouse": wh, "qty": qty, "valuation_rate": rate}],
 		}
@@ -295,8 +300,27 @@ def buat_order(
 		}
 	).insert(ignore_permissions=True)
 	if submit:
+		lampirkan("Sales Order", so.name)
 		so.submit()
 	return so
+
+
+def lampirkan(doctype: str, nama: str) -> str:
+	"""Attach a small private text file to the document (the real document's photo or scan); return the File."""
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{nama}.txt",
+				"content": f"scan of {doctype} {nama}".encode(),
+				"is_private": 1,
+				"attached_to_doctype": doctype,
+				"attached_to_name": nama,
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 def buat_perkiraan(company: str, items: list[str], dari: date, periode: int, tanggal: date | None = None):
@@ -463,28 +487,33 @@ def jatah_cuti(karyawan: str, jenis: str, jumlah: float, dari: date, sampai: dat
 	return doc.name
 
 
+def nilai_atribut(atribut: str, nilai: list[str]) -> None:
+	"""Get or create the Item Attribute `atribut` holding every value of `nilai` (missing ones added)."""
+	if frappe.db.exists("Item Attribute", atribut):
+		doc = frappe.get_doc("Item Attribute", atribut)
+	else:
+		doc = frappe.get_doc({"doctype": "Item Attribute", "attribute_name": atribut})
+	ada = {r.attribute_value for r in doc.item_attribute_values}
+	ada_abbr = {r.abbr for r in doc.item_attribute_values}
+	baru = [n for n in nilai if n not in ada]
+	for n in baru:
+		abbr = "".join(c for c in n.upper() if c.isalnum())[:6]
+		while abbr in ada_abbr:
+			abbr += "X"
+		ada_abbr.add(abbr)
+		doc.append("item_attribute_values", {"attribute_value": n, "abbr": abbr})
+	if baru or doc.is_new():
+		doc.save(ignore_permissions=True)
+
+
 def buat_varian(template: str, jenis: list[str], warna: list[str]) -> list[str]:
 	"""Get or create the template `template` (Barang Jadi, attributes Jenis and Warna) and one variant per
 	(jenis, warna) pair, jenis-major; return the variant codes in that order. Missing attribute values are
 	added to the Item Attributes; existing ones are reused."""
 	from erpnext.controllers.item_variant import create_variant
 
-	for atribut, nilai in (("Jenis", jenis), ("Warna", warna)):
-		if frappe.db.exists("Item Attribute", atribut):
-			doc = frappe.get_doc("Item Attribute", atribut)
-		else:
-			doc = frappe.get_doc({"doctype": "Item Attribute", "attribute_name": atribut})
-		ada = {r.attribute_value for r in doc.item_attribute_values}
-		ada_abbr = {r.abbr for r in doc.item_attribute_values}
-		baru = [n for n in nilai if n not in ada]
-		for n in baru:
-			abbr = "".join(c for c in n.upper() if c.isalnum())[:6]
-			while abbr in ada_abbr:
-				abbr += "X"
-			ada_abbr.add(abbr)
-			doc.append("item_attribute_values", {"attribute_value": n, "abbr": abbr})
-		if baru or doc.is_new():
-			doc.save(ignore_permissions=True)
+	nilai_atribut("Jenis", jenis)
+	nilai_atribut("Warna", warna)
 
 	if not frappe.db.exists("Item", template):
 		frappe.get_doc(
@@ -521,6 +550,41 @@ def buat_varian(template: str, jenis: list[str], warna: list[str]) -> list[str]:
 	return hasil
 
 
+def buat_pigmen(warna: str, rasio: float) -> str:
+	"""Get or create the PIGMEN template (as `penjualan._pigmen`) and its variant for `warna`, with ratio `rasio`
+	(g per kg)."""
+	from erpnext.controllers.item_variant import create_variant
+
+	from erp_internal import master, penjualan
+
+	nilai_atribut("Warna", [warna])
+	penjualan._pigmen(master.Hasil())
+	kode = frappe.db.sql(
+		"""select i.name from `tabItem` i join `tabItem Variant Attribute` a on a.parent = i.name
+		where i.variant_of = 'PIGMEN' and a.attribute = 'Warna' and a.attribute_value = %s""",
+		warna,
+	)
+	doc = frappe.get_doc("Item", kode[0][0]) if kode else create_variant("PIGMEN", {"Warna": warna})
+	if doc.is_new() or frappe.utils.flt(doc.erp_rasio_pigmen) != rasio:
+		doc.erp_rasio_pigmen = rasio
+		doc.save()
+	return doc.name
+
+
+def buat_kemasan(kode: str) -> str:
+	"""Get or create a packing item (group Kemasan, stock UOM `setup.SATUAN_KEMASAN`)."""
+	from erp_internal.setup import SATUAN_KEMASAN
+
+	return buat_barang(kode, "Kemasan", SATUAN_KEMASAN)
+
+
+def isi_kemasan(item: str, kemasan: str, pieces: int) -> None:
+	"""Set the Packing rows of `item` to one row: `pieces` fit in one `kemasan`."""
+	doc = frappe.get_doc("Item", item)
+	doc.set("erp_kemasan", [{"packing_item": kemasan, "pieces": pieces}])
+	doc.save()
+
+
 def buat_mesin(nomor: int) -> str:
 	"""Get or create the numbered machine Workstation `_Uji Mesin NN`."""
 	nama = f"_Uji Mesin {nomor:02d}"
@@ -554,6 +618,33 @@ def buat_kapasitas(item: str, mesin: str, **nilai) -> str:
 		.insert(ignore_permissions=True)
 		.name
 	)
+
+
+def buat_wo(
+	item: str,
+	mesin: str | None,
+	qty: float = 1000,
+	company: str = "_Uji Pabrik",
+	bom: str | None = None,
+	**lain,
+) -> str:
+	"""Insert and submit a Work Order of `item` on machine `mesin` (skip_transfer 1, `bom` or the item's default
+	BOM); `lain` overrides any field. It makes no Machine Capacity row: the caller adds one when it needs the
+	machine lock."""
+	wo = frappe.get_doc(
+		{
+			"doctype": "Work Order",
+			"production_item": item,
+			"bom_no": bom or frappe.db.get_value("BOM", {"item": item, "is_default": 1, "docstatus": 1}),
+			"qty": qty,
+			"company": company,
+			"erp_mesin": mesin,
+			"skip_transfer": 1,
+			**lain,
+		}
+	).insert(ignore_permissions=True)
+	wo.submit()
+	return wo.name
 
 
 def buat_hasil(wo: str, good: float, rejects: dict[str, float] | None = None, **lain):

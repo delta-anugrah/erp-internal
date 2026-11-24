@@ -6,7 +6,7 @@
 #
 #   .local/wizard     the wizard answer (no secret), so a rerun does not ask again
 #   .local/akun-siap  the accounts were made: a rerun never touches live passwords
-#   .local/lanjut-siap  `lanjut` ran after the wizard (our setup, the wizard's account as Developer, Samuel's data);
+#   .local/lanjut-siap  `lanjut` ran after the wizard (our setup, the wizard's account as Super Admin, Samuel's data);
 #                     until then every start tries it, so a job that failed after a by-hand wizard is repaired
 #   .local/siap       a run went through to the end; `make up` starts only after it, `make setup` stops at it
 #

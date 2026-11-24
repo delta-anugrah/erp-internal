@@ -1,0 +1,83 @@
+{#- Samuel's PO layout for a Sales Order and a Purchase Order (docs/superpowers/specs/2026-11-23-samuel/po.png).
+	The print formats "PO Samuel" and "PO Samuel Beli" include this file. Record values are escaped one by one:
+	Frappe's Jinja has autoescape off. -#}
+{#- A number without decimals when whole (`400.000`, `24`), else up to two (`24,5`). -#}
+{% macro angka(n) -%}
+{%- set t = frappe.utils.fmt_money(n, 0 if n == (n | int) else 2) -%}
+{{- (t.rstrip("0").rstrip(",") if "," in t else t) | e -}}
+{%- endmacro %}
+{% set jual = doc.doctype == "Sales Order" %}
+{% set pihak = (doc.customer_name or doc.customer) if jual else (doc.supplier_name or doc.supplier) %}
+{% set nomor = (doc.po_no or doc.name) if jual else doc.name %}
+{% set logo = frappe.db.get_value("Company", doc.company, "company_logo") %}
+<style>
+	.po-samuel { font-family: Poppins, "Helvetica Neue", Arial, sans-serif; color: #3b4254; font-size: 14px;
+		-webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	.po-samuel table { border-collapse: collapse; width: 100%; }
+	.po-samuel .kepala { margin-bottom: 18px; }
+	.po-samuel .kepala td { vertical-align: top; padding: 2px 0; }
+	.po-samuel .perusahaan { font-size: 18px; font-weight: 700; color: #0d47a1; }
+	.po-samuel .perusahaan img { max-height: 56px; max-width: 120px; margin-right: 10px; vertical-align: middle; }
+	.po-samuel .judul { font-size: 22px; font-weight: 700; text-align: right; color: #0d47a1; }
+	.po-samuel .meta { text-align: right; }
+	.po-samuel .meta b { color: #1f2430; }
+	.po-samuel .barang th { background: #0d47a1; color: #fff; font-weight: 700; text-transform: uppercase;
+		padding: 12px 8px; text-align: center; }
+	.po-samuel .barang td { height: 56px; padding: 6px 8px !important; font-weight: 600; text-align: center; }
+	.po-samuel .barang th, .po-samuel .barang td { border: 0 !important; }
+	.po-samuel .barang tr:nth-child(odd) td { background: #e1e3e6; }
+	.po-samuel .barang td.no { text-align: left; width: 5%; }
+	.po-samuel .barang td.order { text-align: left; width: 31%; }
+	.po-samuel .barang .mesin { color: #ff1111; }
+	.po-samuel .total { margin-top: 14px; text-align: right; }
+	.po-samuel .total span { display: inline-block; background: #ff1111; color: #fff; font-weight: 700; padding: 10px 18px; }
+	.po-samuel .total span b { margin-left: 24px; }
+	@media (max-width: 600px) {
+		.po-samuel { font-size: 11px; }
+		.po-samuel .barang th, .po-samuel .barang td { padding: 6px 3px !important; }
+		.po-samuel .perusahaan img { max-height: 36px; }
+	}
+</style>
+<div class="po-samuel">
+	<table class="kepala">
+		<tr>
+			<td class="perusahaan">
+				{% if logo %}<img src="{{ logo | e }}" alt="">{% endif %}{{ doc.company | e }}
+			</td>
+			<td class="judul">PURCHASE ORDER</td>
+		</tr>
+		<tr>
+			<td>
+				{{ _("Customer") if jual else _("Supplier") }}:
+				<b>{{ pihak | e }}</b>
+			</td>
+			<td class="meta">
+				No. <b>{{ nomor | e }}</b>
+				{% if jual and doc.po_no %}<br>Sales Order: {{ doc.name | e }}{% endif %}
+				<br>{{ _("Date") }}: {{ tanggal_panjang(doc.transaction_date) | e }}
+			</td>
+		</tr>
+	</table>
+	<table class="barang">
+		<thead>
+			<tr><th>NO.</th><th>ORDER</th><th>QTY</th><th>SATUAN</th><th>TGL KIRIM</th><th>HARGA</th></tr>
+		</thead>
+		<tbody>
+			{% for row in doc.items %}
+			{% set kirim = (row.delivery_date or doc.delivery_date) if jual else (row.schedule_date or doc.schedule_date) %}
+			<tr>
+				<td class="no">{{ loop.index }}.</td>
+				<td class="order">{{ (row.item_name or row.item_code) | e }}
+					{%- if row.get("erp_mesin") %}<span class="mesin"> - {{ row.erp_mesin | e }}</span>{% endif %}</td>
+				<td>{{ angka(row.qty) }}</td>
+				<td>{{ (row.uom or "") | upper | e }}</td>
+				<td>{{ tanggal_panjang(kirim) | e }}</td>
+				<td>@{{ angka(row.rate) }}/{{ (row.uom or "") | lower | e }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<div class="total">
+		<span>TOTAL <b>Rp. {{ frappe.utils.fmt_money(doc.grand_total, 2) | e }}</b></span>
+	</div>
+</div>

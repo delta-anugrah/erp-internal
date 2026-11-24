@@ -7,7 +7,7 @@
 //
 // For each user it opens the apps screen, the module home and one new form, and asserts: the page is full
 // width, the ERPNext and HRMS rails show only that profile's modules, Frappe's own tile (Build) shows for
-// Developer only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) and HR DocTypes (DOCTYPE_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
+// Super Admin only, the app version shows on the login page and in Settings, the unused modules (MODUL_MATI) and HR DocTypes (DOCTYPE_MATI) are offered nowhere and refused by URL, and there is no console error and no dialog. Screenshots go to tools/hasil/ (gitignored). Exit code 1 on any failure.
 
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -25,22 +25,31 @@ const IKON_TILE = {
 };
 const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 
-// Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on. User
-// has Stock and Manufacturing only (Samuel, 2026-11-02).
+// Keep in step with erp_internal/tampilan.py: IKON (profile → rail modules) and the module each opens on. Produksi
+// has Manufacturing only (Samuel, 2026-11-23).
 const KERJA = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance"];
 // Rail module → its home Workspace (tampilan.PINTASAN keys). Every home is shortcuts only, at most PINTASAN_MAKS.
 const RUMAH = { Setup: "Home", "Shift & Attendance": "HR" };
-const PINTASAN_MAKS = 12; // was 10: Plan vs Actual added 3 shortcuts to Manufacturing (12) and 1 to Setup (11)
+const PINTASAN_MAKS = 12; // was 10: Plan vs Actual added 3 shortcuts to Manufacturing (12) and 1 to Setup (11); Missing Data (2026-11-24) made Setup 12, at the cap
 const PROFIL = {
-	Developer: { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
+	"Super Admin": { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
 	Admin: { modul: [...KERJA, "Setup"], build: false, rumah: "Home", form: "User" },
-	User: { modul: ["Stock", "Manufacturing"], build: false, rumah: "Stock", form: "Delivery Note" },
+	Produksi: { modul: ["Manufacturing"], build: false, rumah: "Manufacturing", form: "Production Entry" },
 };
+// The module whose pages the menu checks open (Stock where the profile has it): a list in the menu, a list of the
+// module that is not in the menu, and a link to follow on a phone.
+const MENU = {
+	Stock: { daftar: "stock-entry", tanpa_link: "batch", awal: "item", link: "Warehouse" },
+	Manufacturing: { daftar: "work-order", tanpa_link: "workstation", awal: "machine-capacity", link: "Work Order" },
+};
+const modul_menu = (harap) => (harap.modul.includes("Stock") ? "Stock" : "Manufacturing");
 const APLIKASI = ["erpnext", "hrms"]; // the apps whose rails tampilan.py arranges
 // tampilan.LABEL: the menu header of a module shown under another name.
 const LABEL = { "Shift & Attendance": "HR", Setup: "Settings" };
 
-const surel = (profil) => `${profil.toLowerCase()}@example.com`;
+// The sample logins keep their old names (contoh.SUREL).
+const SUREL = { "Super Admin": "developer@example.com", Admin: "admin@example.com", Produksi: "user@example.com" };
+const surel = (profil) => SUREL[profil];
 // frappe.router.shell_slug: lower case, "&" spelled out, spaces to dashes
 const slug = (shell) => shell.toLowerCase().replace(/&/g, " and ").trim().replace(/\s+/g, "-");
 
@@ -190,7 +199,8 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			// One labelled menu instead of the rail (public/js/menu_samping.js, Abel 2026-11-03): no dock, the
 			// profile's modules as headers in rail order, each with an icon, the page's module open with its link lit
 			// (on a list: Admin's new User form is a dialog over the desk, which lights nothing).
-			await page.goto(`${URL}/desk/stock/stock-entry`);
+			const mm = modul_menu(harap);
+			await page.goto(`${URL}/desk/${slug(mm)}/${MENU[mm].daftar}`);
 			await page.waitForLoadState("networkidle");
 			await page.waitForTimeout(800);
 			const menu = await page.evaluate(() => ({
@@ -210,24 +220,26 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 			cek(JSON.stringify(menu.kepala.map((k) => k.label)) === JSON.stringify(label), `menu headers: ${menu.kepala.map((k) => k.label)}`);
 			cek(menu.kepala.every((k) => k.ikon), "a menu header has no icon");
 			const lit = menu.kepala.filter((k) => k.aktif);
-			cek(lit.length === 1 && lit[0].label === "Stock" && lit[0].buka, `Stock not open and lit: ${JSON.stringify(lit)}`);
+			cek(lit.length === 1 && lit[0].label === mm && lit[0].buka, `${mm} not open and lit: ${JSON.stringify(lit)}`);
 			await page.screenshot({ path: join(HASIL, `${slug(profil)}-menu.png`) });
 			// Another module's link opens in its own shell, with that module open and only that link lit. Delivery
-			// Note sits under both Stock and Selling; the User has no Selling, so it goes Stock → Manufacturing.
-			const [dari, ke, link] = harap.modul.includes("Selling") ? ["Stock", "Selling", "Delivery Note"] : ["Stock", "Manufacturing", "Work Order"];
-			await page.evaluate((s) => frappe.set_route("Workspaces", s), dari);
-			await page.waitForLoadState("networkidle");
-			await page.waitForTimeout(800);
-			const kepala_ke = page.locator(`.section-item[data-id="${LABEL[ke] || ke}"]`);
-			if (await kepala_ke.locator(":scope > .nested-container.hidden").count()) await kepala_ke.locator(".section-break").first().click();
-			await kepala_ke.locator(".nested-container .item-anchor", { hasText: link }).first().click();
-			await page.waitForLoadState("networkidle");
-			await page.waitForTimeout(1000);
-			cek(page.url().includes(`/desk/${slug(ke)}/${slug(link)}`), `${ke} ▸ ${link} opened ${page.url()}`);
-			const lit2 = await page.evaluate(() =>
-				[...document.querySelectorAll(".active-sidebar")].map((e) => e.closest(".section-item")?.dataset.id)
-			);
-			cek(lit2.length === 1 && lit2[0] === (LABEL[ke] || ke), `lit after ${ke} ▸ ${link}: ${lit2}`);
+			// Note sits under both Stock and Selling. Produksi has one module only.
+			const [dari, ke, link] = ["Stock", "Selling", "Delivery Note"];
+			if (harap.modul.includes(ke)) {
+				await page.evaluate((s) => frappe.set_route("Workspaces", s), dari);
+				await page.waitForLoadState("networkidle");
+				await page.waitForTimeout(800);
+				const kepala_ke = page.locator(`.section-item[data-id="${LABEL[ke] || ke}"]`);
+				if (await kepala_ke.locator(":scope > .nested-container.hidden").count()) await kepala_ke.locator(".section-break").first().click();
+				await kepala_ke.locator(".nested-container .item-anchor", { hasText: link }).first().click();
+				await page.waitForLoadState("networkidle");
+				await page.waitForTimeout(1000);
+				cek(page.url().includes(`/desk/${slug(ke)}/${slug(link)}`), `${ke} ▸ ${link} opened ${page.url()}`);
+				const lit2 = await page.evaluate(() =>
+					[...document.querySelectorAll(".active-sidebar")].map((e) => e.closest(".section-item")?.dataset.id)
+				);
+				cek(lit2.length === 1 && lit2[0] === (LABEL[ke] || ke), `lit after ${ke} ▸ ${link}: ${lit2}`);
+			}
 			if (profil === "Admin") {
 				// Accounts has no header; a page Frappe opens there still shows the menu.
 				await page.goto(`${URL}/desk/accounts/sales-invoice`);
@@ -236,7 +248,7 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 				const n = await page.locator(".section-item .section-break").count();
 				cek(n === label.length, `Accounts page menu headers: ${n}`);
 			}
-			if (profil === "Developer") {
+			if (profil === "Super Admin") {
 				// Frappe's own System app keeps its rail.
 				await page.goto(`${URL}/desk/build`);
 				await page.waitForLoadState("networkidle");
@@ -298,6 +310,87 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.locator(".kembali").click();
 	await page.waitForURL(/\/desk\/manufacturing\/?$/, { timeout: 5000 }).catch(() => {});
 	cek(/\/desk\/manufacturing\/?$/.test(page.url()), `floor back button opened ${page.url()}`);
+	// Daily Input (page daily-input, Samuel 2026-11-23): a menu entry of its own; Produksi types a number into an empty
+	// Shift 1 cell and sees TOTAL change, then clears it; Admin sees no input. 1440, 768 and 390 px, no sideways scroll.
+	const harian = await page.evaluate(() => {
+		const a = [...document.querySelectorAll(".sidebar-items .item-anchor")].find((e) => e.textContent.includes("Daily Input"));
+		return { ada: !!a, sub: !!a?.closest(".nested-container") };
+	});
+	cek(harian.ada && !harian.sub, `Daily Input menu entry: ${JSON.stringify(harian)}`);
+	await page.goto(`${URL}/desk/manufacturing/daily-input`);
+	await page.waitForLoadState("networkidle");
+	await page.locator(".erp-ih-kepala").waitFor({ timeout: 10000 }).catch(() => {});
+	const n_blok = await page.locator(".erp-ih-blok").count();
+	const n_isi = await page.locator(".erp-ih input[data-key]").count();
+	cek(n_blok > 0, "Daily Input: no Work Order block (the sample data has open orders)");
+	if (profil === "Admin") cek(n_isi === 0, `Daily Input: Admin sees ${n_isi} inputs`);
+	if (profil === "Produksi") {
+		// The first block whose empty Shift 1 cell takes a piece (a full order refuses it on the cell: try the next).
+		const angka = (t) => Number((t || "").replace(/\./g, "")) || 0;
+		let ditulis = false;
+		for (const blok of await page.locator(".erp-ih-blok").all()) {
+			const sel = blok.locator('input[data-key$="|Shift 1"]').last();
+			if (!(await sel.count()) || (await sel.inputValue()) !== "") continue;
+			// Room for one more piece, so the order stays open (its block keeps its inputs for the clearing).
+			const po = angka((await blok.locator(".erp-ih-ringkas span").first().innerText()).match(/[\d.]+/)?.[0]);
+			if (angka(await blok.locator("tfoot .erp-ih-semua").innerText()) + 1 >= po) continue;
+			const total = blok.locator("tfoot td.erp-ih-angka").first();
+			const awal = angka(await total.innerText());
+			await sel.fill("1");
+			await sel.press("Enter"); // moves to the next cell, which saves this one
+			const naik = await page
+				.waitForFunction(([wo, n]) => {
+					const s = document.querySelector(`section[data-wo="${CSS.escape(wo)}"]`);
+					return Number(s?.querySelector("tfoot td.erp-ih-angka")?.textContent.replace(/\./g, "")) === n;
+				}, [await blok.getAttribute("data-wo"), awal + 1], { timeout: 15000 })
+				.then(() => true)
+				.catch(() => false);
+			if (!naik) {
+				cek(await blok.locator(".erp-ih-galat").count(), "Daily Input: a cell neither saved nor said why");
+				await sel.fill("");
+				continue;
+			}
+			// Clear it again: the entry is cancelled and TOTAL is back.
+			await page.screenshot({ path: join(HASIL, `${slug(profil)}-harian-isi.png`) });
+			const wo = await blok.getAttribute("data-wo");
+			const lagi = page.locator(`section[data-wo="${wo}"] input[data-key$="|Shift 1"]`).last();
+			if (!(await lagi.count())) {
+				cek(false, `Daily Input: ${wo} lost its inputs after a save; cancel its entry of today by hand`);
+				break;
+			}
+			await lagi.fill("");
+			await lagi.press("Tab");
+			const turun = await page
+				.waitForFunction(([wo, n]) => {
+					const s = document.querySelector(`section[data-wo="${CSS.escape(wo)}"]`);
+					return Number(s?.querySelector("tfoot td.erp-ih-angka")?.textContent.replace(/\./g, "")) === n;
+				}, [wo, awal], { timeout: 15000 })
+				.then(() => true)
+				.catch(() => false);
+			cek(turun, `Daily Input: clearing the cell of ${wo} did not bring TOTAL back to ${awal}`);
+			ditulis = true;
+			break;
+		}
+		cek(ditulis, "Daily Input: no block took a number in an empty Shift 1 cell");
+		// "Record Output" on a Work Order opens the page at that order's block only.
+		const wo = await page.locator(".erp-ih-blok").first().getAttribute("data-wo");
+		await page.evaluate(() => frappe.set_route("List", "Work Order"));
+		await page.waitForTimeout(1000);
+		await page.evaluate((wo) => {
+			frappe.route_options = { work_order: wo };
+			frappe.set_route("daily-input");
+		}, wo);
+		await page.waitForFunction(() => document.querySelectorAll(".erp-ih-blok").length === 1, null, { timeout: 10000 }).catch(() => {});
+		cek((await page.locator(".erp-ih-blok").count()) === 1, "Daily Input at one Work Order: not one block");
+	}
+	for (const lebar of [1440, 768, 390]) {
+		await page.setViewportSize({ width: lebar, height: 900 });
+		await page.waitForTimeout(500);
+		const geser = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+		cek(geser <= 0, `Daily Input at ${lebar} px scrolls sideways by ${geser} px`);
+		await page.screenshot({ path: join(HASIL, `${slug(profil)}-harian-${lebar}.png`), fullPage: true });
+	}
+	await page.setViewportSize({ width: 1440, height: 900 });
 	// The user's Settings dialog (avatar menu > My Settings) ends its left menu with the app version (public/js/versi.js).
 	await page.evaluate(() => frappe.require("user_settings_dialog.bundle.js").then(() => frappe.ui.show_user_settings("profile")));
 	const versi = page.locator(".settings-dialog-sidebar .erp-versi");
@@ -321,7 +414,7 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	await page.goto(`${URL}/desk/lead`);
 	await page.waitForLoadState("networkidle");
 	await page.waitForTimeout(800);
-	// Not permitted, or Not found for Developer (System Manager reads Page, so the route falls through to a 404).
+	// Not permitted, or Not found for Super Admin (System Manager reads Page, so the route falls through to a 404).
 	cek(/Not permitted|Not found/i.test(await page.locator("body").innerText()), "/desk/lead opened");
 	const api = await page.request.get(`${URL}/api/resource/Lead?limit=1`);
 	cek(api.status() === 403, `/api/resource/Lead: ${api.status()}`);
@@ -339,26 +432,28 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	const hp = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: undefined });
 	const ph = await hp.newPage();
 	await ph.request.post(`${URL}/api/method/login`, { form: { usr: surel(profil), pwd: SANDI } });
-	// A Stock page with no link of its own in the menu lights nothing: the drawer still opens on Stock.
-	await ph.goto(`${URL}/desk/stock/batch`);
+	// A page of the module with no link of its own in the menu lights nothing: the drawer still opens on it.
+	const mm = modul_menu(harap);
+	await ph.goto(`${URL}/desk/${slug(mm)}/${MENU[mm].tanpa_link}`);
 	await ph.waitForLoadState("networkidle");
 	await ph.locator(".sidebar-toggle-btn").first().click();
 	await ph.waitForTimeout(600);
 	cek(
-		await ph.locator('.section-item[data-id="Stock"] > .nested-container:not(.hidden) .item-anchor').first().isVisible(),
-		"phone drawer on a Stock page with no menu link: Stock not open"
+		await ph.locator(`.section-item[data-id="${mm}"] > .nested-container:not(.hidden) .item-anchor`).first().isVisible(),
+		`phone drawer on a ${mm} page with no menu link: ${mm} not open`
 	);
-	await ph.goto(`${URL}/desk/stock/item`);
+	await ph.goto(`${URL}/desk/${slug(mm)}/${MENU[mm].awal}`);
 	await ph.waitForLoadState("networkidle");
 	await ph.locator(".sidebar-toggle-btn").first().click();
 	await ph.waitForTimeout(600);
 	const n_hp = await ph.locator(".section-item .section-break:visible").count();
 	cek(n_hp === harap.modul.length, `phone drawer menu headers: ${n_hp}`);
 	await ph.screenshot({ path: join(HASIL, `${slug(profil)}-menu-hp.png`) });
-	await ph.locator('.section-item[data-id="Stock"] .nested-container .item-anchor', { hasText: "Warehouse" }).click();
+	await ph.locator(`.section-item[data-id="${mm}"] .nested-container .item-anchor`, { hasText: MENU[mm].link }).first().click();
 	// The router writes the shell into the URL a moment after the click.
-	await ph.waitForURL(/\/desk\/stock\/warehouse/, { timeout: 5000 }).catch(() => {});
-	cek(ph.url().includes("/desk/stock/warehouse"), `phone link opened ${ph.url()}`);
+	const tujuan = `/desk/${slug(mm)}/${slug(MENU[mm].link)}`;
+	await ph.waitForURL((u) => u.pathname.startsWith(tujuan), { timeout: 5000 }).catch(() => {});
+	cek(ph.url().includes(tujuan), `phone link opened ${ph.url()}`);
 	cek(!(await ph.locator(".body-sidebar-container.expanded").count()), "phone drawer still open after a link");
 	// The Production Floor on a phone: its back button and the output card stay on screen, no sideways scroll.
 	await ph.goto(`${URL}/desk/manufacturing/production-floor`);

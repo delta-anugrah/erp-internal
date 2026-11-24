@@ -6,13 +6,24 @@ The lookup is the only way the report and the BOM step find a row (Machine Capac
 import erpnext
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 # A new capacity row's `runner_reground` when the field was not given (import, API). Open question to Samuel:
 # is the runner reground and reused (1) or thrown away (0)? A new form asks `runner_digiling()` for it.
 RUNNER_DIGILING = 0
 
 ATRIBUT_JENIS = "Jenis"
+# The pigment template (spec section 8): one variant per colour, stocked in grams, its ratio in g per kg of resin.
+TEMPLATE_PIGMEN = "PIGMEN"
+ATRIBUT_WARNA = "Warna"
+# The fields of a pigment whose change (or a new pigment) rebuilds the capacity BOMs (`item_berubah`).
+PEMICU_PIGMEN = ("erp_rasio_pigmen", "disabled")
+# Packing items (spec A2): a product's Packing rows (Item `erp_kemasan`) add one line per row to its BOM.
+GRUP_KEMASAN = "Kemasan"
+# The fields of a packing item whose change rebuilds the capacity BOMs (`item_berubah`).
+PEMICU_KEMASAN = ("disabled",)
+# Cache flag: a rebuild was asked for (`_antre`); `segarkan_bom` runs passes until it stays clear.
+KUNCI_SEGARKAN_LAGI = "erp_segarkan_bom_lagi"
 
 
 @frappe.whitelist()
@@ -41,22 +52,32 @@ def jenis_template(template: str) -> list[str]:
 	)
 
 
-def kapasitas(item: str, workstation: str) -> frappe._dict | None:
-	"""The enabled capacity row of `item` on `workstation`: the variant's own row, else its template's row for
-	the variant's Jenis, else its template's row with no Jenis, else None."""
+def _saring_baris(item: str) -> list[dict]:
+	"""The enabled-row filters `kapasitas()` tries for `item`, in order: its own row, then (a variant) its
+	template's row for the variant's Jenis, then its template's row with no Jenis."""
 	template = frappe.db.get_value("Item", item, "variant_of")
 	kandidat = [(item, "")]
 	if template:
 		kandidat += [(template, jenis_varian(item) or ""), (template, "")]
-	for kode, jenis in kandidat:
+	return [{"item": kode, "jenis": jenis or ("in", ("", None)), "disabled": 0} for kode, jenis in kandidat]
+
+
+def kapasitas(item: str, workstation: str) -> frappe._dict | None:
+	"""The enabled capacity row of `item` on `workstation`: the variant's own row, else its template's row for
+	the variant's Jenis, else its template's row with no Jenis, else None."""
+	for saring in _saring_baris(item):
 		if row := frappe.db.get_value(
-			"Machine Capacity",
-			{"item": kode, "jenis": jenis or ("in", ("", None)), "workstation": workstation, "disabled": 0},
-			"*",
-			as_dict=True,
+			"Machine Capacity", {**saring, "workstation": workstation}, "*", as_dict=True
 		):
 			return row
 	return None
+
+
+@frappe.whitelist()
+def ada_baris(item: str) -> bool:
+	"""True when `item` has an enabled Machine Capacity row on any machine (a disabled machine too): there is a
+	list to check against. False: no list, any machine goes."""
+	return bool(item) and any(frappe.db.exists("Machine Capacity", s) for s in _saring_baris(item))
 
 
 def varian_tercakup(nama: str) -> list[str]:
@@ -73,14 +94,65 @@ def varian_tercakup(nama: str) -> list[str]:
 	return [v for v in varian if (r := kapasitas(v, row.workstation)) and r.name == nama]
 
 
-def baris_bom(row) -> list[dict]:
-	"""The BOM lines of one piece, in kg: the material, less the masterbatch, then the masterbatch (the percent
-	is of the whole resin mix). No masterbatch line unless both the item and a percent are given."""
+def pigmen(item: str) -> tuple[str, float] | None:
+	"""(pigment item, ratio in g per kg) for the variant's `Warna`: the enabled `PIGMEN` variant with that
+	colour, or None (no colour, or no pigment for it: Bening, Campur, ...)."""
+	warna = frappe.db.get_value(
+		"Item Variant Attribute", {"parent": item, "attribute": ATRIBUT_WARNA}, "attribute_value"
+	)
+	if not warna:
+		return None
+	pg = frappe.db.get_value(
+		"Item Variant Attribute",
+		{
+			"attribute": ATRIBUT_WARNA,
+			"attribute_value": warna,
+			"parent": (
+				"in",
+				frappe.get_all("Item", {"variant_of": TEMPLATE_PIGMEN, "disabled": 0}, pluck="name"),
+			),
+		},
+		"parent",
+	)
+	return (pg, flt(frappe.db.get_value("Item", pg, "erp_rasio_pigmen"))) if pg else None
+
+
+def _baris_kemasan(item: str) -> list:
+	return frappe.get_all(
+		"Item Packing",
+		{"parenttype": "Item", "parentfield": "erp_kemasan", "parent": item},
+		["packing_item", "pieces"],
+		order_by="idx",
+	)
+
+
+def kemasan(item: str) -> list[tuple[str, int]]:
+	"""(packing item, pieces per packing) of `item`: the variant's Packing rows, else its template's; rows whose
+	packing item is disabled or holds no pieces are left out."""
+	baris = _baris_kemasan(item)
+	if not baris and (template := frappe.db.get_value("Item", item, "variant_of")):
+		baris = _baris_kemasan(template)
+	return [
+		(b.packing_item, b.pieces)
+		for b in baris
+		if b.pieces > 0 and not frappe.db.get_value("Item", b.packing_item, "disabled")
+	]
+
+
+def baris_bom(row, item: str | None = None) -> list[dict]:
+	"""The BOM lines of one piece of `item`: the material, less the masterbatch, then the masterbatch (the
+	percent is of the whole resin mix), in kg; then the pigment of the item's colour, in grams (stock UOM Gram),
+	on top of the material; then 1 / pieces of each packing (`kemasan`). No masterbatch line unless both the
+	item and a percent are given."""
 	campuran = flt(row.material_per_pcs) / 1000
 	mb = campuran * flt(row.masterbatch_percent) / 100 if row.masterbatch else 0
 	baris = [{"item_code": row.material, "qty": round(campuran - mb, 6)}]
 	if mb:
 		baris.append({"item_code": row.masterbatch, "qty": round(mb, 6)})
+	if item and (pg := pigmen(item)):
+		baris.append({"item_code": pg[0], "qty": round(campuran * pg[1], 6)})
+	for kode, isi in kemasan(item) if item else ():
+		baris.append({"item_code": kode, "qty": round(1 / isi, 9)})
 	return baris
 
 
@@ -93,7 +165,7 @@ def _bom_aktif(nama: str, item: str | None = None) -> list[str]:
 
 def _isi_bom(bom: str) -> list[tuple[str, float]]:
 	return sorted(
-		(r.item_code, round(flt(r.qty), 6))
+		(r.item_code, round(flt(r.qty), 9))
 		for r in frappe.get_all("BOM Item", {"parent": bom}, ["item_code", "qty"])
 	)
 
@@ -124,7 +196,8 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 	hasil = {"dibuat": [], "tetap": [], "nonaktif": []}
 	aman = set()
 	for item in varian_tercakup(nama):
-		isi = sorted((b["item_code"], b["qty"]) for b in baris_bom(row))
+		baris = baris_bom(row, item)
+		isi = sorted((b["item_code"], b["qty"]) for b in baris)
 		ada = next(
 			(
 				b
@@ -156,7 +229,7 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 						"qty": b["qty"],
 						"uom": frappe.db.get_value("Item", b["item_code"], "stock_uom"),
 					}
-					for b in baris_bom(row)
+					for b in baris
 				],
 			}
 		)
@@ -175,6 +248,132 @@ def buat_bom_kapasitas(nama: str, company: str | None = None) -> dict:
 		doc.save()
 		hasil["nonaktif"].append(lama)
 	return hasil
+
+
+def segarkan_bom() -> int:
+	"""Rebuild the capacity BOMs (a pigment changed), pass after pass while `_antre` asked again during one: each
+	pass first clears the request and commits, so it reads every change committed before it. Returns how many rows
+	it ran over all passes."""
+	n = 0
+	while True:
+		frappe.cache.delete_value(KUNCI_SEGARKAN_LAGI)
+		if not frappe.in_test:
+			frappe.db.commit()  # nosemgrep: a fresh snapshot, so this pass sees the change that asked for it
+		n += _segarkan_sekali()
+		if not frappe.cache.get_value(KUNCI_SEGARKAN_LAGI):
+			return n
+
+
+def _segarkan_sekali() -> int:
+	"""One pass: `buat_bom_kapasitas` for every enabled Machine Capacity row with a material, in the company this
+	app runs (identical BOMs stay, others are replaced). A row that fails is rolled back and logged; the rest go
+	on. Returns how many rows it ran."""
+	from erp_internal.setup import perusahaan
+
+	company = next(iter(perusahaan()), None)
+	n = 0
+	for nama in frappe.get_all("Machine Capacity", {"disabled": 0, "material": ("is", "set")}, pluck="name"):
+		frappe.db.savepoint("segarkan_bom")
+		try:
+			buat_bom_kapasitas(nama, company)
+		except frappe.ValidationError, frappe.PermissionError:
+			frappe.db.rollback(save_point="segarkan_bom")
+			frappe.clear_messages()
+			frappe.log_error(f"Capacity BOM rebuild {nama}")
+			continue
+		n += 1
+	return n
+
+
+def _antre() -> None:
+	"""Ask for a rebuild: set the request flag, then queue `segarkan_bom` (deduplicated: a job already queued or
+	running sees the flag and runs another pass). Any rebuild trigger calls this after its commit."""
+	frappe.cache.set_value(KUNCI_SEGARKAN_LAGI, 1)
+	if frappe.in_test:
+		segarkan_bom()
+		return
+	frappe.enqueue(
+		"erp_internal.planning.kapasitas.segarkan_bom", job_id="erp_segarkan_bom", deduplicate=True
+	)
+
+
+def cek_pigmen(doc, method=None) -> None:
+	"""A pigment's ratio (g per kg) must be above 0 (Item validate)."""
+	if doc.variant_of == TEMPLATE_PIGMEN and flt(doc.get("erp_rasio_pigmen")) <= 0:
+		frappe.throw(_("The pigment ratio must be more than 0 g per kg."))
+
+
+def cek_kemasan(doc, method=None) -> None:
+	"""Each Packing row holds more than 0 pieces, and its packing item is stocked in a UOM that allows fractions
+	(a BOM line of 1/560 in a whole-number UOM is refused by the BOM, inside the background rebuild) (Item
+	validate)."""
+	from erp_internal.setup import SATUAN_KEMASAN
+
+	for r in doc.get("erp_kemasan") or ():
+		if cint(r.pieces) <= 0:
+			frappe.throw(_("Row {0}: Pieces per Packing must be more than 0.").format(r.idx))
+		uom = frappe.db.get_value("Item", r.packing_item, "stock_uom")
+		if uom and frappe.db.get_value("UOM", uom, "must_be_whole_number"):
+			frappe.throw(
+				_("Row {0}: {1} must be stocked in a UOM that allows fractions ({2}).").format(
+					r.idx, frappe.bold(r.packing_item), SATUAN_KEMASAN
+				)
+			)
+
+
+def _isi_kemasan(doc) -> list[tuple]:
+	return [(r.packing_item, cint(r.pieces)) for r in doc.get("erp_kemasan") or ()]
+
+
+def perlu_segarkan(doc) -> bool:
+	"""Whether this Item save changes a capacity BOM: a pigment new or with another `PEMICU_PIGMEN`; a packing
+	item with another `PEMICU_KEMASAN`; any other item whose Packing rows changed (or a new one with rows)."""
+	lama = doc.get_doc_before_save()
+	if doc.variant_of == TEMPLATE_PIGMEN:
+		return not lama or any(lama.get(f) != doc.get(f) for f in PEMICU_PIGMEN)
+	if doc.item_group == GRUP_KEMASAN:
+		return bool(lama) and any(lama.get(f) != doc.get(f) for f in PEMICU_KEMASAN)
+	return _isi_kemasan(doc) != (_isi_kemasan(lama) if lama else [])
+
+
+def _ingatkan_stok(doc) -> None:
+	"""An orange note, never a refusal: the pigment, or a Packing row's item, has no stock in Gudang Bahan Baku,
+	so recording output of a product that uses it fails (no negative stock)."""
+	from erp_internal.setup import GUDANG_GRUP
+
+	nama_gudang = GUDANG_GRUP["Pigmen"]
+	if doc.variant_of == TEMPLATE_PIGMEN:
+		kode = [] if doc.disabled else [doc.name]
+	else:
+		kode = list(dict.fromkeys(r.packing_item for r in doc.get("erp_kemasan") or ()))
+	gudang = frappe.get_all("Warehouse", {"warehouse_name": nama_gudang}, pluck="name")
+	kosong = [
+		k
+		for k in kode
+		if not gudang
+		or not frappe.db.exists("Bin", {"item_code": k, "warehouse": ("in", gudang), "actual_qty": (">", 0)})
+	]
+	if kosong:
+		frappe.msgprint(
+			_(
+				"{0} has no stock in {1} yet: receive it there before recording output, or recording fails."
+			).format(", ".join(frappe.bold(k) for k in kosong), nama_gudang),
+			indicator="orange",
+			alert=True,
+		)
+
+
+def item_berubah(doc, method=None) -> None:
+	"""An Item save that changes a capacity BOM (`perlu_segarkan`) rebuilds the capacity BOMs in the background
+	(Item on_update), as the user who saved it."""
+	if not perlu_segarkan(doc):
+		return
+	_ingatkan_stok(doc)
+	# Tests never commit, so the after-commit callback would never run there.
+	if frappe.in_test:
+		_antre()
+	else:
+		frappe.db.after_commit.add(_antre)
 
 
 def pilih_bom(doc, method=None) -> None:
@@ -230,3 +429,49 @@ def mesin_aktif(doc, method=None) -> None:
 	if lama and lama.docstatus == 1 and lama.erp_mesin == doc.erp_mesin:
 		return
 	frappe.throw(_("{0} is not in use. Choose another machine.").format(frappe.bold(doc.erp_mesin)))
+
+
+def _mesin_aktif_bernomor() -> list[str]:
+	"""The enabled numbered machines, by number."""
+	return frappe.get_all(
+		"Workstation", {"erp_nomor": (">", 0), "disabled": 0}, pluck="name", order_by="erp_nomor, name"
+	)
+
+
+def mesin_item(item: str) -> list[str]:
+	"""The enabled numbered machines `kapasitas()` finds an enabled row on for `item`, by number. Empty when the
+	item has no row at all (`ada_baris` False: any machine goes) or its rows sit on disabled machines only."""
+	if not item:
+		return []
+	return [m for m in _mesin_aktif_bernomor() if kapasitas(item, m)]
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def cari_mesin(doctype, txt, searchfield, start, page_len, filters) -> list[tuple]:
+	"""Link query of the Work Order's machine: the machines listed for `filters["item"]`, else every enabled
+	numbered machine (an item with no Machine Capacity row yet is free)."""
+	item = (frappe.parse_json(filters) or {}).get("item")
+	nama = mesin_item(item) or ([] if ada_baris(item) else _mesin_aktif_bernomor())
+	cari = (txt or "").lower()
+	return [(m,) for m in nama if cari in m.lower()][int(start or 0) :][: int(page_len or 20)]
+
+
+def mesin_terdaftar(doc, method=None) -> None:
+	"""Refuse a Work Order on a machine that Machine Capacity does not list for its item. No row at all means
+	no list: any machine goes. A submitted order already on its machine keeps running; a new, draft or moved
+	order is checked."""
+	if not doc.erp_mesin or not doc.production_item:
+		return
+	lama = doc.get_doc_before_save()
+	if lama and lama.docstatus == 1 and lama.erp_mesin == doc.erp_mesin:
+		return
+	daftar = mesin_item(doc.production_item)
+	if doc.erp_mesin not in daftar and ada_baris(doc.production_item):
+		frappe.throw(
+			_("{0} is not made on {1}. Machines for it: {2}.").format(
+				frappe.bold(doc.production_item),
+				frappe.bold(doc.erp_mesin),
+				", ".join(daftar) or _("none in use"),
+			)
+		)

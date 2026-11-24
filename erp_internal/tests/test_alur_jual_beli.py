@@ -14,6 +14,7 @@ from erp_internal.tests.utils import (
 	buat_pemasok,
 	buat_perusahaan,
 	daftar_harga,
+	lampirkan,
 	stok_awal,
 	tahun_fiskal,
 )
@@ -53,6 +54,7 @@ class TestAlurJualBeli(IntegrationTestCase):
 			}
 		)
 		so.insert()
+		lampirkan("Sales Order", so.name)
 		so.submit()
 		return so
 
@@ -87,6 +89,7 @@ class TestAlurJualBeli(IntegrationTestCase):
 		si.set("taxes", [])
 		si.set_taxes()
 		si.insert()
+		lampirkan("Sales Invoice", si.name)
 		si.submit()
 		self.assertEqual(si.grand_total, 1_110_000)
 		self.assertEqual(si.items[0].sales_order, so.name)
@@ -94,7 +97,13 @@ class TestAlurJualBeli(IntegrationTestCase):
 	def test_surat_jalan_langsung(self):
 		# Samuel 2026-11-02: a Delivery Note is made directly, without a Sales Order (setup.PENGATURAN_ALUR).
 		stok_awal(self.pabrik, self.ember, 500, "Gudang Barang Jadi")
-		dn = frappe.get_doc(
+		dn = self.surat_jalan_langsung(set_warehouse=self.jadi)
+		dn.insert()
+		dn.submit()
+		self.assertEqual(stok(self.ember, self.jadi), 490)
+
+	def surat_jalan_langsung(self, **lain):
+		return frappe.get_doc(
 			{
 				"doctype": "Delivery Note",
 				"company": self.pabrik,
@@ -102,11 +111,19 @@ class TestAlurJualBeli(IntegrationTestCase):
 				"currency": "IDR",
 				"selling_price_list": self.harga_jual,
 				"items": [{"item_code": self.ember, "qty": 10, "rate": 10000, "warehouse": self.jadi}],
+				**lain,
 			}
 		)
+
+	def test_gudang_kirim_wajib(self):
+		# Samuel 2026-11-23: every delivery note names the warehouse it ships from (Gudang Pluit or Gudang
+		# Barang Jadi); the lines follow it.
+		dn = self.surat_jalan_langsung()
+		with self.assertRaises(frappe.MandatoryError):
+			dn.insert()
+		dn = self.surat_jalan_langsung(set_warehouse=gudang(self.pabrik, "Gudang Pluit"))
 		dn.insert()
-		dn.submit()
-		self.assertEqual(stok(self.ember, self.jadi), 490)
+		self.assertEqual({i.warehouse for i in dn.items}, {dn.set_warehouse})
 
 	def test_alur_pembelian(self):
 		sebelum = stok(self.biji, self.bahan)
@@ -132,9 +149,11 @@ class TestAlurJualBeli(IntegrationTestCase):
 			}
 		)
 		po.insert()
+		lampirkan("Purchase Order", po.name)
 		po.submit()
 		pr = make_purchase_receipt(po.name)
 		pr.insert()
+		lampirkan("Purchase Receipt", pr.name)
 		pr.submit()
 		self.assertEqual(stok(self.biji, self.bahan), sebelum + 50)
 

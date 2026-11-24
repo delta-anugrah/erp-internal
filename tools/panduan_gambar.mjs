@@ -1,11 +1,11 @@
 // Screenshots for the staff guides (docs/panduan/*.md → docs/panduan/gambar/). Needs `bench start` and the
-// sample data of `erp_internal.contoh.buat_contoh` with its users (`user@example.com`) and their password.
+// sample data of `erp_internal.contoh.buat_contoh` with its users (`admin@example.com`) and their password.
 //
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs     # ERP_URL defaults to http://erp.localhost:8002
 //   ERP_SANDI=<password> node tools/panduan_gambar.mjs produksi-1   # only the named pictures
 //
-// Each picture is taken as the sample Admin (User opens no Selling or Buying since 2026-11-02), the User's own
-// screens as the sample User, at 1440x900. A screen with a sample record opens that
+// Each picture is taken as the sample Admin, Produksi's own screen (Daily Input) as the sample Produksi user
+// (`user@`), at 1440x900. A screen with a sample record opens that
 // record; one without (no Purchase Order or Purchase Receipt in the sample data, no Material Transfer) opens a new
 // form and fills it in the browser without saving, so nothing is written. Exit code 1 on an error dialog or a
 // console error.
@@ -55,10 +55,15 @@ const buka = (page, dt) =>
 		return page.evaluate(([dt, nama]) => frappe.set_route("Form", dt, nama), [dt, nama]);
 	});
 
+// A report by name, once its rows have drawn.
+const laporan = (page, nama) =>
+	page
+		.evaluate((nama) => frappe.set_route("query-report", nama), nama)
+		.then(() => page.waitForFunction(() => document.querySelector(".dt-row:not(.dt-row-header)")));
+
 const besok = () => new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
 
-const ADMIN = "admin@example.com"; // since 2026-11-02 User opens no Selling or Buying
-const USER = "user@example.com";
+const ADMIN = "admin@example.com"; // since 2026-11-23 Produksi records production only
 
 // file → [the rail module the screen belongs to (opened first so the form keeps its sidebar), how to reach it,
 // the user (Admin when left out)]
@@ -72,6 +77,19 @@ const GAMBAR_LIST = {
 				.then(() => p.waitForFunction(() => document.querySelector(".lantai-host")?.shadowRoot?.querySelector("canvas")))
 				.then(() => p.waitForTimeout(3500)),
 	],
+	// Daily Input as Produksi, last week (the sample's seven days end yesterday).
+	"produksi-2": [
+		"Manufacturing",
+		(p) =>
+			p
+				.evaluate(() => frappe.set_route("daily-input"))
+				.then(() => p.waitForSelector("section[data-wo]"))
+				.then(() => p.getByRole("button", { name: "Previous week" }).click())
+				.then(() => p.waitForTimeout(2500)),
+		"user@example.com",
+	],
+	"admin-1": ["Buying", (p) => laporan(p, "Monthly Expenses")],
+	"admin-2": ["Stock", (p) => laporan(p, "Missing Documents")],
 	"penjualan-1": ["Selling", (p) => buka(p, "Sales Order")],
 	"penjualan-2": ["Selling", (p) => buka(p, "Delivery Note")],
 	"penjualan-3": ["Selling", (p) => buka(p, "Sales Invoice")],
@@ -120,7 +138,7 @@ const GAMBAR_LIST = {
 						.evaluate((el) => el.scrollIntoView({ block: "start" }))
 				),
 	],
-	// The User's two stock jobs: raw material in, and a Delivery Note made directly (no Sales Order).
+	// Admin's two stock jobs: raw material in, and a Delivery Note made directly (no Sales Order).
 	"gudang-2": [
 		"Stock",
 		(p) =>
@@ -131,17 +149,17 @@ const GAMBAR_LIST = {
 				"items",
 				{ item_code: "BB-PP-BENING-ORI", qty: 500 }
 			),
-		USER,
 	],
 	"gudang-3": [
 		"Stock",
 		(p) =>
-			isi_baru(p, "Delivery Note", { customer: "Toko Contoh Sejahtera" }, "items", {
-				item_code: "CTH-GAYUNG",
-				qty: 200,
-				warehouse: "Gudang Barang Jadi - CPL",
-			}),
-		USER,
+			isi_baru(
+				p,
+				"Delivery Note",
+				{ customer: "Toko Contoh Sejahtera", set_warehouse: "Gudang Pluit - CPL" },
+				"items",
+				{ item_code: "CTH-GAYUNG", qty: 200 }
+			),
 	],
 };
 

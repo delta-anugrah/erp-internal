@@ -1,9 +1,11 @@
 """Production Entry: what one machine made in one shift for one Work Order, good and rejected.
 
-Submit moves the stock through two Stock Entries, both made as the current user:
+Submit moves the stock through two Stock Entries, made by the system (Produksi holds no stock role) and marked
+`FLAG_HASIL`; `cek_stock_entry` refuses any other Manufacture and any other way of cancelling them:
 - good pieces: ERPNext's own Manufacture entry for the order (`make_stock_entry`), so the order's produced qty
   and status stay ERPNext's; the material for them is backflushed by the BOM;
-- rejects: a Repack entry that takes the BOM's material for the rejected pieces from the order's source
+- rejects: a Repack entry that takes the BOM's material for the rejected pieces (material and pigment; no
+  packing, a reject is reground, never packed; no line that rounds to 0) from the order's source
   warehouse (Gudang Bahan Baku), never from work in progress, and puts the pieces, as the same item, into the
   company's Default Scrap Warehouse (Gudang Reject). Rejects are material used on top of what was transferred
   for the good pieces, so the transferred material stays whole for them. The entry is not linked to the order,
@@ -16,10 +18,12 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, nowtime, today
 
-from erp_internal.batas_user import FLAG_HASIL
+from erp_internal.planning.kapasitas import GRUP_KEMASAN
 from erp_internal.setup import jam_shift
 
 STATUS_TERBUKA = ("Not Started", "In Process")  # Work Order statuses that take output
+# Set on a Stock Entry's flags by Production Entry: its own Manufacture or Repack entry.
+FLAG_HASIL = "erp_hasil_produksi"
 
 
 class ProductionEntry(Document):
@@ -71,7 +75,22 @@ class ProductionEntry(Document):
 		if not frappe.db.get_value("Workstation", self.workstation, "erp_nomor"):
 			frappe.throw(_("{0} is not a numbered machine.").format(frappe.bold(self.workstation)))
 		mesin_order = frappe.db.get_value("Work Order", self.work_order, "erp_mesin")
-		if mesin_order and mesin_order != self.workstation:
+		# An amendment of the same cell (order, date, shift) keeps the machine of the cancelled entry it replaces:
+		# that day's output stays where it was made.
+		lama = self.amended_from and frappe.db.get_value(
+			"Production Entry",
+			self.amended_from,
+			["docstatus", "work_order", "posting_date", "shift", "workstation"],
+			as_dict=True,
+		)
+		sel_sama = (
+			lama
+			and lama.docstatus == 2
+			and (lama.work_order, getdate(lama.posting_date), lama.shift)
+			== (self.work_order, getdate(self.posting_date), self.shift)
+		)
+		mesin_lama = lama.workstation if sel_sama else None
+		if mesin_order and self.workstation not in (mesin_order, mesin_lama):
 			frappe.throw(
 				_("Work Order {0} runs on {1}. Change the Work Order's machine first.").format(
 					frappe.bold(self.work_order), frappe.bold(mesin_order)
@@ -97,7 +116,7 @@ class ProductionEntry(Document):
 		frappe.db.savepoint("hasil_produksi_submit")
 		# Only this method fills the two entry links (read only, not changeable after submit): one sent by the
 		# client, even with a straight submit, is dropped first, or cancel would cancel someone else's Stock
-		# Entry past batas_user's check.
+		# Entry with permissions ignored.
 		self.db_set({"manufacture_entry": None, "reject_entry": None})
 		try:
 			if flt(self.good_qty) > 0:
@@ -119,7 +138,8 @@ class ProductionEntry(Document):
 		for nama in (self.reject_entry, self.manufacture_entry):
 			if nama and frappe.db.get_value("Stock Entry", nama, "docstatus") == 1:
 				se = frappe.get_doc("Stock Entry", nama)
-				se.flags[FLAG_HASIL] = True  # a User cancels it with this entry (batas_user)
+				se.flags[FLAG_HASIL] = True  # cek_stock_entry: cancelled through this entry
+				se.flags.ignore_permissions = True  # Produksi holds no stock role
 				se.cancel()
 
 	def _ajukan(self, se):
@@ -128,7 +148,8 @@ class ProductionEntry(Document):
 		se.posting_date = self.posting_date
 		se.posting_time = nowtime()
 		se.remarks = _("Production Entry {0}").format(self.name)
-		se.flags[FLAG_HASIL] = True  # a User makes it through this entry only (batas_user)
+		se.flags[FLAG_HASIL] = True  # cek_stock_entry: output only through a Production Entry
+		se.flags.ignore_permissions = True  # Produksi holds no stock role
 		se.insert()
 		se.submit()
 		return se
@@ -155,7 +176,12 @@ class ProductionEntry(Document):
 		se.purpose = "Repack"
 		se.company = self.company
 		se.set_stock_entry_type()
+		presisi = frappe.get_precision("Stock Entry Detail", "qty")
 		for b in bahan.values():
+			# A reject is reground, never packed; a line too small to show at the entry's precision (a pigment's
+			# grams on one reject) would make the entry refuse a zero qty.
+			if b.item_group == GRUP_KEMASAN or not flt(b.qty, presisi):
+				continue
 			se.append(
 				"items",
 				{
@@ -189,3 +215,23 @@ class ProductionEntry(Document):
 def jam(shift: str) -> float:
 	"""The default run hours of `shift`, for the form."""
 	return jam_shift(shift)
+
+
+def cek_stock_entry(doc, method=None) -> None:
+	"""Stock Entry `validate` and `before_cancel`: output only through a Production Entry. A Manufacture that no
+	Production Entry made is refused (the Work Order's Finish) unless the user has System Manager; a Production
+	Entry's own entry is cancelled only by cancelling that entry."""
+	if doc.flags.get(FLAG_HASIL):
+		return
+	if doc.docstatus == 2:  # before_cancel: Frappe sets docstatus before the event
+		pe = frappe.get_all(
+			"Production Entry",
+			filters={"docstatus": 1},
+			or_filters={"manufacture_entry": doc.name, "reject_entry": doc.name},
+			pluck="name",
+			limit=1,
+		)
+		if pe:
+			frappe.throw(_("Cancel Production Entry {0} instead.").format(pe[0]))
+	elif doc.purpose == "Manufacture" and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Record output in Daily Input."))

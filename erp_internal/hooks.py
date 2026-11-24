@@ -5,8 +5,6 @@ app_description = "ERP for the plastic factory and the office"
 app_email = "marcoabel25@gmail.com"
 app_license = "mit"
 
-from erp_internal.batas_user import HANYA_ADMIN
-
 # Apps
 # ------------------
 
@@ -74,25 +72,47 @@ update_website_context = "erp_internal.versi.di_login"
 
 # include js in doctype views
 # The "Fill from History" button (planning/forecast.py); "Record Output" on a Work Order (Production Entry).
-doctype_js = {"Sales Forecast": "public/js/sales_forecast.js", "Work Order": "public/js/work_order.js"}
+doctype_js = {
+	"Sales Forecast": "public/js/sales_forecast.js",
+	"Work Order": "public/js/work_order.js",
+	"Sales Order": "public/js/sales_order.js",  # a Seal Cap line's price follows its machine
+}
 
 # proyek.py: an employee submits only their own timesheet (IZIN_TAMBAHAN gives the Employee role submit).
-# pengguna.py: an Admin hands out only Admin and User roles and leaves Developer accounts alone.
+# pengguna.py: an Admin hands out only Admin and Produksi roles and leaves Super Admin accounts alone.
 doc_events = {
 	"Timesheet": {"before_submit": "erp_internal.proyek.cek_pemilik_timesheet"},
+	# pengiriman.py: every Delivery Note line ships from the note's warehouse.
+	"Delivery Note": {"validate": "erp_internal.pengiriman.ikut_gudang"},
 	# production_floor.py: the Production Floor page refreshes the machine that changed. Work Order uses on_change:
 	# ERPNext sets produced_qty and status with db_set, which runs only before_change/on_change, and on_change also
 	# runs after save, submit, cancel and update-after-submit. Workstation keeps on_update: Job Card writes its status
 	# with db.set_value (no event at all), which the page's poll catches.
 	"Workstation": {"on_update": "erp_internal.production_floor.siarkan"},
+	# kapasitas.py: a pigment's ratio and a Packing row's pieces are above 0; a pigment, a packing item's state or
+	# a product's Packing rows changed rebuilds the capacity BOMs.
+	"Item": {
+		"validate": [
+			"erp_internal.planning.kapasitas.cek_pigmen",
+			"erp_internal.planning.kapasitas.cek_kemasan",
+		],
+		"on_update": "erp_internal.planning.kapasitas.item_berubah",
+	},
 	"Work Order": {
 		"on_change": "erp_internal.production_floor.siarkan",
 		# before_validate, not validate: ERPNext builds the required items in validate, from the BOM then set.
-		"before_validate": "erp_internal.planning.kapasitas.pilih_bom",
-		"validate": "erp_internal.planning.kapasitas.mesin_aktif",
+		"before_validate": [
+			"erp_internal.seal_cap.mesin_dari_so",
+			"erp_internal.planning.kapasitas.pilih_bom",
+		],
+		"validate": [
+			"erp_internal.planning.kapasitas.mesin_aktif",
+			"erp_internal.planning.kapasitas.mesin_terdaftar",
+		],
 		"before_update_after_submit": [
 			"erp_internal.planning.kapasitas.kunci_mesin",
 			"erp_internal.planning.kapasitas.mesin_aktif",
+			"erp_internal.planning.kapasitas.mesin_terdaftar",
 		],
 	},
 	"User": {
@@ -103,17 +123,30 @@ doc_events = {
 		"before_insert": "erp_internal.pengguna.cek_peran",
 		"validate": "erp_internal.pengguna.cek_peran",
 	},
-	# batas_user.py: a User makes only a Material Receipt by hand.
+	# Output only through a Production Entry (no Finish from the Work Order but for System Manager), and its
+	# own stock entries cancelled only through it.
 	"Stock Entry": {
-		"validate": "erp_internal.batas_user.cek_stock_entry",
-		"before_cancel": "erp_internal.batas_user.cek_stock_entry",
+		"validate": "erp_internal.planning.doctype.production_entry.production_entry.cek_stock_entry",
+		"before_cancel": "erp_internal.planning.doctype.production_entry.production_entry.cek_stock_entry",
+		# lampiran.py: only a Material Receipt needs its real document attached.
+		"before_submit": "erp_internal.lampiran.cek_lampiran",
 	},
+	# lampiran.py: the photo or scan of a paper document is attached before submit. One entry per DocType of
+	# `lampiran.WAJIB_LAMPIRAN` (`test_lampiran.test_hook_per_tabel` keeps the two in step).
+	# seal_cap.py: a Seal Cap line's price follows its machine.
+	"Sales Order": {
+		"before_validate": "erp_internal.seal_cap.harga_mesin",
+		"before_update_after_submit": "erp_internal.seal_cap.harga_terkunci",
+		"before_submit": "erp_internal.lampiran.cek_lampiran",
+	},
+	"Sales Invoice": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Purchase Order": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Purchase Receipt": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Purchase Invoice": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Payment Entry": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
+	"Expense Entry": {"before_submit": "erp_internal.lampiran.cek_lampiran"},
 }
-# batas_user.HANYA_ADMIN: Stock User's other documents, read only for a User.
-has_permission = {
-	"User": "erp_internal.pengguna.boleh_ubah",
-	**dict.fromkeys(HANYA_ADMIN, "erp_internal.batas_user.boleh_ubah"),
-}
+has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -148,10 +181,8 @@ has_permission = {
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "erp_internal.utils.jinja_methods",
-# 	"filters": "erp_internal.utils.jinja_filters"
-# }
+# cetak.py: the long Indonesian date of the PO print formats (templates/po_samuel.html).
+jinja = {"methods": ["erp_internal.cetak.tanggal_panjang"]}
 
 # User menu
 # ---------
@@ -187,6 +218,7 @@ extend_bootinfo = [
 	"erp_internal.tampilan.merek_aplikasi",
 	"erp_internal.tampilan.menu_samping",
 	"erp_internal.tampilan.saring_modul_mati",
+	"erp_internal.lampiran.boot",
 ]
 
 # Frappe's workspace writes answer with a fresh `app_data` that skips extend_bootinfo; ours run Frappe's and then
@@ -204,7 +236,7 @@ override_whitelisted_methods = {
 
 after_install = "erp_internal.setup.pastikan_setup"
 after_migrate = "erp_internal.setup.pastikan_setup"
-# The wizard, filled by make or in the browser: our company, the wizard's account as Developer, Samuel's data once.
+# The wizard, filled by make or in the browser: our company, the wizard's account as Super Admin, Samuel's data once.
 setup_wizard_complete = "erp_internal.wizard.selesai"
 
 # Frappe runs only the tested app's before_tests: complete the test site's wizard (HRMS's own hook,

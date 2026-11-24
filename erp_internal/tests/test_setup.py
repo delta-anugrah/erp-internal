@@ -61,6 +61,10 @@ class TestSetup(IntegrationTestCase):
 		self.assertEqual(set(aktif), set(GUDANG_PABRIK))
 		self.assertEqual(gudang(self.pabrik, "Gudang Barang Jadi"), "Gudang Barang Jadi - _UP")
 
+	def test_gudang_pluit(self):
+		wh = gudang(self.pabrik, "Gudang Pluit")
+		self.assertEqual(frappe.db.get_value("Warehouse", wh, ["disabled", "is_group"]), (0, 0))
+
 	def test_satu_perusahaan_dapat_semua(self):
 		# One company gets the factory and the office (Samuel, 2026-10-28): warehouses and production
 		# defaults, and this year's holiday list.

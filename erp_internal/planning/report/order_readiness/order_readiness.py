@@ -13,9 +13,9 @@ from frappe.query_builder.functions import Min, Sum
 from frappe.utils import flt, get_first_day, get_last_day, getdate, today
 
 from erp_internal.planning.rumus import STATUS, hitung_jadwal, hitung_kurang
+from erp_internal.setup import GUDANG_JUAL
 from erp_internal.setup import gudang as gudang_pabrik
 
-GUDANG_BAWAAN = "Gudang Barang Jadi"
 GRUP_BAWAAN = "Barang Jadi"
 SO_SELESAI = ("Closed", "Completed")  # orders whose remaining lines no longer count
 WO_JALAN = ("Not Started", "In Process")  # Work Orders whose remaining qty is still coming
@@ -83,7 +83,8 @@ def data(company: str, bulan: date, gudang: str | None, item_group: str, hari_in
 	)
 
 	awal, akhir = getdate(get_first_day(bulan)), getdate(get_last_day(bulan))
-	gudang = gudang or gudang_pabrik(company, GUDANG_BAWAAN)
+	# No warehouse picked: the stock of every selling warehouse (Samuel 2026-11-23).
+	gudang = [gudang] if gudang else [gudang_pabrik(company, nama) for nama in GUDANG_JUAL]
 	barang = _barang(item_group)
 	if not barang:
 		return []
@@ -152,12 +153,15 @@ def _barang(item_group: str) -> list:
 	)
 
 
-def _stok(kode: list[str], gudang: str) -> dict[str, float]:
-	return dict(
-		frappe.get_all(
-			"Bin", {"item_code": ("in", kode), "warehouse": gudang}, ["item_code", "actual_qty"], as_list=True
-		)
-	)
+def _stok(kode: list[str], gudang: list[str]) -> dict[str, float]:
+	bin_ = frappe.qb.DocType("Bin")
+	rows = (
+		frappe.qb.from_(bin_)
+		.select(bin_.item_code, Sum(bin_.actual_qty).as_("qty"))
+		.where(bin_.item_code.isin(kode) & bin_.warehouse.isin(gudang))
+		.groupby(bin_.item_code)
+	).run(as_dict=True)
+	return {r.item_code: r.qty for r in rows}
 
 
 def _terbuka(company: str, kode: list[str]) -> dict:

@@ -114,7 +114,7 @@ class TestAlurProduksi(IntegrationTestCase):
 		self.assertTrue(baris)
 		self.assertAlmostEqual(sum(r.required_qty for r in baris), 3000, places=3)
 
-		# 5. A Work Order with no warehouses gets the factory's.
+		# 5. A Work Order with no warehouses gets the factory's, and skips the transfer (setup.BAWAAN_WO).
 		wo = frappe.get_doc(
 			{
 				"doctype": "Work Order",
@@ -124,16 +124,13 @@ class TestAlurProduksi(IntegrationTestCase):
 				"company": self.pabrik,
 			}
 		).insert()
-		self.assertEqual(
-			(wo.wip_warehouse, wo.fg_warehouse),
-			(gudang(self.pabrik, "Gudang Produksi"), gudang(self.pabrik, "Gudang Barang Jadi")),
-		)
+		self.assertEqual((wo.skip_transfer, wo.fg_warehouse), (1, gudang(self.pabrik, "Gudang Barang Jadi")))
 		wo.submit()
 
-		# 6. Transfer, then manufacture: finished goods +3000, the PP in Gudang Bahan Baku -750.
+		# 6. Manufacture (as System Manager; staff go through a Production Entry): finished goods +3000, the PP
+		# in Gudang Bahan Baku -750.
 		jadi = gudang(self.pabrik, "Gudang Barang Jadi")
 		sebelum_jadi, sebelum_pp = stok(JADI, jadi), stok(PP, bahan_baku)
-		frappe.get_doc(make_stock_entry(wo.name, "Material Transfer for Manufacture", 3000)).insert().submit()
 		frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3000)).insert().submit()
 		self.assertEqual(stok(JADI, jadi) - sebelum_jadi, 3000)
 		self.assertEqual(sebelum_pp - stok(PP, bahan_baku), 750)

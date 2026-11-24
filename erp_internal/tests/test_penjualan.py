@@ -101,6 +101,11 @@ class TestPenjualan(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Price List", penjualan.HARGA_BAHAN, ["buying", "selling"]), (1, 0)
 		)
+		# A new Purchase Order takes its rates from it (it came at price 0 from "Standard Buying").
+		self.assertEqual(
+			frappe.db.get_single_value("Buying Settings", "buying_price_list"), penjualan.HARGA_BAHAN
+		)
+		self.assertEqual(frappe.db.get_default("buying_price_list"), penjualan.HARGA_BAHAN)
 
 	def test_stok_minimum(self):
 		# Gayung Lumba Super: 6,140 lusin in 9 months, a third per colour: 73,680 / 3 / 9 / 2 = 1,364.4 -> 1,365.
@@ -108,6 +113,16 @@ class TestPenjualan(IntegrationTestCase):
 		# Gantungan BabyLove DX sold only 6 gross in August.
 		for k in penjualan.varian("GANTUNGAN-BABY-LOVE", "DX"):
 			self.assertLessEqual(frappe.db.get_value("Item", k, "safety_stock"), 864 / 9 / 2 + 1)
+
+	def test_pigmen(self):
+		# The pigment template: stocked in grams, bought per Kg, variants per colour (spec section 8, A1).
+		item = frappe.get_doc("Item", "PIGMEN")
+		self.assertEqual(
+			(item.item_group, item.stock_uom, item.purchase_uom, item.has_variants),
+			("Pigmen", "Gram", "Kg", 1),
+		)
+		self.assertEqual([a.attribute for a in item.attributes], ["Warna"])
+		self.assertEqual({u.uom: u.conversion_factor for u in item.uoms}, {"Gram": 1, "Kg": 1000})
 
 	def test_kedua_kali_tidak_menulis(self):
 		self.assertEqual(penjualan.muat(self.company)["ditulis"], 0)

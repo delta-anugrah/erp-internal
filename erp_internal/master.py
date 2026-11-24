@@ -11,7 +11,8 @@ Reads `data/katalog.json` (the price list "POLA PLASTIK TAHUN 2026", as Samuel s
 - the selling Price List "Harga Pola <year>" with one Item Price per variant and packing the list prices, and the
   Sales Order default while that is still "Standard Selling";
 - one Workstation per machine, "Mesin 01".."Mesin 14", of type Injection Moulding; a machine with `"aktif": false`
-  is disabled and Off (no new Work Order on it, `kapasitas.mesin_aktif`).
+  is disabled and Off (no new Work Order on it, `kapasitas.mesin_aktif`);
+- the Seal Cap line of `data/seal_cap.json` (`seal_cap.muat`).
 
 Idempotent: every record is looked up by its key and saved only when it differs, so a second run writes nothing.
 Rerun it after Samuel sends a new file (docs/impor.md). It removes nothing but the price list's own prices that
@@ -96,6 +97,10 @@ SINGKATAN = {
 		"Bening Transparan": "BTR",
 		"Putih Susu": "PTS",
 		"Campur": "CMP",
+		# The Seal Cap colours (`seal_cap.py`)
+		"Coklat Muda": "CKM",
+		"Putih": "PTH",
+		"Neutral": "NTR",
 	},
 	"Ukuran": {"1 KG": "1KG", "1,5 KG": "1.5KG"},
 }
@@ -126,6 +131,7 @@ def muat() -> dict:
 	setup._satuan()  # the packing UOMs, whole numbers (also on every migrate)
 	setup._varian()
 	hasil.simpan("Brand", MEREK, {"brand": MEREK})
+	_merek(hasil)
 	hasil.simpan(
 		"Price List", daftar, {"price_list_name": daftar, "selling": 1, "buying": 0, "currency": "IDR"}
 	)
@@ -145,6 +151,10 @@ def muat() -> dict:
 	for m in mesin:
 		_mesin(m, hasil)
 
+	from erp_internal import seal_cap  # it builds on this module
+
+	seal_cap.muat(hasil)
+
 	return {
 		"template": len(produk),
 		"varian": sum(len(p["varian"]) for p in produk),
@@ -156,11 +166,36 @@ def muat() -> dict:
 	}
 
 
-def _harga_bawaan(daftar: str, hasil: "Hasil") -> None:
-	"""Make `daftar` the new Sales Order's price list while it is still ERPNext's empty "Standard Selling" (a
-	user's Sales Order otherwise came at price 0); a list someone chose stays."""
-	if frappe.db.get_single_value("Selling Settings", "selling_price_list") in (None, "", "Standard Selling"):
-		frappe.db.set_single_value("Selling Settings", "selling_price_list", daftar)
+def _merek(hasil: "Hasil") -> None:
+	"""The Seal Cap brand codes (customer EPP) with their insert counts. The count and the note are only the
+	first load's: Admin keeps the count current afterwards."""
+	for b in berkas("merek_epp.json"):
+		hasil.simpan(
+			"Brand",
+			b["merk"],
+			{"brand": b["merk"]},
+			{"erp_jumlah_insert": b["insert"], "description": b["ket"]},
+		)
+
+
+HARGA_STANDAR = {
+	"selling_price_list": ("Selling Settings", "Standard Selling"),
+	"buying_price_list": ("Buying Settings", "Standard Buying"),
+}
+
+
+def _harga_bawaan(daftar: str, hasil: "Hasil", kunci: str = "selling_price_list") -> None:
+	"""Make `daftar` the new order's price list while it is still ERPNext's empty standard list (an order
+	otherwise came at price 0); a list someone chose stays. The global default the forms and the server
+	actually read is kept equal to the setting: `set_single_value` skips the Settings' validate that copies it."""
+	pengaturan, standar = HARGA_STANDAR[kunci]
+	nilai = frappe.db.get_single_value(pengaturan, kunci)
+	if nilai in (None, "", standar):
+		frappe.db.set_single_value(pengaturan, kunci, daftar)
+		nilai = daftar
+		hasil.ditulis += 1
+	if frappe.db.get_default(kunci) != nilai:
+		frappe.db.set_default(kunci, nilai)
 		hasil.ditulis += 1
 
 

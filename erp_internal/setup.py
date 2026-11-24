@@ -112,16 +112,81 @@ FIELD_BOM = [
 	},
 ]
 
-GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart")
-# Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`); Ball Kecil the sales Excel's (`penjualan.py`).
-SATUAN = ("Pcs", "Lusin", "Gross", "Karton", "Ball", "Ball Kecil", "Dus", "Ikat", "Pack", "Sak", "Roll", "Kg")
-SATUAN_PECAHAN = ("Kg",)  # every other UOM takes whole numbers only
+# A pigment's ratio, in g per kg of resin (spec section 8): its capacity BOM line is part kg x ratio, in grams.
+FIELD_PIGMEN = {
+	"fieldname": "erp_rasio_pigmen",
+	"label": "Pigment Ratio (g per kg)",
+	"fieldtype": "Float",
+	"default": "1",
+	"insert_after": "item_group",
+	"depends_on": "eval:doc.variant_of=='PIGMEN'",
+}
+# A product's packing (spec A2): which packing items it goes in and how many pieces fit in one, read from the
+# variant, else its template (`kapasitas.kemasan`). Shown on templates, variants and finished goods, never on
+# the groups below.
+GRUP_PRODUK = "Barang Jadi"
+GRUP_TANPA_KEMASAN = ("Kemasan", "Pigmen")
+FIELD_KEMASAN = {
+	"fieldname": "erp_kemasan",
+	"label": "Packing",
+	"fieldtype": "Table",
+	"options": "Item Packing",
+	"insert_after": "erp_rasio_pigmen",
+	"depends_on": (
+		f"eval:(doc.has_variants || doc.variant_of || doc.item_group=={GRUP_PRODUK!r})"
+		f" && !{list(GRUP_TANPA_KEMASAN)!r}.includes(doc.item_group)"
+	),
+}
+
+# A Seal Cap brand's mould inserts (spec A4): the count Admin keeps current on the Brand.
+FIELD_MEREK = {
+	"fieldname": "erp_jumlah_insert",
+	"label": "Inserts (pcs)",
+	"fieldtype": "Int",
+	"insert_after": "brand",
+	"in_list_view": 1,
+}
+
+# The machine a Sales Order line is made on: for a `seal_cap.HARGA_MESIN` item the price follows it, and a Work
+# Order made from the line takes it (`seal_cap.py`).
+FIELD_SO_MESIN = {**FIELD_WO_MESIN, "insert_after": "item_code", "allow_on_submit": 0, "in_list_view": 1}
+
+GRUP_BARANG = ("Barang Jadi", "Bahan Baku", "Bahan Penolong", "Kemasan", "Sparepart", "Pigmen")
+# Gross, Ball, Dus, Ikat and Pack are the price list's packings (`master.py`); Ball Kecil the sales Excel's
+# (`penjualan.py`); Gram the pigments' stock UOM (bought per Kg).
+SATUAN = (
+	"Pcs",
+	"Lusin",
+	"Gross",
+	"Karton",
+	"Ball",
+	"Ball Kecil",
+	"Dus",
+	"Ikat",
+	"Pack",
+	"Sak",
+	"Roll",
+	"Kg",
+	"Gram",
+	"Buah",
+)
+# Buah: the packing items' stock UOM (a capacity BOM uses 1/560 of a bag per piece).
+SATUAN_KEMASAN = "Buah"
+SATUAN_PECAHAN = ("Kg", "Gram", SATUAN_KEMASAN)  # every other UOM takes whole numbers only
 # A variant keeps its own packings (one colour's Dus holds 3 Gross, another's 5): a template's save then no
 # longer copies its UOM table over its variants'.
 PENGATURAN_VARIAN = {"allow_different_uom": 1}  # Item Variant Settings
-GUDANG_PABRIK = ("Gudang Bahan Baku", "Gudang Produksi", "Gudang Barang Jadi", "Gudang Reject")
+GUDANG_PABRIK = (
+	"Gudang Bahan Baku",
+	"Gudang Produksi",
+	"Gudang Barang Jadi",
+	"Gudang Reject",
+	"Gudang Pluit",
+)
+# Where finished goods are sold from (Samuel 2026-11-23): a Delivery Note picks one, Order Readiness counts both.
+GUDANG_JUAL = ("Gudang Barang Jadi", "Gudang Pluit")
 
-# The sales and purchasing flow: a Delivery Note is made directly (Samuel 2026-11-02: no Sales Orders for now),
+# The sales and purchasing flow: a Delivery Note is made directly (Samuel 2026-11-02; Sales Orders came back 2026-11-23 but stay optional before a delivery),
 # every purchase receipt starts from an order; stock never goes negative and is valued FIFO.
 PENGATURAN_ALUR = {
 	"Selling Settings": {"so_required": "No", "dn_required": "No"},
@@ -150,10 +215,16 @@ GUDANG_PRODUKSI = {
 	"default_fg_warehouse": "Gudang Barang Jadi",
 	"default_scrap_warehouse": "Gudang Reject",
 }
-PENGATURAN_PRODUKSI = {"backflush_raw_materials_based_on": "BOM"}  # Manufacturing Settings
+# Manufacturing Settings. 10 % over a Work Order's qty lets a last shift's real count be entered (Daily Input).
+PENGATURAN_PRODUKSI = {
+	"backflush_raw_materials_based_on": "BOM",
+	"overproduction_percentage_for_work_order": 10,
+}
 # The factory's shifts (name, hours) for Production Entry: its Shift choices and the default run hours (Samuel
 # 2026-11-02: two shifts of 12 h). Written as a Property Setter on Production Entry.shift.
 SHIFT_PABRIK = (("Shift 1", 12), ("Shift 2", 12))
+# Each shift's clock times, shown in Daily Input. Shift 2 belongs to the date its evening started.
+JAM_SHIFT = {"Shift 1": "08.00-20.00", "Shift 2": "20.00-08.00"}
 # The Reject Reasons setup makes when missing (until Samuel lists his). Admin may add more; none is deleted.
 ALASAN_REJECT = (
 	"Short Shot",
@@ -164,12 +235,16 @@ ALASAN_REJECT = (
 	"Sink Mark",
 	"Lainnya",
 )
+# The Expense Categories setup makes when missing (spec section 5), in the Monthly Expenses report's order. Admin
+# may add more; none is deleted.
+KATEGORI_BIAYA = ("Gaji Operator", "Gaji Karyawan Tetap", "Listrik", "Bensin", "Lainnya")
 # Item Group → the warehouse its items default to, per company.
 GUDANG_GRUP = {
 	"Barang Jadi": "Gudang Barang Jadi",
 	"Bahan Baku": "Gudang Bahan Baku",
 	"Bahan Penolong": "Gudang Bahan Baku",
 	"Kemasan": "Gudang Bahan Baku",
+	"Pigmen": "Gudang Bahan Baku",
 }
 
 # Attendance. One shift for everyone, attendance by phone with location (Samuel's question 5; until he answers,
@@ -210,9 +285,9 @@ JENIS_KEGIATAN = ("Pengembangan", "Rapat", "Dukungan Klien", "Administrasi")
 #   defaults ("No permission for Company" on a new Stock Entry, seen by tools/cek_layar.mjs).
 # - The Admin role manages users (roles sit on permlevel 1) and reads the profiles it hands out; what it may give
 #   is limited by `pengguna.cek_user`. Projects Settings is System Manager's only in v16.
-# - The User role (PERAN_USER, next to Stock User) reads the machines (the Production Floor, a Production Entry's
-#   machine; `production_floor.set_status` changes only the status), and the price lists and accounts a Delivery
-#   Note uses (ERPNext checks the customer's receivable account).
+# - The Produksi role (PERAN_USER, its only role) reads the machines (the Production Floor, a Production Entry's
+#   machine; `production_floor.set_status` changes only the status), the Work Orders it records output for, and
+#   the Company every form reads its defaults from.
 IZIN_TAMBAHAN = (
 	("Timesheet", "Employee", 0, ("submit",)),
 	("Company", "Manufacturing User", 0, ("read",)),
@@ -222,12 +297,27 @@ IZIN_TAMBAHAN = (
 	("Module Profile", tampilan.PERAN_ADMIN, 0, ("read",)),
 	("Projects Settings", "Projects Manager", 0, ("read", "write")),
 	("Workstation", tampilan.PERAN_USER, 0, ("read",)),
+	("Work Order", tampilan.PERAN_USER, 0, ("read",)),
+	("Company", tampilan.PERAN_USER, 0, ("read",)),
+	# The Work Order's material rates and amounts sit on permlevel 1 (`HARGA_TERSEMBUNYI`): Admin's roles read
+	# them, Produksi (permlevel 0 only) does not.
+	("Work Order", "Manufacturing Manager", 1, ("read", "write")),
+	("Work Order", "Manufacturing User", 1, ("read", "write")),
+)
+# Grants of IZIN_TAMBAHAN taken back (same shape): `_cabut_izin` clears exactly these rights. The old User read
+# these for the delivery note and Material Receipt forms, now Admin's (Samuel, 2026-11-23).
+IZIN_DICABUT = (
 	("Price List", tampilan.PERAN_USER, 0, ("read",)),
 	("Account", tampilan.PERAN_USER, 0, ("read",)),
-	# The forms of a Material Receipt and a direct Delivery Note read these while being filled in.
 	("Stock Settings", tampilan.PERAN_USER, 0, ("read",)),
 	("Customer Group", tampilan.PERAN_USER, 0, ("read",)),
 )
+# New Work Orders' defaults (a Property Setter `default` per field): no material transfer, so Produksi's entries
+# never wait for Admin's Start; the material leaves Gudang Bahan Baku as output is entered. Admin may untick it.
+BAWAAN_WO = {"skip_transfer": 1}
+# Price fields Produksi must not see (Samuel, 2026-11-23): moved to permlevel 1 by a Property Setter; IZIN_TAMBAHAN
+# gives the Manufacturing roles that level on the parent DocType.
+HARGA_TERSEMBUNYI = {"Work Order Item": ("rate", "amount")}
 
 
 def pastikan_setup() -> None:
@@ -242,13 +332,19 @@ def pastikan_setup() -> None:
 	_grup_barang()
 	_satuan()
 	_varian()
+	_pigmen()
 	for company in perusahaan():
 		_gudang_pabrik(company)
+	_gudang_kirim()
 	_bawaan()
 	_alur_jual_beli()
 	_produksi()
+	_bawaan_wo()
+	_harga_tersembunyi()
 	_shift_pabrik()
+	_format_cetak()
 	_alasan_reject()
+	_kategori_biaya()
 	_kantor()
 	_proyek()
 	tampilan.terapkan()
@@ -318,7 +414,10 @@ def _field_aktif() -> None:
 			"Company": [FIELD_AKTIF],
 			"Workstation": FIELD_MESIN,
 			"Work Order": [FIELD_WO_MESIN],
+			"Sales Order Item": [FIELD_SO_MESIN],
 			"BOM": FIELD_BOM,
+			"Item": [FIELD_PIGMEN, FIELD_KEMASAN],
+			"Brand": [FIELD_MEREK],
 		},
 		update=True,
 	)
@@ -345,6 +444,16 @@ def _satuan() -> None:
 			frappe.db.set_value("UOM", nama, "must_be_whole_number", bulat)
 
 
+def _pigmen() -> None:
+	"""The PIGMEN template (`penjualan._pigmen`) on a site whose colours exist (Samuel's data or the sample data
+	loaded), so a migrate brings it to a site loaded earlier. Writes nothing once it is right."""
+	from erp_internal import master, penjualan
+	from erp_internal.planning.kapasitas import ATRIBUT_WARNA
+
+	if frappe.db.exists("Item Attribute", ATRIBUT_WARNA):
+		penjualan._pigmen(master.Hasil())
+
+
 def _varian() -> None:
 	for field, nilai in PENGATURAN_VARIAN.items():
 		if frappe.db.get_single_value("Item Variant Settings", field) != nilai:
@@ -352,7 +461,7 @@ def _varian() -> None:
 
 
 def _gudang_pabrik(company: str) -> None:
-	"""The four factory warehouses under the company's root; every other unused one is disabled."""
+	"""The `GUDANG_PABRIK` warehouses under the company's root; every other unused one is disabled."""
 	akar = frappe.db.get_value(
 		"Warehouse", {"company": company, "is_group": 1, "parent_warehouse": ("is", "not set")}, "name"
 	)
@@ -377,6 +486,16 @@ def _gudang_pabrik(company: str) -> None:
 		# A warehouse with stock history stays; disabling it would hide stock that exists.
 		if wh not in milik and not frappe.db.exists("Stock Ledger Entry", {"warehouse": wh}):
 			frappe.db.set_value("Warehouse", wh, "disabled", 1)
+
+
+def _gudang_kirim() -> None:
+	"""A Delivery Note must name its warehouse (Property Setter `reqd` on `set_warehouse`)."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	if not frappe.get_meta("Delivery Note").get_field("set_warehouse").reqd:
+		make_property_setter(
+			"Delivery Note", "set_warehouse", "reqd", "1", "Check", validate_fields_for_doctype=False
+		)
 
 
 def _bawaan() -> None:
@@ -520,6 +639,29 @@ def jam_shift(nama: str) -> float:
 	return float(dict(SHIFT_PABRIK).get(nama, 0))
 
 
+def _bawaan_wo() -> None:
+	"""BAWAAN_WO as Property Setter defaults on Work Order."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	meta = frappe.get_meta("Work Order")
+	for field, nilai in BAWAAN_WO.items():
+		if str(meta.get_field(field).default) != str(nilai):
+			make_property_setter(
+				"Work Order", field, "default", str(nilai), "Text", validate_fields_for_doctype=False
+			)
+
+
+def _harga_tersembunyi() -> None:
+	"""HARGA_TERSEMBUNYI's fields on permlevel 1 (a Property Setter each)."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	for doctype, fields in HARGA_TERSEMBUNYI.items():
+		meta = frappe.get_meta(doctype)
+		for field in fields:
+			if meta.get_field(field).permlevel != 1:
+				make_property_setter(doctype, field, "permlevel", 1, "Int", validate_fields_for_doctype=False)
+
+
 def _shift_pabrik() -> None:
 	"""Production Entry's Shift choices: a blank, then the SHIFT_PABRIK names."""
 	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
@@ -531,10 +673,29 @@ def _shift_pabrik() -> None:
 		)
 
 
+def _format_cetak() -> None:
+	"""cetak.FORMAT_CETAK as the default print format of Sales Order and Purchase Order (a Property Setter)."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	from erp_internal.cetak import FORMAT_CETAK
+
+	for doctype, nama in FORMAT_CETAK.items():
+		if frappe.db.exists("Print Format", nama) and frappe.get_meta(doctype).default_print_format != nama:
+			make_property_setter(doctype, None, "default_print_format", nama, "Link", for_doctype=True)
+
+
 def _alasan_reject() -> None:
 	for nama in ALASAN_REJECT:
 		if not frappe.db.exists("Reject Reason", nama):
 			frappe.get_doc({"doctype": "Reject Reason", "reason_name": nama}).insert(ignore_permissions=True)
+
+
+def _kategori_biaya() -> None:
+	for nama in KATEGORI_BIAYA:
+		if not frappe.db.exists("Expense Category", nama):
+			frappe.get_doc({"doctype": "Expense Category", "category_name": nama}).insert(
+				ignore_permissions=True
+			)
 
 
 def _kantor() -> None:
@@ -647,7 +808,8 @@ def pastikan_libur(company: str, tahun: int) -> str:
 
 
 def _proyek() -> None:
-	"""The Activity Types of a timesheet, without rates, and the extra rights of IZIN_TAMBAHAN."""
+	"""The Activity Types of a timesheet, without rates, the extra rights of IZIN_TAMBAHAN, and IZIN_DICABUT's
+	rows gone."""
 	for nama in JENIS_KEGIATAN:
 		if not frappe.db.exists("Activity Type", nama):
 			frappe.get_doc(
@@ -669,3 +831,23 @@ def _proyek() -> None:
 			if not frappe.db.exists("Custom DocPerm", syarat):
 				add_permission(doctype, peran, level)
 			update_permission_property(doctype, peran, level, h, 1)
+
+	_cabut_izin()
+
+
+def _cabut_izin() -> None:
+	"""IZIN_DICABUT: clear exactly the listed rights on those Custom DocPerm rows, and delete a row only when no
+	right is left on it (a right set by someone else stays). Frappe has no remove_permission helper."""
+	from frappe.permissions import rights
+
+	for doctype, peran, level, hak in IZIN_DICABUT:
+		for baris in frappe.get_all(
+			"Custom DocPerm", {"parent": doctype, "role": peran, "permlevel": level}, ["name", *rights]
+		):
+			if not any(baris[h] for h in hak):
+				continue
+			if any(baris[r] for r in rights if r not in hak):
+				frappe.db.set_value("Custom DocPerm", baris.name, dict.fromkeys(hak, 0))
+			else:
+				frappe.db.delete("Custom DocPerm", baris.name)
+			frappe.clear_cache(doctype=doctype)

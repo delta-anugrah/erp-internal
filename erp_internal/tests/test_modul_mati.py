@@ -10,12 +10,12 @@ from frappe.tests import IntegrationTestCase
 from erp_internal import tampilan
 from erp_internal.tampilan import (
 	ADMIN,
-	DEVELOPER,
 	DOCTYPE_MATI,
 	LAPORAN_MATI,
 	MODUL_MATI,
 	PERAN_KUNCI,
-	USER,
+	PRODUKSI,
+	SUPER_ADMIN,
 	saring_modul_mati,
 )
 from erp_internal.tests.test_tampilan import pengguna_profil
@@ -36,7 +36,7 @@ CONTOH_MATI = (
 # HR's used DocTypes stay open for Admin (and Developer).
 HR_TETAP = ("Employee", "Attendance", "Employee Checkin", "Leave Application", "Shift Type", "Holiday List")
 # Used DocTypes each profile still reads.
-TETAP = {DEVELOPER: "Sales Order", ADMIN: "Sales Order", USER: "Delivery Note"}
+TETAP = {SUPER_ADMIN: "Sales Order", ADMIN: "Sales Order", PRODUKSI: "Production Entry"}
 
 
 def custom(dt: str) -> list:
@@ -45,7 +45,7 @@ def custom(dt: str) -> list:
 
 class TestModulMati(IntegrationTestCase):
 	def test_terkunci_kecuali_administrator(self):
-		for profil in (DEVELOPER, ADMIN, USER):
+		for profil in (SUPER_ADMIN, ADMIN, PRODUKSI):
 			u = pengguna_profil(profil, "mati")
 			for dt in CONTOH_MATI:
 				self.assertFalse(frappe.has_permission(dt, "read", user=u), f"{profil} {dt}")
@@ -54,7 +54,7 @@ class TestModulMati(IntegrationTestCase):
 			self.assertTrue(frappe.has_permission(dt, "read", user="Administrator"), dt)
 
 	def test_hr_dipakai_tetap_buka(self):
-		for profil in (DEVELOPER, ADMIN):
+		for profil in (SUPER_ADMIN, ADMIN):
 			u = pengguna_profil(profil, "mati")
 			for dt in HR_TETAP:
 				self.assertTrue(frappe.has_permission(dt, "read", user=u), f"{profil} {dt}")
@@ -101,7 +101,7 @@ class TestModulMati(IntegrationTestCase):
 	def test_blok_menu(self):
 		# Developer's Module Profile and Administrator's own blocks hide the modules from every menu.
 		semua = set(tampilan.modul_aplikasi())
-		for user in (pengguna_profil(DEVELOPER, "mati"), "Administrator"):
+		for user in (pengguna_profil(SUPER_ADMIN, "mati"), "Administrator"):
 			blok = {b.module for b in frappe.get_doc("User", user).block_modules}
 			self.assertTrue(set(MODUL_MATI) & semua <= blok, user)
 

@@ -1,8 +1,9 @@
 # The erp-internal server
 
-Runbook for the production stack. The server, domain and off-site bucket wait on Samuel (question 6 in
-`docs/menunggu-samuel.md`); until then the stack is only built and tested locally (plan, Task 7). Nothing here is
-shared with BPT or the sawit server.
+Runbook for the production stack. Hosting is decided (DigitalOcean, Samuel 2026-11-23; backups to the admin's PC
+and Cloudflare R2; domain later: `docs/menunggu-samuel.md`, 2026-11-23 table, item 8), but the server is not built
+yet; until then the stack is only built and tested locally (plan, Task 7). Nothing here is shared with BPT or the
+sawit server.
 
 | File | What |
 |---|---|
@@ -13,10 +14,11 @@ shared with BPT or the sawit server.
 | `tanya.sh`, `akun.sh`, `wizard.sh` | The terminal questions, shared with `make setup` on a computer (`tools/setup_lokal.sh`): plain prompts with a suggestion, blind passwords, the account checklist, the wizard question and its by-hand instructions. |
 | `cadangan.sh` | Nightly backup: `bench backup --with-files --compress`, the newest set to `./cadangan` and, when set, `$RCLONE_REMOTE`; sets older than 14 days deleted on both. Without `RCLONE_REMOTE` it says the set stays on the server. Exits non-zero on any failure. |
 
-The image comes from `.github/workflows/image.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
+The image comes from `.github/workflows/ci.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
 from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`), checks it with
-`deploy/check_image.sh` and pushes it. The workflow refuses a tag that is not `v` + `erp_internal.__version__`
-(the version shown on the login page and in Settings). Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
+`deploy/check_image.sh`, runs every erp_internal test in it (`deploy/ci_tes.sh`) and only then pushes it. The
+workflow refuses a tag that is not on `main` or not `v` + `erp_internal.__version__` (the version shown on the login
+page and in Settings). Tag only with Abel's approval. `ERP_IMAGE` is always an exact tag, never
 `latest`.
 
 ## First install
@@ -52,14 +54,14 @@ make setup
    else is asked again.
 5. The setup wizard: automatic (default) or by hand in the browser, the company name and abbreviation (kept in
    `.wizard`, never asked again).
-6. The accounts: Administrator's password and, with the automatic wizard, optional Developer / Admin / User
+6. The accounts: Administrator's password and, with the automatic wizard, optional Super Admin / Admin / Produksi
    accounts (`akun.sh`, the same checklist as `make setup` on a computer); asked once (`.akun-siap`).
 
 Then `make env` (from the answers, passwords from `openssl rand`), `langkah` (`check check-env pull db site`),
 `wizard configure` (automatic) or `configure` (by hand), the accounts (the generated `ADMIN_PASSWORD` then
 leaves `.env`), `lanjut` once the wizard is done (`.lanjut-siap`), `up ping cron`, and the last line: `Ready: https://<address>`, or the by-hand wizard's steps
-(Administrator signs in, fills the wizard with the printed values, makes the account that becomes the Developer;
-then `make setup` again, which makes that account the Developer and loads Samuel's data; the background job does it
+(Administrator signs in, fills the wizard with the printed values, makes the account that becomes the Super Admin;
+then `make setup` again, which makes that account the Super Admin and loads Samuel's data; the background job does it
 too, but only after the wizard's own jobs, which can take many minutes). A run that stops halfway goes on where it stopped when run again.
 Afterwards: `make backup` and a restore drill (below).
 
@@ -70,7 +72,7 @@ What the steps do to the site: `site` makes it with erpnext, hrms and erp_intern
 data; `erp_internal.contoh` refuses sample data). The wizard, however filled, runs `erp_internal.wizard.selesai`
 (the `setup_wizard_complete` hook): it ticks the company's `erp_aktif`, keeps the wizard's own account (global
 default `erp_wizard_developer`) and queues `lanjutkan`, which runs our setup (warehouses, groups, UOMs, the order
-flow, holiday lists, PPN templates, the Role Profiles), makes that account a Developer, gives Admin/User accounts
+flow, holiday lists, PPN templates, the Role Profiles), makes that account a Super Admin, gives Admin/Produksi accounts
 the company, and loads Samuel's catalog, sales and machines once (marker `erp_data_samuel`: a new version never
 reloads them; a file lock keeps two runs apart). `setup.sh` also runs `make lanjut` itself once the wizard is done
 (`.lanjut-siap`), so a background job that failed after a by-hand wizard is repaired by the next `make setup`.
@@ -85,7 +87,7 @@ refusal ("Sample data is not allowed on a production site"), which a direct call
 ## New version
 
 1. Abel approves; set `__version__ = "X.Y.Z"` in `erp_internal/__init__.py` (merged to `main`), tag `vX.Y.Z` on
-   `main`; wait for the image workflow to pass.
+   `main`; wait for the CI run of the tag ("Tes") to pass: only then is the image in GHCR.
 2. `make backup` first.
 3. Set `ERP_IMAGE` in `.env` to the new tag, then:
 

@@ -1,9 +1,17 @@
 """BOMs made from a Machine Capacity row, and the Work Order's pick of the machine's BOM."""
 
-import frappe
-from frappe.tests import IntegrationTestCase
+from unittest.mock import patch
 
+import frappe
+from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
+from erpnext.controllers.item_variant import create_variant
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, getdate, today
+
+from erp_internal import master, penjualan
+from erp_internal.planning import kapasitas
 from erp_internal.planning.kapasitas import (
+	_isi_bom,
 	baris_bom,
 	buat_bom_kapasitas,
 	kunci_mesin,
@@ -11,15 +19,26 @@ from erp_internal.planning.kapasitas import (
 	pilih_bom,
 	varian_tercakup,
 )
-from erp_internal.tampilan import ADMIN, USER
+from erp_internal.setup import gudang, pastikan_setup
+from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_bom,
+	buat_hasil,
 	buat_kapasitas,
+	buat_kemasan,
 	buat_mesin,
+	buat_pemasok,
 	buat_pengguna,
 	buat_perusahaan,
+	buat_pigmen,
 	buat_varian,
+	buat_wo,
+	daftar_harga,
+	isi_kemasan,
+	lampirkan,
+	stok_awal,
+	tahun_fiskal,
 )
 
 TEMPLATE = "_UJI-BOMK"
@@ -130,7 +149,7 @@ class TestBomKapasitas(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("Guest")
 		self.assertRaises(frappe.PermissionError, buat_bom_kapasitas, tpl)
-		pegawai = buat_pengguna("_uji.bomk.user@example.com", USER, USER, None)
+		pegawai = buat_pengguna("_uji.bomk.user@example.com", PRODUKSI, PRODUKSI, None)
 		frappe.set_user(pegawai)
 		self.assertRaises(frappe.PermissionError, self.buat, tpl)
 		admin = buat_pengguna("_uji.bomk.admin@example.com", ADMIN, ADMIN, None)
@@ -181,6 +200,7 @@ class TestBomKapasitas(IntegrationTestCase):
 		# A submitted order's machine changes while Not Started or In Process, never once it is done
 		gudang = frappe.db.get_value("Warehouse", {"company": self.pabrik, "is_group": 0})
 		self.buat(self.row(self.v[0], self.m1))
+		self.row(self.v[0], self.m2)  # listed on both machines: the move is allowed
 		a = frappe.get_doc(
 			{
 				"doctype": "Work Order",
@@ -233,3 +253,234 @@ class TestBomKapasitas(IntegrationTestCase):
 		mesin_aktif(a)  # the machine it already runs on, now off: left alone
 		b = frappe.copy_doc(a)
 		self.assertRaisesRegex(frappe.ValidationError, "is not in use", b.insert)
+
+
+class TestPigmen(IntegrationTestCase):
+	"""Pigment per colour (spec section 8, A1): stocked in grams, bought per Kg, a BOM line of part kg x ratio."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.pabrik = buat_perusahaan("_Uji Pabrik", "_UP")
+		cls.mesin = buat_mesin(1)
+		cls.bahan = buat_barang("_UJI-PP", "Bahan Baku", "Kg")
+
+	def setUp(self):
+		frappe.db.savepoint("pigmen")
+		self.addCleanup(frappe.db.rollback, save_point="pigmen")
+		self.addCleanup(frappe.cache.delete_value, kapasitas.KUNCI_SEGARKAN_LAGI)
+
+	def pigmen(self, warna, rasio):
+		return buat_pigmen(warna, rasio)
+
+	def kemasan(self, kode):
+		return buat_kemasan(kode)
+
+	def isi_kemasan(self, item, kemasan, pieces):
+		isi_kemasan(item, kemasan, pieces)
+
+	def isi_bom(self, item):
+		bom = frappe.db.get_value(
+			"BOM", {"item": item, "is_default": 1, "docstatus": 1, "erp_kapasitas": ("is", "set")}
+		)
+		return _isi_bom(bom)
+
+	def stok(self, kode, nama_gudang):
+		wh = gudang(self.pabrik, nama_gudang)
+		return frappe.db.get_value("Bin", {"item_code": kode, "warehouse": wh}, "actual_qty") or 0
+
+	def kapasitas(self, item):
+		return buat_kapasitas(item, self.mesin, material=self.bahan, part_weight=50, runner_weight=0)
+
+	def test_satuan_gram(self):
+		pg = self.pigmen("Merah", rasio=1)
+		item = frappe.get_doc("Item", pg)
+		self.assertEqual((item.stock_uom, item.purchase_uom, item.item_group), ("Gram", "Kg", "Pigmen"))
+		self.assertEqual({u.uom: u.conversion_factor for u in item.uoms}, {"Gram": 1, "Kg": 1000})
+		self.assertEqual(frappe.db.get_value("UOM", "Gram", "must_be_whole_number"), 0)
+
+	def test_pigmen_per_warna(self):
+		merah, bening = buat_varian("_UJI-PG-GAYUNG", ["Super"], ["Merah", "Bening"])
+		pg = self.pigmen("Merah", rasio=2)
+		buat_bom_kapasitas(self.kapasitas("_UJI-PG-GAYUNG"), company=self.pabrik)
+		self.assertIn((pg, 0.1), self.isi_bom(merah))  # 50 g = 0.05 kg x 2 g/kg = 0.1 g
+		self.assertNotIn(pg, [k for k, _q in self.isi_bom(bening)])
+		self.assertIn((self.bahan, 0.05), self.isi_bom(merah))  # the material line is unchanged
+
+	def test_rasio_berubah_bom_baru(self):
+		(merah,) = buat_varian("_UJI-PG-GAYUNG", ["Super"], ["Merah"])
+		pg = self.pigmen("Merah", rasio=1)
+		buat_bom_kapasitas(self.kapasitas("_UJI-PG-GAYUNG"), company=self.pabrik)
+		self.assertIn((pg, 0.05), self.isi_bom(merah))
+		frappe.get_doc("Item", pg).update({"erp_rasio_pigmen": 3}).save()  # rebuilds now under tests
+		self.assertIn((pg, 0.15), self.isi_bom(merah))
+		frappe.get_doc("Item", pg).update({"disabled": 1}).save()
+		self.assertNotIn(pg, [k for k, _q in self.isi_bom(merah)])
+
+	def test_minta_lagi_saat_jalan(self):
+		# A change saved while a pass runs (the flag set again) gets a pass of its own; none is lost.
+		panggilan = []
+
+		def sekali():
+			panggilan.append(1)
+			if len(panggilan) == 1:
+				frappe.cache.set_value(kapasitas.KUNCI_SEGARKAN_LAGI, 1)
+			return 0
+
+		with patch.object(kapasitas, "_segarkan_sekali", side_effect=sekali):
+			kapasitas._antre()
+		self.assertEqual(len(panggilan), 2)
+		self.assertFalse(frappe.cache.get_value(kapasitas.KUNCI_SEGARKAN_LAGI))
+
+	def test_template_dari_setup(self):
+		# A migrate brings the PIGMEN template to a site whose colours exist (Samuel's data loaded earlier).
+		buat_varian("_UJI-PG-WARNA", ["Super"], ["Merah"])
+		if not frappe.db.exists("Item", {"variant_of": "PIGMEN"}):
+			frappe.delete_doc("Item", "PIGMEN", force=True, ignore_missing=True)  # rolled back after the test
+			self.assertFalse(frappe.db.exists("Item", "PIGMEN"))
+		pastikan_setup()
+		self.assertEqual(frappe.db.get_value("Item", "PIGMEN", ["stock_uom", "has_variants"]), ("Gram", 1))
+
+	def test_rasio_nol_ditolak(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.pigmen("Biru", rasio=0)
+
+	def test_produksi_memakai_pigmen(self):
+		(merah,) = buat_varian("_UJI-PG-GAYUNG", ["Super"], ["Merah"])
+		pg = self.pigmen("Merah", rasio=1)
+		buat_bom_kapasitas(self.kapasitas("_UJI-PG-GAYUNG"), company=self.pabrik)
+		stok_awal(self.pabrik, pg, 1000, "Gudang Bahan Baku")
+		stok_awal(self.pabrik, self.bahan, 100, "Gudang Bahan Baku")
+		buat_hasil(buat_wo(merah, self.mesin, qty=1000), good=1000)
+		self.assertAlmostEqual(self.stok(pg, "Gudang Bahan Baku"), 1000 - 50)
+
+	def test_kemasan_di_bom(self):
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		plastik = self.kemasan("_UJI Plastik isi 560")
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 560)  # on the template: the variant inherits it
+		buat_bom_kapasitas(
+			buat_kapasitas(
+				"_UJI-KM-GAYUNG", self.mesin, material=self.bahan, part_weight=50, runner_weight=0
+			),
+			company=self.pabrik,
+		)
+		self.assertIn((plastik, round(1 / 560, 9)), self.isi_bom(merah))
+
+	def test_kemasan_berubah_bom_baru(self):
+		# changing the template's pieces rebuilds the BOM now under tests (same job as the pigment)
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		plastik = self.kemasan("_UJI Plastik isi 560")
+		karung = self.kemasan("_UJI Karung")
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 560)
+		buat_bom_kapasitas(self.kapasitas("_UJI-KM-GAYUNG"), company=self.pabrik)
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 280)
+		self.assertIn((plastik, round(1 / 280, 9)), self.isi_bom(merah))
+		# the variant's own rows win over its template's
+		self.isi_kemasan(merah, karung, 100)
+		isi = [k for k, _q in self.isi_bom(merah)]
+		self.assertIn(karung, isi)
+		self.assertNotIn(plastik, isi)
+		# a packing item switched off leaves the BOMs
+		frappe.get_doc("Item", karung).update({"disabled": 1}).save()
+		self.assertNotIn(karung, [k for k, _q in self.isi_bom(merah)])
+
+	def test_kemasan_nol_ditolak(self):
+		buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		with self.assertRaises(frappe.ValidationError):
+			self.isi_kemasan("_UJI-KM-GAYUNG", self.kemasan("_UJI Plastik isi 560"), 0)
+
+	def test_kemasan_satuan_bulat_ditolak(self):
+		# a packing item in a whole-number UOM would make every BOM using it fail in the background rebuild
+		buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		bulat = buat_barang("_UJI Kardus Pcs", "Kemasan", "Pcs")
+		with self.assertRaisesRegex(frappe.ValidationError, "allows fractions"):
+			self.isi_kemasan("_UJI-KM-GAYUNG", bulat, 10)
+
+	def test_reject_tanpa_kemasan(self):
+		# A reject is reground, never packed: its Repack takes material and pigment, no packing.
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		pg = self.pigmen("Merah", rasio=1)
+		plastik = self.kemasan("_UJI Plastik isi 50")
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 50)
+		buat_bom_kapasitas(self.kapasitas("_UJI-KM-GAYUNG"), company=self.pabrik)
+		stok_awal(self.pabrik, pg, 1000, "Gudang Bahan Baku")
+		stok_awal(self.pabrik, self.bahan, 100, "Gudang Bahan Baku")
+		stok_awal(self.pabrik, plastik, 10, "Gudang Bahan Baku")
+		pe = buat_hasil(buat_wo(merah, self.mesin, qty=1000), good=100, rejects={"Short Shot": 10})
+		self.assertAlmostEqual(self.stok(plastik, "Gudang Bahan Baku"), 10 - 2)  # 100 good / 50
+		reject = [d.item_code for d in frappe.get_doc("Stock Entry", pe.reject_entry).items if d.s_warehouse]
+		self.assertEqual(sorted(reject), sorted([self.bahan, pg]))
+
+	def test_peringatan_tanpa_stok(self):
+		# A pigment or packing with no stock in Gudang Bahan Baku would block recording output: an orange note.
+		def pesan():
+			return " ".join(str(m) for m in frappe.message_log)
+
+		buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		frappe.clear_messages()
+		pg = self.pigmen("Merah", rasio=1)
+		self.assertIn(pg, pesan())
+		self.assertIn("Gudang Bahan Baku", pesan())
+		plastik = self.kemasan("_UJI Plastik isi 560")
+		frappe.clear_messages()
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 560)
+		self.assertIn(plastik, pesan())
+		stok_awal(self.pabrik, plastik, 10, "Gudang Bahan Baku")
+		frappe.clear_messages()
+		self.isi_kemasan("_UJI-KM-GAYUNG", plastik, 280)
+		self.assertNotIn(plastik, pesan())
+
+	def test_satu_reject_pigmen_kecil(self):
+		# One reject whose pigment line rounds to 0 at the entry's precision still submits, without that line.
+		(merah,) = buat_varian("_UJI-KM-GAYUNG", ["Super"], ["Merah"])
+		pg = self.pigmen("Merah", rasio=0.001)  # 0.05 kg x 0.001 g/kg = 0.00005 g per piece
+		buat_bom_kapasitas(self.kapasitas("_UJI-KM-GAYUNG"), company=self.pabrik)
+		stok_awal(self.pabrik, pg, 1000, "Gudang Bahan Baku")
+		stok_awal(self.pabrik, self.bahan, 100, "Gudang Bahan Baku")
+		pe = buat_hasil(buat_wo(merah, self.mesin, qty=1000), good=0, rejects={"Short Shot": 1})
+		reject = [d.item_code for d in frappe.get_doc("Stock Entry", pe.reject_entry).items if d.s_warehouse]
+		self.assertEqual(reject, [self.bahan])
+
+	def test_beli_per_kg(self):
+		pg = self.pigmen("Merah", rasio=1)
+		wh = gudang(self.pabrik, "Gudang Bahan Baku")
+		sebelum = self.stok(pg, "Gudang Bahan Baku")
+		tahun_fiskal(getdate(today()))
+		harga = daftar_harga(penjualan.HARGA_BAHAN, jual=False)
+		frappe.get_doc(
+			{
+				"doctype": "Item Price",
+				"item_code": pg,
+				"price_list": harga,
+				"uom": "Kg",
+				"price_list_rate": 150000,
+			}
+		).insert()
+		po = frappe.get_doc(
+			{
+				"doctype": "Purchase Order",
+				"company": self.pabrik,
+				"supplier": buat_pemasok("_Uji Pemasok"),
+				"currency": "IDR",
+				"buying_price_list": harga,
+				"transaction_date": today(),
+				"schedule_date": add_days(today(), 7),
+				"set_warehouse": wh,
+				"items": [
+					{
+						"item_code": pg,
+						"qty": 2,
+						"uom": "Kg",
+						"warehouse": wh,
+						"schedule_date": add_days(today(), 7),
+					}
+				],
+			}
+		).insert()
+		self.assertEqual((po.items[0].rate, po.items[0].stock_qty), (150000, 2000))  # the price per Kg
+		lampirkan("Purchase Order", po.name)
+		po.submit()
+		pr = make_purchase_receipt(po.name).insert()
+		lampirkan("Purchase Receipt", pr.name)
+		pr.submit()
+		self.assertEqual(self.stok(pg, "Gudang Bahan Baku"), sebelum + 2000)

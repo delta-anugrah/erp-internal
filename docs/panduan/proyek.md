@@ -1,10 +1,10 @@
 # Panduan Proyek
 
-Untuk **Admin**. Sejak 2026-11-02 peran **User** tidak membuka Projects (Mas Samuel: User cuma tiga kerjaan
-harian); bagian "Untuk User" di bawah berlaku untuk akun yang diberi peran Projects User dan Employee. Alurnya: **proyek → tugas → timesheet harian**. Dari timesheet kelihatan
+Untuk **Admin**. Peran **Produksi** tidak membuka Projects (Mas Samuel: Produksi cuma mencatat
+hasil produksi); bagian "Untuk User" di bawah berlaku untuk akun yang diberi peran Projects User dan Employee. Alurnya: **proyek → tugas → timesheet harian**. Dari timesheet kelihatan
 berapa jam yang sudah dipakai tiap tugas.
 
-Ganti bahasa: klik nama kamu di pojok kanan atas, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 > Gambar layar menyusul: diambil di `erp.localhost` setelah situs uji jadi (lihat `docs/TODO.md`).

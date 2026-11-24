@@ -1,0 +1,119 @@
+# One job, two triggers, built to spend few Actions minutes (the org's monthly pool is shared by every repo):
+# - a pull request to main: ruff, build the image, check it, run every erp_internal test in it. Docs-only pull
+#   requests skip the work and still report "Tes" (so it can be a required check on main); a draft runs once marked
+#   ready;
+# - a version tag: the tag must be on main and equal erp_internal.__version__; then the same build, check and tests,
+#   and only then the push to GHCR. What is released is the very image that was tested.
+# Nothing deploys: the server pulls the tag by hand (deploy/server/README.md), so no server key is stored here.
+# Never a `latest` tag. The build cache lives in GHCR (`:buildcache`), so frappe, erpnext and hrms, which change only
+# with versi.json, are not rebuilt on every run.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    tags:
+      - "v*.*.*"
+
+# A new push to a pull request cancels its older run; a release run is never cancelled.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+  CACHE: ghcr.io/${{ github.repository }}:buildcache
+  TAG: ${{ github.event_name == 'push' && github.ref_name || 'uji' }}
+
+jobs:
+  tes:
+    name: Tes
+    if: github.event_name == 'push' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: read
+
+    steps:
+      - name: Docs only?
+        id: ubah
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          berkas=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')
+          if grep -qvE '\.md$|^docs/|^\.claude/' <<<"$berkas"; then
+            echo "kode=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "Only docs changed: nothing to test."
+          fi
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        if: github.event_name == 'push' || steps.ubah.outputs.kode
+        with:
+          # A release needs main's history to see that the tag is on it.
+          fetch-depth: ${{ github.event_name == 'push' && '0' || '1' }}
+
+      - name: The tag is on main and equals __version__
+        if: github.event_name == 'push'
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "invalid tag: $GITHUB_REF_NAME"; exit 1; }
+          # The version people see on the login page and in Settings is erp_internal.__version__: bump it first.
+          versi=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' erp_internal/__init__.py)
+          [ "v$versi" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME, erp_internal.__version__ $versi"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "$GITHUB_REF_NAME is not on main"; exit 1; }
+
+      - name: Ruff
+        if: steps.ubah.outputs.kode
+        run: |
+          pipx run --spec ruff==0.17.6 ruff check erp_internal
+          pipx run --spec ruff==0.17.6 ruff format --check erp_internal
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        if: github.event_name == 'push' || steps.ubah.outputs.kode
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The image is held twice (builder and docker): the runner's 14 GB free ran out on the first run. These
+      # preinstalled toolchains are never used here.
+      - name: Free disk space
+        if: github.event_name == 'push' || steps.ubah.outputs.kode
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        if: github.event_name == 'push' || steps.ubah.outputs.kode
+
+      - name: Build (linux/amd64, like the server)
+        if: github.event_name == 'push' || steps.ubah.outputs.kode
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: deploy/Containerfile
+          platforms: linux/amd64
+          build-args: ERP_SHA=${{ github.sha }}
+          tags: ${{ env.IMAGE }}:${{ env.TAG }}
+          load: true
+          push: false
+          cache-from: type=registry,ref=${{ env.CACHE }}
+          cache-to: type=registry,ref=${{ env.CACHE }},mode=max
+
+      - name: Check the image against versi.json
+        if: github.event_name == 'push' || steps.ubah.outputs.kode
+        run: deploy/check_image.sh "$IMAGE:$TAG"
+
+      - name: Run the tests in the image
+        if: github.event_name == 'push' || steps.ubah.outputs.kode
+        run: deploy/ci_tes.sh "$IMAGE:$TAG"
+
+      - name: Push
+        if: github.event_name == 'push'
+        run: docker push "$IMAGE:$TAG"

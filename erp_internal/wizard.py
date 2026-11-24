@@ -4,7 +4,7 @@ automatically, or a person fills it in the browser).
 `selesai` is the `setup_wizard_complete` hook. It runs inside the wizard, where an exception rolls the whole wizard
 back, so it does only the quick part and never raises: tick `erp_aktif` on the wizard's company and queue
 `lanjutkan` for after the wizard commits, with the wizard's own account. `lanjutkan` does the slow part: our setup
-(which makes the Role Profiles), that account into the Developer profile, the company on Admin and User accounts
+(which makes the Role Profiles), that account into the Super Admin profile, the company on Admin and Produksi accounts
 made before it existed, and on a real site
 (`erp_produksi`) Samuel's data, once (`PENANDA_DATA`): later updates never reload it, so edits made in the app stay.
 The automatic path also runs it directly (`make lanjut`), so the terminal shows it; the queued run is then a no-op.
@@ -16,7 +16,7 @@ import frappe
 from frappe.utils.synchronization import filelock
 
 from erp_internal import setup
-from erp_internal.tampilan import ADMIN, DEVELOPER, USER
+from erp_internal.tampilan import ADMIN, PRODUKSI, SUPER_ADMIN
 from erp_internal.tests import utils
 
 PENANDA_DATA = "erp_data_samuel"  # global default, set once Samuel's data is loaded
@@ -63,7 +63,7 @@ def _selesai(args) -> None:
 
 def lanjutkan(cetak: bool = True, developer: str | None = None) -> list[str] | None:
 	"""The slow part after the wizard; nothing before it. `developer`: the wizard's own account (default: the one
-	the hook kept), made a Developer once setup has made that Role Profile. A file lock on the site keeps the queued
+	the hook kept), made a Super Admin once setup has made that Role Profile. A file lock on the site keeps the queued
 	job and `make lanjut` apart. Prints its lines from the terminal (`bench execute`). The caller commits: bench
 	execute and the background job both do."""
 	with filelock("erp_lanjutkan", timeout=3600):
@@ -79,8 +79,8 @@ def _lanjutkan(developer: str | None) -> list[str]:
 		setup.pastikan_setup()
 		hasil.append("setup done")
 		if developer and frappe.db.exists("User", developer):
-			utils.buat_pengguna(developer, DEVELOPER, None, None)
-			hasil.append(f"{developer}: Developer")
+			utils.buat_pengguna(developer, SUPER_ADMIN, None, None)
+			hasil.append(f"{developer}: {SUPER_ADMIN}")
 		hasil += _akun_perusahaan()
 		if frappe.conf.get("erp_produksi") and not frappe.db.get_default(PENANDA_DATA):
 			for nama in MUAT:
@@ -93,12 +93,12 @@ def _lanjutkan(developer: str | None) -> list[str]:
 
 
 def _akun_perusahaan() -> list[str]:
-	"""Admin and User accounts without a Company permission get the company (made before the wizard)."""
+	"""Admin and Produksi accounts without a Company permission get the company (made before the wizard)."""
 	company = (setup.perusahaan() or [None])[0]
 	if not company:
 		return []
 	hasil = []
-	for profil in (ADMIN, USER):
+	for profil in (ADMIN, PRODUKSI):
 		pengguna = frappe.get_all(
 			"User Role Profile", {"role_profile": profil, "parenttype": "User"}, pluck="parent", distinct=True
 		)

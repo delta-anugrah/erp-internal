@@ -34,8 +34,8 @@ class TestOrderReadiness(IntegrationTestCase):
 		cls.pelanggan = buat_pelanggan("_Uji Pelanggan")
 		cls.bahan = buat_barang("_UJI-SO-BAHAN", "Bahan Baku", satuan="Kg")
 
-	def baris(self, kode: str, company: str | None = None) -> dict:
-		rows = data(company or self.pabrik, self.awal, None, "Barang Jadi", self.hari_ini)
+	def baris(self, kode: str, company: str | None = None, gudang: str | None = None) -> dict:
+		rows = data(company or self.pabrik, self.awal, gudang, "Barang Jadi", self.hari_ini)
 		return next(r for r in rows if r["item_code"] == kode)
 
 	def order(self, kode, qty, kirim_hari=5, company=None, **kw):
@@ -90,6 +90,14 @@ class TestOrderReadiness(IntegrationTestCase):
 		self.assertEqual((r["kurang"], r["lama"], r["status"]), (870, 5.35, "Late"))
 		self.assertEqual(r["tanggal_butuh"], getdate(add_days(self.hari_ini, 5)))
 		self.assertEqual(r["mulai"], getdate(add_days(self.hari_ini, -1)))
+
+	def test_stok_dua_gudang(self):
+		# Samuel 2026-11-23: with no warehouse picked, stock is Gudang Barang Jadi plus Gudang Pluit.
+		kode = buat_barang("_UJI-SO-DUA-GUDANG", "Barang Jadi")
+		stok_awal(self.pabrik, kode, 30, "Gudang Barang Jadi")
+		stok_awal(self.pabrik, kode, 20, "Gudang Pluit")
+		self.assertEqual(self.baris(kode)["stok"], 50)
+		self.assertEqual(self.baris(kode, gudang=gudang(self.pabrik, "Gudang Pluit"))["stok"], 20)
 
 	def test_order_satuan_lain(self):
 		# Review Focus 2: 2 Karton of 24 are 48 Pcs.
@@ -158,7 +166,7 @@ class TestOrderReadiness(IntegrationTestCase):
 
 	def test_perusahaan_tanpa_izin_ditolak(self):
 		# A user held to one company by User Permission cannot read another company's figures.
-		u = buat_pengguna("_uji.or.user@example.com", "User", None, self.pabrik)
+		u = buat_pengguna("_uji.or.user@example.com", "Produksi", None, self.pabrik)
 		frappe.set_user(u)
 		self.addCleanup(frappe.set_user, "Administrator")
 		with self.assertRaises(frappe.PermissionError):

@@ -19,11 +19,15 @@ from frappe.utils import add_days, add_months, flt, get_datetime, get_first_day,
 from frappe.utils.password import update_password
 
 from erp_internal import setup
+from erp_internal.planning.doctype.expense_entry.expense_entry import PER_SHIFT
 from erp_internal.planning.kapasitas import buat_bom_kapasitas
-from erp_internal.tampilan import ADMIN, DEVELOPER, MODUL_BOLEH, PROFIL_PERAN, USER
+from erp_internal.tampilan import ADMIN, MODUL_BOLEH, PRODUKSI, PROFIL_PERAN, SUPER_ADMIN
 from erp_internal.tests import utils
 
 TANDA = "DATA CONTOH"
+
+# The sample user of each Role Profile (`tools/cek_layar.mjs` uses the same logins); unchanged by the rename.
+SUREL = {SUPER_ADMIN: "developer@example.com", ADMIN: "admin@example.com", PRODUKSI: "user@example.com"}
 
 # The one company, factory and office together (Samuel, 2026-10-28), under its real name so the Production Floor
 # shows it; abbreviation CPL kept from the earlier sample name PT Contoh Plastik (renamed on erp.localhost 2026-10-29).
@@ -39,8 +43,20 @@ BARANG = {
 	"CTH-BIJI-PP": ("Biji Plastik PP", "Bahan Baku", "Kg", {"Sak": 25}, 18000, 2000),
 	"CTH-BIJI-HDPE": ("Biji Plastik HDPE", "Bahan Baku", "Kg", {"Sak": 25}, 19000, 1500),
 	"CTH-PEWARNA": ("Pewarna Masterbatch", "Bahan Baku", "Kg", {}, 45000, 100),
-	"CTH-KARDUS": ("Kardus", "Kemasan", "Pcs", {}, 3500, 500),
+	"CTH-KARDUS": ("Kardus", "Kemasan", setup.SATUAN_KEMASAN, {}, 3500, 500),
+	"CTH-PLASTIK": ("Plastik Kemasan", "Kemasan", setup.SATUAN_KEMASAN, {}, 800, 500),
+	"CTH-DUS": ("Dus Kemasan", "Kemasan", setup.SATUAN_KEMASAN, {}, 3000, 500),
 }
+# Packing (spec A2): product → (packing item, pieces in one); the capacity BOMs take 1 / pieces of it per piece.
+KEMASAN_PRODUK = {
+	"CTH-EMBER-10L": ("CTH-DUS", 12),
+	"CTH-BASKOM-40": ("CTH-DUS", 24),
+	"CTH-GAYUNG": ("CTH-PLASTIK", 48),
+	"CTH-TOPLES-1L": ("CTH-DUS", 24),
+	"CTH-KURSI": ("CTH-PLASTIK", 6),
+}
+# Pigments (spec section 8): colour → (ratio g per kg of resin, opening stock in g, buying price per Kg).
+PIGMEN = {"Merah": (20, 50000, 250000), "Biru": (15, 40000, 275000)}
 # Product → (units per BOM: one carton, materials for that carton in their stock UOM).
 RESEP = {
 	"CTH-EMBER-10L": (12, {"CTH-BIJI-PP": 9.6, "CTH-PEWARNA": 0.24, "CTH-KARDUS": 1}),
@@ -109,10 +125,32 @@ ORDER_PRODUKSI = (
 	("CTH-KURSI", 2, 0.95),
 )
 HARI_PRODUKSI = 7  # days of Production Entries, ending yesterday
-# Resin and masterbatch received the day before the first entry (kg): the entries are back-dated and need stock.
-TERIMA_BAHAN = {"CTH-BIJI-PP": 30000, "CTH-BIJI-HDPE": 18000, "CTH-PEWARNA": 1200}
-CATATAN_TERIMA = f"{TANDA}: bahan baku untuk hasil produksi contoh"
+# Resin, masterbatch (kg) and packing (pieces) received the day before the first entry: the entries are
+# back-dated and need stock. Two shifts a day.
+TERIMA_BAHAN = {
+	"CTH-BIJI-PP": 60000,
+	"CTH-BIJI-HDPE": 30000,
+	"CTH-PEWARNA": 2500,
+	"CTH-DUS": 5000,
+	"CTH-PLASTIK": 5000,
+}
+CATATAN_TERIMA = f"{TANDA}: bahan baku dan kemasan untuk hasil produksi contoh"
 YIELD_HARIAN = (0.86, 0.92, 0.89, 0.95, 0.84, 0.9, 0.93)  # share of the machine's shift output actually made
+# Daily Input (spec section 4): Shift 1 is the entry with rejects (its technician set on it), Shift 2 is typed
+# into the grid (`daily_input.save_cell`); shift → (technician, offset into YIELD_HARIAN).
+TEKNISI = {"Shift 1": ("Yudi", 0), "Shift 2": ("Fadli", 3)}
+# A Material Transfer to the Pluit warehouse and a delivery note from it, both keyed by their text.
+KE_PLUIT = ("CTH-EMBER-10L", 120)
+KIRIM_PLUIT = ("CONTOH-SJ-1", "Toko Contoh Sejahtera", "CTH-EMBER-10L", 60)
+CATATAN_PLUIT = f"{TANDA}: stok ke Gudang Pluit"
+# Expenses (spec section 5): (category, amount, repeat, days from the first production day or None for the
+# first day of this month, attached).
+BIAYA = (
+	("Gaji Operator", 105000, "Per machine shift", 0, False),
+	("Gaji Karyawan Tetap", 45000000, "Every month", None, False),
+	("Listrik", 18500000, "Once", HARI_PRODUKSI - 1, True),
+	("Bensin", 750000, "Once", HARI_PRODUKSI - 2, True),
+)
 # Reject reasons by day (share of good pieces); a day lacks the reasons that are 0.
 ALASAN_HARIAN = (
 	{"Short Shot": 0.03, "Flashing": 0.01},
@@ -127,13 +165,13 @@ ALASAN_HARIAN = (
 # Employees: (first name, last name, gender, the Role Profile whose sample user they are, or None).
 KARYAWAN = (
 	("Ayu", "Lestari", "Female", ADMIN),
-	("Citra", "Wulandari", "Female", USER),
+	("Citra", "Wulandari", "Female", PRODUKSI),
 	("Bima", "Saputra", "Male", None),
 	("Dimas", "Pratama", "Male", None),
 	("Eka", "Putri", "Female", None),
 )
 PROYEK = "Katalog Produk Online"
-# The first task goes to the Admin (the User profile has no Projects since 2026-11-02).
+# The first task goes to the Admin (the Produksi profile has no Projects since 2026-11-02).
 TUGAS = ("Desain halaman katalog", "Foto dan data produk", "Uji dan rilis")
 
 # Every DocType this file writes, for the summary and the idempotency test.
@@ -158,6 +196,9 @@ DIBUAT = (
 	"Work Order",
 	"Production Entry",
 	"Stock Entry",
+	"Item Price",
+	"Delivery Note",
+	"Expense Entry",
 )
 
 
@@ -173,8 +214,11 @@ def buat_contoh() -> dict[str, int]:
 	company = tandai("Company", utils.buat_perusahaan(*PERUSAHAAN))
 	_logo(company)
 	_barang(company)
+	_kemasan_pigmen(company)
 	_jual_beli(company, hari_ini)
 	_produksi(company, hari_ini)
+	_pluit(company)
+	_biaya(company, hari_ini)
 	pengguna = _pengguna(company, sandi)
 	_kantor(company, pengguna, hari_ini)
 	return {dt: frappe.db.count(dt, {"_user_tags": ("like", f"%{TANDA}%")}) for dt in DIBUAT}
@@ -187,8 +231,8 @@ def tandai(doctype: str, nama: str) -> str:
 
 
 def surel(profil: str) -> str:
-	"""The sample user of a Role Profile: `<profile, lower case>@example.com` (as `tools/cek_layar.mjs`)."""
-	return f"{profil.lower()}@example.com"
+	"""The sample user of a Role Profile (`SUREL`, as `tools/cek_layar.mjs`)."""
+	return SUREL[profil]
 
 
 def _logo(company: str) -> None:
@@ -217,20 +261,132 @@ def _barang(company: str) -> None:
 		utils.buat_barang(kode, grup, satuan, lain, item_name=nama, description=f"{nama} ({TANDA})")
 		tandai("Item", kode)
 		gudang = setup.GUDANG_GRUP[grup]
-		wh = setup.gudang(company, gudang)
-		if not frappe.db.exists(
-			"Stock Ledger Entry", {"item_code": kode, "warehouse": wh, "is_cancelled": 0}
-		):
-			utils.stok_awal(company, kode, stok, gudang, rate=harga)
-			sr = frappe.db.get_value(
-				"Stock Ledger Entry", {"item_code": kode, "warehouse": wh, "is_cancelled": 0}, "voucher_no"
-			)
-			tandai("Stock Reconciliation", sr)
+		_stok_awal(company, kode, stok, gudang, harga)
 
 	for kode, (jumlah, bahan) in RESEP.items():
 		tandai("BOM", utils.buat_bom(kode, bahan, jumlah, company=company))
 		per_hari, cadangan = LAMA[kode]
 		tandai("Item Lead Time", utils.lama_produksi(kode, per_hari, cadangan))
+
+
+def _stok_awal(company: str, kode: str, stok: float, gudang: str, harga: float) -> None:
+	"""Opening stock of `kode` in `gudang`, only where the item has never moved there."""
+	wh = setup.gudang(company, gudang)
+	saring = {"item_code": kode, "warehouse": wh, "is_cancelled": 0}
+	if not frappe.db.exists("Stock Ledger Entry", saring):
+		utils.stok_awal(company, kode, stok, gudang, rate=harga)
+		tandai("Stock Reconciliation", frappe.db.get_value("Stock Ledger Entry", saring, "voucher_no"))
+
+
+def _harga_beli(daftar: str, kode: str, harga: float, satuan: str) -> None:
+	"""The buying price of `kode` per `satuan` in `daftar`, unless it has one there."""
+	ada = frappe.db.get_value("Item Price", {"price_list": daftar, "item_code": kode, "uom": satuan})
+	if not ada:
+		ada = (
+			frappe.get_doc(
+				{
+					"doctype": "Item Price",
+					"price_list": daftar,
+					"item_code": kode,
+					"uom": satuan,
+					"price_list_rate": harga,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+	tandai("Item Price", ada)
+
+
+def _kemasan_pigmen(company: str) -> None:
+	"""Packing rows on the sample products, two pigments with opening stock, and the buying prices of both in
+	`penjualan.HARGA_BAHAN`. Runs before the capacity rows, so their BOMs carry the packing from the start."""
+	from erp_internal.penjualan import HARGA_BAHAN
+
+	for kode, (kemasan, isi) in KEMASAN_PRODUK.items():
+		baris = frappe.get_all(
+			"Item Packing", {"parent": kode, "parenttype": "Item"}, ["packing_item", "pieces"]
+		)
+		if [(b.packing_item, b.pieces) for b in baris] != [(kemasan, isi)]:
+			utils.isi_kemasan(kode, kemasan, isi)
+	daftar = utils.daftar_harga(HARGA_BAHAN, jual=False)
+	for kode in {k for k, _isi in KEMASAN_PRODUK.values()}:
+		_harga_beli(daftar, kode, BARANG[kode][4], setup.SATUAN_KEMASAN)
+	for warna, (rasio, stok, per_kg) in PIGMEN.items():
+		kode = tandai("Item", utils.buat_pigmen(warna, rasio))
+		_harga_beli(daftar, kode, per_kg, "Kg")
+		_stok_awal(company, kode, stok, setup.GUDANG_GRUP["Pigmen"], per_kg / 1000)
+
+
+def _pluit(company: str) -> None:
+	"""Finished goods moved to Gudang Pluit and a delivery note from there with its signed copy attached, each
+	found by its text."""
+	jadi, pluit = setup.gudang(company, "Gudang Barang Jadi"), setup.gudang(company, "Gudang Pluit")
+	kode, qty = KE_PLUIT
+	ada = frappe.db.get_value("Stock Entry", {"remarks": CATATAN_PLUIT, "company": company, "docstatus": 1})
+	if not ada:
+		se = frappe.get_doc(
+			{
+				"doctype": "Stock Entry",
+				"stock_entry_type": "Material Transfer",
+				"company": company,
+				"remarks": CATATAN_PLUIT,
+				"items": [{"item_code": kode, "qty": qty, "s_warehouse": jadi, "t_warehouse": pluit}],
+			}
+		).insert(ignore_permissions=True)
+		se.submit()
+		ada = se.name
+	tandai("Stock Entry", ada)
+
+	po, pelanggan, kode, qty = KIRIM_PLUIT
+	ada = frappe.db.get_value("Delivery Note", {"po_no": po, "company": company, "docstatus": 1})
+	if not ada:
+		dn = frappe.get_doc(
+			{
+				"doctype": "Delivery Note",
+				"company": company,
+				"customer": pelanggan,
+				"po_no": po,
+				"currency": "IDR",
+				"selling_price_list": DAFTAR_HARGA,
+				"set_warehouse": pluit,
+				"items": [{"item_code": kode, "qty": qty, "rate": HARGA[kode], "warehouse": pluit}],
+			}
+		).insert(ignore_permissions=True)
+		dn.submit()
+		utils.lampirkan("Delivery Note", dn.name)  # the signed copy comes back after the delivery
+		ada = dn.name
+	tandai("Delivery Note", ada)
+
+
+def _biaya(company: str, hari_ini: date) -> None:
+	"""The sample expenses (`BIAYA`), found by category, repeat and the DATA CONTOH note; a Once expense
+	carries its receipt."""
+	pertama = add_days(hari_ini, -HARI_PRODUKSI)
+	for kategori, jumlah, ulang, hari, lampiran in BIAYA:
+		saring = {"category": kategori, "repeat": ulang, "company": company, "notes": TANDA, "docstatus": 1}
+		ada = frappe.db.get_value("Expense Entry", saring)
+		if not ada and ulang == PER_SHIFT:
+			# Two running Per machine shift entries of one category are refused: reuse one made by hand.
+			saring.pop("notes")
+			ada = frappe.db.get_value("Expense Entry", {**saring, "until": ("is", "not set")})
+		if not ada:
+			doc = frappe.get_doc(
+				{
+					"doctype": "Expense Entry",
+					"company": company,
+					"category": kategori,
+					"amount": jumlah,
+					"repeat": ulang,
+					"posting_date": get_first_day(hari_ini) if hari is None else add_days(pertama, hari),
+					"notes": TANDA,
+				}
+			).insert(ignore_permissions=True)
+			if lampiran:
+				utils.lampirkan("Expense Entry", doc.name)
+			doc.submit()
+			ada = doc.name
+		tandai("Expense Entry", ada)
 
 
 def _jual_beli(company: str, hari_ini: date) -> None:
@@ -282,16 +438,17 @@ def _jual_beli(company: str, hari_ini: date) -> None:
 				],
 			}
 		).insert(ignore_permissions=True)
+		utils.lampirkan("Sales Order", so.name)  # a real order is submitted with its document attached
 		so.submit()
 		tandai("Sales Order", so.name)
 
 
 def _pengguna(company: str, sandi: str) -> dict[str, str]:
-	"""One user per Role Profile, with the Module Profile of the same name and, for Admin and User, a
+	"""One user per Role Profile, with the Module Profile of the same name and, for Admin and Produksi, a
 	default permission on the company; all share `sandi`."""
 	pengguna = {}
 	for profil in PROFIL_PERAN:
-		email = utils.buat_pengguna(surel(profil), profil, profil, None if profil == DEVELOPER else company)
+		email = utils.buat_pengguna(surel(profil), profil, profil, None if profil == SUPER_ADMIN else company)
 		update_password(email, sandi)
 		pengguna[profil] = tandai("User", email)
 	return pengguna
@@ -307,7 +464,7 @@ def _kantor(company: str, pengguna: dict[str, str], hari_ini: date) -> None:
 			depan,
 			company,
 			user=pengguna.get(profil),
-			izin_sendiri=profil == USER,  # the Admin sees everyone
+			izin_sendiri=profil == PRODUKSI,  # the Admin sees everyone
 			kelamin=kelamin,
 			last_name=belakang,
 		)
@@ -392,11 +549,19 @@ def _produksi(company: str, hari_ini: date) -> None:
 	for kode, no, capai in ORDER_PRODUKSI:
 		mesin = _mesin(no)
 		per_jam = kapasitas[kode, mesin]
-		qty = math.ceil(sum(_bagus(per_jam, i) for i in range(HARI_PRODUKSI)) / capai)
-		wo = _order(company, kode, mesin, qty, add_days(hari_ini, -HARI_PRODUKSI), add_days(hari_ini, -1))
+		bagus = sum(_bagus(per_jam, i, s) for i in range(HARI_PRODUKSI) for s in TEKNISI)
+		wo = _order(
+			company,
+			kode,
+			mesin,
+			math.ceil(bagus / capai),
+			add_days(hari_ini, -HARI_PRODUKSI),
+			add_days(hari_ini, -1),
+		)
 		for i in range(HARI_PRODUKSI):
 			hari = add_days(hari_ini, i - HARI_PRODUKSI)
-			_hasil(wo, hari, i, kapasitas[kode, mesin])
+			_hasil(wo, hari, i, per_jam)
+			_input_harian(wo, hari, i, per_jam)
 
 
 def _terima_bahan(company: str, tanggal: date) -> None:
@@ -448,21 +613,24 @@ def _terima_bahan(company: str, tanggal: date) -> None:
 					],
 				}
 			).insert(ignore_permissions=True)
+			utils.lampirkan("Stock Entry", se.name)
 			se.submit()
 			ada = se.name
 		tandai("Stock Entry", ada)
 
 
-def _bagus(per_jam: float, urutan: int) -> int:
-	"""The good pieces of the sample Shift 1 entry number `urutan`."""
-	return round(flt(per_jam) * setup.jam_shift("Shift 1") * YIELD_HARIAN[urutan % len(YIELD_HARIAN)])
+def _bagus(per_jam: float, urutan: int, shift: str = "Shift 1") -> int:
+	"""The good pieces of the sample `shift` entry number `urutan`."""
+	geser = TEKNISI[shift][1]
+	return round(flt(per_jam) * setup.jam_shift(shift) * YIELD_HARIAN[(urutan + geser) % len(YIELD_HARIAN)])
 
 
 def _order(company: str, kode: str, mesin: str, qty: int, mulai: date, selesai: date) -> str:
 	"""The sample Work Order of `kode` on `mesin` planned from `mulai` to `selesai` (BOM: the one made for that
-	machine), found by tag and start date among the orders not stopped, so a rerun the same day changes
-	nothing. A run on another day plans a new window: the open orders of earlier runs first lose their
-	entries inside it and are stopped."""
+	machine), found by tag, start date and quantity among the orders not stopped, so a rerun the same day changes
+	nothing. A run on another day (or with other figures) plans a new window: the open orders of earlier runs
+	first lose their entries inside it and are stopped. A new order's creation is set back to `mulai`: Daily
+	Input takes no date before the order was made."""
 	tagged = {
 		"production_item": kode,
 		"erp_mesin": mesin,
@@ -471,7 +639,14 @@ def _order(company: str, kode: str, mesin: str, qty: int, mulai: date, selesai: 
 		"_user_tags": ("like", f"%{TANDA}%"),
 		"status": ("not in", ("Stopped", "Closed")),
 	}
-	ada = frappe.db.get_value("Work Order", {**tagged, "planned_start_date": ("between", (mulai, mulai))})
+	ada = frappe.db.get_value(
+		"Work Order", {**tagged, "planned_start_date": ("between", (mulai, mulai)), "qty": qty}
+	)
+	# An open order of the product on another machine is left from an earlier layout (the sample moved from Mesin
+	# 01/02 to 02/03 on 2026-11-02): stopped, or Daily Input keeps showing it.
+	lain = {**tagged, "erp_mesin": ("!=", mesin), "status": ("not in", ("Stopped", "Closed", "Completed"))}
+	for lama in frappe.get_all("Work Order", lain, pluck="name"):
+		_lepas(lama, mulai)
 	if not ada:
 		for lama in frappe.get_all("Work Order", tagged, pluck="name"):
 			_lepas(lama, mulai)
@@ -501,6 +676,7 @@ def _order(company: str, kode: str, mesin: str, qty: int, mulai: date, selesai: 
 			}
 		).insert(ignore_permissions=True)
 		wo.submit()
+		frappe.db.set_value("Work Order", wo.name, "creation", get_datetime(mulai), update_modified=False)
 		ada = wo.name
 	return tandai("Work Order", ada)
 
@@ -520,8 +696,21 @@ def _lepas(wo: str, mulai: date) -> None:
 	order.update_planned_qty()
 
 
+def _input_harian(wo: str, hari: date, urutan: int, per_jam: float) -> None:
+	"""The order's Shift 2 cell on `hari` typed into Daily Input with the shift's technician, unless it holds an
+	entry (an order whose last cell is in is Completed, and the grid takes no more)."""
+	from erp_internal.daily_input import save_cell
+
+	saring = {"work_order": wo, "posting_date": hari, "shift": "Shift 2", "docstatus": 1}
+	if not frappe.db.exists("Production Entry", saring):
+		qty = str(_bagus(per_jam, urutan, "Shift 2"))
+		save_cell(wo, str(hari), "Shift 2", qty, teknisi=TEKNISI["Shift 2"][0])
+	_tandai_hasil(frappe.db.get_value("Production Entry", saring))
+
+
 def _hasil(wo: str, hari: date, urutan: int, per_jam: float) -> None:
-	"""One Shift 1 Production Entry of the order on `hari`, unless it exists (found by order, day and shift)."""
+	"""One Shift 1 Production Entry of the order on `hari` with its technician, unless it exists (found by
+	order, day and shift)."""
 	ada = frappe.db.get_value(
 		"Production Entry",
 		{"work_order": wo, "posting_date": hari, "shift": "Shift 1", "docstatus": ("<", 2)},
@@ -532,8 +721,13 @@ def _hasil(wo: str, hari: date, urutan: int, per_jam: float) -> None:
 			alasan: max(1, round(bagus * porsi))
 			for alasan, porsi in ALASAN_HARIAN[urutan % len(ALASAN_HARIAN)].items()
 		}
-		ada = utils.buat_hasil(wo, bagus, reject, posting_date=hari).name
-	tandai("Production Entry", ada)
+		ada = utils.buat_hasil(wo, bagus, reject, posting_date=hari, technician=TEKNISI["Shift 1"][0]).name
+	_tandai_hasil(ada)
+
+
+def _tandai_hasil(pe: str) -> None:
+	"""Tag a Production Entry and its two stock entries."""
+	tandai("Production Entry", pe)
 	for fk in ("manufacture_entry", "reject_entry"):
-		if se := frappe.db.get_value("Production Entry", ada, fk):
+		if se := frappe.db.get_value("Production Entry", pe, fk):
 			tandai("Stock Entry", se)

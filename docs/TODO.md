@@ -2,7 +2,14 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-06, make setup / make up): 263 tests (13 unit + 250 integration), all OK. Before that
+Last full run (2026-11-24, after the Seal Cap material commit 2033cab, run by the controller): 383 tests (13 unit + 370 integration), all OK; `lantai.mjs` all OK after Mesin 14 became active. Before that the same 383 with `test_mesin_barang.test_jumlah` failing (Mesin 14 now has a row), fixed. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
+OK. Before that (Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
+3 users OK. Before that (2026-11-23, final review fixes): 349 tests (13 unit + 336 integration), all OK; `cek_layar` 3 users
+OK; `tools/e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK. Before that (plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),
+all OK; `cek_layar` 3 users OK; `tools/e2e_samuel.mjs` 14/14. Before that (plan Task 2: Produksi records production
+only): 262 tests (13 unit + 249 integration), all OK; `cek_layar` 3 users OK. Before that (Task 1, profile rename): 265 tests, all OK. Before that
+(price list defaults): 263 tests (13 unit + 250 integration), all OK. Before that
+(2026-11-06, make setup / make up): 263 tests, all OK. Before that
 (2026-11-04, HR DocTypes locked): `run-tests --app erp_internal` 262 tests (13 unit + 249 integration), all
 OK (then `test_modul_mati` 11 OK after the Employee form fix); before that (module and report lock) 260 tests, all OK; `cek_layar` 3 users OK (back button and unused modules included); `lantai.mjs` all OK (60 fps). Before that
 (2026-11-03, app version): 252 tests, all OK; `cek_layar` 3 users OK (login and Settings version included). Before that (one-command setup): 248 tests, all OK.
@@ -15,6 +22,53 @@ Before that (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integra
 Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
+## Next: Samuel's requests of 2026-11-23 (decisions in `docs/menunggu-samuel.md`, 2026-11-23 table)
+- [x] Commit the price list default fix, after `/run-checks` (2026-11-23: 263 tests OK).
+- [x] Spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` (items 1-5, 7, plus Abel's attachments and
+      pigment; Samuel's two pictures beside it) and plan `docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md`
+      (14 tasks), 2026-11-23.
+- [ ] Abel: read the spec's "Calls made" (11) and the addendum's four (A1-A4) and agree or change them.
+- [x] Plan Task 1: profiles renamed Super Admin / Admin / Produksi (`9cc5116`, patch `profil_tiga`).
+- [x] Plan Task 2: Produksi records production only (`ERP User` alone), Admin only views it, `batas_user.py`
+      removed, Finish on a Work Order Super Admin's only, new Work Orders skip the transfer.
+- [x] Plan Task 3: Work Order machine lock (`kapasitas.mesin_terdaftar`, `cari_mesin`).
+- [x] Plan Task 4: warehouse Pluit (`GUDANG_JUAL`, `pengiriman.ikut_gudang`, Order Readiness sums both).
+- [x] Plan Task 5: real documents attached (`lampiran.py`, report Missing Documents, `test_lampiran`).
+- [x] Plan Task 6: Daily Input server (`daily_input.py`, one Production Entry per cell, `test_input_harian`).
+- [x] Plan Task 7: Daily Input page (`daily-input`, `input_harian.bundle.js`) in Samuel's Excel layout, in the menu
+      under the Production Floor; "Record Output" opens it.
+- [x] Plan Task 8: Daily Input print and Excel (`buku`, `export_excel`, `print_html`).
+- [x] Plan Task 9: monthly expenses (Expense Entry, Expense Category, report Monthly Expenses, `test_biaya`).
+- [x] Plan Task 10: Sales and Purchase Order print in Samuel's PO layout (`cetak.py`, `test_cetak`).
+- [x] Plan Task 11: pigment per colour in the capacity BOMs (template `PIGMEN` in grams, bought per Kg, `test_bom_kapasitas`).
+- [x] Plan Task 13: packing per product in the capacity BOMs (Item `erp_kemasan`, Item Packing), Pigmen and Kemasan
+      rows in Monthly Expenses (`test_bom_kapasitas`, `test_biaya`).
+- [x] Plan Task 14: Seal Cap brand codes with their mould inserts (Brand `erp_jumlah_insert`, `master._merek`, `test_master`).
+- [x] Plan Task 12: sample data (daily input with technicians Yudi/Fadli, Pluit delivery, two pigments, packing,
+      four expenses), guide pictures `produksi-2`, `admin-1`, `admin-2`, browser run `tools/e2e_samuel.mjs` (14/14).
+- [x] Task 15 (Abel 2026-11-24): missing data notices with fix links (`kelengkapan.py`, report Settings → Missing
+      Data, notes on Item, Sales Order, Work Order and Monthly Expenses, `test_kelengkapan`).
+- [ ] Samuel: pigment list and prices, packing per product (erp.localhost: 23 products without packing, 9 colours
+      without a pigment; the Missing Data report lists them).
+- [ ] Access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` for the three new roles: not regenerated (no tool or
+      source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
+- [ ] Abel: approve tagging (bump `erp_internal.__version__`) and the PR from `feat/lokal` once the review is done.
+- [x] CI: `.github/workflows/ci.yml` (job "Tes" on pull requests to main and `vX.Y.Z` tags) replaces `image.yml`;
+      `deploy/ci_tes.sh` runs the tests inside the image.
+- [ ] Abel: make "Tes" a required status check on `main` and allow only admins to create `v*` tags (rulesets);
+      today `main` only requires one review.
+- [ ] First CI run on a real pull request: check it passes and note its minutes.
+- [x] Plan Task 16: the Seal Cap line (item 6, spec A6): `seal_cap.py`, `data/seal_cap.json` (17 variants, packing,
+  pigments, customer EPP), price by machine on the Sales Order line (Mesin 04 Rp24, Mesin 14 Rp23), Work Order takes
+  the line's machine, PO print shows it, Mesin 14 active; cavities 20 and cycle time 14 s stored (`test_seal_cap`).
+- [x] Seal Cap material `BB-SEAL-CAP` (Rp13.500/kg) and 0.88 g: Machine Capacity rows on Mesin 04 and 14 and their
+  capacity BOMs made by `master.muat`; a Seal Cap Work Order on Mesin 04 submits.
+- [ ] Samuel: confirm "category sendiri" means its own raw material item (built), not a new Item Group.
+- [ ] Item 6 leftovers: M1G/M1H in Samuel's PO and Excel are ignored for now (spec A6); "CN" and "PT CN" kept apart
+  until he says they are one.
+- [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
+- [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.
+
 ## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
 - [x] Plan `docs/superpowers/plans/2026-11-03-setup-tanya-jawab-plan.md`, built (Tasks 1-6): `make up`, `make setup`,
@@ -26,7 +80,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       "wait a minute": the wizard's own jobs kept the background load waiting over 3 minutes (Abel 2026-11-06).
 - [ ] On the real server: `make setup` (needs the server, Samuel question 6).
 - [x] The app version (`v0.0.1`) under the login card and at the foot of the Settings dialog's left menu
-      (`erp_internal/versi.py`, `public/js/versi.js`); the image workflow refuses a tag other than
+      (`erp_internal/versi.py`, `public/js/versi.js`); CI (`ci.yml`) refuses a tag other than
       `v` + `erp_internal.__version__`. Tests `test_versi`, `cek_layar` checks both.
 - [ ] Abel: look at the version on the login page and in Settings (avatar menu, My Settings).
 - [x] Unused modules locked (`tampilan.MODUL_MATI`, Abel 2026-11-04): no menu, search or URL for anyone but Administrator.
@@ -48,7 +102,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       only start the containers), `stop` (now `down`), `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
       makes later accounts and resets passwords in the app. Compose project `erp-local`, `.local/`
       git-ignored, image `erp-internal:local` built from the repo or a released `ERP_IMAGE`.
-- [x] `tools/akun.sh` checklist (Administrator always; Developer, Admin, User optional), Administrator password only; Developer, Admin, User each email + password, typed twice,
+- [x] `deploy/server/akun.sh` checklist (Administrator always; Super Admin, Admin, Produksi optional; were Developer, Admin, User), Administrator password only; the others each email + password, typed twice,
       shown as `*` (echo off for the whole answer) → `erp_internal/akun.py` in env `ERP_AKUN`; `test_akun` OK.
 - [x] `deploy/server/Makefile` targets in English: check, check-env, configure, backup. `.gitattributes` LF everywhere.
 - [x] Real run on the Mac 2026-11-03 from an empty `.local` and no volumes: setup 7 min 40 s (image already built,
@@ -57,6 +111,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [ ] Samuel: a fresh clone on his Mac. Not tried yet: Windows + WSL, `make update-local`.
 
 ## Done: a simpler User role (Samuel 2026-11-02)
+(superseded 2026-11-23: batas_user.py removed, row 1 of the 2026-11-23 table in `docs/menunggu-samuel.md`)
 Samuel agreed: User records only the three daily jobs, everything else is view only; purchasing and selling are not
 used for now. Admin makes Work Orders, BOMs and master data (items, customers, machines).
 - [x] User = Stock User + our role `ERP User` (`tampilan.PERAN_USER`): creates only Production Entry, a Delivery Note
@@ -70,8 +125,9 @@ used for now. Admin makes Work Orders, BOMs and master data (items, customers, m
 - [x] Production Entry still makes its Manufacture/Repack entries as the User (flag `FLAG_HASIL`), and cancels them.
 - [x] Admin unchanged. Projects and HR are Admin's now (`test_proyek` uses an office worker with the roles given directly).
 - [x] Guides: `docs/panduan/user.md` (new), `gudang.md` (raw material in, direct delivery), `penjualan.md`/
-      `pembelian.md` "not used yet", `admin.md`, `produksi.md`, `proyek.md`, `absen.md`.
+      `pembelian.md` "not used yet" (used by Admin since 2026-11-23), `admin.md`, `produksi.md`, `proyek.md`, `absen.md`.
 - [x] Access PDF rebuilt from the live permissions: `~/Desktop/Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` (Abel sends it).
+      Since gone from the Desktop, and it described the old roles: see the open access PDF item under "Next".
 - [x] `cek_layar` 3 users 2026-11-02 (web only, no socket.io): User rail Stock + Manufacturing, Sales Forecast moved
       last in Manufacturing so User's home has no gap. `run-tests --app erp_internal`: 222 OK (13 unit + 209 integration).
 - [x] Retook `docs/panduan/gambar/` with `tools/panduan_gambar.mjs` (9 pictures, as `admin@`; `gudang-2` Material
@@ -132,6 +188,11 @@ run on several machines (Pot Bunga on 2, 4 and 6). Sheet "Bahan Baku" keeps cycl
 - [x] Sign in as `user@` and `admin@example.com`: User has no Settings, Admin does; full width. `cek_layar` 3 users OK 2026-10-31.
 - [x] As `admin@`: create a user with Role Profile User, then try to give it Developer (must be refused). Playwright/API 2026-10-31: Developer refused (403, "You cannot give these roles").
 - [x] As `user@`: Sales Order → Delivery Note → Sales Invoice → Payment Entry ends Paid. API as `user@` 2026-10-31: SAL-ORD-2026-00007 → MAT-DN-2026-00003 → ACC-SINV-2026-00003 Paid (ACC-PAY-2026-00002). Found: the default price list was the empty Standard Selling (Rate 0), fixed in `master._harga_bawaan`.
+- [x] 2026-11-23, with Samuel's items as `admin@` (script, rolled back): SO → DN → SI → Payment, PO → PR → PI all OK.
+      Found: the global defaults `selling_price_list`/`buying_price_list` stayed Standard Selling/Buying (orders made
+      by the server at price 0, PO always), since `set_single_value` skips the Settings' validate. Fixed in
+      `master._harga_bawaan` (buying: `penjualan._bahan` → `Harga Bahan Baku`), `patches/harga_bawaan.py`.
+- [ ] Abel: in the browser as `admin@`, a new Sales Order and Purchase Order fill their rates by themselves.
 - [ ] Optional: the official vector logo from the designer. `delta-anugrah.svg` is our redraw of the 200 px JPEG;
       replace it under the same name and rerender the PNGs (no code change).
 - [x] Add `127.0.0.1 erp.localhost` to `/etc/hosts` (sudo; present, checked 2026-11-03): Node's socket.io can't resolve `*.localhost` on macOS,
@@ -213,6 +274,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 
 ## Waiting on Mas Samuel
 - See `docs/menunggu-samuel.md`. Nothing there blocks the local build.
+- [ ] Ask Samuel `docs/menunggu-samuel.md` rows 16-18: his full PO header, his pigment list, his packing list.
 - [ ] Plan vs Actual: reject types (`docs/menunggu-samuel.md` row 10): no answer, keep the defaults (editable list).
       Shifts answered 2026-11-02: two of 12 h (done). Runner: answered 2026-10-29, thrown away (default kept).
 - [x] Capacity: which item runs on which machine (asked 2026-10-29; list received 2026-11-02, loaded by `mesin_barang.muat`, see above). Samuel's Excel (2026-10-29) gave cycle time,
@@ -244,7 +306,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [~] Task 7: server image, compose, backups (image, compose boot, backup and restore drill done locally
       2026-10-31; the server itself waits on Samuel's budget and domain)
 - [~] Task 8: go-live wave 1 (local dry run done 2026-10-28; the real go-live waits on Samuel: PT Delta Anugrah,
-      tick `erp_aktif`, users as Admin or User)
+      tick `erp_aktif`, users as Admin or Produksi)
 - [x] Revision 4: one company, three roles (`test_pengguna` 9 OK, `test_tampilan` 14 OK)
 
 ## Part B: production and forecast

@@ -14,6 +14,7 @@
   "posting_date",
   "shift",
   "hours",
+  "technician",
   "section_hasil",
   "good_qty",
   "column_break_hasil",
@@ -96,6 +97,13 @@
    "precision": "2"
   },
   {
+   "description": "Who ran the machine in this shift.",
+   "fieldname": "technician",
+   "fieldtype": "Data",
+   "label": "Technician",
+   "allow_on_submit": 1
+  },
+  {
    "fieldname": "section_hasil",
    "fieldtype": "Section Break",
    "label": "Output"
@@ -129,7 +137,8 @@
   {
    "fieldname": "notes",
    "fieldtype": "Small Text",
-   "label": "Notes"
+   "label": "Notes",
+   "allow_on_submit": 1
   },
   {
    "collapsible": 1,
@@ -172,7 +181,7 @@
  "index_web_pages_for_search": 0,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-02 13:30:00.000000",
+ "modified": "2026-11-23 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Planning",
  "name": "Production Entry",
@@ -201,13 +210,7 @@
    "export": 1,
    "print": 1,
    "email": 1,
-   "share": 1,
-   "create": 1,
-   "write": 1,
-   "delete": 1,
-   "submit": 1,
-   "cancel": 1,
-   "amend": 1
+   "share": 1
   },
   {
    "role": "Manufacturing User",
@@ -216,12 +219,7 @@
    "export": 1,
    "print": 1,
    "email": 1,
-   "share": 1,
-   "create": 1,
-   "write": 1,
-   "submit": 1,
-   "cancel": 1,
-   "amend": 1
+   "share": 1
   },
   {
    "role": "ERP User",

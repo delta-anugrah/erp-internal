@@ -71,9 +71,9 @@ question shows a suggestion in `[brackets]`: press **Enter** to take it.
    ```text
    Which accounts do you want to create?  (Up/Down move, Space tick, Enter continue)
       [x] Administrator  always created; the built-in super user
-    > [ ] Developer      everything, plus system settings (for the IT people)
+    > [ ] Super Admin    everything, plus system settings (for the IT people)
       [ ] Admin          manager: Work Orders, BOMs, users, items, customers, machines
-      [ ] User           daily work: production output, deliveries, raw material in
+      [ ] Produksi       production output and machine status only
    ```
 
    Administrator needs only a password (you sign in with the name `Administrator`); every other account an email and
@@ -91,11 +91,11 @@ When it ends:
   2. fill in the wizard with the values printed under it. Two things the wizard does differently: its Chart of
      Accounts suggests "Indonesia - Chart of Accounts", pick **Standard**; its "A little about you" step (kind of
      work, team size) changes nothing here, answer as you like (Manufacturing);
-  3. in "Create your account" make your own account: it becomes the **Developer** (all rights);
-  4. when the wizard is done, run `make up`: it makes your wizard account the Developer and loads Samuel's data
+  3. in "Create your account" make your own account: it becomes the **Super Admin** (all rights);
+  4. when the wizard is done, run `make up`: it makes your wizard account the Super Admin and loads Samuel's data
      (a few minutes; the background job the wizard starts does it too, but only after the wizard's own jobs,
-     which can take many minutes). Then add the Admin and User accounts in the app (Users, with the
-     Admin or User role profile).
+     which can take many minutes). Then add the Admin and Produksi accounts in the app (Users, with the
+     Admin or Produksi role profile).
 
 ### Every day after
 
@@ -138,14 +138,14 @@ Repo root (`Makefile`, on your computer):
 | `make down` | Stops the stack; the data stays. |
 | `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. Run `make setup` first: on a copy never set up it builds, then only says to run `make setup`. |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done (used for the last line). |
-| `make lanjut` | After the wizard: our setup, the wizard's account as Developer, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
+| `make lanjut` | After the wizard: our setup, the wizard's account as Super Admin, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
 | `make dev` | For coding (not Docker): starts `erp-mariadb` and `bench start` in the bench of `tools/setup_bench.sh` (Python reloads, JS/CSS rebuild; a DocType change needs `bench migrate`). Without the bench it says so. |
 
 `setup-local` is `check-local`, `env-local`, `image-local`, then the server Makefile's `db`, `site` (also sets
 `erp_produksi`: real data, sample data refused) and, with `WIZARD=otomatis`, `wizard`; then `configure-local`
 (migrate, host name, scheduler); then up. After the wizard, however it was filled, `erp_internal.wizard` ticks the
 company's `erp_aktif` and, in a background job and again through `make lanjut` (run by `setup_lokal.sh` until
-`.local/lanjut-siap`), makes the wizard's own account a Developer and loads Samuel's data once (marker
+`.local/lanjut-siap`), makes the wizard's own account a Super Admin and loads Samuel's data once (marker
 `erp_data_samuel`). `ERP_IMAGE=ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
 on `make setup` pulls a released image instead of building one (needs `docker login ghcr.io` first: the
 image is private). `PROYEK=<name>` (with another `PORT` and `ERP_IMAGE`) runs a second stack beside the first, for
@@ -167,7 +167,7 @@ Server (`deploy/server/Makefile`, run in `~/erp` on the server; runbook `deploy/
 | `make site` | Makes the site if missing, installs any missing app, sets `erp_produksi`. |
 | `make wizard` | Completes the setup wizard (skipped when done). |
 | `make configure` | Migrates, sets `host_name`, turns the scheduler on. |
-| `make lanjut` | After the wizard: our setup, the company on Admin/User accounts, Samuel's data the first time. |
+| `make lanjut` | After the wizard: our setup, the company on Admin/Produksi accounts, Samuel's data the first time. |
 | `make up` | Starts the whole stack. |
 | `make ping` | Checks that the stack answers on `127.0.0.1:PORT` (8080 unless `.env` sets PORT). |
 | `make cron` | Adds the nightly backup line to the crontab, once. |
@@ -217,7 +217,7 @@ original 200 px `delta-anugrah.jpeg`, kept beside it), and rendered from the SVG
 transparent), `favicon-32.png` and `favicon-192.png`. Settings point at the SVG; the favicon stays PNG.
 
 The Apps screen tiles are named ERP (ERPNext), HR (Frappe HR), Production Floor (the floor page, for Manufacturing
-User) and System (Frappe, Developer only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
+User and Produksi) and System (Frappe, Super Admin only); Indonesian: ERP, SDM, Sistem. Each has its own icon in one style, a Delta-blue rounded square with a white Lucide glyph
 (ISC licence): `aplikasi-erp.svg` (factory), `aplikasi-hr.svg` (users), `aplikasi-sistem.svg` (settings), `aplikasi-lantai.svg` (gauge). The
 sidebar header inside an app shows that app's icon (System app: the rail's top slot). That is `tampilan.merek_aplikasi` (`extend_bootinfo`, the boot
 copy of `app_data` only); a workspace saved from the desk keeps them (`erp_internal/ruang_kerja.py`).
@@ -238,7 +238,7 @@ bench --site erp-test.localhost run-tests --module erp_internal.tests.test_situs
 
 Browser check of each role's screens (needs `bench start` and the sample users `developer@`, `admin@`, `user@example.com` of `contoh.py`):
 `cd tools && npm install && npx playwright install chromium`, then `ERP_SANDI=<password> node tools/cek_layar.mjs`
-(the password is `SAMPLE_PASSWORD` in the bench's `.env`). It also checks the app version under the login card (as a guest) and at the foot of each role's Settings dialog. Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`; Admin's screens as `admin@`, the User's `gudang-2`/`gudang-3` as `user@`).
+(the password is `SAMPLE_PASSWORD` in the bench's `.env`). It also checks the app version under the login card (as a guest) and at the foot of each role's Settings dialog. Screenshots land in `tools/hasil/` (not committed). The user guides' pictures (`docs/panduan/gambar/`) are retaken the same way with `tools/panduan_gambar.mjs` (name a picture to retake only it: `produksi-1`; Admin's screens as `admin@`, `gudang-2`/`gudang-3` too, since Produksi records production only).
 `tools/lantai.mjs` checks the Production Floor page (`/desk/production-floor`, Manufacturing's first link) the same
 way: the 14 machines in floor order, status lamps, labels, the side panel and its status buttons, live updates, the
 info bar, the attention card, the loading screen, the dark decor, the glass look in light and dark, a plain table without WebGL, and the smoothness budget (frame rate,
@@ -248,27 +248,36 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
 13002, a Redis from an earlier run is still up: `lsof -nP -iTCP:11002 -iTCP:13002 -sTCP:LISTEN`, stop those
 `redis-server` processes, start again.
 
+`tools/e2e_samuel.mjs` runs each profile's main flow for Samuel's 2026-11-23 requests in the browser (Produksi's
+Daily Input, Admin's Work Order, Sales Order, Delivery Note from Gudang Pluit, expenses and reports, Super Admin's
+PO print): `ERP_SANDI=<password> node tools/e2e_samuel.mjs`, exit code 1 on a failed step. It deletes what it made
+where ERPNext allows; each run leaves a cancelled Production Entry, its cancelled Stock Entries and a cancelled
+Delivery Note on `erp.localhost`.
+
 ## Factory flow and data import
 
-- A Delivery Note is made directly (decided 2026-11-02: no Sales Orders for now), every Purchase Receipt comes from
-  an order, stock never goes negative, stock posts no journal
+- Purchase Orders and Sales Orders are Admin's since 2026-11-23 (Samuel; printed in his PO layout, `PO Samuel`); a
+  Delivery Note may still be made directly without a Sales Order, every Purchase Receipt comes from an order, stock never goes negative, stock posts no journal
   entries, and the company gets PPN templates that are never the default (not PKP: invoices only record) (`setup._alur_jual_beli`). Staff guides:
   `docs/panduan/{penjualan,pembelian,gudang}.md`.
 - Importing the old data (items, customers, suppliers, opening stock): `docs/impor.md`; its CSV files are tested
   by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`). Sales History (monthly quantities per item):
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
 - The factory's master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
-  execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin}.json` (templates with only the listed
-  variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`); rerun after a new file
-  (`docs/impor.md`, tested by `tests/test_master.py`).
+  execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin,merek_epp,seal_cap}.json` (templates with only the listed
+  variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`, the 21 Seal Cap brands with their Inserts (pcs), and the Seal Cap line of `data/seal_cap.json`: 17 variants,
+  their packing and pigments, customer EPP, its raw material `BB-SEAL-CAP`, Machine Capacity rows and capacity BOMs on
+  Mesin 04 and 14, price by machine on the Sales Order line, `seal_cap.py`); rerun after a new file
+  (`docs/impor.md`, tested by `tests/test_master.py` and `tests/test_seal_cap.py`).
 - The factory's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
   reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw
-  materials with their price per kg, Sales History January-September 2026 (spread evenly over the colours) and each
+  materials with their price per kg (buying list `Harga Bahan Baku`, also the Purchase Order default while Buying
+  Settings still says Standard Buying), Sales History January-September 2026 (spread evenly over the colours) and each
   variant's `safety_stock` (half an average month) (`docs/impor.md`, tested by
   `tests/test_penjualan.py`).
 - The item-to-machine list (2026-11-02), after `penjualan.muat`: `bench --site erp.localhost execute
   erp_internal.mesin_barang.muat` reads `erp_internal/data/mesin_barang.json` and makes a Machine Capacity row per
-  template + Jenis and machine ("( n )" = the mould's cavities) (54 rows) and their BOMs (`docs/impor.md`, tested by `tests/test_mesin_barang.py`). Machines 1, 7, 9-14 are inactive (`mesin.json` `aktif`).
+  template + Jenis and machine ("( n )" = the mould's cavities) (54 rows) and their BOMs (`docs/impor.md`, tested by `tests/test_mesin_barang.py`). Machines 1, 7, 9-13 are inactive (`mesin.json` `aktif`).
 - Production (`erp_internal/planning/`, module Planning): the company's Work Orders default to its Gudang
   Produksi / Barang Jadi / Reject and items to their group's warehouse (`setup._produksi`). A draft monthly Sales
   Forecast gets "Fill from History" (`planning/forecast.py`: the last 3 full months of Sales History and submitted
@@ -277,9 +286,21 @@ dropped frames, long tasks, draw calls) in a visible browser; the header of `too
   other companies' stock is refused. Staff guide: `docs/panduan/produksi.md`.
 - Production (capacity and output): Machine Capacity per product per machine (`planning/kapasitas.py`). "Make BOMs"
   and the Excel import (`docs/impor.md` section 6) build one default BOM per variant per machine; a draft Work Order
-  with a machine gets that machine's BOM (`pilih_bom`). Production Entry ("Record Output" on a Work Order) books the
+  with a machine gets that machine's BOM (`pilih_bom`). Production Entry (typed in the Daily Input page; "Record Output" on a Work Order opens it) books the
   good pieces (Manufacture) and the rejects (Repack into Gudang Reject) as two Stock Entries; the Plan vs Actual
   report compares them with the target. Guide: `docs/panduan/produksi.md`.
+- Samuel's requests of 2026-11-23 (spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md`): a Work
+  Order takes only a machine its item's Machine Capacity lists; a second sales warehouse Gudang Pluit, picked per
+  Delivery Note; the Daily Input page in his Excel layout (Shift 1 / Shift 2, technicians, TOTAL) with Print and
+  Excel; paper documents attached before submit and the Missing Documents report; Expense Entry (Once, Every month,
+  Per machine shift) and the Monthly Expenses report with pigment and packing used by production; print formats
+  `PO Samuel` / `PO Samuel Beli`; pigment per colour (`PIGMEN`, grams) and packing per product (Item Packing) in the
+  capacity BOMs; the Seal Cap brand codes with their mould inserts. Guides: `docs/panduan/admin.md`, `produksi.md`.
+  Browser run of each profile's flow: `ERP_SANDI=… node tools/e2e_samuel.mjs` (see Tests).
+- Missing data notices (Abel 2026-11-24, `erp_internal/kelengkapan.py`): products without packing, colours without a
+  pigment, products without a selling price or machine capacity, no running Gaji Operator expense, pigment or packing
+  without stock. Orange notes on the Item, Sales Order and Work Order forms and in Monthly Expenses, each with a link
+  to the place it is fixed, and the report Settings → Missing Data listing all of them.
 
 ## Screens
 
@@ -291,19 +312,19 @@ shortcuts to the same links as its menu entries, nothing else:
 
 | Menu header | Home and links |
 |---|---|
-| Stock | Stock Entry, Delivery Note, Item, Warehouse, Stock Balance, Stock Ledger |
+| Stock | Stock Entry, Delivery Note, Item, Brand, Warehouse, Stock Balance, Stock Ledger, Missing Documents |
 | Selling | Customer, Open Sales Orders (Sales Order), Delivery Note, Unpaid Sales Invoices (Sales Invoice), Payment Entry, Sales History |
-| Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice |
-| Production Floor (own menu entry, first) | the floor page |
-| Manufacturing | Production Floor (home shortcut only), Sales History, Master Production Schedule, MRP, Work Orders in Process (Work Order), Production Entry, Order Readiness, Plan vs Actual, BOM, Machine Capacity, Sales Forecast, Item Lead Time |
+| Buying | Supplier, Pending Material Requests (Material Request), Purchase Order, Purchase Receipt, Purchase Invoice, Expense Entry, Monthly Expenses |
+| Production Floor, Daily Input (own menu entries, first) | the floor page; the Daily Input page |
+| Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page; also an own menu entry), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
-| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |
+| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings, Missing Data |
 
 The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.
 
-The table is Admin's view. A User's menu has only Stock and Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
+The table is Admin's view. A Produksi user's menu has only Manufacturing (`IKON`, `MODUL_BOLEH`); within them they see only what their roles read. A direct URL to another permitted
 doctype or report still opens. Unused modules (`tampilan.MODUL_MATI`) and HR's unused DocTypes (`tampilan.DOCTYPE_MATI`:
 recruitment, appraisal, training, expenses, travel, lifecycle, vehicles, skills, overtime) are locked for everyone but
 Administrator and their reports are disabled; remove an entry and migrate to unlock it.
@@ -312,15 +333,16 @@ Administrator and their reports are disabled; remove an entry and migrate to unl
 
 Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one company:
 
-- **User** (decided 2026-11-02): Stock User plus `ERP User`. Creates only Production Entries, Delivery Notes made
-  directly and Material Receipt stock entries, sets a machine's status on the Production Floor, and reads stock,
-  items, Work Orders, BOMs and the production reports; menu Stock and Manufacturing (`erp_internal/batas_user.py`).
-  Guide: `docs/panduan/user.md`.
-- **Admin**: also the manager roles (Work Orders, items, suppliers, BOMs, stock reconciliation, selling, buying,
-  projects, HR), users and the business
-  settings (menu header Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and User roles and
-  never change a Developer's account. Guide: `docs/panduan/admin.md`.
-- **Developer**: Admin plus System Manager (Build, System Settings).
+- **Produksi** (was User; Samuel 2026-11-23): `ERP User` only, no stock role. Creates only Production Entries (their
+  stock moves are made by the system), sets a machine's status on the Production Floor, and reads Work Orders,
+  machines, Machine Capacity and Plan vs Actual; menu Manufacturing only. Guide: `docs/panduan/user.md`.
+- **Admin**: the manager roles (Work Orders, items, suppliers, BOMs, stock, delivery notes, raw material in, stock
+  reconciliation, selling, buying, projects, HR), users and the business
+  settings (menu header Settings). `erp_internal/pengguna.py` lets an Admin give only the Admin and Produksi roles and
+  never change a Super Admin's account. Admin only views Production Entries; a Manufacture straight from a Work
+  Order (its Finish button) is refused, so all output goes through a Production Entry. Guide: `docs/panduan/admin.md`.
+- **Super Admin** (was Developer): Admin plus System Manager (Build, System Settings, the Work Order's Finish, and
+  Production Entries).
 
 ## Office: attendance and projects
 
@@ -328,14 +350,18 @@ Three Role Profiles (`erp_internal/tampilan.py` `PROFIL_PERAN`), all in the one 
   attendance (`SHIFT_KANTOR`), Saturday and Sunday off in a yearly "Libur <abbr> <year>" list assigned to the
   company, leave types Cuti Tahunan (12), Sakit, Izin. Staff guide: `docs/panduan/absen.md`.
 - Projects (`setup._proyek`): Activity Types Pengembangan, Rapat, Dukungan Klien, Administrasi without rates; an
-  employee (Projects User and Employee roles, outside the User profile) submits only their own timesheets (`erp_internal/proyek.py`); Admin and Developer can submit
+  employee (Projects User and Employee roles, outside the Produksi profile) submits only their own timesheets (`erp_internal/proyek.py`); Admin and Super Admin can submit
   anyone's. Staff guide: `docs/panduan/proyek.md`.
 
 ## Sample data
 
 `erp_internal/contoh.py` fills a dev site with DATA CONTOH (tagged): one company (PT Delta Anugrah, abbreviation CPL, with its logo), products
-with BOMs, lead times and stock, customers, suppliers, 6 months of Sales History, open orders, 10 Machine Capacity rows with their BOMs, 4 open Work Orders (plus one older order without a machine) and 28 Production Entries over the last 7 days, employees on the
-shift, one project, and one user per role (`developer@`, `admin@`, `user@example.com`):
+with BOMs, lead times and stock, two packing items on the products, two pigments (Merah, Biru) with stock and buying
+prices, customers, suppliers, 6 months of Sales History, open orders, 10 Machine Capacity rows with their BOMs (packing
+included), 4 open Work Orders (plus one older order without a machine) with 7 days of output ending yesterday (Shift 1
+with rejects, technician Yudi; Shift 2 typed through Daily Input, technician Fadli), a transfer to Gudang Pluit and a
+delivery note from it, four expenses (operator wage per machine shift, fixed salaries every month, electricity and
+fuel once), employees on the shift, one project, and one user per role (`developer@`, `admin@`, `user@example.com`):
 
 ```bash
 bench --site erp.localhost set-config erp_sandi_contoh <password>
@@ -381,11 +407,20 @@ done. Afterwards: `make backup` and a restore drill (`deploy/server/README.md`).
 ### The image
 
 The image is built from `deploy/Containerfile` (Frappe, ERPNext and HRMS at the tags in `versi.json`) by
-`.github/workflows/image.yml` on a `vX.Y.Z` tag and checked by `deploy/check_image.sh`. The workflow refuses a tag that is
-not `v` + `erp_internal.__version__` (the version on the login page and in Settings): bump `erp_internal/__init__.py`
-before tagging (`deploy/server/README.md` "New version"). The stack, backups
-(`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:
+`.github/workflows/ci.yml`, checked by `deploy/check_image.sh` and tested by `deploy/ci_tes.sh` (every erp_internal
+test inside the image, with its own MariaDB and Redis). One job, "Tes":
+
+- a pull request to `main`: ruff, build, check, tests. Drafts and docs-only pull requests skip the work. Make "Tes"
+  a required status check on `main`, so a red pull request cannot be merged.
+- a `vX.Y.Z` tag: refused unless the tag is on `main` and equals `v` + `erp_internal.__version__` (the version on the
+  login page and in Settings); then build, check, tests, and only then the push to GHCR. Bump `erp_internal/__init__.py`
+  before tagging (`deploy/server/README.md` "New version").
+
+To spend few Actions minutes: no run on pushes to `feat/lokal`, a newer push cancels a pull request's older run, and
+the build cache is kept in GHCR (`:buildcache`). Browser checks (`cek_layar`, `lantai`, `e2e_samuel`) stay local.
+Nothing deploys by itself. The stack, backups (`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:
 
 ```bash
 docker build -f deploy/Containerfile -t erp-internal:uji . && deploy/check_image.sh erp-internal:uji
+deploy/ci_tes.sh erp-internal:uji   # the tests in the image, as CI runs them
 ```

@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 from erp_internal import master
 from erp_internal.planning import impor_kapasitas
 from erp_internal.planning.impor_kapasitas import KOLOM_IMPOR, angka, baca, normal, pratinjau, terapkan
-from erp_internal.tampilan import ADMIN, USER
+from erp_internal.tampilan import ADMIN, PRODUKSI
 from erp_internal.tests.utils import (
 	buat_barang,
 	buat_mesin,
@@ -310,7 +310,7 @@ class TestImporKapasitas(IntegrationTestCase):
 		self.assertEqual(h["baris"][0]["hasil"], "Refused")
 
 	def test_tanpa_izin(self):
-		user = buat_pengguna("_uji.impor.user@example.com", USER, None, self.pabrik)
+		user = buat_pengguna("_uji.impor.user@example.com", PRODUKSI, None, self.pabrik)
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user(user)
 		with self.assertRaises(frappe.PermissionError):

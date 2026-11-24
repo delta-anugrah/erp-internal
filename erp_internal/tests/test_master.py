@@ -97,10 +97,14 @@ class TestMaster(IntegrationTestCase):
 
 	def test_daftar_harga_bawaan(self):
 		self.assertEqual(frappe.db.get_single_value("Selling Settings", "selling_price_list"), self.daftar)
+		# The forms and a server-made Sales Order read the global default, not the setting.
+		self.assertEqual(frappe.db.get_default("selling_price_list"), self.daftar)
 		frappe.db.set_single_value("Selling Settings", "selling_price_list", "Harga Lain")
 		master.muat()
 		self.assertEqual(frappe.db.get_single_value("Selling Settings", "selling_price_list"), "Harga Lain")
+		self.assertEqual(frappe.db.get_default("selling_price_list"), "Harga Lain")
 		frappe.db.set_single_value("Selling Settings", "selling_price_list", self.daftar)
+		master.muat()
 
 	def test_mesin(self):
 		self.assertEqual(frappe.db.count("Workstation", {"workstation_type": master.JENIS_MESIN}), MESIN)
@@ -113,6 +117,19 @@ class TestMaster(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Workstation", "Mesin 12", "erp_negara"), "HONGKONG")
 		nomor = frappe.get_all("Workstation", {"workstation_type": master.JENIS_MESIN}, pluck="erp_nomor")
 		self.assertEqual(sorted(nomor), list(range(1, 15)))
+
+	def test_merek_epp(self):
+		# The Seal Cap list: 21 brand codes, each with its insert count; a count Admin changed stays.
+		baris = master.berkas("merek_epp.json")
+		self.assertEqual(len(baris), 21)
+		for b in baris:
+			self.assertTrue(frappe.db.exists("Brand", b["merk"]), b["merk"])
+		self.assertEqual(frappe.db.get_value("Brand", "NKP", "erp_jumlah_insert"), 21)
+		self.assertEqual(frappe.db.get_value("Brand", "DBI", "description"), "2 pcs dibawa pa Udin")
+		frappe.db.set_value("Brand", "NKP", "erp_jumlah_insert", 19)
+		master.muat()
+		self.assertEqual(frappe.db.get_value("Brand", "NKP", "erp_jumlah_insert"), 19)
+		frappe.db.set_value("Brand", "NKP", "erp_jumlah_insert", 21)
 
 	def test_dua_kali_sama(self):
 		hitung = {

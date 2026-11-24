@@ -130,9 +130,10 @@ class TestPlanVsActual(IntegrationTestCase):
 		self.assertEqual(rows[0]["r_flashing"], 5)
 
 	def test_kapasitas(self):
-		buat_kapasitas(JADI, self.m1, material=PP)  # 20 s, 4 cavities: 720 pcs/h
+		# Both orders first: once the item has a row on m1 only, a new order on m2 is refused (machine lock).
 		wo = self.order(mesin="m1")
 		wo2 = self.order(mesin="m2")
+		buat_kapasitas(JADI, self.m1, material=PP)  # 20 s, 4 cavities: 720 pcs/h
 		self.hasil(wo, -2, 5000, jam=8)
 		self.hasil(wo2, -2, 100, jam=8)
 		rows = data(self.f(target_dari="Capacity"))

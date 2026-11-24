@@ -5,7 +5,7 @@
 #
 #   .wizard      the wizard answer (WIZARD, COMPANY, ABBR; no secret), so a rerun does not ask again
 #   .akun-siap   the accounts were made: a rerun never touches live passwords
-#   .lanjut-siap `make lanjut` ran after the wizard (our setup, the wizard's account as Developer, Samuel's data);
+#   .lanjut-siap `make lanjut` ran after the wizard (our setup, the wizard's account as Super Admin, Samuel's data);
 #                until then every run tries it, so a background job that failed after a by-hand wizard is repaired
 #   .siap        a run went through to the end
 #

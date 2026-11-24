@@ -7,6 +7,7 @@ Projects,Proyek
 Shift & Attendance,Absensi
 Leaves,Cuti
 Item,Barang
+Brand,Merek
 Warehouse,Gudang
 Stock Entry,Mutasi Stok
 Stock Reconciliation,Stok Opname
@@ -49,7 +50,7 @@ Users,Pengguna
 Stock Settings,Pengaturan Stok
 Selling Settings,Pengaturan Penjualan
 Buying Settings,Pengaturan Pembelian
-Only a Developer can change this account.,Hanya Developer yang bisa mengubah akun ini.
+Only a Super Admin can change this account.,Hanya Super Admin yang bisa mengubah akun ini.
 You cannot give these roles: {0},Anda tidak bisa memberi peran ini: {0}
 Bahasa Indonesia,Bahasa Indonesia
 English,English
@@ -109,7 +110,7 @@ Short,Kurang
 Lead Time (days),Lama Produksi (hari)
 Latest Start,Mulai Paling Lambat
 Status,Status
-Empty: the company's Gudang Barang Jadi.,Kosong: Gudang Barang Jadi perusahaan itu.
+Empty: Gudang Barang Jadi and Gudang Pluit together.,Kosong: Gudang Barang Jadi dan Gudang Pluit digabung.
 Late,Telat,Order Readiness
 Start this week,Mulai minggu ini,Order Readiness
 Set lead time,Isi lama produksi,Order Readiness
@@ -129,6 +130,7 @@ HR Settings,Pengaturan SDM
 Opening Stock & Stock Count,Stok Awal & Stok Opname
 Machine No.,No. Mesin
 Machine Brand,Merek Mesin
+Inserts (pcs),Insert (pcs)
 Machine Model,Model Mesin
 Clamping Force (Ton),Daya Jepit (Ton)
 Year Made,Tahun Buat
@@ -206,6 +208,14 @@ A machine that no longer runs this mould.,Mesin yang tidak lagi menjalankan ceta
 Make BOMs,Buat BOM
 "BOMs made: {0}, unchanged: {1}, switched off: {2}.","BOM dibuat: {0}, tetap: {1}, dinonaktifkan: {2}."
 Set the material of this row before making BOMs.,Isi bahan baris ini dulu sebelum membuat BOM.
+Pigment Ratio (g per kg),Rasio Pigmen (g per kg)
+The pigment ratio must be more than 0 g per kg.,Rasio pigmen harus lebih dari 0 g per kg.
+Item Packing,Kemasan Barang
+Packing Item,Barang Kemasan
+Pieces per Packing,Isi per Kemasan (pcs)
+Row {0}: Pieces per Packing must be more than 0.,Baris {0}: Isi per Kemasan harus lebih dari 0.
+Used by production,Dipakai produksi
+Row {0}: {1} must be stocked in a UOM that allows fractions ({2}).,Baris {0}: {1} harus distok dalam satuan yang boleh pecahan ({2}).
 Apply,Terapkan
 Cavities must be a whole number.,Cavity harus bilangan bulat.
 Columns ignored: {0},Kolom diabaikan: {0}
@@ -320,13 +330,117 @@ Hide attention list,Sembunyikan daftar perhatian
 "Name the company: {0} companies are run by this app.","Sebutkan perusahaannya: ada {0} perusahaan yang dijalankan aplikasi ini."
 Title,Judul
 "The machine can only be changed while the Work Order is Not Started or In Process.",Mesin hanya bisa diganti selama Work Order belum mulai atau sedang berjalan.
-"You may only record a Material Receipt. Ask an Admin for a {0}.","Kamu cuma bisa mencatat Material Receipt (bahan masuk). Minta Admin untuk {0}."
+Finish,Selesai
+Record output in Daily Input.,Catat hasil produksi di Input Harian.
+Cancel Production Entry {0} instead.,Batalkan Hasil Produksi {0} saja.
 ERP User,Pengguna ERP
 "{0} is not in use. Choose another machine.",{0} sedang tidak dipakai. Pilih mesin lain.
+"{0} is not made on {1}. Machines for it: {2}.","{0} tidak dibuat di {1}. Mesin untuk barang ini: {2}."
+none in use,tidak ada yang dipakai
+"No Machine Capacity row for this item yet: every machine is allowed.","Belum ada baris Machine Capacity untuk barang ini: semua mesin boleh."
 ERP_AKUN is not set: run make setup.,ERP_AKUN belum diisi: jalankan make setup.
 A password needs at least {0} characters.,Password minimal {0} karakter.
-"Create the Developer, Admin and User accounts after the setup wizard; for now only Administrator.","Buat akun Developer, Admin dan User setelah setup wizard; untuk sekarang hanya Administrator."
+"Create the Super Admin, Admin and Produksi accounts after the setup wizard; for now only Administrator.","Buat akun Super Admin, Admin dan Produksi setelah setup wizard; untuk sekarang hanya Administrator."
 Unknown role {0}.,Peran {0} tidak dikenal.
 {0} is not a valid email address.,{0} bukan alamat email yang benar.
 {0} is given twice.,{0} diisi dua kali.
 Back to Manufacturing,Kembali ke Produksi
+Missing Documents,Dokumen Tanpa Lampiran
+Document Type,Jenis Dokumen
+Document,Dokumen
+"Attach a photo or scan of the real document before you submit.","Lampirkan foto atau hasil scan dokumen aslinya sebelum diajukan."
+Attach the signed delivery note.,Lampirkan surat jalan yang sudah ditandatangani.
+"Enter whole pieces, like 13.384.","Isi jumlah pcs utuh, misalnya 13.384."
+"No machine yet: Admin sets it on the Work Order.","Belum ada mesin: Admin mengisinya di Work Order."
+Change it in the Production Entry form.,Ubah lewat form Production Entry.
+"Enter a number first: a note needs an entry to hold it.","Isi angkanya dulu: keterangan butuh entri untuk disimpan."
+Technician,Teknisi
+Who ran the machine in this shift.,Yang menjalankan mesin di shift ini.
+"The date cannot be before the Work Order was made ({0}).","Tanggalnya tidak boleh sebelum Work Order dibuat ({0})."
+Daily Input,Input Harian
+The daily input could not be loaded.,Input harian tidak bisa dimuat.
+Not saved (HTTP {0}).,Tidak tersimpan (HTTP {0}).
+No connection: try again.,Tidak ada koneksi: coba lagi.
+No open Work Orders.,Tidak ada Perintah Produksi yang terbuka.
+Previous week,Minggu sebelumnya
+This week,Minggu ini
+Next week,Minggu berikutnya
+All machines,Semua mesin
+Work Order {0},Perintah Produksi {0}
+Show all,Tampilkan semua
+Tanggal,Tanggal
+Teknisi Pagi,Teknisi Pagi
+Teknisi Malam,Teknisi Malam
+This week: {0},Minggu ini: {0}
+No.Po.,No.Po.
+PO,PO
+Packing,Packing
+{0} of {1} {2},{0} isi {1} {2}
+No,No
+Merk,Merk
+Warna,Warna
+Keterangan,Keterangan
+CLOSE/DONE,CLOSE/DONE
+TOTAL,TOTAL
++ Add date,+ Tambah tanggal
+Add date,Tambah tanggal
+"Pick a date from {0} to {1}.","Pilih tanggal dari {0} sampai {1}."
+"Underlined numbers were recorded in the Production Entry form: change them there.","Angka bergaris bawah dicatat lewat form Production Entry: ubah di sana."
+Print,Cetak
+Excel,Excel
+Allow pop-ups for this site to print.,Izinkan pop-up untuk situs ini agar bisa mencetak.
+Try again,Coba lagi
+Your session may have ended: log in again.,Sesi kamu mungkin sudah berakhir: masuk lagi.
+ERP Admin,Admin ERP
+Expense Entry,Catatan Biaya
+Expense Category,Kategori Biaya
+Monthly Expenses,Biaya Bulanan
+Amount,Jumlah
+Category,Kategori
+Details,Rincian
+Total,Total
+Repeat,Ulang
+Until,Sampai
+Once,Sekali
+Every month,Tiap bulan
+Per machine shift,Per shift mesin
+Any day of the month.,Tanggal mana saja di bulan itu.
+End the earlier one first: {0}.,Akhiri dulu yang sebelumnya: {0}.
+Until cannot be before the date.,Sampai tidak boleh sebelum tanggalnya.
+For a repeating expense: the day it starts.,Untuk biaya berulang: hari mulainya.
+No longer offered on new entries; old entries keep it.,Tidak ditawarkan lagi di catatan baru; catatan lama tetap memakainya.
+"One expense of the factory: paid once, every month, or per machine shift (the operator wage). The Monthly Expenses report adds them up per month.","Satu biaya pabrik: dibayar sekali, tiap bulan, atau per shift mesin (gaji operator). Laporan Biaya Bulanan menjumlahkannya per bulan."
+Per machine shift: the amount for one machine in one shift.,Per shift mesin: jumlah untuk satu mesin dalam satu shift.
+"The last day it counts. Empty: still running. A raise: set Until here, then make a new entry.","Hari terakhir yang dihitung. Kosong: masih berjalan. Naik gaji: isi Sampai di sini, lalu buat catatan baru."
+"What a monthly expense is for (Gaji Operator, Listrik, ...). Expense Entry picks one.","Untuk apa biaya bulanan itu (Gaji Operator, Listrik, ...). Catatan Biaya memilih salah satu."
+{0} shifts · {1} days 24 h · {2} days 12 h,{0} shift · {1} hari 24 jam · {2} hari 12 jam
+"{0} has no stock in {1} yet: receive it there before recording output, or recording fails.","{0} belum ada stoknya di {1}: terima barangnya di sana dulu sebelum mencatat hasil produksi, kalau tidak pencatatan gagal."
+Missing Data,Data Belum Lengkap
+Check,Pemeriksaan
+What happens,Akibatnya
+How to fix,Cara membetulkan
+No packing set,Kemasan belum diisi
+Packing is not used up and its cost is not counted.,Kemasan tidak ikut terpakai dan biayanya tidak dihitung.
+Fill the Packing table of the item,Isi tabel Packing di barangnya
+No pigment for the colour,Pigmen warna ini belum ada
+No pigment is used up for these products and its cost is not counted.,Barang ini tidak memakai pigmen dan biayanya tidak dihitung.
+Make the pigment of this colour,Buat pigmen warna ini
+No selling price,Harga jual belum ada
+A Sales Order line starts at 0.,Baris Sales Order mulai dari 0.
+Add a selling price,Tambah harga jual
+No operator wage expense,Biaya gaji operator belum ada
+Operator wages are not counted in Monthly Expenses.,Gaji operator tidak dihitung di Biaya Bulanan.
+Add the Gaji Operator expense,Tambah biaya Gaji Operator
+No machine capacity,Kapasitas mesin belum ada
+"Any machine is allowed for it, and Plan vs Actual has no target.","Semua mesin boleh membuatnya, dan Plan vs Actual tidak punya target."
+Add a Machine Capacity row,Tambah baris Kapasitas Mesin
+No stock,Stok kosong
+Recording output fails while it is out of stock.,Pencatatan hasil produksi gagal selama stoknya kosong.
+Order it,Pesan barangnya
+See them in Missing Data,Lihat di Data Belum Lengkap
+Variants: {0},Varian: {0}
+"{0}, products: {1}","{0}, barang: {1}"
+Line {0}: {1} has no selling price.,Baris {0}: {1} belum punya harga jual.
+"{0}: pick the machine, the price follows it.","{0}: pilih mesinnya, harganya ikut mesin."
+{0} has no price on {1}. Machines: {2},{0} tidak punya harga di {1}. Mesin: {2}
+"{0}: on {1} the price is {2}, not {3}.","{0}: di {1} harganya {2}, bukan {3}."

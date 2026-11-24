@@ -2,6 +2,231 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-24, CI: `image.yml` replaced by `ci.yml`
+- `.github/workflows/ci.yml`, one job "Tes": a pull request to main runs ruff 0.17.6, builds the image (GHCR registry
+  cache `:buildcache`), `check_image.sh` and the new `deploy/ci_tes.sh` (all tests in the image, own MariaDB and
+  Redis); drafts and docs-only pull requests skip the work. A `vX.Y.Z` tag must be on main and equal `__version__`,
+  then the same build, check and tests, then the push to GHCR. No deploy from CI.
+- Local, as run: actionlint and shellcheck clean; `uvx ruff@0.17.6` clean; `docker build` (arm64, no cache) about
+  45 min; `deploy/check_image.sh erp-internal:ci` OK; `deploy/ci_tes.sh erp-internal:ci` 367 tests OK in 863 s,
+  30 min in all (the new site with erpnext and hrms takes about 15 min).
+- Not yet run on GitHub. Next: first pull request run (note its minutes), then Abel makes "Tes" a required check on
+  main and limits `v*` tags to admins.
+
+## 2026-11-24, Task 16: the Seal Cap line (item 6, spec A6)
+- `seal_cap.py` + `data/seal_cap.json` (Samuel's table of 2026-11-24), loaded by `master.muat`: Item Attribute
+  `Merk`, template `SEAL-CAP` with 17 variants (`SEAL-CAP-MHG-CKM` ...; the code is the Merk attribute, no Brand on the variants), Brands MHG, SE, RPE, CN,
+  packing items Plastik 35x50, Plastik 30x45, Karung and two Packing rows per variant, `PIGMEN` Coklat Muda, Hijau,
+  Pink, Putih, Coklat (ratio 1) and 350.000/Kg for pigments without a price in Harga Bahan Baku, customer
+  PT. Empat Putra Pangestu. Mesin 14 active.
+- Price by machine: `HARGA_MESIN` (Mesin 04 Rp24, Mesin 14 Rp23); Sales Order Item `erp_mesin`, set in the form
+  (`public/js/sales_order.js`) and on save (`before_validate`), refused without a machine of the table; a Work Order
+  from the line takes the machine; PO Samuel prints " - Mesin 04" in red. Neutral needs no pigment; Missing Data
+  skips the selling-price check for Seal Cap; Daily Input's Merk reads the `Merk` attribute.
+- erp.localhost: `master.muat` wrote 39 records, the second run 0.
+- Tests as run: `test_seal_cap` 15 OK (red first: import error); `run-tests --app erp_internal` 379 (13 unit + 366 integration)
+  OK (first run: `test_mesin_barang.test_bom` failed, its BOM now has the Biru pigment line: test updated; after the
+  0.88 g weight only `test_seal_cap` rerun, 15 OK); ruff clean;
+  `bench build` + clear-cache; browser check as admin@ (Sales Order for EPP, Seal Cap MHG on Mesin 04: rate 24 in the
+  form and after save, 480.000; print "Seal Cap MHG Coklat Muda - Mesin 04" in red; 1440/768/390 px; draft deleted);
+  `cek_layar` 3 users OK.
+- Cavities 20, cycle time 14 s (Samuel 13-14 s), part weight 0.88 g (to be confirmed), runner 0 stored in
+  `seal_cap.json` `kapasitas`; `muat` makes the Machine Capacity rows on Mesin 04 and 14 (and their BOMs) once
+  `material` is filled in too.
+- Review fixes: Update Items after submit cannot change a Seal Cap price (`harga_terkunci`), margin and pricing
+  rules cleared, no Brand on the variants (cleared once on erp.localhost), the form also reacts to item and UOM.
+  `test_seal_cap` 16 OK; `run-tests --app erp_internal` 380 (13 unit + 367 integration) OK; browser check rerun OK.
+- Material (Samuel 16:40): `BB-SEAL-CAP` "Bahan Seal Cap", Bahan Baku, Kg, 13.500/kg in Harga Bahan Baku ("category
+  sendiri" read as its own item, not a new Item Group); 0.88 g confirmed. `muat` now makes the Machine Capacity rows
+  on Mesin 04 and 14 (5.142,86 pcs/hour) and 34 capacity BOMs (material 0.00088 kg, the colour's pigment 0.00088 g,
+  bag and sack per their pieces). erp.localhost: `master.muat` wrote 39, then 0; a Seal Cap Work Order on Mesin 04
+  (BOM-SEAL-CAP-MHG-CKM-001) submitted through bench, then cancelled and deleted. `test_seal_cap` 19 OK; `run-tests --app erp_internal` 383 (13 unit + 370
+  integration): 382 OK, `test_mesin_barang.test_jumlah` failed (Mesin 14 now has a capacity row: expected list
+  updated), module rerun 8 OK; ruff clean.
+- After 2033cab the controller ran the full suite: 383 (13 unit + 370 integration), all OK. Docs sync (Neutral in
+  every colour list, item 6 marked built, the after-submit price lock in spec A6, admin guide "Merek atau warna Seal
+  Cap baru", stock note in gudang/produksi). Missing Data on erp.localhost now: 23 packing, 6 colours, 20 prices,
+  7 capacity, 0 wage, 8 stock. `lantai.mjs` rerun after Mesin 14 became active: all OK (disabled machines restored).
+- Next: Samuel confirms "category sendiri"; stock of BB-SEAL-CAP, the new pigments and packing before output.
+
+## 2026-11-24, Task 15: missing data notices (Abel)
+- `kelengkapan.py`: one table `CEK` (packing, pigment per colour, selling price, Gaji Operator expense, machine
+  capacity, pigment/packing stock), each row with a fix the desk opens (`public/js/kelengkapan.js`, Abel: every
+  notice links straight to its fix). Report Settings → Missing Data (Admin); orange notes on Item, Sales Order (draft),
+  Work Order (open) and the Monthly Expenses message. `WARNA_TANPA_PIGMEN`: Bening, Bening Transparan, Campur (Neutral added in Task 16).
+- erp.localhost now: 23 products without packing, 9 colours without a pigment, 20 products without a price in Harga
+  Pola 2026 (the `CTH-` sample products sit on their own list), 7 without machine capacity, wage and stock 0.
+- Tests as run: `test_kelengkapan` 15 OK (red first: import error); `run-tests --app erp_internal` 364 (13 unit + 351
+  integration) OK; ruff clean; `cek_layar` 3 users OK; browser check as admin@ at 1440 and 390 px (report links,
+  packing and pigment links, Item and Sales Order notes, Item Price and Purchase Order prefills) OK.
+- Next: Samuel's pigment and packing lists clear most rows.
+
+## 2026-11-23, final review fixes (Samuel's 2026-11-23 requests)
+- Daily Input: a Completed order's cells stay editable for Produksi (`STATUS_BISA_DIUBAH`; the cancel reopens the
+  order), no "+ Add date" on a completed block; both shifts fit 390 px and the 768 px view beside the sidebar
+  (container query on `.erp-ih`). `test_order_selesai_bisa_dibetulkan` (red first: `boleh_isi` False).
+- `kapasitas._ingatkan_stok`: an orange note when a pigment or packing item has no stock in Gudang Bahan Baku
+  (`test_peringatan_tanpa_stok`, red first). Work Order Item `rate`/`amount` on permlevel 1 (`setup.HARGA_TERSEMBUNYI`),
+  read by the Manufacturing roles (`test_harga_wo_tersembunyi`). PO print labels in `_()`; Monthly Expenses escapes text.
+- `e2e_samuel.mjs` prints the Purchase Order in `PO Samuel Beli` and checks it is the default (15/15); `lantai.mjs`
+  `strip` opens an existing Work Order. Docs synced (guides: stock before pigment/packing, Sales/Purchase Orders used
+  by Admin since 2026-11-23).
+- Tests as run: `run-tests --app erp_internal` 349 (13 unit + 336 integration) OK; ruff clean; `cek_layar` 3 users OK;
+  `e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK (perf 60.0 fps, 0 dropped).
+
+## 2026-11-23, plan Task 12 (sample data, guides, full check): Samuel's 2026-11-23 requests built (Tasks 1-14)
+- What the plan built (entries below per task): roles Super Admin / Admin / Produksi (1-2), Work Order machine lock
+  (3), Gudang Pluit (4), attachments + Missing Documents (5), Daily Input server, page, Print and Excel (6-8),
+  Expense Entry + Monthly Expenses (9), PO print formats (10), pigment per colour (11), packing per product (13),
+  Seal Cap brand codes (14).
+- `contoh.py`: Shift 1 entries carry technician Yudi, Shift 2 is typed through `daily_input.save_cell` (Fadli); the
+  orders' quantity covers both shifts, the order is found by tag, start date and qty, its `creation` set back to the
+  window's first day (Daily Input refuses earlier dates); open sample orders on another machine (the Mesin 01 era)
+  are stopped. Packing CTH-DUS / CTH-PLASTIK (Buah) on the products (`KEMASAN_PRODUK`; erp.localhost's CTH-KARDUS is
+  in whole-number Pcs, so it stays only in the hand-made BOMs), pigments Merah and Biru with stock and Kg prices in
+  `Harga Bahan Baku`, a transfer to Gudang Pluit and an attached delivery note from it, expenses `BIAYA` (a
+  Per machine shift wage made by hand on a site is reused: two would overlap). `tests.utils.nilai_atribut` split out
+  of `buat_varian`; `buat_pigmen` no longer makes a test template and saves only on a change.
+- `test_contoh.test_contoh_baru` (red first: ImportError of `KEMASAN_PRODUK`); `test_hari_berikutnya` keys entries
+  by shift too. `test_contoh` 9 OK. Full `run-tests --app erp_internal`: 346 tests (13 unit + 333 integration), OK.
+  `ruff check` / `ruff format --check` clean. `bench build --app erp_internal`, migrate both sites, `buat_contoh` on
+  erp.localhost twice (same counts). `cek_layar` 3 users OK.
+- New `tools/e2e_samuel.mjs`: Produksi types 1.000 in Daily Input (TOTAL moves) and empties it; Admin: Work Order
+  refused on Mesin 04, submitted on Mesin 03; Sales Order refused without an attachment, submitted with one;
+  Delivery Note from Pluit; Expense Entry refused without its receipt, submitted with it; Monthly Expenses and
+  Missing Documents open; Super Admin: PO Samuel print. 14/14; it cancels and deletes what it made (a cancelled
+  Delivery Note stays: ERPNext never deletes one with stock ledger rows). Screenshots 1440/390 in `tools/hasil/`.
+- Guide pictures retaken (`panduan_gambar.mjs`, 12): new `produksi-2` (Daily Input), `admin-1` (Monthly Expenses),
+  `admin-2` (Missing Documents), shown in `produksi.md` and `admin.md`. The access PDF was not regenerated: no tool
+  or source for it exists (made by hand 2026-11-02, gone from the Desktop).
+- `lantai.mjs` rerun 2026-11-23 (final review): all cases OK, perf 60.0 fps, 0 dropped, 34 draw calls; `strip` failed
+  first (Produksi may not open a new Work Order form since Task 2) and now opens an existing order.
+- Next: Abel reviews and approves the PR/tag; Samuel's full PO header, pigment list and item 6 lists.
+
+## 2026-11-23, plan Task 14 (Seal Cap brand codes and their mould inserts)
+- `data/merek_epp.json` (21 rows of Samuel's "List Insert EPP - Delta"), Brand custom field `erp_jumlah_insert`
+  ("Inserts (pcs)", `setup.FIELD_MEREK`), `master._merek` (count and KET set only when the Brand is new, so an
+  Admin's count stays); Brand is in Stock's sidebar and home (Admin has Item Manager). `test_master` 10 OK
+  (1 new). Next: Task 12 (sample data).
+
+## 2026-11-23, plan Task 13 (Packing, Pigmen and Kemasan in Monthly Expenses)
+- Child DocType Item Packing (`packing_item` filtered to group Kemasan, `pieces`), Item field `erp_kemasan`
+  ("Packing", on templates, variants and Barang Jadi, not on Kemasan or Pigmen); UOM Buah (fractional,
+  `setup.SATUAN_KEMASAN`) for packing items. `kapasitas.kemasan(item)` (variant rows, else template's; disabled packing
+  left out), `baris_bom` adds 1 / pieces per row; `perlu_segarkan` + `item_berubah` (Item on_update, replaces
+  `pigmen_berubah`) queue the same `_antre` rebuild; `cek_kemasan` refuses 0 pieces. Monthly Expenses:
+  `BIAYA_STOK`, `pemakaian()` (stock value used by Production Entries' Manufacture/Repack), rows Pigmen and Kemasan
+  before Total. `test_bom_kapasitas` 20 OK (3 new), `test_biaya` 12 OK (1 new). Next: Task 12 (sample data).
+- Review fixes: `cek_kemasan` refuses a packing item stocked in a whole-number UOM; `contoh.py` CTH-KARDUS in Buah
+  (new sites; erp.localhost's existing item keeps Pcs, `buat_contoh` still runs). A reject's Repack skips packing
+  lines (reground, never packed) and any line that rounds to 0. `test_bom_kapasitas` 23 OK, `test_biaya` 12 OK,
+  `test_hasil_produksi` 17 OK, `test_contoh` 8 OK.
+
+## 2026-11-23, plan Task 11 (Pigment)
+- Item Group Pigmen, UOM Gram (fractions), Item field `erp_rasio_pigmen` (g per kg); `penjualan._pigmen` makes the
+  template `PIGMEN` (stock Gram, Kg = 1000, purchase UOM Kg, variants on Warna; no variants until Samuel's list).
+  `kapasitas.baris_bom(row, item)` adds the colour's pigment in grams (part kg x ratio); `cek_pigmen` (ratio > 0),
+  `pigmen_berubah` (Item on_update) queues `segarkan_bom`. `test_bom_kapasitas` 15 OK (6 new), `test_penjualan` 8 OK.
+  Next: sample data (Task 12).
+- Review fixes: the rebuild never loses a change (`_antre` after commit sets a cache flag, `segarkan_bom` repeats
+  passes with a fresh snapshot until it stays clear), BOMs in `setup.perusahaan()[0]`, a PermissionError row is
+  logged too, `setup._pigmen` brings the template at migrate. `test_bom_kapasitas` 17 OK, `test_penjualan` 8 OK,
+  `test_setup` 10 OK.
+
+## 2026-11-23, plan Task 10 (PO print in Samuel's layout)
+- Print formats "PO Samuel" (Sales Order) and "PO Samuel Beli" (Purchase Order), both standard, custom Jinja, one body
+  `templates/po_samuel.html`; `cetak.py` (`FORMAT_CETAK`, `tanggal_panjang`, jinja method in `hooks.py`);
+  `setup._format_cetak` makes each the default print format. `test_cetak` OK. Next: pigment (Task 11).
+
+## 2026-11-23, plan Task 9 (Monthly expenses)
+- DocTypes Expense Entry and Expense Category (seeded from `setup.KATEGORI_BIAYA`), report Monthly Expenses
+  (`jumlah`, `shift_mesin`), Once entries need an attachment (`lampiran`), Buying sidebar and home. `test_biaya`
+  11 tests OK. Go-live step in `docs/panduan/admin.md` "Biaya bulanan". Next: Task 10.
+
+## 2026-11-23, plan Task 8 (Daily recap print and Excel)
+- `daily_input.py`: `WARNA_EXCEL`, `buku` (openpyxl, Samuel's layout), `export_excel`, `print_html` (template
+  `templates/input_harian_cetak.html`, A4 landscape, record text escaped); `get_data` blocks gain `dibuat` (the order's
+  creation date), which "+ Add date" now uses instead of a `frappe.client.get_value` call. Print and Excel buttons in
+  the page header. Checked in a browser as `admin@`: print page, downloaded xlsx colours, 768 and 390 px.
+
+## 2026-11-23, plan Task 7 (Daily Input page)
+- Page `daily-input` (`input_harian.bundle.js`, `.erp-ih-*` CSS) in Samuel's Excel layout; menu entry under the
+  Production Floor (`MENU_ATAS`), in Manufacturing's sidebar and home in place of the Production Entry list; "Record
+  Output" opens it at the order. `run-tests --app erp_internal` 301 tests (13 unit + 288 integration) OK; `cek_layar`
+  3 users OK (Produksi types and clears a cell, Admin no input, 1440/768/390 px). Next: Task 8.
+
+## 2026-11-23, plan Task 6 (Daily Input, server side)
+- `erp_internal/daily_input.py`: `get_data` (week's Work Order blocks), `save_cell` (one submitted Production Entry
+  per filled cell, replaced or cancelled inside a savepoint), `save_note`, `baca_jumlah`, `minggu`. Production Entry
+  gains `technician`; `notes` changes after submit. `setup.JAM_SHIFT`; Manufacturing Settings allow 10 %
+  overproduction. `test_input_harian` 14 OK. Next: Task 7, the Desk page.
+
+## 2026-11-23, plan Task 5 (real documents attached)
+- `lampiran.WAJIB_LAMPIRAN` (Sales Order, Sales Invoice, Purchase Order, Purchase Receipt, Purchase Invoice,
+  Payment Entry, Stock Entry only for Material Receipt) with `before_submit` `cek_lampiran`; `LAMPIRAN_NANTI` = Delivery
+  Note. Report Missing Documents (Stock sidebar and home, Admin and Super Admin, icon `paperclip`), orange note on the
+  forms (`public/js/lampiran.js`, `frappe.boot.erp_lampiran`). Tests and `contoh.py` attach through
+  `tests.utils.lampirkan` before every submit of a covered DocType.
+  No module run recorded; covered by the full runs (301 at Task 7, 346 at Task 12).
+
+## 2026-11-23, plan Task 4 (Warehouse Pluit)
+- `setup.GUDANG_PABRIK` gains Gudang Pluit, `GUDANG_JUAL` = Barang Jadi + Pluit; `_gudang_kirim` makes Delivery Note
+  `set_warehouse` required (Property Setter); `pengiriman.ikut_gudang` (Delivery Note `validate`) copies it to every
+  line. Order Readiness stock sums both selling warehouses when no warehouse is picked (`_stok` takes a list). Delivery
+  notes in `test_alur_jual_beli`, `test_tampilan` and `tools/panduan_gambar.mjs` now set `set_warehouse`.
+  No module run recorded; covered by the full runs (301 at Task 7, 346 at Task 12).
+
+## 2026-11-23, plan Task 3 (Work Order machine lock)
+- `kapasitas.mesin_item` / `cari_mesin` / `mesin_terdaftar`: a Work Order takes only a machine Machine Capacity
+  lists for its item (variant row, else template); no row at all means any machine; a submitted order already on its
+  machine keeps running. `work_order.js`: Machine link query and a note when the item has no row. New fixture
+  `utils.buat_wo`. Tests fixed for the lock: `test_bom_kapasitas.test_kunci_mesin`, `test_plan_vs_actual.test_kapasitas`;
+  `tools/lantai.mjs` wo/xss picks an item listed for Mesin 03.
+  No module run recorded; covered by the full runs (301 at Task 7, 346 at Task 12).
+
+## 2026-11-23, plan Tasks 1 and 2 (Samuel's three roles)
+- Task 1 (`9cc5116`): profiles renamed Developer → Super Admin, User → Produksi (patch `profil_tiga`, users move
+  with the rename; it skips a rename when the new name exists: erp-test had a stale "Produksi" profile, deleted by
+  hand). 265 tests OK.
+- Task 2: Produksi = `ERP User` only (no Stock User): creates Production Entries, sets machine status, reads Work
+  Order, Workstation, Machine Capacity, Reject Reason, Company, Plan vs Actual; menu Manufacturing only. Admin only
+  views Production Entry. A PE's stock entries are made with permissions ignored; `production_entry.cek_stock_entry`
+  refuses a Manufacture no PE made (Work Order Finish, System Manager excepted; `work_order.js` hides Finish) and
+  cancelling a PE's own entry directly. `setup.IZIN_DICABUT` drops the old User's reads (Price List, Account, Stock
+  Settings, Customer Group); Sales History and Order Readiness lose `ERP User`. New Work Orders skip the transfer
+  (`setup.BAWAAN_WO`). `batas_user.py` and its test removed. Manufacturing's sidebar and home put Produksi's links
+  first (no gaps on its home). Delivery notes and Material Receipts are Admin's (guides updated, gudang-2/3
+  pictures retaken as admin@).
+- Tests: `run-tests --app erp_internal` 262 (13 unit + 249 integration) all OK; ruff OK; `cek_layar` 3 users OK;
+  Finish hidden for Admin and Produksi, shown for Super Admin at 1440/768/390 px (scratch Playwright check).
+- Next: plan Task 3 (Work Order machine lock).
+
+## 2026-11-23, later (spec and plan for Samuel's requests)
+- Committed the price list fix (`2300877`) after `/run-checks` (263 tests OK).
+- Spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` and plan
+  `docs/superpowers/plans/2026-11-23-permintaan-samuel-plan.md` (12 tasks) for items 1-5 and 7 of the 2026-11-23
+  table, plus Abel's two additions: every document with a paper original gets its photo before submit (delivery
+  note: the signed copy afterwards, listed in a Missing Documents report) and pigment (Samuel: 1 g per kg of
+  material; colour, ratio, price per kg) as `PIGMEN` variants in the capacity BOMs. Samuel's daily Excel and PO
+  pictures, recovered from the morning session, are in `docs/superpowers/specs/2026-11-23-samuel/`.
+- Main calls for Abel (spec "Calls made"): operator shifts counted from the daily input, no machine state to set;
+  the grid takes good pieces only; profiles renamed in place (sample logins unchanged). Nothing built yet.
+
+## 2026-11-23 (sales and purchase flow with Samuel's data)
+- Samuel asked whether purchasing, selling and production are ready. A script as `admin@` on `erp.localhost`
+  (Samuel's `BASKOM-20-HTM-HTM`, `BB-PP-WARNA`; rolled back): SO → DN → SI → Payment Entry, PO → PR → PI all OK.
+- Bug found and fixed: SO came from Standard Selling and PO at rate 0, because `set_single_value` on Selling/Buying
+  Settings leaves the global defaults the forms and the server read. `master._harga_bawaan` now syncs them (and,
+  via `penjualan._bahan`, makes `Harga Bahan Baku` the buying default); `patches/harga_bawaan.py` for loaded sites.
+- Tests: `test_master` 9 OK, `test_penjualan` 7 OK, `test_alur_jual_beli` 5 OK; ruff OK. `/run-checks` later the
+  same day: both sites migrated (the patch set `Harga Pola 2026` / `Harga Bahan Baku` on `erp.localhost`),
+  `run-tests --app erp_internal` 263 tests (13 unit + 250 integration) all OK, `ruff check`/`format --check` OK.
+- The `erp-mariadb` container was gone (volume kept): recreated with `tools/setup_bench.sh db`.
+- Samuel's WhatsApp the same day: three roles (Super Admin/Admin/Produksi), a machine lock on Work Orders, warehouse
+  Pluit, daily input like his Excel, monthly expenses, the Seal Cap product line (lists pending), screens following
+  his templates, DigitalOcean hosting, demo videos. All written down in `docs/menunggu-samuel.md` (2026-11-23
+  table) and `docs/TODO.md`; nothing of it built yet. Next: commit the fix, then spec + plan items 1-5.
+
 ## 2026-11-05 (make setup, then make up)
 - Abel: `make setup` is the one-time step after the clone (wizard question, accounts, the whole setup through
   `tools/setup_lokal.sh`); `make up` (= `start-local`, `start`) only starts the containers, pings and prints the

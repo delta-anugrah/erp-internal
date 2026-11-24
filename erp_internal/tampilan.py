@@ -18,23 +18,25 @@ import frappe
 
 APLIKASI = ("erpnext", "hrms")  # the apps whose docks and modules this file arranges
 
-# Three Role Profiles (Samuel, 2026-10-28): User does the daily work, Admin also runs the business (manager
-# rights, users, business settings), Developer also has System Manager (Build, System Settings).
-DEVELOPER, ADMIN, USER = "Developer", "Admin", "User"
+# Three Role Profiles (Samuel, 2026-10-28; renamed 2026-11-23): Produksi does the daily work, Admin also runs the
+# business (manager rights, users, business settings), Super Admin also has System Manager (Build, System Settings).
+SUPER_ADMIN, ADMIN, PRODUKSI = "Super Admin", "Admin", "Produksi"
+# The profiles' names before 2026-11-23 (`patches/profil_tiga.py` renames them, users included).
+NAMA_LAMA = {"Developer": SUPER_ADMIN, "User": PRODUKSI}
 PERAN_ADMIN = "ERP Admin"  # our role: user management (setup.IZIN_TAMBAHAN), checked by pengguna.py
-# Our role for the User profile: Production Entry, the machine status, and the reads Stock User lacks
-# (setup.IZIN_TAMBAHAN). batas_user.py keeps its holder to the three daily jobs.
+# Our role, the Produksi profile's only one: Production Entry, the machine status, and the reads production needs
+# (setup.IZIN_TAMBAHAN).
 PERAN_USER = "ERP User"
 
 # Dock entry (the module's sidebar name) → the profiles that see it. System Manager sees every kept one.
 # Order is the rail's order. Every other entry of the APLIKASI docks is hidden for everyone. Kept short (Samuel,
 # 2026-10-28): invoices and payments live in Selling and Buying, leave in HR, so Accounts and Leaves have no
-# icon of their own. User keeps Stock and Manufacturing only (Samuel, 2026-11-02: three daily jobs, the rest read).
+# icon of their own. Produksi keeps Manufacturing only (Samuel, 2026-11-23: it records production, nothing else).
 IKON = {
-	"Stock": (ADMIN, USER),
+	"Stock": (ADMIN,),
 	"Selling": (ADMIN,),
 	"Buying": (ADMIN,),
-	"Manufacturing": (ADMIN, USER),
+	"Manufacturing": (ADMIN, PRODUKSI),
 	"Projects": (ADMIN,),
 	"Shift & Attendance": (ADMIN,),
 	"Setup": (ADMIN,),
@@ -56,21 +58,31 @@ IKON_MODUL = {
 }
 IKON_RUMAH = "house"  # each module's home row
 # Sidebar links shown as menu entries of their own, above the module headers, instead of under their module
-# (Abel, 2026-11-03: the Production Floor is a place, not a Manufacturing document). They stay in SIDEBAR, so their
+# (Abel, 2026-11-03: the Production Floor is a place, not a Manufacturing document; Daily Input, Samuel's sheet,
+# 2026-11-23, is the screen Produksi uses every day). They stay in SIDEBAR, so their
 # module's home and route (`/desk/manufacturing/production-floor`) are unchanged.
-MENU_ATAS = ("production-floor",)
+MENU_ATAS = ("production-floor", "daily-input")
 
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
 # guides' flows use (docs/panduan/): each module home shows the same links as shortcuts (`PINTASAN`,
-# `test_rumah_sama_dengan_sidebar`). Sales History, Order Readiness, Plan vs Actual, Machine Capacity and
-# Production Entry (module Planning, ours) sit in Selling and Manufacturing, Reject Reason in Setup: Planning has no
+# `test_rumah_sama_dengan_sidebar`). Sales History, Order Readiness, Plan vs Actual and Machine Capacity
+# (module Planning, ours) sit in Selling and Manufacturing, Reject Reason in Setup: Planning has no
 # rail entry and stays blocked in every Module Profile. Accounts and Leaves keep a short sidebar for a page
 # Frappe opens in its own module (no rail icon). Setup (shown as Settings) holds users, opening stock (Stock
 # Reconciliation, Admin only), the business settings and the reject reasons; System Settings and Build stay
 # with System Manager.
 SIDEBAR = {
-	"Stock": ["Stock Entry", "Delivery Note", "Item", "Warehouse", "Stock Balance", "Stock Ledger"],
+	"Stock": [
+		"Stock Entry",
+		"Delivery Note",
+		"Item",
+		"Brand",  # Seal Cap brand codes with their mould inserts (Admin keeps the count)
+		"Warehouse",
+		"Stock Balance",
+		"Stock Ledger",
+		"Missing Documents",  # Admin and Super Admin only (the report's roles): last, so no gap
+	],
 	"Selling": [
 		"Customer",
 		"Sales Order",
@@ -79,19 +91,27 @@ SIDEBAR = {
 		"Payment Entry",
 		"Sales History",
 	],
-	"Buying": ["Supplier", "Material Request", "Purchase Order", "Purchase Receipt", "Purchase Invoice"],
+	"Buying": [
+		"Supplier",
+		"Material Request",
+		"Purchase Order",
+		"Purchase Receipt",
+		"Purchase Invoice",
+		"Expense Entry",  # Admin and Super Admin only (Planning, ours)
+		"Monthly Expenses",
+	],
 	"Manufacturing": [
 		"production-floor",
-		"Sales History",
+		"Work Order",
+		"daily-input",  # in place of the Production Entry list, which stays reachable by URL
+		"Plan vs Actual",
+		"Machine Capacity",
+		"Sales History",  # Admin only from here: last, so a Produksi user's home has no gap
 		"Master Production Schedule",
 		"Material Requirements Planning Report",
-		"Work Order",
-		"Production Entry",
 		"Order Readiness",
-		"Plan vs Actual",
 		"BOM",
-		"Machine Capacity",
-		"Sales Forecast",  # Admin only from here: last, so a User's home has no gap
+		"Sales Forecast",
 		"Item Lead Time",
 	],
 	"Accounts": ["Sales Invoice", "Purchase Invoice", "Payment Entry"],
@@ -103,7 +123,7 @@ SIDEBAR = {
 		"Leave Application",
 		"Shift Type",
 		"Shift Assignment",
-		"Holiday List",  # Admin only from here: last, so a User's home has no gap
+		"Holiday List",  # Admin only from here: last, so a Produksi user's home has no gap
 		"Leave Allocation",
 	],
 	"Leaves": ["Leave Application", "Leave Allocation", "Holiday List"],
@@ -119,11 +139,12 @@ SIDEBAR = {
 		"Accounts Settings",
 		"Projects Settings",
 		"HR Settings",
+		"Missing Data",  # Admin and Super Admin only (the report's roles): last
 	],
 }
 
 # A SIDEBAR link whose label is not its name (a Page is named by its route).
-NAMA_LINK = {"production-floor": "Production Floor"}
+NAMA_LINK = {"production-floor": "Production Floor", "daily-input": "Daily Input"}
 
 # A SIDEBAR link → its icon (Frappe's lucide set, `/assets/frappe/icons/lucide/icons.svg`), set on every sidebar
 # that shows it. Our own links and the ERPNext ones whose sidebar row has none, so no link shows the plain list
@@ -134,12 +155,17 @@ IKON_LINK = {
 	"Sales Forecast": "trending-up",
 	"Master Production Schedule": "calendar-range",
 	"Material Requirements Planning Report": "calculator",
-	"Production Entry": "notebook-pen",
+	"daily-input": "sheet",
 	"Order Readiness": "calendar-clock",
 	"Plan vs Actual": "target",
+	"Missing Documents": "paperclip",
+	"Missing Data": "list-checks",
+	"Expense Entry": "wallet",
+	"Monthly Expenses": "chart-column",
 	"Machine Capacity": "cog",
 	"Item Lead Time": "hourglass",
 	"Item": "package",
+	"Brand": "award",
 	"Stock Entry": "arrow-left-right",
 	"Delivery Note": "truck",
 	"Purchase Order": "clipboard-list",  # its base icon is Buying's own header icon
@@ -170,8 +196,8 @@ IKON_LINK = {
 
 # Module Profile (named like its Role Profile) → the Module Defs it allows. It blocks every other Module Def of
 # erpnext, hrms and erp_internal; Frappe's own modules are left alone. Each set is the modules of that profile's
-# IKON entries plus MODUL_TANPA_IKON for Admin (`test_profil_modul_ikut_ikon`); User has no invoices or leave.
-# Developer's Module Profile blocks only MODUL_MATI.
+# IKON entries plus MODUL_TANPA_IKON for Admin (`test_profil_modul_ikut_ikon`); Produksi has no invoices or leave.
+# Super Admin's Module Profile blocks only MODUL_MATI.
 MODUL_TANPA_IKON = ("Accounts", "Leaves")  # their documents show in other sidebars; allowed, no rail icon
 _MODUL_KERJA = (
 	"Stock",
@@ -182,11 +208,11 @@ _MODUL_KERJA = (
 	"Shift and Attendance",
 	*MODUL_TANPA_IKON,
 )
-MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), USER: ("Stock", "Manufacturing")}
+MODUL_BOLEH = {ADMIN: (*_MODUL_KERJA, "Setup"), PRODUKSI: ("Manufacturing",)}
 
 # Modules nobody uses here (Abel, 2026-11-04). A block hides only the way in, never a document (Frappe keeps that to
 # DocPerm), so `_kunci_modul` also gives each of their DocTypes one Custom DocPerm for the Administrator role: no other
-# user reads, searches or opens them by URL. Developer's Module Profile blocks them (it blocks nothing else),
+# user reads, searches or opens them by URL. Super Admin's Module Profile blocks them (it blocks nothing else),
 # Administrator's own `block_modules` too, and `saring_modul_mati` takes them out of every boot (Administrator's
 # search). Administrator still opens one by URL: the way back, and the user ERPNext's own jobs run as. Bulk
 # Transaction stays open: list views log their bulk actions there. HR's own DocTypes are all module "HR", mixed
@@ -284,13 +310,11 @@ KUNCI_GLOBAL = "erp_modul_terkunci"
 LAPORAN_GLOBAL = "erp_laporan_mati"
 
 # Role Profile → standard ERPNext/HRMS roles. Read from the v16 DocPerms (`test_izin_per_profil`):
-# - User (Samuel, 2026-11-02): Stock User (Stock Entry, Delivery Note, and reads stock, items, Work Orders and
-#   BOMs) plus PERAN_USER (Production Entry, machine status). `batas_user.py` keeps them to Production Entry,
-#   Delivery Note and a Material Receipt Stock Entry; everything else is read only. No Employee or Projects User:
-#   HR and Projects are Admin's.
+# - Produksi (Samuel, 2026-11-23; was User): PERAN_USER only (Production Entry, machine status, and the reads of
+#   setup.IZIN_TAMBAHAN). No stock role: a Production Entry's own stock entries are made by the system.
 # - Admin: every manager role of the used modules plus the *User roles (Stock Manager alone reads neither Company
 #   nor Stock Balance), and PERAN_ADMIN for users. No Employee: HR Manager covers attendance.
-# - Developer: Admin plus System Manager.
+# - Super Admin (was Developer): Admin plus System Manager.
 _PERAN_USER = (
 	"Stock User",
 	"Sales User",
@@ -315,15 +339,15 @@ _PERAN_ADMIN = (
 	"HR User",
 )
 PROFIL_PERAN = {
-	DEVELOPER: ("System Manager", *_PERAN_ADMIN),
+	SUPER_ADMIN: ("System Manager", *_PERAN_ADMIN),
 	ADMIN: _PERAN_ADMIN,
-	USER: ("Stock User", PERAN_USER),
+	PRODUKSI: (PERAN_USER,),
 }
-# The roles an Admin may hand out (`pengguna.cek_user`): those of the Admin and User profiles, the approver
+# The roles an Admin may hand out (`pengguna.cek_user`): those of the Admin and Produksi profiles, the approver
 # roles HRMS adds itself when HR names someone a department's leave or expense approver, and Employee, which
 # ERPNext adds when an Employee record names the user (a profile then drops it again).
 PERAN_BOLEH_ADMIN = frozenset(
-	(*PROFIL_PERAN[ADMIN], *PROFIL_PERAN[USER], "Leave Approver", "Expense Approver", "Employee")
+	(*PROFIL_PERAN[ADMIN], *PROFIL_PERAN[PRODUKSI], "Leave Approver", "Expense Approver", "Employee")
 )
 
 
@@ -344,9 +368,11 @@ PINTASAN = {
 		_p("Stock Entry"),
 		_p("Delivery Note"),
 		_p("Item"),
+		_p("Brand"),
 		_p("Warehouse"),
 		_p("Stock Balance", jenis="Report"),
 		_p("Stock Ledger", jenis="Report"),
+		_p("Missing Documents", jenis="Report"),
 	),
 	"Selling": (
 		_p("Customer"),
@@ -382,12 +408,11 @@ PINTASAN = {
 		_p("Purchase Order"),
 		_p("Purchase Receipt"),
 		_p("Purchase Invoice"),
+		_p("Expense Entry"),
+		_p("Monthly Expenses", jenis="Report"),
 	),
 	"Manufacturing": (
 		_p("production-floor", "Production Floor", "Page"),
-		_p("Sales History"),
-		_p("Master Production Schedule"),
-		_p("Material Requirements Planning Report", "MRP", "Report"),
 		_p(
 			"Work Order",
 			"Work Orders in Process",
@@ -395,11 +420,14 @@ PINTASAN = {
 			format="{} In Process",
 			color="Blue",
 		),
-		_p("Production Entry"),
-		_p("Order Readiness", jenis="Report"),
+		_p("daily-input", "Daily Input", "Page"),
 		_p("Plan vs Actual", jenis="Report"),
-		_p("BOM"),
 		_p("Machine Capacity"),
+		_p("Sales History"),  # Admin only from here (SIDEBAR's order)
+		_p("Master Production Schedule"),
+		_p("Material Requirements Planning Report", "MRP", "Report"),
+		_p("Order Readiness", jenis="Report"),
+		_p("BOM"),
 		_p("Sales Forecast"),
 		_p("Item Lead Time"),
 	),
@@ -455,6 +483,7 @@ PINTASAN = {
 		_p("Accounts Settings", doc_view=""),
 		_p("Projects Settings", doc_view=""),
 		_p("HR Settings", doc_view=""),
+		_p("Missing Data", jenis="Report"),
 	),
 }
 # Sidebar → our own Workspace that replaces its home. A standard Workspace keeps its app-owned title (the page
@@ -685,7 +714,7 @@ def menu_samping(bootinfo) -> None:
 
 # App → the name and icon its Apps screen tile and its rail's top slot show (Abel, 2026-10-28). Each icon is a
 # Delta-blue rounded square with a white Lucide glyph (`public/images/aplikasi-*.svg`). Frappe's tile ("System")
-# shows for Developer only. The Delta Anugrah logo itself stays on the navbar, login, splash and favicon.
+# shows for Super Admin only. The Delta Anugrah logo itself stays on the navbar, login, splash and favicon.
 NAMA_APLIKASI = {"erpnext": "ERP", "hrms": "HR", "frappe": "System"}
 IKON_APLIKASI = {
 	"erpnext": "/assets/erp_internal/images/aplikasi-erp.svg",  # Lucide factory
@@ -953,10 +982,10 @@ def _pengguna_profil() -> None:
 
 
 def blok_profil() -> dict[str, list[str]]:
-	"""Module Profile → the modules it blocks: Admin and User everything outside MODUL_BOLEH, Developer MODUL_MATI."""
+	"""Module Profile → the modules it blocks: Admin and Produksi everything outside MODUL_BOLEH, Super Admin MODUL_MATI."""
 	semua = set(modul_aplikasi())
 	blok = {nama: sorted(semua - set(boleh)) for nama, boleh in MODUL_BOLEH.items()}
-	blok[DEVELOPER] = sorted(semua & set(MODUL_MATI))
+	blok[SUPER_ADMIN] = sorted(semua & set(MODUL_MATI))
 	return blok
 
 
@@ -975,7 +1004,7 @@ def _profil_modul() -> None:
 
 def _modul_pengguna() -> None:
 	"""Each user of one of our Role Profiles on the Module Profile of the same name (a User copies its profile's
-	blocks on save), and Administrator's own blocks on MODUL_MATI. A Developer made before Developer had a Module
+	blocks on save), and Administrator's own blocks on MODUL_MATI. A Super Admin made before it had a Module
 	Profile gets it here."""
 	for r in frappe.get_all("User Role Profile", ["parent", "role_profile"], {"parenttype": "User"}):
 		if r.role_profile not in PROFIL_PERAN or r.parent in frappe.STANDARD_USERS:
@@ -984,7 +1013,7 @@ def _modul_pengguna() -> None:
 			doc = frappe.get_doc("User", r.parent)
 			doc.module_profile = r.role_profile
 			doc.save(ignore_permissions=True)
-	blok = blok_profil()[DEVELOPER]
+	blok = blok_profil()[SUPER_ADMIN]
 	admin = frappe.get_doc("User", "Administrator")
 	if sorted(b.module for b in admin.block_modules) != blok:
 		admin.set("block_modules", [{"module": m} for m in blok])
