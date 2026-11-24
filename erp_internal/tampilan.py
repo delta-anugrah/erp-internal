@@ -139,6 +139,7 @@ SIDEBAR = {
 		"Accounts Settings",
 		"Projects Settings",
 		"HR Settings",
+		"Missing Data",  # Admin and Super Admin only (the report's roles): last
 	],
 }
 
@@ -158,6 +159,7 @@ IKON_LINK = {
 	"Order Readiness": "calendar-clock",
 	"Plan vs Actual": "target",
 	"Missing Documents": "paperclip",
+	"Missing Data": "list-checks",
 	"Expense Entry": "wallet",
 	"Monthly Expenses": "chart-column",
 	"Machine Capacity": "cog",
@@ -481,6 +483,7 @@ PINTASAN = {
 		_p("Accounts Settings", doc_view=""),
 		_p("Projects Settings", doc_view=""),
 		_p("HR Settings", doc_view=""),
+		_p("Missing Data", jenis="Report"),
 	),
 }
 # Sidebar → our own Workspace that replaces its home. A standard Workspace keeps its app-owned title (the page

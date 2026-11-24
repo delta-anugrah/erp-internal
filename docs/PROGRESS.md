@@ -2,6 +2,18 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-24, Task 15: missing data notices (Abel)
+- `kelengkapan.py`: one table `CEK` (packing, pigment per colour, selling price, Gaji Operator expense, machine
+  capacity, pigment/packing stock), each row with a fix the desk opens (`public/js/kelengkapan.js`, Abel: every
+  notice links straight to its fix). Report Settings → Missing Data (Admin); orange notes on Item, Sales Order (draft),
+  Work Order (open) and the Monthly Expenses message. `WARNA_TANPA_PIGMEN`: Bening, Bening Transparan, Campur.
+- erp.localhost now: 23 products without packing, 9 colours without a pigment, 20 products without a price in Harga
+  Pola 2026 (the `CTH-` sample products sit on their own list), 7 without machine capacity, wage and stock 0.
+- Tests as run: `test_kelengkapan` 15 OK (red first: import error); `run-tests --app erp_internal` 364 (13 unit + 351
+  integration) OK; ruff clean; `cek_layar` 3 users OK; browser check as admin@ at 1440 and 390 px (report links,
+  packing and pigment links, Item and Sales Order notes, Item Price and Purchase Order prefills) OK.
+- Next: Samuel's pigment and packing lists clear most rows.
+
 ## 2026-11-23, final review fixes (Samuel's 2026-11-23 requests)
 - Daily Input: a Completed order's cells stay editable for Produksi (`STATUS_BISA_DIUBAH`; the cancel reopens the
   order), no "+ Add date" on a completed block; both shifts fit 390 px and the 768 px view beside the sidebar

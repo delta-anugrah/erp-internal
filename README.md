@@ -295,6 +295,10 @@ Delivery Note on `erp.localhost`.
   `PO Samuel` / `PO Samuel Beli`; pigment per colour (`PIGMEN`, grams) and packing per product (Item Packing) in the
   capacity BOMs; the Seal Cap brand codes with their mould inserts. Guides: `docs/panduan/admin.md`, `produksi.md`.
   Browser run of each profile's flow: `ERP_SANDI=… node tools/e2e_samuel.mjs` (see Tests).
+- Missing data notices (Abel 2026-11-24, `erp_internal/kelengkapan.py`): products without packing, colours without a
+  pigment, products without a selling price or machine capacity, no running Gaji Operator expense, pigment or packing
+  without stock. Orange notes on the Item, Sales Order and Work Order forms and in Monthly Expenses, each with a link
+  to the place it is fixed, and the report Settings → Missing Data listing all of them.
 
 ## Screens
 
@@ -313,7 +317,7 @@ shortcuts to the same links as its menu entries, nothing else:
 | Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page; also an own menu entry), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
-| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings |
+| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings, Missing Data |
 
 The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.

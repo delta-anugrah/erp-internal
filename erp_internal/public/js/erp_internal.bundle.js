@@ -1,6 +1,6 @@
 // Desk-wide behaviour of erp_internal (app_include_js): full width by default, the language switch, the menu
 // (menu_samping.js), the app version in the Settings dialog (versi.js) and the "attach the real document" note
-// on forms (lampiran.js).
+// on forms (lampiran.js), and the missing data notes with their fix links (kelengkapan.js).
 //
 // The language switch itself is two user-menu rows from `standard_navbar_items` in hooks.py, shown by
 // `frappe.boot.lang`; their action calls `erp_internal.ganti_bahasa` below.
@@ -8,6 +8,7 @@
 import "./menu_samping";
 import "./versi";
 import "./lampiran";
+import "./kelengkapan";
 
 frappe.provide("erp_internal");
 

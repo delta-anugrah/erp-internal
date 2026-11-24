@@ -93,6 +93,26 @@ Stok dulu: terima barang kemasan di **Gudang Bahan Baku** (Material Receipt, `gu
 Packing sebuah produk. Kalau stoknya belum ada, pencatatan hasil produksi produk itu gagal (stok tidak boleh minus);
 setelah Save, sistem memberi catatan oranye kalau kemasannya belum ada stok di Gudang Bahan Baku.
 
+## Data belum lengkap
+
+Selama data belum lengkap, aplikasi tetap jalan, tapi ada yang tidak dihitung. Supaya kelihatan, ada catatan oranye
+di form, dan semuanya terkumpul di laporan **Settings → Missing Data** (cuma Admin dan Super Admin). Tiap catatan
+punya link (tulisan tebal bergaris bawah) yang langsung membuka tempat membetulkannya.
+
+| Yang belum ada | Akibatnya | Link membuka |
+|---|---|---|
+| Kemasan produk (tabel Packing) | kemasan tidak ikut terpakai, biayanya tidak dihitung | form barang, langsung di tabel Packing |
+| Pigmen untuk suatu warna | produk warna itu tidak memakai pigmen, biayanya tidak dihitung | template PIGMEN dengan jendela Create Variant, warnanya sudah terisi |
+| Harga jual di daftar harga bawaan | baris Sales Order mulai dari 0 | Item Price baru, barang dan daftar harganya sudah terisi |
+| Biaya Gaji Operator yang berjalan | gaji operator tidak dihitung di Biaya Bulanan | Expense Entry baru: Gaji Operator, Per machine shift |
+| Kapasitas mesin produk | semua mesin boleh dipakai, Plan vs Actual tanpa target | Machine Capacity baru untuk barang itu |
+| Stok pigmen atau kemasan di Gudang Bahan Baku | pencatatan hasil produksi gagal | Purchase Order baru dengan barangnya |
+
+Warna Bening, Bening Transparan dan Campur memang tanpa pigmen, jadi tidak dicatat. Catatan di form: form barang
+(yang kurang dari barang itu), Sales Order draft ("Line 1: ... has no selling price."), Work Order yang belum
+selesai (kemasan atau pigmen belum ada), dan laporan Monthly Expenses (gaji operator). Catatan tidak pernah menahan
+Save. Di laporan, kolom **Item** menyaring ke satu barang dan variannya.
+
 ## Akun pengguna
 
 ### Tambah orang
@@ -115,7 +135,7 @@ bisa diubah Admin ("Only a Super Admin can change this account").
 
 Di **Settings**: **Company**, **Opening Stock & Stock Count** (Stock Reconciliation: stok awal dan stok
 opname, `docs/panduan/gudang.md`), **Stock Settings**, **Selling Settings**, **Buying Settings**, **Manufacturing
-Settings**, **Accounts Settings**, **Projects Settings**, **HR Settings**. Ubah hanya kalau tahu akibatnya; sistem
+Settings**, **Accounts Settings**, **Projects Settings**, **HR Settings**, dan laporan **Missing Data** (di atas). Ubah hanya kalau tahu akibatnya; sistem
 sudah diatur (pesanan dulu baru terima barang (pembelian); surat jalan boleh langsung; stok tidak boleh minus) dan setelan itu dipasang lagi tiap
 pembaruan.
 

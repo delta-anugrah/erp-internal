@@ -21,6 +21,7 @@ from frappe import _
 from frappe.query_builder.functions import Count
 from frappe.utils import flt, get_first_day, get_last_day, getdate
 
+from erp_internal.kelengkapan import pesan_gaji
 from erp_internal.planning.doctype.expense_entry.expense_entry import PER_SHIFT
 from erp_internal.setup import KATEGORI_BIAYA
 
@@ -41,10 +42,11 @@ def execute(filters=None):
 		for label, nilai in pemakaian(filters.company, awal, akhir).items()
 	]
 	total = sum(r["jumlah"] for r in baris if not r["indent"])
-	return kolom(), [
-		*baris,
-		{"kategori": _("Total"), "keterangan": "", "jumlah": total, "indent": 0, "total": 1},
-	]
+	return (
+		kolom(),
+		[*baris, {"kategori": _("Total"), "keterangan": "", "jumlah": total, "indent": 0, "total": 1}],
+		pesan_gaji(filters.company, awal, akhir),  # no running Gaji Operator expense: say so, with the fix
+	)
 
 
 def kolom() -> list[dict]:

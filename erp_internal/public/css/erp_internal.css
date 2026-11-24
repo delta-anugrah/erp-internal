@@ -337,3 +337,11 @@ body.desktop-page .icons .icon-title {
 		min-width: 3.5rem;
 	}
 }
+
+/* Missing data notices (kelengkapan.js): the fix link reads as a link in report cells and form notes. */
+a.erp-perbaiki {
+	color: var(--text-color);
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}

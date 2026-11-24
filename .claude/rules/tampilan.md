@@ -35,7 +35,8 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   DocTypes and reports in `SIDEBAR["Manufacturing"]` and `PINTASAN["Manufacturing"]`: Production Floor, Work Order,
   Daily Input (page `daily-input`, in place of the Production Entry list), Plan vs Actual, Machine Capacity first (what Produksi reads), then Admin's (Sales History, MPS,
   MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time); Expense Entry and Monthly Expenses (Admin only) close
-  `SIDEBAR["Buying"]` and `PINTASAN["Buying"]`; Brand and Missing Documents (Admin only) close `SIDEBAR["Stock"]` and
+  `SIDEBAR["Buying"]` and `PINTASAN["Buying"]`; Missing Data (Admin only, `kelengkapan.py`) closes `SIDEBAR["Setup"]`
+  and `PINTASAN["Home"]` (12 shortcuts, the cap); Brand and Missing Documents (Admin only) close `SIDEBAR["Stock"]` and
   `PINTASAN["Stock"]`; Reject Reason sits in Setup after
   Manufacturing Settings. The Planning module itself stays blocked for Admin and Produksi.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and

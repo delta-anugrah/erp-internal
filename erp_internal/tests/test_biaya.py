@@ -69,7 +69,7 @@ class TestBiaya(IntegrationTestCase):
 		return doc.name
 
 	def bulan(self, d):
-		_kolom, baris = execute({"company": self.pabrik, "bulan": d})
+		_kolom, baris, _pesan = execute({"company": self.pabrik, "bulan": d})
 		return {r["kategori"]: r["jumlah"] for r in baris if not r["indent"] and r["kategori"]}
 
 	def hasil(self, wo, tanggal, shift):
@@ -116,7 +116,7 @@ class TestBiaya(IntegrationTestCase):
 			{"shift": 3, "hari_24": 1, "hari_12": 1},
 		)
 		self.assertEqual(self.bulan(date(2026, 11, 1))["Gaji Operator"], 3 * 105_000)
-		_kolom, baris = execute({"company": self.pabrik, "bulan": date(2026, 11, 1)})
+		_kolom, baris, _pesan = execute({"company": self.pabrik, "bulan": date(2026, 11, 1)})
 		sub = [r for r in baris if r["indent"]]
 		self.assertEqual([r["kategori"] for r in sub], [self.mesin])
 		self.assertEqual(sub[0]["keterangan"], "3 shifts · 1 days 24 h · 1 days 12 h")

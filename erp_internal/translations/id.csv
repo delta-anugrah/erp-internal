@@ -415,3 +415,29 @@ Per machine shift: the amount for one machine in one shift.,Per shift mesin: jum
 "What a monthly expense is for (Gaji Operator, Listrik, ...). Expense Entry picks one.","Untuk apa biaya bulanan itu (Gaji Operator, Listrik, ...). Catatan Biaya memilih salah satu."
 {0} shifts · {1} days 24 h · {2} days 12 h,{0} shift · {1} hari 24 jam · {2} hari 12 jam
 "{0} has no stock in {1} yet: receive it there before recording output, or recording fails.","{0} belum ada stoknya di {1}: terima barangnya di sana dulu sebelum mencatat hasil produksi, kalau tidak pencatatan gagal."
+Missing Data,Data Belum Lengkap
+Check,Pemeriksaan
+What happens,Akibatnya
+How to fix,Cara membetulkan
+No packing set,Kemasan belum diisi
+Packing is not used up and its cost is not counted.,Kemasan tidak ikut terpakai dan biayanya tidak dihitung.
+Fill the Packing table of the item,Isi tabel Packing di barangnya
+No pigment for the colour,Pigmen warna ini belum ada
+No pigment is used up for these products and its cost is not counted.,Barang ini tidak memakai pigmen dan biayanya tidak dihitung.
+Make the pigment of this colour,Buat pigmen warna ini
+No selling price,Harga jual belum ada
+A Sales Order line starts at 0.,Baris Sales Order mulai dari 0.
+Add a selling price,Tambah harga jual
+No operator wage expense,Biaya gaji operator belum ada
+Operator wages are not counted in Monthly Expenses.,Gaji operator tidak dihitung di Biaya Bulanan.
+Add the Gaji Operator expense,Tambah biaya Gaji Operator
+No machine capacity,Kapasitas mesin belum ada
+"Any machine is allowed for it, and Plan vs Actual has no target.","Semua mesin boleh membuatnya, dan Plan vs Actual tidak punya target."
+Add a Machine Capacity row,Tambah baris Kapasitas Mesin
+No stock,Stok kosong
+Recording output fails while it is out of stock.,Pencatatan hasil produksi gagal selama stoknya kosong.
+Order it,Pesan barangnya
+See them in Missing Data,Lihat di Data Belum Lengkap
+Variants: {0},Varian: {0}
+"{0}, products: {1}","{0}, barang: {1}"
+Line {0}: {1} has no selling price.,Baris {0}: {1} belum punya harga jual.
