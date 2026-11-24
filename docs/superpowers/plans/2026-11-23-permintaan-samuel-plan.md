@@ -1,6 +1,6 @@
 # Samuel's requests of 2026-11-23 Implementation Plan
 
-Status: built 2026-11-23 (Tasks 1-14), Task 15 added 2026-11-24; progress in docs/TODO.md; deviations under each task.
+Status: built 2026-11-23 (Tasks 1-14), Tasks 15-16 added and built 2026-11-24; progress in docs/TODO.md; deviations under each task.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1031,7 +1031,7 @@ expense, machine capacity, pigment/packing stock; `untuk_item`, `untuk_produksi`
 Admin), `monthly_expenses.py` (message), `tampilan.py`, `id.csv`, `tests/test_kelengkapan.py`.
 
 **Deviations:** the Sales Order note is computed client side (lines at rate 0, no server call);
-`WARNA_TANPA_PIGMEN` (Bening, Bening Transparan, Campur) are not flagged; Monthly Expenses `execute` returns three
+`WARNA_TANPA_PIGMEN` (Bening, Bening Transparan, Campur; Neutral added in Task 16) are not flagged; Monthly Expenses `execute` returns three
 values (columns, rows, message); the report shows How to fix before What happens; the stock fix opens a Purchase
 Order. Commit: `feat(kelengkapan): notices and a Missing Data report for incomplete set-up`.
 

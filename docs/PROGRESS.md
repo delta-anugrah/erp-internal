@@ -32,13 +32,17 @@ Newest first. One entry per working session: what changed, test results as run, 
   (BOM-SEAL-CAP-MHG-CKM-001) submitted through bench, then cancelled and deleted. `test_seal_cap` 19 OK; `run-tests --app erp_internal` 383 (13 unit + 370
   integration): 382 OK, `test_mesin_barang.test_jumlah` failed (Mesin 14 now has a capacity row: expected list
   updated), module rerun 8 OK; ruff clean.
+- After 2033cab the controller ran the full suite: 383 (13 unit + 370 integration), all OK. Docs sync (Neutral in
+  every colour list, item 6 marked built, the after-submit price lock in spec A6, admin guide "Merek atau warna Seal
+  Cap baru", stock note in gudang/produksi). Missing Data on erp.localhost now: 23 packing, 6 colours, 20 prices,
+  7 capacity, 0 wage, 8 stock. `lantai.mjs` rerun after Mesin 14 became active: all OK (disabled machines restored).
 - Next: Samuel confirms "category sendiri"; stock of BB-SEAL-CAP, the new pigments and packing before output.
 
 ## 2026-11-24, Task 15: missing data notices (Abel)
 - `kelengkapan.py`: one table `CEK` (packing, pigment per colour, selling price, Gaji Operator expense, machine
   capacity, pigment/packing stock), each row with a fix the desk opens (`public/js/kelengkapan.js`, Abel: every
   notice links straight to its fix). Report Settings → Missing Data (Admin); orange notes on Item, Sales Order (draft),
-  Work Order (open) and the Monthly Expenses message. `WARNA_TANPA_PIGMEN`: Bening, Bening Transparan, Campur.
+  Work Order (open) and the Monthly Expenses message. `WARNA_TANPA_PIGMEN`: Bening, Bening Transparan, Campur (Neutral added in Task 16).
 - erp.localhost now: 23 products without packing, 9 colours without a pigment, 20 products without a price in Harga
   Pola 2026 (the `CTH-` sample products sit on their own list), 7 without machine capacity, wage and stock 0.
 - Tests as run: `test_kelengkapan` 15 OK (red first: import error); `run-tests --app erp_internal` 364 (13 unit + 351

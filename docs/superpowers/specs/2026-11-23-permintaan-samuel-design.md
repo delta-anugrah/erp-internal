@@ -2,8 +2,7 @@
 
 Date: 2026-11-23. Asked by Abel, from Mas Samuel's WhatsApp of the same day. Repo: erp-internal (branch
 `feat/lokal`). Decisions: `docs/menunggu-samuel.md`, table "Answers and new requests (Mas Samuel, WhatsApp
-2026-11-23)", items 1-5 and 7. Item 6 (Seal Cap) waits for his lists and is not designed here, but nothing here may
-block it. Abel added two requests in the session: every real document gets its photo attached, and pigment stock.
+2026-11-23)", items 1-5 and 7. Item 6 (Seal Cap) came later and is built (see Addendum A6, 2026-11-24). Abel added two requests in the session: every real document gets its photo attached, and pigment stock.
 
 Samuel's two templates are kept beside this file:
 
@@ -61,7 +60,8 @@ this week and demo videos are made:
 
 ## Non-goals
 
-- Item 6, the Seal Cap line (price by machine, brand codes, machines M1x): later, on top of this.
+- Item 6, the Seal Cap line (price by machine, brand codes, machines M1x): later, on top of this (built 2026-11-24,
+  see A6).
 - The DigitalOcean server, backups and the domain (own session), the demo videos and the admin's onboarding.
 - Accounting entries for expenses: no journal, no expense accounts. The company only records (Samuel
   2026-10-28: no invoices for now), and the monthly report is the view he asked for.
@@ -220,8 +220,8 @@ No  Tanggal    Merk  Warna    Shift 1        Shift 2        Keterangan
   Dus, Gross, …). Machine: the order's machine, large, at the right like his pink cell. CLOSE/DONE (yellow) when
   the order is Completed.
 - **Rows.** Every date that has an entry, oldest first, then one empty row for today while today has none.
-  "+ Add date" adds a past date (not before the order's creation, not after today). Merk is the item's brand
-  (Seal Cap's brand code later, item 6), Warna the variant's `Warna`. On a phone Merk and Warna fold away (they
+  "+ Add date" adds a past date (not before the order's creation, not after today). Merk is the item's `Merk`
+  attribute (the Seal Cap's brand code, A6) first, else its Brand; Warna the variant's `Warna`. On a phone Merk and Warna fold away (they
   are in the block header too).
 - **Cells.** Shift 1 and Shift 2 hold good pieces. Leaving a changed cell saves it at once: no entry and a number
   → a new submitted Production Entry (work order, its machine, date, shift, good qty, the shift's technician, the
@@ -281,8 +281,8 @@ No  Tanggal    Merk  Warna    Shift 1        Shift 2        Keterangan
   (the line's delivery or required-by date, "27 November 2026", Indonesian month names), HARGA ("@24/pcs": the rate
   per UOM), red TOTAL box ("Rp. 9.600.000,00"). Above it a header in the same style: the company logo and name,
   the title, the document's number (a Sales Order also shows the customer's PO number), the party and the date.
-  The header is our design until Samuel's full PO arrives. Item 6 will add the machine after the item name in red
-  ("- M1G").
+  The header is our design until Samuel's full PO arrives. Item 6 adds the line's machine (`erp_mesin`) after the item
+  name in red (" - Mesin 04", A6).
 
 ### 7. Real documents attached
 
@@ -369,7 +369,7 @@ signed copy), the access PDF (`Hak-Akses-ERP-Delta-Anugrah-revisi.pdf`) regenera
 
 - His full PO (the header part) for the print; the Excel file itself is a nice-to-have (the picture suffices).
 - His pigment list: colour, ratio, price per kg.
-- Item 6's lists, as already noted.
+- Item 6's lists: done 2026-11-24 (A6).
 
 ## Addendum (Samuel's WhatsApp 2026-11-23 15:22-16:39, sent by Abel at 17:06)
 
@@ -428,12 +428,16 @@ harganya 350.000/kg". "Karungnya 1pc untuk isi 20.000".
   23). A Sales Order line gets a Machine field; for a template in the table, choosing the machine sets the rate
   (and a line without a machine is refused for those templates). A Work Order made from that Sales Order takes the
   line's machine. The PO print shows the machine after the item name in red ("- Mesin 04"), as `po.png` does.
+- **Price locked** (review, 2026-11-24): line discount, margin and pricing rules are cleared on such a line (an
+  order-level discount still applies); after submit, Update Items that leaves the line off its machine's price is
+  refused (`harga_terkunci`, not corrected); the form sets the price when the machine, item, UOM or conversion
+  factor changes (`sales_order.js`), and the server sets it again on save.
 - **Mesin 14** becomes active (Samuel names it as running).
 - **Packing**: items "Plastik 35x50", "Plastik 30x45", "Karung" (group Kemasan, Buah); each Seal Cap variant gets
   its two Packing rows from the table (bag with its pieces, sack with its pieces per sack).
 - **Pigment**: a `PIGMEN` variant for each Seal Cap colour that needs one (Coklat Muda, Hijau, Biru, Pink, Putih,
-  Coklat), ratio 1 g per kg (Samuel 2026-11-23), price 350.000 per Kg in `Harga Bahan Baku` (every pigment, the
-  existing ones too); "Neutral" joins `WARNA_TANPA_PIGMEN`.
+  Coklat), ratio 1 g per kg (Samuel 2026-11-23), price 350.000 per Kg in `Harga Bahan Baku` for every pigment
+  that has no price there yet (a price already set, for example by Admin, stays); "Neutral" joins `WARNA_TANPA_PIGMEN`.
 - **Customer**: "PT. Empat Putra Pangestu" (EPP).
 - **Waiting**: nothing. Cavities 20 (20 pieces per shot), cycle time 13-14 s (14 s used, so targets are not
   overstated), weight 0.88 g per piece (Samuel 16:40: really 0.8, the extra covers bad material; runner 0) and the

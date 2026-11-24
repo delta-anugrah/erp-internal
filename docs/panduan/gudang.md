@@ -31,6 +31,9 @@ Purchase Order dipakai Admin sejak 2026-11-23 (Mas Samuel: PO dan Sales Order, c
    menampilkan catatan oranye.
 5. **Submit**: stok bertambah.
 
+Seal Cap: sebelum hasil produksinya dicatat, `BB-SEAL-CAP` (Kg), pigmen warnanya (Gram), `Plastik 35x50` atau
+`Plastik 30x45` dan `Karung` (Buah) harus sudah ada stoknya di Gudang Bahan Baku; kalau belum, pencatatan ditolak.
+
 ![Material Receipt](gambar/gudang-2.png)
 
 ### Kirim barang ke pelanggan

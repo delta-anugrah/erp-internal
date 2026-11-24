@@ -217,7 +217,7 @@ Yang dibuat (dijalankan dua kali = sama saja, `ditulis` 0):
 | Tipe dan barang baru | yang dijual di Excel tapi tidak ada di daftar harga (`produk_baru`): Gayung Lumba Soft, Gayung Bajigur DX Soft, Gantungan Folding Soft, Gantungan Dinda Hitam, Toples Nastar 1/2 Kg (`TOPLES-NASTAR`), Sendok Bebek Catering (`SENDOK-BEBEK`, stok dalam `Ball Kecil`). Warnanya tebakan, belum ada harga (`docs/menunggu-samuel.md` baris 14) |
 | Bahan baku | 7 barang di grup `Bahan Baku`, stok dalam Kg (`BB-PP-WARNA`, `BB-PP-HITAM`, ...), harga per kg sebagai valuation rate dan di daftar harga beli `Harga Bahan Baku` (jadi daftar harga bawaan Purchase Order selama Buying Settings masih "Standard Buying") |
 | Riwayat penjualan | Sales History per varian per bulan, dalam satuan stok (Lusin x 12, Gross x 144). Excel tidak memisah warna, jadi angkanya dibagi rata ke warna-warna tipe itu (sisa pembagian ke varian pertama menurut kode). Sendok Panjang JSW = Sendok Makan Pack |
-| Pigmen | barang template `PIGMEN` (grup `Pigmen`, stok dalam `Gram`, beli per `Kg` = 1000 g, varian per `Warna`). Variannya belum dibuat: daftar pigmen Samuel belum datang (`docs/menunggu-samuel.md`), sampai itu Admin menambahkannya (`panduan/produksi.md` "Resep produk") |
+| Pigmen | barang template `PIGMEN` (grup `Pigmen`, stok dalam `Gram`, beli per `Kg` = 1000 g, varian per `Warna`). `penjualan.muat` tidak membuat varian; `seal_cap.muat` (lewat `master.muat`) membuat warna Seal Cap (Coklat Muda, Hijau, Biru, Pink, Putih, Coklat, 1 g/kg, 350.000/Kg). Warna lain menunggu daftar pigmen Samuel (`docs/menunggu-samuel.md`), sampai itu Admin menambahkannya (`panduan/produksi.md` "Resep produk") |
 | Stok minimum | `safety_stock` tiap varian = setengah rata-rata penjualan sebulan, dibulatkan ke atas (`STOK_MIN_BULAN`); dipakai Order Readiness |
 
 Cek: total per baris Excel per bulan sama dengan jumlah Sales History varian-variannya (`test_penjualan`).
@@ -265,6 +265,7 @@ yang membaca file dari Samuel apa adanya:
 - `erp_internal/data/seal_cap.json`: tabel Seal Cap EPP dari Samuel 2026-11-24 ("Merk Segel Gas PT. Empat Putra
   Pangestu"): 17 baris merk, warna, plastik, isi plastik, isi per karung; harga pigmen 350.000/kg; nama pelanggan.
   Harga Seal Cap per mesin ada di kode (`seal_cap.HARGA_MESIN`: Mesin 04 Rp24, Mesin 14 Rp23 per pcs).
+  `seal_cap.muat` dipanggil oleh `master.muat`; tidak ada perintah terpisah.
 
 ```bash
 cd ~/Desktop/Projects/erp-internal-bench

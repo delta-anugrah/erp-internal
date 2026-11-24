@@ -48,7 +48,8 @@ Floor** (pilihan paling atas).
 - **Seal Cap**: Work Order yang dibuat dari Sales Order (**Create → Work Order**) ikut memakai mesin di baris
   pesanan (Mesin 04 atau 14, harganya beda). Lewat **Production Plan**, jangan gabungkan baris Seal Cap dari mesin
   yang berbeda (jangan centang "Consolidate Sales Order Items"): Work Order gabungan hanya membawa satu mesin.
-  Cek **Machine** di setiap Work Order Seal Cap sebelum Submit.
+  Cek **Machine** di setiap Work Order Seal Cap sebelum Submit. Hasilnya baru bisa dicatat kalau `BB-SEAL-CAP`, pigmen
+  warnanya, plastik (35x50 atau 30x45) dan Karung ada stoknya di Gudang Bahan Baku (`gudang.md`).
 - Kalau browser tidak bisa menampilkan 3D, halaman menampilkan tabel biasa dengan isi yang sama.
 
 ## Sekali per produk
@@ -74,7 +75,7 @@ menonaktifkan BOM lama dari baris itu yang tidak dipakai Work Order yang masih j
 **Pigmen.** Varian berwarna (misalnya Merah) dapat baris pigmen tambahan kalau ada pigmen aktif untuk warna itu
 (barang `PIGMEN` varian Merah). Jumlahnya dalam **gram** per buah: berat bahan per buah (kg) x **Pigment Ratio
 (g per kg)** pigmen itu. Contoh: 50 g per buah = 0,05 kg x 2 g/kg = 0,1 g. Baris bahan baku tidak berkurang (pigmen
-di atasnya). Warna tanpa pigmen (Bening, Campur) tidak dapat baris. Pigmen baru, dinonaktifkan atau rasionya diubah:
+di atasnya). Warna tanpa pigmen (Bening, Bening Transparan, Campur, Neutral) tidak dapat baris. Pigmen baru, dinonaktifkan atau rasionya diubah:
 sistem membuat ulang semua BOM dari Machine Capacity di belakang layar (BOM yang sudah benar tetap, Work Order yang
 masih jalan tetap pakai BOM lamanya).
 

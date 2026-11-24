@@ -264,10 +264,11 @@ Delivery Note on `erp.localhost`.
   by `erp_internal/tests/test_impor.py` (`erp_internal/tests/data/`). Sales History (monthly quantities per item):
   `docs/impor.md` section 5, tested by `tests/test_sales_history.py` (`tests/data/riwayat.csv`).
 - The factory's master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
-  execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin,merek_epp}.json` (templates with only the listed
+  execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin,merek_epp,seal_cap}.json` (templates with only the listed
   variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`, the 21 Seal Cap brands with their Inserts (pcs), and the Seal Cap line of `data/seal_cap.json`: 17 variants,
-  their packing and pigments, customer EPP, price by machine on the Sales Order line, `seal_cap.py`); rerun after a new file
-  (`docs/impor.md`, tested by `tests/test_master.py`).
+  their packing and pigments, customer EPP, its raw material `BB-SEAL-CAP`, Machine Capacity rows and capacity BOMs on
+  Mesin 04 and 14, price by machine on the Sales Order line, `seal_cap.py`); rerun after a new file
+  (`docs/impor.md`, tested by `tests/test_master.py` and `tests/test_seal_cap.py`).
 - The factory's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`
   reads `erp_internal/data/penjualan_2026.json`: the types and products it sells beyond the price list, 7 raw
   materials with their price per kg (buying list `Harga Bahan Baku`, also the Purchase Order default while Buying

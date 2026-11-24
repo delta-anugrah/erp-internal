@@ -2,7 +2,7 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-24, Seal Cap material and capacity): 383 tests (13 unit + 370 integration), 382 OK + 1 fixed (`test_mesin_barang.test_jumlah`: Mesin 14 now has a row) and its module rerun 8 OK. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
+Last full run (2026-11-24, after the Seal Cap material commit 2033cab, run by the controller): 383 tests (13 unit + 370 integration), all OK; `lantai.mjs` all OK after Mesin 14 became active. Before that the same 383 with `test_mesin_barang.test_jumlah` failing (Mesin 14 now has a row), fixed. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
 OK. Before that (Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
 3 users OK. Before that (2026-11-23, final review fixes): 349 tests (13 unit + 336 integration), all OK; `cek_layar` 3 users
 OK; `tools/e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK. Before that (plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),

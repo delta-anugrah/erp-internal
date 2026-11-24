@@ -93,6 +93,14 @@ Stok dulu: terima barang kemasan di **Gudang Bahan Baku** (Material Receipt, `gu
 Packing sebuah produk. Kalau stoknya belum ada, pencatatan hasil produksi produk itu gagal (stok tidak boleh minus);
 setelah Save, sistem memberi catatan oranye kalau kemasannya belum ada stok di Gudang Bahan Baku.
 
+### Merek atau warna Seal Cap baru
+
+Buka **Stock → Item → SEAL-CAP** (template), klik **Create → Single Variant**, pilih **Merk** dan **Warna** (nilai baru
+ditambahkan dulu di Item Attribute Merk atau Warna). Di varian baru, isi tabel **Packing** (plastik dan isinya, Karung
+dan isi per karung), lalu Save: BOM kapasitas di Mesin 04 dan 14 dibuat ulang di belakang layar. Kalau mau, buat juga
+record **Brand** dengan kode itu (jumlah insert). Warna baru yang butuh pigmen perlu varian PIGMEN-nya (Data belum
+lengkap menunjukkannya). Harga jual tidak perlu: harganya ikut mesin di Sales Order.
+
 ## Data belum lengkap
 
 Selama data belum lengkap, aplikasi tetap jalan, tapi ada yang tidak dihitung. Supaya kelihatan, ada catatan oranye
@@ -103,12 +111,12 @@ punya link (tulisan tebal bergaris bawah) yang langsung membuka tempat membetulk
 |---|---|---|
 | Kemasan produk (tabel Packing) | kemasan tidak ikut terpakai, biayanya tidak dihitung | form barang, langsung di tabel Packing |
 | Pigmen untuk suatu warna | produk warna itu tidak memakai pigmen, biayanya tidak dihitung | template PIGMEN dengan jendela Create Variant, warnanya sudah terisi |
-| Harga jual di daftar harga bawaan | baris Sales Order mulai dari 0 | Item Price baru, barang dan daftar harganya sudah terisi |
+| Harga jual di daftar harga bawaan (kecuali Seal Cap: harganya ikut mesin) | baris Sales Order mulai dari 0 | Item Price baru, barang dan daftar harganya sudah terisi |
 | Biaya Gaji Operator yang berjalan | gaji operator tidak dihitung di Biaya Bulanan | Expense Entry baru: Gaji Operator, Per machine shift |
 | Kapasitas mesin produk | semua mesin boleh dipakai, Plan vs Actual tanpa target | Machine Capacity baru untuk barang itu |
 | Stok pigmen atau kemasan di Gudang Bahan Baku | pencatatan hasil produksi gagal | Purchase Order baru dengan barangnya |
 
-Warna Bening, Bening Transparan dan Campur memang tanpa pigmen, jadi tidak dicatat. Catatan di form: form barang
+Warna Bening, Bening Transparan, Campur dan Neutral memang tanpa pigmen, jadi tidak dicatat. Catatan di form: form barang
 (yang kurang dari barang itu), Sales Order draft ("Line 1: ... has no selling price."), Work Order draft atau
 berstatus Not Started / In Process (kemasan atau pigmen belum ada), dan laporan Monthly Expenses (gaji operator).
 Catatan tidak pernah menahan Save. Produksi melihat catatan di Work Order tanpa link; Admin yang membetulkan. Di
