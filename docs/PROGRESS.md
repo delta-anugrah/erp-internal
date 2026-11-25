@@ -15,6 +15,13 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Guide artifact (manual book, 31 steps incl. Seal Cap and Missing Data) updated for Abel's manual test.
 - Next: Abel's manual test from the guide; Samuel's confirmations (`docs/menunggu-samuel.md`).
 
+## 2026-11-25, CI: database snapshot dropped
+- Measured on GitHub after PR #12: "Foto" made the snapshot (1.05 MB) with the erpnext + hrms site install taking
+  about 1.5 min on the runner (10 min on the busy Mac). PR #12's "Tes" took 28 min (build 10 with cache, site and
+  tests 15), against 40 for the first run. The snapshot would save about 1 min a pull request and cost a job on
+  every merge, so `ci.yml` and `deploy/ci_tes.sh` are back to the PR #11 versions (comment notes why).
+- Local image `erp-internal:ci` and the Actions cache entry removed.
+
 ## 2026-11-25, CI: database snapshot for pull requests
 - `deploy/ci_tes.sh` `FOTO=<dir>`: the test site starts from `<dir>/dasar.sql.gz` (frappe, erpnext, hrms installed)
   and installs only erp_internal; without it the site is made in full and the snapshot written first

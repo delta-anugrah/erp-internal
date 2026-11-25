@@ -882,7 +882,8 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
   old name above stays as history.
 - 2026-11-25: `ci.yml` job "Foto" (push to main) caches a database snapshot (frappe, erpnext, hrms; key = hash of
   `versi.json` + `deploy/ci_tes.sh`); "Tes" on a pull request starts its site from it (`deploy/ci_tes.sh`
-  `FOTO=<dir>`); a tag always installs from scratch.
+  `FOTO=<dir>`); a tag always installs from scratch. Dropped the same day: the install is about 1.5 min on the
+  runner, so it saved about 1 min a run.
 - `frappe/build` has no `v16.53.0` tag; its tags follow the frappe_docker release. `BUILD_IMAGE` is
   `frappe/build:v16.52.1` and `BASE_IMAGE` `frappe/base:v16.53.0`, both pinned by index digest, both from the
   2026-10-27 release (same Python 3.14.10). The base already ships Node 24.22.1, so bpt's Node swap is dropped.
