@@ -2,6 +2,19 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-25, CI: smaller image layer per commit
+- PR #14's run took 35 min: tests 19, build 11.5, cache upload 1.8, disk cleanup 1.7. In the build, the last
+  `chmod -R g=u` and the one `COPY` of the whole bench made every commit a new 2.78 GB layer to copy, load and
+  upload to the GHCR cache.
+- `deploy/Containerfile`: stage `upstream` (frappe, erpnext, hrms, their `.git` gone, `chmod -R g=u`) stays cached;
+  stage `builder` puts only what the erp_internal step wrote (files newer than a marker, plus `apps/erp_internal`)
+  in `/tmp/lapis`; the image copies the upstream bench, then `/tmp/lapis`. Per commit: 39 MB + 67 MB (the assets
+  copy) instead of 2.78 GB.
+- Checked locally (arm64): the old and new image hold the same files with the same modes, owners and symlinks
+  (only the asset hashes and the unpinned `sqlglot` differ, rebuilt upstream); `deploy/check_image.sh` OK;
+  `deploy/ci_tes.sh` 385 (13 unit + 372 integration) OK.
+- Next: the minutes on GitHub from this pull request's run, then README "The image".
+
 ## 2026-11-25, Seal Cap packing prices
 - Samuel 2026-11-25: Plastik 35x50 and Plastik 30x45 500 per piece (both sizes the same), Karung 3.500.
   `seal_cap.json` `harga_kemasan`; `seal_cap.muat` sets each as the item's valuation rate (when 0) and as an Item
