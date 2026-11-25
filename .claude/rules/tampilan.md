@@ -12,7 +12,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 | Rail of modules | `<app>/dock/<app>/<app>.json` (`Dock`, standard 1) | `Dock` with blank `user`: `IKON` order, rest `hidden` 1, title from `LABEL`; not shown on ERP and HR pages (the menu below) |
 | Menu (ERP and HR pages) | none | `menu_samping` (`extend_bootinfo`, `erp_menu`) + `public/js/menu_samping.js`: every module of the user as a collapsible header |
 | Module sidebar | `<app>/<module>/sidebar/<name>/<name>.json` (`Sidebar`) | `Custom Sidebar` with blank `user`: Home, then `SIDEBAR`, rest hidden |
-| Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards) |
+| Module home | `Workspace` (standard, content blocks) | `Custom Workspace` (`PINTASAN`): shortcuts only (`BLOK_TETAP` empty: no number or link cards); each shortcut drawn as a card with its sidebar icon and a `KETERANGAN` line (boot `erp_pintasan`; a link in several sidebars keeps the first non-empty icon (Super Admin also gets Planning's own sidebar, whose rows are bare), else `IKON_LINK`; `test_kartu_pintasan` checks Admin and Super Admin on Stock, Buying, Manufacturing; `public/js/pintasan.js` wraps `frappe.widget.widget_factory.shortcut`; CSS `.erp-kartu`, Abel 2026-11-25) |
 | Per user | none | `User.block_modules` from the Module Profile of the same name (`blok_profil`: Admin and Produksi outside `MODUL_BOLEH`, Super Admin only `MODUL_MATI`; `_modul_pengguna` keeps each profile's users on it, and Administrator's own blocks on `MODUL_MATI`) |
 | Unused modules | DocPerm | `MODUL_MATI` and HR's `DOCTYPE_MATI` (`_kunci_modul`, `doctype_mati()`): one Custom DocPerm for the Administrator role per DocType, so no other user reads, searches or opens them by URL; `saring_modul_mati` (`extend_bootinfo`) drops them and their reports from every boot (Administrator's search). Administrator still opens one by URL |
 
@@ -38,7 +38,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `SIDEBAR["Buying"]` and `PINTASAN["Buying"]`; Missing Data (Admin only, `kelengkapan.py`) closes `SIDEBAR["Setup"]`
   and `PINTASAN["Home"]` (12 shortcuts, the cap); Brand and Missing Documents (Admin only) close `SIDEBAR["Stock"]` and
   `PINTASAN["Stock"]`; Reject Reason sits in Setup after
-  Manufacturing Settings. The Planning module itself stays blocked for Admin and Produksi.
+  Manufacturing Settings (Super Admin's only, `KHUSUS_SUPER_ADMIN`). The Planning module itself stays blocked for Admin and Produksi.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
@@ -77,7 +77,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   its JSON) and does the stock work: Material Receipt, Delivery Note without a Sales Order (`setup.PENGATURAN_ALUR`
   `so_required` No). Frappe resaves a changed profile's users in a background job; `_pengguna_profil` does it at
   migrate.
-- Admin's modules (menu headers) add `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons, and the Missing Data report; its home is
+- Admin's modules (menu headers) add `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock and the reject reasons, and the Missing Data report (the business settings pages, `KHUSUS_SUPER_ADMIN`, show only for System Manager: `menu_samping` drops them from the boot sidebars and sends `erp_sembunyi`, `pintasan.js` removes their home cards and editor blocks; DocPerms unchanged, the URL still opens; `test_pengaturan_khusus_super_admin`, Abel 2026-11-25); its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Super Admin only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on
@@ -118,7 +118,9 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - Our CSS is one plain file, `public/css/erp_internal.css` (`hooks.app_include_css`, served as-is: no build, no
   `bench start` restart, only `clear-cache` after a hooks change). It gives the Apps screen avatar a pointer and
   keeps the sidebar's fold arrow visible on a desktop, and styles the version line at the foot of the Settings
-  dialog (`public/js/versi.js`, in the same bundle as `menu_samping.js`: wraps `SettingsDialog.render_sidebar`). Frappe v16.53 folds the module sidebar with that arrow
+  dialog (`public/js/versi.js`, in the same bundle as `menu_samping.js`: wraps `SettingsDialog.render_sidebar`), and
+  the module home cards (`.erp-kartu`: icon and count on top, title and `KETERANGAN` line below, min-height 132px,
+  none under 768 px; `public/js/pintasan.js`, same bundle). Frappe v16.53 folds the module sidebar with that arrow
   (or the 8 px edge), but shows the arrow only on hover. On Frappe's own pages (System app), beside the pinned dock a folded sidebar slides shut and
   the dock stays as the rail; Frappe then parks the arrow half under the dock (z-index 1030), so our CSS moves
   it into the dock above the profile avatar as a 32 px button with border and shadow (`.sidebar-hidden`: left
@@ -130,7 +132,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
 - `tools/cek_layar.mjs` opens each module home with `frappe.set_route("Workspaces", <name>)`, counts only message
   dialogs (`.msgprint-dialog`), and checks the rail of each tile on the user's Apps screen
   (`app_data[].on_apps_screen`), failing on a tile with nothing behind it. It also opens every home on the user's
-  rail (`<profile>-home-<module>.png`): shortcuts only, at most `PINTASAN_MAKS` (12). It reads the version on /login
+  rail (`<profile>-home-<module>.png`): shortcuts only, each an `.erp-kartu` with icon and line, at most `PINTASAN_MAKS` (12). It reads the version on /login
   as a guest and in each user's Settings dialog (`.settings-dialog-sidebar .erp-versi` = `v` +
   `frappe.boot.versions.erp_internal`).
 - Unused modules (Abel 2026-11-04, `MODUL_MATI`): a Module Profile block only hides the way in (`frappe.utils.modules`

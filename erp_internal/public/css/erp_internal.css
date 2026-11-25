@@ -345,3 +345,72 @@ a.erp-perbaiki {
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
+
+/* Module home cards (pintasan.js, Abel 2026-11-25): a taller card. Top row: the link's icon in a soft
+   Delta-blue square and the count on the right; below it, across the card, the title and one muted line, so
+   narrow columns (768 px beside the menu) never cut the title. */
+.widget.shortcut-widget-box.erp-kartu {
+	min-height: 132px;
+	padding: 16px;
+	justify-content: flex-start;
+}
+.erp-kartu .widget-head {
+	display: grid;
+	grid-template-columns: 40px minmax(0, 1fr);
+	grid-template-areas: "ikon kontrol" "label label";
+	align-items: start;
+	row-gap: 12px;
+}
+.erp-kartu .erp-kartu-ikon {
+	grid-area: ikon;
+}
+.erp-kartu .widget-control {
+	grid-area: kontrol;
+	justify-self: end;
+}
+.erp-kartu .widget-label {
+	grid-area: label;
+}
+.erp-kartu .erp-kartu-ikon {
+	flex: 0 0 40px;
+	height: 40px;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(31, 71, 130, 0.1);
+	color: #1f4782;
+}
+[data-theme="dark"] .erp-kartu .erp-kartu-ikon {
+	background: rgba(143, 179, 236, 0.16);
+	color: #8fb3ec;
+}
+.erp-kartu .widget-label {
+	min-width: 0;
+}
+.erp-kartu .widget-title {
+	font-size: var(--text-lg);
+	font-weight: 600;
+	white-space: normal;
+	overflow: visible;
+	text-overflow: clip;
+}
+.erp-kartu .widget-title .ellipsis {
+	white-space: normal;
+	overflow: visible;
+	text-overflow: clip;
+}
+.erp-kartu .widget-subtitle {
+	display: block;
+	margin-top: 4px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	white-space: normal;
+	line-height: 1.35;
+}
+@media (max-width: 767px) {
+	.widget.shortcut-widget-box.erp-kartu {
+		min-height: 0;
+		padding: 12px 14px;
+	}
+}

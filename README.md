@@ -307,8 +307,9 @@ Delivery Note on `erp.localhost`.
 On ERP and HR pages the left side is one labelled menu instead of Frappe's icon rail (`erp_internal/public/js/menu_samping.js`,
 `tampilan.menu_samping`): a collapsible header per module, with its icon (`IKON_MODUL`), and the module's links under it. The
 page's module opens by itself; several can be open at once. Frappe's own System app keeps its rail.
-Every module shows only what the guides' flows use (`tampilan.IKON`, `SIDEBAR`, `PINTASAN`); each home is a row of
-shortcuts to the same links as its menu entries, nothing else:
+Every module shows only what the guides' flows use (`tampilan.IKON`, `SIDEBAR`, `PINTASAN`); each home is a grid of
+cards to the same links as its menu entries, nothing else. Each card shows the link's menu icon, its title, a count where it has one, and one
+line saying what it is for (`tampilan.KETERANGAN`, drawn by `public/js/pintasan.js`):
 
 | Menu header | Home and links |
 |---|---|
@@ -319,7 +320,7 @@ shortcuts to the same links as its menu entries, nothing else:
 | Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page; also an own menu entry), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
-| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings, Missing Data |
+| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Reject Reason, Missing Data; Super Admin also Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings (`tampilan.KHUSUS_SUPER_ADMIN`: setup rewrites several of their fields on every update) |
 
 The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.

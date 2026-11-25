@@ -2,7 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-25, after the Seal Cap packing prices): 385 tests (13 unit + 372 integration), all OK.
+Last full run (2026-11-25, after the module home cards): 386 tests (13 unit + 373 integration), all OK.
+Before that (after the Seal Cap packing prices): 385 tests, all OK.
 Before that (2026-11-24, after the Seal Cap material commit 2033cab, run by the controller): 383 tests (13 unit + 370 integration), all OK; `lantai.mjs` all OK after Mesin 14 became active. Before that the same 383 with `test_mesin_barang.test_jumlah` failing (Mesin 14 now has a row), fixed. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
 OK. Before that (Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
 3 users OK. Before that (2026-11-23, final review fixes): 349 tests (13 unit + 336 integration), all OK; `cek_layar` 3 users
@@ -65,6 +66,11 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
   the line's machine, PO print shows it, Mesin 14 active; cavities 20 and cycle time 14 s stored (`test_seal_cap`).
 - [x] Seal Cap material `BB-SEAL-CAP` (Rp13.500/kg) and 0.88 g: Machine Capacity rows on Mesin 04 and 14 and their
   capacity BOMs made by `master.muat`; a Seal Cap Work Order on Mesin 04 submits.
+- [x] Module home cards (Abel 2026-11-25): icon, title, count and a one-line explanation per shortcut
+  (`tampilan.KETERANGAN`, `public/js/pintasan.js`, `test_kartu_pintasan`).
+- [x] Settings pages for Super Admin only (Abel 2026-11-25): the seven business settings pages
+  (`tampilan.KHUSUS_SUPER_ADMIN`) leave Admin's menu and Settings home (`menu_samping`, `erp_sembunyi`,
+  `public/js/pintasan.js`; DocPerms unchanged), `test_pengaturan_khusus_super_admin`. Full run pending (CI on PR #15).
 - [x] Seal Cap packing prices (Samuel 2026-11-25): Plastik 35x50/30x45 500, Karung 3.500 per Buah as valuation and
   in Harga Bahan Baku (`seal_cap.json` `harga_kemasan`, `test_seal_cap`).
 - [ ] Samuel: confirm "category sendiri" means its own raw material item (built), not a new Item Group.
