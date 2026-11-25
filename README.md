@@ -320,7 +320,7 @@ line saying what it is for (`tampilan.KETERANGAN`, drawn by `public/js/pintasan.
 | Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page; also an own menu entry), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
-| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Stock, Selling, Buying, Manufacturing, Reject Reason, Accounts, Projects and HR Settings, Missing Data |
+| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Reject Reason, Missing Data; Super Admin also Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings (`tampilan.KHUSUS_SUPER_ADMIN`: setup rewrites several of their fields on every update) |
 
 The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.

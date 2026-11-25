@@ -493,6 +493,19 @@ PINTASAN = {
 RUMAH_SENDIRI = {"Shift & Attendance": "HR"}
 BLOK_TETAP = ()  # base Workspace blocks kept below the shortcuts: none (Samuel, 2026-10-28: homes kept short)
 KOLOM_PINTASAN = ("type", "link_to", "doc_view", "label", "stats_filter", "format", "color")
+# Settings pages only Super Admin sees in the menu and on the Settings home (Abel 2026-11-25): set once at setup,
+# several fields rewritten by `setup` on every migrate, so an Admin's change there would quietly come back. Hidden
+# for users without System Manager (`menu_samping` drops them from the boot sidebars, `pintasan.js` from the home
+# through `erp_sembunyi`); DocPerms are unchanged, so forms that read these settings keep working.
+KHUSUS_SUPER_ADMIN = (
+	"Stock Settings",
+	"Selling Settings",
+	"Buying Settings",
+	"Manufacturing Settings",
+	"Accounts Settings",
+	"Projects Settings",
+	"HR Settings",
+)
 # Shortcut target → the one line under its title on the module homes (Abel 2026-11-25: bigger cards with an icon
 # and a short explanation). Sent in `erp_pintasan` with the link's sidebar icon; `public/js/pintasan.js` draws them.
 KETERANGAN = {
@@ -752,6 +765,11 @@ def menu_samping(bootinfo) -> None:
 	user's boot (blocked, or nothing they can open) is skipped. Boot must never fail."""
 	try:
 		sidebars = bootinfo.get("module_sidebars") or {}
+		sembunyi = () if "System Manager" in frappe.get_roles() else KHUSUS_SUPER_ADMIN
+		bootinfo.erp_sembunyi = list(sembunyi)
+		for s in sidebars.values():
+			if s and s.get("items") and sembunyi:
+				s["items"] = [i for i in s["items"] if i.get("link_to") not in sembunyi]
 		bootinfo.erp_menu = [
 			{"shell": shell, "label": LABEL.get(shell, shell), "icon": IKON_MODUL[shell]}
 			for shell in IKON

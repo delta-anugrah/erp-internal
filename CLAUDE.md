@@ -97,7 +97,9 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - Three Role Profiles (`tampilan.PROFIL_PERAN`): Produksi (was User; Samuel 2026-11-23: our role `ERP User` only;
   creates only Production Entry, sets a machine's status, reads Work Order, Workstation, Machine Capacity, Reject
   Reason, Company and Plan vs Actual; menu Manufacturing only; `test_peran`), Admin (manager roles, Work Orders,
-  BOMs, stock, delivery notes, users, business settings under the Settings menu header; role `ERP Admin`; views
+  BOMs, stock, delivery notes, users, Company, opening stock, reject reasons and Missing Data under the Settings menu
+  header (the business settings pages, `tampilan.KHUSUS_SUPER_ADMIN`, are Super Admin's menu only, Abel
+  2026-11-25); role `ERP Admin`; views
   Production Entry, never changes it), Super Admin (was Developer: Admin plus
   System Manager; its Module Profile blocks only `MODUL_MATI`). `patches/profil_tiga.py` renamed the old User,
   Admin and Developer profiles (`NAMA_LAMA`), keeping their users. Produksi does not see a Work Order's material

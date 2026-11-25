@@ -77,7 +77,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   its JSON) and does the stock work: Material Receipt, Delivery Note without a Sales Order (`setup.PENGATURAN_ALUR`
   `so_required` No). Frappe resaves a changed profile's users in a background job; `_pengguna_profil` does it at
   migrate.
-- Admin's modules (menu headers) add `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock, the business settings and the reject reasons, and the Missing Data report; its home is
+- Admin's modules (menu headers) add `Setup`, shown as "Settings" (`LABEL`): users, Company, opening stock and the reject reasons, and the Missing Data report (the business settings pages, `KHUSUS_SUPER_ADMIN`, show only for System Manager: `menu_samping` drops them from the boot sidebars and sends `erp_sembunyi`, `pintasan.js` removes their home cards and editor blocks; DocPerms unchanged, the URL still opens; `test_pengaturan_khusus_super_admin`, Abel 2026-11-25); its home is
   ERPNext's `Home` Workspace (`PINTASAN["Home"]`). System Settings and Build stay with System Manager: Frappe's own
   Apps tile (`check_app_permission`) shows for Super Admin only.
 - User management: `setup.IZIN_TAMBAHAN` gives `ERP Admin` User read/write/create on permlevel 0 and 1 (roles sit on

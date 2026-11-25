@@ -380,6 +380,25 @@ class TestTampilan(IntegrationTestCase):
 					self.assertTrue(kartu["icon"], f"{profil}: {p['link_to']}")
 					self.assertEqual(kartu["ket"], KETERANGAN[p["link_to"]])
 
+	def test_pengaturan_khusus_super_admin(self):
+		# The Settings pages leave Admin's menu and home; Super Admin keeps them (Abel 2026-11-25).
+		from frappe.boot import get_bootinfo
+
+		from erp_internal.tampilan import KHUSUS_SUPER_ADMIN, menu_samping
+
+		for profil, terlihat in ((ADMIN, False), (SUPER_ADMIN, True)):
+			frappe.set_user(pengguna_profil(profil, "menu"))
+			try:
+				boot = get_bootinfo()
+				menu_samping(boot)
+			finally:
+				frappe.set_user("Administrator")
+			link = {i.get("link_to") for i in boot.module_sidebars["Setup"]["items"]}
+			for nama in KHUSUS_SUPER_ADMIN:
+				self.assertEqual(nama in link, terlihat, f"{profil}: {nama}")
+			self.assertEqual(boot.erp_sembunyi, [] if terlihat else list(KHUSUS_SUPER_ADMIN))
+			self.assertIn("Missing Data", link)
+
 	def test_menu_samping_tak_pernah_gagal(self):
 		from erp_internal.tampilan import menu_samping
 

@@ -2,6 +2,19 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-25, Settings pages for Super Admin only
+- Abel: of the Settings home's 12 cards, Admin uses five (Users, Company, Opening Stock & Stock Count, Reject Reason,
+  Missing Data). The seven business settings pages (`tampilan.KHUSUS_SUPER_ADMIN`) leave Admin's menu and home:
+  `menu_samping` drops them from the boot sidebars of a user without System Manager and sends `erp_sembunyi`, which
+  `pintasan.js` uses to remove the home card and its editor block. Setup rewrites several of their fields on every
+  migrate, so an Admin's change there quietly came back. DocPerms are unchanged: forms reading them keep working,
+  and the page still opens by URL.
+- Checked: `test_tampilan` 28 OK (new `test_pengaturan_khusus_super_admin`); browser: Admin 5 cards and 5 menu
+  links, no empty grid cell, Super Admin 12; `cek_layar` 3 users OK; `lantai.mjs muat` OK.
+- Learned: after `bench build`, a running `bench start` kept the old bundle names in memory (`clear-cache` did not
+  help); the desk asked for deleted files, so the Production Floor fell back to its plain table. Restart
+  `bench start` after every build.
+
 ## 2026-11-25, module home cards
 - Abel: the module homes looked empty (one short row of small shortcuts). Each shortcut is now a taller card: the
   link's sidebar icon in a soft Delta-blue square and the count on top, then the title and one line saying what it

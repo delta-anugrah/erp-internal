@@ -142,10 +142,13 @@ bisa diubah Admin ("Only a Super Admin can change this account").
 
 ## Pengaturan usaha
 
-Di **Settings**: **Company**, **Opening Stock & Stock Count** (Stock Reconciliation: stok awal dan stok
-opname, `docs/panduan/gudang.md`), **Stock Settings**, **Selling Settings**, **Buying Settings**, **Manufacturing
-Settings**, **Accounts Settings**, **Projects Settings**, **HR Settings**, dan laporan **Missing Data** (di atas). Ubah hanya kalau tahu akibatnya; sistem
-sudah diatur (pesanan dulu baru terima barang (pembelian); surat jalan boleh langsung; stok tidak boleh minus) dan setelan itu dipasang lagi tiap
-pembaruan.
+Di **Settings**: **Users**, **Company**, **Opening Stock & Stock Count** (Stock Reconciliation: stok awal dan stok
+opname, `docs/panduan/gudang.md`), **Reject Reason**, dan laporan **Missing Data** (di atas).
+
+Halaman pengaturan usaha (**Stock Settings**, **Selling Settings**, **Buying Settings**, **Manufacturing Settings**,
+**Accounts Settings**, **Projects Settings**, **HR Settings**) cuma muncul di menu Super Admin. Sistem sudah diatur
+(pesanan dulu baru terima barang (pembelian); surat jalan boleh langsung; stok tidak boleh minus; produksi boleh
+lebih 10 %) dan setelan itu dipasang lagi tiap pembaruan, jadi perubahan di sana bisa balik sendiri. Perlu
+mengubahnya? Minta ke Super Admin.
 
 Perusahaan tidak PKP: template PPN ada, tapi tidak dipakai bawaan. Faktur hanya untuk mencatat.

@@ -4,6 +4,16 @@
 
 function kartu(w) {
 	if (w.in_customize_mode || !w.widget) return;
+	// Settings pages kept for Super Admin (tampilan.KHUSUS_SUPER_ADMIN): the card leaves the page.
+	// Its editor block goes too, or the grid keeps an empty cell; after the widget is in the page.
+	if ((frappe.boot.erp_sembunyi || []).includes(w.link_to)) {
+		w.widget.hide();
+		setTimeout(() => {
+			const blok = w.widget.closest(".ce-block");
+			(blok.length ? blok : w.widget).remove();
+		});
+		return;
+	}
 	const data = frappe.boot.erp_pintasan?.[w.link_to];
 	if (!data) return;
 	w.widget.addClass("erp-kartu");
