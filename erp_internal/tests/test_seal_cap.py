@@ -97,7 +97,9 @@ class TestSealCap(IntegrationTestCase):
 		for item, harga in (("Plastik 35x50", 500), ("Plastik 30x45", 500), ("Karung", 3500)):
 			self.assertEqual(
 				frappe.db.get_value(
-					"Item Price", {"item_code": item, "price_list": HARGA_BAHAN, "uom": "Buah"}, "price_list_rate"
+					"Item Price",
+					{"item_code": item, "price_list": HARGA_BAHAN, "uom": "Buah"},
+					"price_list_rate",
 				),
 				harga,
 				item,
@@ -111,7 +113,9 @@ class TestSealCap(IntegrationTestCase):
 		frappe.db.set_value("Item", "Karung", "valuation_rate", 4000)
 		master.muat()
 		self.assertEqual(
-			frappe.db.get_value("Item Price", {"item_code": "Karung", "price_list": HARGA_BAHAN}, "price_list_rate"),
+			frappe.db.get_value(
+				"Item Price", {"item_code": "Karung", "price_list": HARGA_BAHAN}, "price_list_rate"
+			),
 			4000,
 		)
 		self.assertEqual(frappe.db.get_value("Item", "Karung", "valuation_rate"), 4000)
