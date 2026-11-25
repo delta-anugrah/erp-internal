@@ -2,8 +2,8 @@
 
 Untuk **Admin**. Admin melihat hasil produksi yang dicatat Produksi (`user.md`; mengisinya tidak bisa), dan
 mengerjakan: perintah produksi (Work Order), surat jalan dan bahan masuk (`gudang.md`), barang, pemasok, resep
-(BOM), stok awal dan stok opname, HR, akun pengguna, pengaturan usaha, dan data yang belum lengkap. Akun pengguna,
-stok awal dan opname, pengaturan, dan laporan data yang belum lengkap ada di menu **Settings** di kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
+(BOM), stok awal dan stok opname, HR, akun pengguna, data perusahaan, dan data yang belum lengkap. Akun pengguna,
+Company, stok awal dan opname, Reject Reason, dan laporan data yang belum lengkap ada di menu **Settings** di kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
 Manufacturing); HR di menu **HR**.
 
 Ada tiga peran (**Role Profile**):
@@ -11,8 +11,8 @@ Ada tiga peran (**Role Profile**):
 | Peran | Untuk siapa | Bisa |
 |---|---|---|
 | **Produksi** | orang pabrik | cuma mencatat hasil produksi dan status mesin; lihat Work Order, Machine Capacity, Plan vs Actual (`user.md`) |
-| **Admin** | pemilik dan kepala | lihat hasil produksi; Work Order, BOM, stok, surat jalan, data induk, penjualan, pembelian, proyek, HR, akun pengguna, pengaturan usaha |
-| **Super Admin** | tim IT | semuanya kecuali modul yang dikunci, termasuk Build, System Settings, dan **Finish** di Work Order |
+| **Admin** | pemilik dan kepala | lihat hasil produksi; Work Order, BOM, stok, surat jalan, data induk, penjualan, pembelian, proyek, HR, akun pengguna, Company |
+| **Super Admin** | tim IT | semuanya kecuali modul yang dikunci, termasuk Build, System Settings, halaman pengaturan usaha (Stock/Selling/Buying/... Settings), dan **Finish** di Work Order |
 
 Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.

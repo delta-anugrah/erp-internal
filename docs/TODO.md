@@ -68,6 +68,9 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
   capacity BOMs made by `master.muat`; a Seal Cap Work Order on Mesin 04 submits.
 - [x] Module home cards (Abel 2026-11-25): icon, title, count and a one-line explanation per shortcut
   (`tampilan.KETERANGAN`, `public/js/pintasan.js`, `test_kartu_pintasan`).
+- [x] Settings pages for Super Admin only (Abel 2026-11-25): the seven business settings pages
+  (`tampilan.KHUSUS_SUPER_ADMIN`) leave Admin's menu and Settings home (`menu_samping`, `erp_sembunyi`,
+  `public/js/pintasan.js`; DocPerms unchanged), `test_pengaturan_khusus_super_admin`. Full run pending (CI on PR #15).
 - [x] Seal Cap packing prices (Samuel 2026-11-25): Plastik 35x50/30x45 500, Karung 3.500 per Buah as valuation and
   in Harga Bahan Baku (`seal_cap.json` `harga_kemasan`, `test_seal_cap`).
 - [ ] Samuel: confirm "category sendiri" means its own raw material item (built), not a new Item Group.

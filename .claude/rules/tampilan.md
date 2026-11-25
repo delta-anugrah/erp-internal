@@ -38,7 +38,7 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   `SIDEBAR["Buying"]` and `PINTASAN["Buying"]`; Missing Data (Admin only, `kelengkapan.py`) closes `SIDEBAR["Setup"]`
   and `PINTASAN["Home"]` (12 shortcuts, the cap); Brand and Missing Documents (Admin only) close `SIDEBAR["Stock"]` and
   `PINTASAN["Stock"]`; Reject Reason sits in Setup after
-  Manufacturing Settings. The Planning module itself stays blocked for Admin and Produksi.
+  Manufacturing Settings (Super Admin's only, `KHUSUS_SUPER_ADMIN`). The Planning module itself stays blocked for Admin and Produksi.
 - Production Floor (page `production-floor`, `lantai.md`; in the menu an entry of its own above the headers, `MENU_ATAS`) is the first link of Manufacturing's sidebar after Home and
   the first shortcut of its home: `SIDEBAR` names it by its route and `NAMA_LINK` gives the label (a Page has no
   title in the sidebar row), `PINTASAN` uses `_p("production-floor", "Production Floor", "Page")`. The page hides the
