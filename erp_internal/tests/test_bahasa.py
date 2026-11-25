@@ -56,9 +56,9 @@ class TestBahasa(IntegrationTestCase):
 
 	def test_layar_diterjemahkan(self):
 		# Shortcut labels and counts, and renamed modules, are shown through _() / __() as well.
-		from erp_internal.tampilan import LABEL, NAMA_APLIKASI, PINTASAN
+		from erp_internal.tampilan import KETERANGAN, LABEL, NAMA_APLIKASI, PINTASAN
 
-		teks = set(LABEL.values()) | set(NAMA_APLIKASI.values())
+		teks = set(LABEL.values()) | set(NAMA_APLIKASI.values()) | set(KETERANGAN.values())
 		for daftar in PINTASAN.values():
 			teks |= {p["label"] for p in daftar} | {p["format"] for p in daftar if p.get("format")}
 		self.assertEqual(sorted(teks - set(baris_csv())), [])

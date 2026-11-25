@@ -358,6 +358,28 @@ class TestTampilan(IntegrationTestCase):
 				self.assertEqual(m["Setup"]["label"], "Settings")
 		self.assertEqual(set(IKON_MODUL), set(IKON))
 
+	def test_kartu_pintasan(self):
+		# Home cards (Abel 2026-11-25): every shortcut has its line, and the boot gives each an icon and the line.
+		from frappe.boot import get_bootinfo
+
+		from erp_internal.tampilan import KETERANGAN, menu_samping
+
+		semua = {p["link_to"] for daftar in PINTASAN.values() for p in daftar}
+		self.assertEqual(sorted(semua - set(KETERANGAN)), [])
+		# Super Admin also sees Planning's own sidebar, whose rows have no icon: the card keeps the icon.
+		for profil in (ADMIN, SUPER_ADMIN):
+			frappe.set_user(pengguna_profil(profil, "menu"))
+			try:
+				boot = get_bootinfo()
+				menu_samping(boot)
+			finally:
+				frappe.set_user("Administrator")
+			for modul in ("Stock", "Buying", "Manufacturing"):
+				for p in pintasan_aktif(modul):
+					kartu = boot.erp_pintasan[p["link_to"]]
+					self.assertTrue(kartu["icon"], f"{profil}: {p['link_to']}")
+					self.assertEqual(kartu["ket"], KETERANGAN[p["link_to"]])
+
 	def test_menu_samping_tak_pernah_gagal(self):
 		from erp_internal.tampilan import menu_samping
 

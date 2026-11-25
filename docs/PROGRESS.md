@@ -2,6 +2,20 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-25, module home cards
+- Abel: the module homes looked empty (one short row of small shortcuts). Each shortcut is now a taller card: the
+  link's sidebar icon in a soft Delta-blue square and the count on top, then the title and one line saying what it
+  is for (`tampilan.KETERANGAN`, Indonesian in `id.csv`), sent with the icon in boot `erp_pintasan`
+  (`menu_samping`) and drawn by `public/js/pintasan.js` (wraps Frappe's shortcut widget; falls back to the plain
+  card on any error), CSS `.erp-kartu`. Titles wrap instead of being cut at 768 px; phones drop the minimum height.
+- `cek_layar` now fails on a home shortcut without its card icon or line (pintasan.js falls back silently) and
+  names it. It caught Super Admin's Expense Entry and Machine Capacity: they sit bare in Planning's own sidebar,
+  which overwrote their icon; `erp_pintasan` now keeps the first icon found (else `IKON_LINK`), and
+  `test_kartu_pintasan` checks Admin and Super Admin on Stock, Buying and Manufacturing.
+- Checked: screenshots at 1440, 768 and 390 px (Admin Stock and Selling, Produksi Manufacturing), no console error;
+  `test_tampilan` 27 OK, `test_kartu_pintasan` OK after the fix, `test_bahasa` 6 OK; `cek_layar` 3 users OK; full
+  run 386 (13 unit + 373 integration) OK; ruff clean.
+
 ## 2026-11-25, Seal Cap packing prices
 - Samuel 2026-11-25: Plastik 35x50 and Plastik 30x45 500 per piece (both sizes the same), Karung 3.500.
   `seal_cap.json` `harga_kemasan`; `seal_cap.muat` sets each as the item's valuation rate (when 0) and as an Item

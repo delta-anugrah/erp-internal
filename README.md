@@ -307,8 +307,9 @@ Delivery Note on `erp.localhost`.
 On ERP and HR pages the left side is one labelled menu instead of Frappe's icon rail (`erp_internal/public/js/menu_samping.js`,
 `tampilan.menu_samping`): a collapsible header per module, with its icon (`IKON_MODUL`), and the module's links under it. The
 page's module opens by itself; several can be open at once. Frappe's own System app keeps its rail.
-Every module shows only what the guides' flows use (`tampilan.IKON`, `SIDEBAR`, `PINTASAN`); each home is a row of
-shortcuts to the same links as its menu entries, nothing else:
+Every module shows only what the guides' flows use (`tampilan.IKON`, `SIDEBAR`, `PINTASAN`); each home is a grid of
+cards to the same links as its menu entries, nothing else. Each card shows the link's menu icon, its title, a count where it has one, and one
+line saying what it is for (`tampilan.KETERANGAN`, drawn by `public/js/pintasan.js`):
 
 | Menu header | Home and links |
 |---|---|
