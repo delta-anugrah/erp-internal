@@ -3,6 +3,8 @@
 	"pelanggan": "PT. Empat Putra Pangestu",
 	"harga_pigmen_kg": 350000,
 	"karung": "Karung",
+	"harga_kemasan_catatan": "Harga beli per pcs, Samuel 2026-11-25: plastik 500 (dua ukuran disamakan), karung 3.500. Diisi hanya kalau belum ada harga.",
+	"harga_kemasan": {"Plastik 35x50": 500, "Plastik 30x45": 500, "Karung": 3500},
 	"bahan": {
 		"catatan": "Bahan baku khusus Seal Cap, Rp13.500/kg (Samuel 2026-11-24 16:40: \"category sendiri\", dibaca: item bahan baku sendiri di grup Bahan Baku, bukan grup baru).",
 		"kode": "BB-SEAL-CAP",

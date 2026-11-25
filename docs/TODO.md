@@ -2,7 +2,8 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-24, after the Seal Cap material commit 2033cab, run by the controller): 383 tests (13 unit + 370 integration), all OK; `lantai.mjs` all OK after Mesin 14 became active. Before that the same 383 with `test_mesin_barang.test_jumlah` failing (Mesin 14 now has a row), fixed. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
+Last full run (2026-11-25, after the Seal Cap packing prices): 385 tests (13 unit + 372 integration), all OK.
+Before that (2026-11-24, after the Seal Cap material commit 2033cab, run by the controller): 383 tests (13 unit + 370 integration), all OK; `lantai.mjs` all OK after Mesin 14 became active. Before that the same 383 with `test_mesin_barang.test_jumlah` failing (Mesin 14 now has a row), fixed. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
 OK. Before that (Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
 3 users OK. Before that (2026-11-23, final review fixes): 349 tests (13 unit + 336 integration), all OK; `cek_layar` 3 users
 OK; `tools/e2e_samuel.mjs` 15/15; `lantai.mjs` all cases OK. Before that (plan Task 12: sample data and the full check): 346 tests (13 unit + 333 integration),
@@ -48,11 +49,11 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       four expenses), guide pictures `produksi-2`, `admin-1`, `admin-2`, browser run `tools/e2e_samuel.mjs` (14/14).
 - [x] Task 15 (Abel 2026-11-24): missing data notices with fix links (`kelengkapan.py`, report Settings → Missing
       Data, notes on Item, Sales Order, Work Order and Monthly Expenses, `test_kelengkapan`).
-- [ ] Samuel: pigment list and prices, packing per product (erp.localhost: 23 products without packing, 9 colours
+- [ ] Samuel: pigment list and prices, packing per product (Seal Cap packing priced 2026-11-25; erp.localhost: 23 products without packing, 9 colours
       without a pigment; the Missing Data report lists them).
 - [ ] Access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` for the three new roles: not regenerated (no tool or
       source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
-- [ ] Abel: approve tagging (bump `erp_internal.__version__`) and the PR from `feat/lokal` once the review is done.
+- [ ] Abel: approve tagging (bump `erp_internal.__version__`); PR #11 (Tasks 1-16) merged 2026-11-24.
 - [x] CI: `.github/workflows/ci.yml` (job "Tes" on pull requests to main and `vX.Y.Z` tags) replaces `image.yml`;
       `deploy/ci_tes.sh` runs the tests inside the image.
 - [x] Repository rulesets (Abel 2026-11-24): `main-ci` makes "Tes" a required check on `main` (not "up to date");
@@ -64,6 +65,8 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
   the line's machine, PO print shows it, Mesin 14 active; cavities 20 and cycle time 14 s stored (`test_seal_cap`).
 - [x] Seal Cap material `BB-SEAL-CAP` (Rp13.500/kg) and 0.88 g: Machine Capacity rows on Mesin 04 and 14 and their
   capacity BOMs made by `master.muat`; a Seal Cap Work Order on Mesin 04 submits.
+- [x] Seal Cap packing prices (Samuel 2026-11-25): Plastik 35x50/30x45 500, Karung 3.500 per Buah as valuation and
+  in Harga Bahan Baku (`seal_cap.json` `harga_kemasan`, `test_seal_cap`).
 - [ ] Samuel: confirm "category sendiri" means its own raw material item (built), not a new Item Group.
 - [ ] Item 6 leftovers: M1G/M1H in Samuel's PO and Excel are ignored for now (spec A6); "CN" and "PT CN" kept apart
   until he says they are one.

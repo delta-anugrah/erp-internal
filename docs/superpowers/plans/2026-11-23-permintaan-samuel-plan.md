@@ -1071,3 +1071,9 @@ Material (Samuel 2026-11-24 16:40, commit "feat(seal-cap): Seal Cap material and
 material `BB-SEAL-CAP` "Bahan Seal Cap" (Bahan Baku, Kg, 13.500/kg; "category sendiri" read as its own item, not
 an Item Group) from `seal_cap.json` `bahan` (`seal_cap._bahan`, only when missing); `kapasitas.material` set, so
 `muat` makes the two Machine Capacity rows and their 34 capacity BOMs.
+
+Packing prices (Samuel 2026-11-25): `seal_cap.json` `harga_kemasan` (Plastik 35x50 500, Plastik 30x45 500, Karung
+3.500 per Buah); `muat` sets each packing item's `valuation_rate` when it is 0 and an Item Price per Buah in
+`Harga Bahan Baku` when missing (`_harga_beli` gained `satuan`, default "Kg"). Deviation from "only created, never
+corrected": an existing packing item with valuation 0 gets the price; a value Admin set stays
+(`test_harga_kemasan_admin_tetap`).

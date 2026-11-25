@@ -48,6 +48,7 @@ def muat(hasil: master.Hasil) -> None:
 		},
 	)
 	for kemasan in sorted({b["plastik"] for b in baris} | {data["karung"]}):
+		harga = data["harga_kemasan"][kemasan]
 		hasil.simpan(
 			"Item",
 			kemasan,
@@ -57,8 +58,12 @@ def muat(hasil: master.Hasil) -> None:
 				"item_group": GRUP_KEMASAN,
 				"stock_uom": SATUAN_KEMASAN,
 				"is_stock_item": 1,
+				"valuation_rate": harga,
 			},
 		)
+		if not frappe.db.get_value("Item", kemasan, "valuation_rate"):  # made before the price was known
+			frappe.db.set_value("Item", kemasan, "valuation_rate", harga)
+			hasil.ditulis += 1
 	for b, n in zip(baris, nilai, strict=True):
 		hasil.simpan("Brand", b["merk"], {"brand": b["merk"]})
 		if get_variant(TEMPLATE, n):
@@ -76,6 +81,8 @@ def muat(hasil: master.Hasil) -> None:
 		hasil.ditulis += 1
 
 	penjualan.daftar_beli(hasil)
+	for kemasan, harga in data["harga_kemasan"].items():
+		_harga_beli(kemasan, harga, hasil, SATUAN_KEMASAN)
 	penjualan._pigmen(hasil)
 	for warna in sorted({b["warna"] for b in baris} - set(WARNA_TANPA_PIGMEN)):
 		if not get_variant(TEMPLATE_PIGMEN, {ATRIBUT_WARNA: warna}):
@@ -115,16 +122,16 @@ def _bahan(b: dict, hasil: master.Hasil) -> None:
 	_harga_beli(b["kode"], b["harga_kg"], hasil)
 
 
-def _harga_beli(item: str, per_kg: float, hasil: master.Hasil) -> None:
-	"""A price per Kg in `Harga Bahan Baku`, only where the item has none: a price Admin changed stays."""
+def _harga_beli(item: str, harga: float, hasil: master.Hasil, satuan: str = "Kg") -> None:
+	"""A price per `satuan` in `Harga Bahan Baku`, only where the item has none: a price Admin changed stays."""
 	if not frappe.db.exists("Item Price", {"item_code": item, "price_list": penjualan.HARGA_BAHAN}):
 		frappe.get_doc(
 			{
 				"doctype": "Item Price",
 				"item_code": item,
 				"price_list": penjualan.HARGA_BAHAN,
-				"uom": "Kg",
-				"price_list_rate": per_kg,
+				"uom": satuan,
+				"price_list_rate": harga,
 			}
 		).insert(ignore_permissions=True)
 		hasil.ditulis += 1
