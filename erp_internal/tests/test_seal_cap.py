@@ -92,6 +92,30 @@ class TestSealCap(IntegrationTestCase):
 			frappe.db.get_value("Item", "Karung", ["item_group", "stock_uom"]), ("Kemasan", "Buah")
 		)
 
+	def test_harga_kemasan(self):
+		# Samuel 2026-11-25: both bag sizes 500 per piece, a sack 3.500.
+		for item, harga in (("Plastik 35x50", 500), ("Plastik 30x45", 500), ("Karung", 3500)):
+			self.assertEqual(
+				frappe.db.get_value(
+					"Item Price", {"item_code": item, "price_list": HARGA_BAHAN, "uom": "Buah"}, "price_list_rate"
+				),
+				harga,
+				item,
+			)
+			self.assertEqual(frappe.db.get_value("Item", item, "valuation_rate"), harga, item)
+
+	def test_harga_kemasan_admin_tetap(self):
+		frappe.db.set_value(
+			"Item Price", {"item_code": "Karung", "price_list": HARGA_BAHAN}, "price_list_rate", 4000
+		)
+		frappe.db.set_value("Item", "Karung", "valuation_rate", 4000)
+		master.muat()
+		self.assertEqual(
+			frappe.db.get_value("Item Price", {"item_code": "Karung", "price_list": HARGA_BAHAN}, "price_list_rate"),
+			4000,
+		)
+		self.assertEqual(frappe.db.get_value("Item", "Karung", "valuation_rate"), 4000)
+
 	def test_pigmen(self):
 		self.assertEqual(pigmen(varian("MHG"))[1], 1)
 		self.assertIsNone(pigmen(varian("NKP")))  # Neutral: no pigment

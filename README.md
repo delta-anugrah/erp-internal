@@ -266,7 +266,7 @@ Delivery Note on `erp.localhost`.
 - The factory's master data (Dinda House Ware price list, 14 injection machines): `bench --site erp.localhost
   execute erp_internal.master.muat` reads `erp_internal/data/{katalog,mesin,merek_epp,seal_cap}.json` (templates with only the listed
   variants, packings, price list `Harga Pola 2026`, also the Sales Order default while Selling Settings still says Standard Selling, Workstations `Mesin 01`..`14`, the 21 Seal Cap brands with their Inserts (pcs), and the Seal Cap line of `data/seal_cap.json`: 17 variants,
-  their packing and pigments, customer EPP, its raw material `BB-SEAL-CAP`, Machine Capacity rows and capacity BOMs on
+  their packing (with its buying prices) and pigments, customer EPP, its raw material `BB-SEAL-CAP`, Machine Capacity rows and capacity BOMs on
   Mesin 04 and 14, price by machine on the Sales Order line, `seal_cap.py`); rerun after a new file
   (`docs/impor.md`, tested by `tests/test_master.py` and `tests/test_seal_cap.py`).
 - The factory's sales Excel (2026-10-29), after `master.muat`: `bench --site erp.localhost execute erp_internal.penjualan.muat`

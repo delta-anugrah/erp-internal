@@ -434,7 +434,9 @@ harganya 350.000/kg". "Karungnya 1pc untuk isi 20.000".
   factor changes (`sales_order.js`), and the server sets it again on save.
 - **Mesin 14** becomes active (Samuel names it as running).
 - **Packing**: items "Plastik 35x50", "Plastik 30x45", "Karung" (group Kemasan, Buah); each Seal Cap variant gets
-  its two Packing rows from the table (bag with its pieces, sack with its pieces per sack).
+  its two Packing rows from the table (bag with its pieces, sack with its pieces per sack). Buying prices (Samuel
+  2026-11-25): both bags 500 per piece, a sack 3.500, set as each item's valuation and in `Harga Bahan Baku`, only
+  when empty.
 - **Pigment**: a `PIGMEN` variant for each Seal Cap colour that needs one (Coklat Muda, Hijau, Biru, Pink, Putih,
   Coklat), ratio 1 g per kg (Samuel 2026-11-23), price 350.000 per Kg in `Harga Bahan Baku` for every pigment
   that has no price there yet (a price already set, for example by Admin, stays); "Neutral" joins `WARNA_TANPA_PIGMEN`.

@@ -2,6 +2,16 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-25, Seal Cap packing prices
+- Samuel 2026-11-25: Plastik 35x50 and Plastik 30x45 500 per piece (both sizes the same), Karung 3.500.
+  `seal_cap.json` `harga_kemasan`; `seal_cap.muat` sets each as the item's valuation rate (when 0) and as an Item
+  Price per Buah in `Harga Bahan Baku` (when missing), so a purchase or receipt of packing starts at that price and
+  the Monthly Expenses' Kemasan row (stock value used) follows it. A price
+  Admin changed stays (`test_harga_kemasan_admin_tetap`).
+- `master.muat` on erp.localhost: first run wrote 7, second 0; the three prices and valuations are in.
+- Tests as run: `test_seal_cap` 21 OK; full run 385 (13 unit + 372 integration) OK.
+- Next: Abel's manual test from the guide; Samuel's confirmations.
+
 ## 2026-11-24, PR #11 merged; browser check of the guide
 - PR #11 (Tasks 1-16) merged into `main` as `2b4a7d0` after CI "Tes" passed on `83d5b92` and Abel's approval.
 - On erp.localhost, as run: `tools/e2e_samuel.mjs` 15/15, `tools/cek_layar.mjs` 3 users OK. A one-off browser run
