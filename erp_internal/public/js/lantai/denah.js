@@ -37,14 +37,13 @@ export const DINDING = { tinggi: 2.4 };
 // The rolling door in the right wall, to the loading dock outside x1.
 export const PINTU = { x: 30, z0: -4, z1: 2 };
 
-// Painted zones, all inside the slab and clear of the machine rows, the spare rows and the forklift's loop.
+// Painted zones, all inside the slab and clear of the machine rows, the spare rows and the forklift's loop. Only the
+// three warehouses the app keeps stock for (Abel 2026-11-25: the mould rack, grinder and QC office had no data behind
+// them and only confused people).
 export const ZONA = {
 	bahan: { x0: -29, x1: -20, z0: -12, z1: -1 }, // raw material
-	cetakan: { x0: -29, x1: -20, z0: 1, z1: 6 }, // mould rack
-	qc: { x0: -28, x1: -21, z0: 7.5, z1: 11 }, // glass QC / office box (off the aisle and the door's path)
 	jadi: { x0: 20, x1: 29, z0: -12, z1: -5 }, // finished goods
 	reject: { x0: 20, x1: 24, z0: 4, z1: 9 },
-	giling: { x0: 25, x1: 29, z0: 4, z1: 9 }, // grinder (regrind)
 };
 
 // The forklift's closed loop: raw material, the aisle z = 0, finished goods, the door. `henti` is the pause in ms.

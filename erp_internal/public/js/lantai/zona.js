@@ -1,14 +1,14 @@
 // The painted zones of the factory floor with their props and translated floor lettering (decor, fixed, not data):
 // raw material (pallets of resin sacks, a granule dryer), finished goods (pallets of crates, stacked buckets and
-// basins), reject (red bins), mould storage (a rack of mould blocks), the grinder and the glass QC office. Built from
-// code once. Each repeated prop is one InstancedMesh (pallets, sacks, crates, buckets, basins, bins), the static parts
-// are merged per material, the lettering of all six zones is one canvas atlas drawn from the translated strings and
-// redrawn only when the theme changes. Nothing is created after load; a theme change only redraws the atlas.
+// basins) and reject (red bins): the three warehouses the app keeps stock for. Built from code once. Each repeated
+// prop is one InstancedMesh (pallets, sacks, crates, buckets, basins, bins), the static parts are merged, the
+// lettering of the three zones is one canvas atlas drawn from the translated strings and redrawn only when the theme
+// changes. Nothing is created after load; a theme change only redraws the atlas.
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { ZONA } from "./denah.js";
 import { WARNA_LANTAI } from "./adegan.js";
-import { balok, datar, tabungZ, tegak, terbuang, warnai } from "./bentuk.js";
+import { balok, datar, tegak, terbuang } from "./bentuk.js";
 
 const C = {
 	kayu: 0xb08a5a,
@@ -17,9 +17,7 @@ const C = {
 	ember: [0x2f7fd0, 0xe0802a],
 	baskom: [0x2fa59a, 0xd9473d, 0xe8c030],
 	baja: 0x59636f,
-	gelap: 0x363b42,
 	merah: 0xc9362d,
-	rangka: 0xdfe3e8,
 };
 // Per theme: the lettering and its plate (hex and opacity), and `padat`, the tint that multiplies the props' vertex
 // colours (the light sacks and crates would glare on the dark floor).
@@ -44,34 +42,26 @@ const kontrasDari = (a, b) => {
 	return (x + 0.05) / (y + 0.05);
 };
 // Floor paint per zone (fill and border).
-const CAT = { bahan: 0x4d7fbf, cetakan: 0x7a8794, qc: 0x3fa5a8, jadi: 0x3fae6a, reject: 0xd9473d, giling: 0xe0902a };
+const CAT = { bahan: 0x4d7fbf, jadi: 0x3fae6a, reject: 0xd9473d };
 // The lettering, in atlas order, and its translated text. Each string is a literal __() call so the translation
 // scanner finds it.
-const HURUF = ["bahan", "jadi", "reject", "cetakan", "giling", "qc"];
+const HURUF = ["bahan", "jadi", "reject"];
 const TEKS = {
 	bahan: () => __("Raw Material"),
 	jadi: () => __("Finished Goods"),
 	reject: () => __("Reject"),
-	cetakan: () => __("Mould Storage"),
-	giling: () => __("Grinder"),
-	qc: () => __("QC Office"),
 };
 // Each plate: its width and the z of its centre (x is the zone's centre). Every plate lies on the slab at or inside
-// its zone, clear of the props: the raw material's sits between the pallets and the aisle, the QC's inside the glass
-// box beside the desk (on the box's own floor, y 0.1).
+// its zone, clear of the props: the raw material's sits between the pallets and the aisle.
 const PELAT = {
 	bahan: { lebar: 6, cz: -3.3 },
 	jadi: { lebar: 6, cz: -6.1 },
 	reject: { lebar: 3.2, cz: 8.25 },
-	cetakan: { lebar: 4.8, cz: 5.25 },
-	giling: { lebar: 3.2, cz: 8.25 },
-	qc: { lebar: 6.2, cz: 10.125, y: 0.1 },
 };
-const SEL_L = 512; // the atlas: 2 columns x 3 rows of 512x128 cells (4:1)
+const SEL_L = 512; // the atlas: 2 columns x 2 rows of 512x128 cells (4:1)
 const SEL_T = 128;
 const KOLOM = 2;
-const BARIS = 3;
-const TINGGI_QC = 2.3;
+const BARIS = 2;
 
 // --- the static parts (merged, vertex colours) ---------------------------------------------------------------------
 function dryer(g) {
@@ -83,50 +73,6 @@ function dryer(g) {
 	g.push(tegak(0.7, 0.18, 0.55, [dx, 0.15, dz], 0xa9b1ba, 18)); // discharge cone
 	g.push(tegak(0.7, 0.05, 0.3, [dx, 2.2, dz], 0xd8dde2, 18)); // hopper
 	g.push(tegak(0.07, 0.07, 1.2, [dx, 1.0, dz + 0.78], C.baja, 8)); // feed pipe
-}
-function rakCetakan(g) {
-	const z = ZONA.cetakan;
-	const x0 = z.x0 + 1;
-	const x1 = z.x1 - 1;
-	const rz = z.z0 + 1.3;
-	for (const x of [x0, (x0 + x1) / 2, x1]) for (const zz of [rz - 0.55, rz + 0.55]) g.push(balok(x - 0.05, 0, zz - 0.05, x + 0.05, 2.0, zz + 0.05, 0x2f68b4));
-	for (const y of [0.12, 0.85, 1.58]) {
-		g.push(balok(x0 - 0.05, y, rz - 0.6, x1 + 0.05, y + 0.06, rz + 0.6, 0xe0802a));
-		for (let i = 0; i < 5; i++) {
-			const cx = x0 + 0.8 + i * ((x1 - x0 - 1.6) / 4);
-			g.push(balok(cx - 0.55, y + 0.06, rz - 0.4, cx + 0.55, y + 0.06 + 0.5 + (i % 2) * 0.1, rz + 0.4, i % 2 ? 0x6c7581 : 0x8a929b)); // a mould block
-			g.push(balok(cx - 0.12, y + 0.06 + 0.5 + (i % 2) * 0.1, rz - 0.1, cx + 0.12, y + 0.14 + 0.5 + (i % 2) * 0.1, rz + 0.1, C.baja)); // its lifting eye
-		}
-	}
-	// Two moulds waiting on the floor in front (clear of the lettering plate).
-	g.push(balok(z.x0 + 2.2, 0, z.z1 - 2.2, z.x0 + 3.5, 0.55, z.z1 - 1.4, 0x6c7581));
-	g.push(balok(z.x0 + 4.2, 0, z.z1 - 2.1, z.x0 + 5.3, 0.45, z.z1 - 1.4, 0x8a929b));
-}
-function penggiling(g) {
-	const k = ZONA.giling;
-	const cx = (k.x0 + k.x1) / 2;
-	const cz = k.z0 + 2;
-	g.push(balok(cx - 1.0, 0, cz - 0.8, cx + 1.0, 1.1, cz + 0.8, 0x4a5561)); // body
-	g.push(warnai(new THREE.CylinderGeometry(0.85, 0.45, 0.7, 4).rotateY(Math.PI / 4), [cx, 1.45, cz], 0xe0902a)); // hopper
-	g.push(tabungZ(0.3, 1.0, [cx + 1.25, 0.6, cz], C.baja)); // motor
-	g.push(balok(cx - 0.45, 0, cz + 0.8, cx + 0.45, 0.55, cz + 1.7, 0xa9b1ba)); // collection bin
-	g.push(balok(cx - 0.35, 0.5, cz + 0.8, cx + 0.35, 0.58, cz + 1.6, 0x3a2f2a)); // regrind in it
-}
-// The glass QC office: frame, floor, desk with a monitor and an inspection table (the glass is its own material).
-function kotakQc(g) {
-	const q = ZONA.qc;
-	const t = TINGGI_QC;
-	for (const x of [q.x0, q.x1]) for (const z of [q.z0, q.z1]) g.push(balok(x - 0.06, 0, z - 0.06, x + 0.06, t, z + 0.06, C.rangka));
-	g.push(balok(q.x0 - 0.06, t - 0.04, q.z0 - 0.06, q.x1 + 0.06, t + 0.06, q.z0 + 0.06, C.rangka));
-	g.push(balok(q.x0 - 0.06, t - 0.04, q.z1 - 0.06, q.x1 + 0.06, t + 0.06, q.z1 + 0.06, C.rangka));
-	g.push(balok(q.x0 - 0.06, 0, q.z0 - 0.06, q.x1 + 0.06, 0.08, q.z1 + 0.06, 0xcfe6e8));
-	g.push(balok(q.x0 + 0.5, 0.7, q.z0 + 0.4, q.x0 + 2.6, 0.76, q.z0 + 1.2, 0x8a6a45)); // desk
-	g.push(balok(q.x0 + 0.5, 0, q.z0 + 0.4, q.x0 + 0.58, 0.7, q.z0 + 1.2, C.baja)); // its legs
-	g.push(balok(q.x0 + 2.52, 0, q.z0 + 0.4, q.x0 + 2.6, 0.7, q.z0 + 1.2, C.baja));
-	g.push(balok(q.x0 + 1.1, 0.76, q.z0 + 0.55, q.x0 + 1.7, 1.06, q.z0 + 0.62, C.gelap)); // monitor
-	g.push(balok(q.x0 + 1.35, 0.76, q.z0 + 0.62, q.x0 + 1.45, 0.82, q.z0 + 0.7, C.gelap));
-	g.push(balok(q.x1 - 2.4, 0.85, q.z0 + 0.6, q.x1 - 0.6, 0.9, q.z0 + 1.6, 0xa9b1ba)); // inspection table
-	for (const [a, b] of [[-2.35, 0.65], [-0.65, 0.65], [-2.35, 1.55], [-0.65, 1.55]]) g.push(balok(q.x1 + a, 0, q.z0 + b - 0.04, q.x1 + a + 0.08, 0.85, q.z0 + b + 0.04, C.baja));
 }
 
 // --- the instanced props: one shape, a list of placements ----------------------------------------------------------------
@@ -174,24 +120,9 @@ export function buatZona(adegan) {
 	// --- static solids: one merged mesh ---------------------------------------------------------------------------
 	const padat = [];
 	dryer(padat);
-	rakCetakan(padat);
-	penggiling(padat);
-	kotakQc(padat);
 	const padatGeo = gabung(padat);
 	grup.add(new THREE.Mesh(padatGeo, lambert));
 	catat(padatGeo);
-
-	// --- the glass of the QC office ---------------------------------------------------------------------------------
-	const q = ZONA.qc;
-	const sisi = (x0, z0, x1, z1) =>
-		new THREE.BoxGeometry(Math.max(x1 - x0, 0.03), TINGGI_QC - 0.1, Math.max(z1 - z0, 0.03)).translate((x0 + x1) / 2, TINGGI_QC / 2 + 0.04, (z0 + z1) / 2);
-	const kaca = [sisi(q.x0, q.z1, q.x1, q.z1), sisi(q.x0, q.z0, q.x1, q.z0), sisi(q.x0, q.z0, q.x0, q.z1), sisi(q.x1, q.z0, q.x1, q.z1)];
-	kaca.push(new THREE.BoxGeometry(q.x1 - q.x0, 0.03, q.z1 - q.z0).translate((q.x0 + q.x1) / 2, TINGGI_QC, (q.z0 + q.z1) / 2));
-	const kacaGeo = gabung(kaca);
-	const kacaMesh = new THREE.Mesh(kacaGeo, mat(new THREE.MeshLambertMaterial({ color: 0xa8d4e6, transparent: true, opacity: 0.22, depthWrite: false })));
-	kacaMesh.renderOrder = 2;
-	grup.add(kacaMesh);
-	catat(kacaGeo);
 
 	// --- instanced props ---------------------------------------------------------------------------------------------
 	const m4 = new THREE.Matrix4();
