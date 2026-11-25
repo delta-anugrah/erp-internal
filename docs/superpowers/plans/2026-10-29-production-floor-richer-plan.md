@@ -207,7 +207,9 @@ still holds). Earlier plan: `docs/superpowers/plans/2026-10-28-production-floor-
   (`test_bahasa` passes with the new rows).
 - [ ] **Step 5:** Commit `feat(lantai): raw material, finished goods, reject, mould and QC zones`.
 
-**Deviations:** shared shape helpers moved into `bentuk.js`; the office is called "QC Office".
+**Deviations:** shared shape helpers moved into `bentuk.js`; the office is called "QC Office". 2026-11-25 (Abel): the
+mould rack (`cetakan`), grinder (`giling`) and QC office (`qc`) zones were removed with their lettering; only bahan, jadi
+and reject remain (no data behind the others).
 
 ### Task 4: The simulated life layer
 

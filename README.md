@@ -418,8 +418,9 @@ test inside the image, with its own MariaDB and Redis). One job, "Tes":
   tests, and only then the push to GHCR. Bump `erp_internal/__init__.py` before tagging (`deploy/server/README.md`
   "New version").
 
-A pull request run takes about 28 min: build about 10 (cached), site and tests about 15 (the erpnext + hrms install
-is about 1.5 of it, so a database snapshot was tried and dropped). To spend few Actions minutes: no run on pushes to
+A pull request run takes about 28 min: build about 9 (frappe, erpnext and hrms cached; a commit adds only a small
+top layer), site and tests 16 to 22 (the erpnext + hrms install is about 1.5 of it, so a database snapshot was tried
+and dropped). A change to `versi.json` rebuilds the upstream stage once: about 36 min. To spend few Actions minutes: no run on pushes to
 `feat/lokal`, a newer push cancels a pull request's older run, the build cache is kept in GHCR (`:buildcache`). Run `/run-checks` locally before a
 pull request leaves draft, so CI runs once and passes. Browser checks (`cek_layar`, `lantai`, `e2e_samuel`) stay local.
 Nothing deploys by itself. The stack, backups (`cadangan.sh`) and the runbook: `deploy/server/README.md`. Locally:

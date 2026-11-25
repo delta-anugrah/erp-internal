@@ -13,7 +13,16 @@ Newest first. One entry per working session: what changed, test results as run, 
 - Checked locally (arm64): the old and new image hold the same files with the same modes, owners and symlinks
   (only the asset hashes and the unpinned `sqlglot` differ, rebuilt upstream); `deploy/check_image.sh` OK;
   `deploy/ci_tes.sh` 385 (13 unit + 372 integration) OK.
-- Next: the minutes on GitHub from this pull request's run, then README "The image".
+- On GitHub (PR #16): the first run, which built the new `upstream` stage from scratch, took 36 min (build 11.6);
+  the next, with `upstream` cached, 28 min (build 9, tests 16.6, cache upload 1). Tests vary 16-22 min by runner.
+
+## 2026-11-25, Production Floor: three decor zones removed
+- Abel: Mould Storage, the grinder and the glass QC office on the Production Floor had no data behind them and
+  confused people. `denah.ZONA` keeps bahan, jadi and reject (the warehouses the app keeps stock for); `zona.js` drops
+  the mould rack, grinder, QC box and glass, and their lettering (atlas 2 x 2); the three unused `id.csv` rows go.
+- Checked: `node --test tools/denah.test.mjs` 6 OK; `lantai.mjs zona pabrik dekor-gelap muat` OK (cases updated to
+  three strings, plates and contrasts); `test_bahasa` 6 OK; guide picture `produksi-1.png` retaken.
+- PR #15 (home cards, Settings for Super Admin) merged as `b9842f1` after a GitHub outage held the merge for an hour.
 
 ## 2026-11-25, Settings pages for Super Admin only
 - Abel: of the Settings home's 12 cards, Admin uses five (Users, Company, Opening Stock & Stock Count, Reject Reason,

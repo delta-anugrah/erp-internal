@@ -28,7 +28,7 @@
 //                a bottom sheet at 390 px wide
 //   pabrik       the decor is drawn; every machine's andon point projects inside the canvas with nothing in front of it from
 //                the default camera; Mesin 01 set to Problem has a red, pulsing floor ring (restored after)
-//   zona         the zones' props and floor lettering: the six strings in English and (user switched) Indonesian, every
+//   zona         the zones' props and floor lettering: the three strings in English and (user switched) Indonesian, every
 //                lettering plate on the slab and at its zone, building + zones <= 100 calls / 250k triangles, 20 status
 //                changes grow no geometry, texture or program (language switched back after)
 //   status       the Problem button: spinner and disabled until the answer, the server's status (get_value), the
@@ -1064,7 +1064,7 @@ if (jalankan("dekor-gelap")) await kasus("dekor-gelap", async () => {
 		cek(a && g && terang(g) < terang(a) * 0.8, `dekor-gelap: zona props light ${a} dark ${g}`);
 		for (const [nm, i] of [["light", terangTema], ["dark", gelap]]) {
 			const kon = i.zona?.kontras || {};
-			cek(Object.keys(kon).length === 6, `dekor-gelap: ${nm} contrast for ${Object.keys(kon).length} zones`);
+			cek(Object.keys(kon).length === 3, `dekor-gelap: ${nm} contrast for ${Object.keys(kon).length} zones`);
 			for (const [z, r] of Object.entries(kon)) cek(r >= 3, `dekor-gelap: ${nm} lettering of ${z} has ${Number(r).toFixed(2)}:1 against its zone (need 3:1)`);
 		}
 		await p.waitForTimeout(500);
@@ -1465,8 +1465,8 @@ if (jalankan("pabrik")) await kasus("pabrik", async () => {
 // --- zona: the zones' props and floor lettering, English and Indonesian, the budget, nothing new after load ----------
 if (jalankan("zona")) await kasus("zona", async () => {
 	const ctx = await konteksMasuk(browser);
-	const ENGLISH = ["Raw Material", "Finished Goods", "Reject", "Mould Storage", "Grinder", "QC Office"];
-	const INDONESIA = ["Bahan Baku", "Barang Jadi", "Reject", "Gudang Cetakan", "Penggiling", "QC / Kantor"];
+	const ENGLISH = ["Raw Material", "Finished Goods", "Reject"];
+	const INDONESIA = ["Bahan Baku", "Barang Jadi", "Reject"];
 	let p = await bukaLantai(ctx);
 	try {
 		await p.waitForTimeout(1200);
@@ -1484,7 +1484,7 @@ if (jalankan("zona")) await kasus("zona", async () => {
 			cek(k.x0 >= SLAB.x0 && k.x1 <= SLAB.x1 && k.z0 >= SLAB.z0 && k.z1 <= SLAB.z1, `zona: the ${nama} lettering leaves the slab ${JSON.stringify(k)}`);
 			cek(k.x0 >= z.x0 - 0.01 && k.x1 <= z.x1 + 0.01 && k.z1 > z.z0 && k.z0 < z.z1 + 0.5 && k.z0 >= z.z0 - 0.01, `zona: the ${nama} lettering is not at its zone ${JSON.stringify(k)}`);
 		}
-		cek(Object.keys(i.zona?.pelat || {}).length === 6, `zona: ${Object.keys(i.zona?.pelat || {}).length} lettering plates`);
+		cek(Object.keys(i.zona?.pelat || {}).length === 3, `zona: ${Object.keys(i.zona?.pelat || {}).length} lettering plates`);
 		// 20 status changes grow no geometry, texture or program.
 		const m = await p.evaluate(async () => {
 			const nilai = () => {
