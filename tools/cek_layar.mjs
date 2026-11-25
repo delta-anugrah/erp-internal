@@ -259,20 +259,31 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 		}
 	}
 	// Every module home on this user's rail: shortcuts only (no link card, number card, chart or onboarding),
-	// and short. Screenshots: <profile>-home-<module>.png.
+	// each a card with its icon and line (pintasan.js falls back silently, so it is counted here), and short.
+	// Screenshots: <profile>-home-<module>.png.
 	for (const modul of harap.modul) {
 		await page.evaluate((ws) => frappe.set_route("Workspaces", ws), RUMAH[modul] || modul);
 		await page.waitForLoadState("networkidle");
 		await page.waitForTimeout(800);
 		await page.screenshot({ path: join(HASIL, `${slug(profil)}-home-${slug(modul)}.png`), fullPage: true });
-		const { pintasan, lain } = await page.evaluate(() => {
+		const { pintasan, lain, polos } = await page.evaluate(() => {
 			const w = [...document.querySelectorAll(".layout-main-section .widget")].filter((e) => e.offsetParent);
+			const p = w.filter((e) => e.classList.contains("shortcut-widget-box"));
 			return {
-				pintasan: w.filter((e) => e.classList.contains("shortcut-widget-box")).length,
-				lain: w.filter((e) => !e.classList.contains("shortcut-widget-box")).length,
+				pintasan: p.length,
+				lain: w.length - p.length,
+				polos: p
+					.filter(
+						(e) =>
+							!e.classList.contains("erp-kartu") ||
+							!e.querySelector(".erp-kartu-ikon") ||
+							!e.querySelector(".widget-subtitle")?.textContent.trim()
+					)
+					.map((e) => e.getAttribute("aria-label")),
 			};
 		});
 		cek(pintasan > 0 && pintasan <= PINTASAN_MAKS && lain === 0, `home ${modul}: ${pintasan} shortcuts, ${lain} other widgets`);
+		cek(polos.length === 0, `home ${modul}: shortcuts without their icon or line [${polos}]`);
 		// The menu opens on the module whose home this is.
 		const buka = await page.evaluate(() =>
 			[...document.querySelectorAll(".section-item")]

@@ -2,8 +2,8 @@
 
 Untuk **Admin**. Admin melihat hasil produksi yang dicatat Produksi (`user.md`; mengisinya tidak bisa), dan
 mengerjakan: perintah produksi (Work Order), surat jalan dan bahan masuk (`gudang.md`), barang, pemasok, resep
-(BOM), stok awal dan stok opname, HR, akun pengguna, pengaturan usaha, dan data yang belum lengkap. Akun pengguna,
-stok awal dan opname, pengaturan, dan laporan data yang belum lengkap ada di menu **Settings** di kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
+(BOM), stok awal dan stok opname, HR, akun pengguna, data perusahaan, dan data yang belum lengkap. Akun pengguna,
+Company, stok awal dan opname, Reject Reason, dan laporan data yang belum lengkap ada di menu **Settings** di kiri; barang, pemasok dan BOM di modulnya (Stock, Buying,
 Manufacturing); HR di menu **HR**.
 
 Ada tiga peran (**Role Profile**):
@@ -11,8 +11,8 @@ Ada tiga peran (**Role Profile**):
 | Peran | Untuk siapa | Bisa |
 |---|---|---|
 | **Produksi** | orang pabrik | cuma mencatat hasil produksi dan status mesin; lihat Work Order, Machine Capacity, Plan vs Actual (`user.md`) |
-| **Admin** | pemilik dan kepala | lihat hasil produksi; Work Order, BOM, stok, surat jalan, data induk, penjualan, pembelian, proyek, HR, akun pengguna, pengaturan usaha |
-| **Super Admin** | tim IT | semuanya kecuali modul yang dikunci, termasuk Build, System Settings, dan **Finish** di Work Order |
+| **Admin** | pemilik dan kepala | lihat hasil produksi; Work Order, BOM, stok, surat jalan, data induk, penjualan, pembelian, proyek, HR, akun pengguna, Company |
+| **Super Admin** | tim IT | semuanya kecuali modul yang dikunci, termasuk Build, System Settings, halaman pengaturan usaha (Stock/Selling/Buying/... Settings), dan **Finish** di Work Order |
 
 Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
@@ -142,10 +142,13 @@ bisa diubah Admin ("Only a Super Admin can change this account").
 
 ## Pengaturan usaha
 
-Di **Settings**: **Company**, **Opening Stock & Stock Count** (Stock Reconciliation: stok awal dan stok
-opname, `docs/panduan/gudang.md`), **Stock Settings**, **Selling Settings**, **Buying Settings**, **Manufacturing
-Settings**, **Accounts Settings**, **Projects Settings**, **HR Settings**, dan laporan **Missing Data** (di atas). Ubah hanya kalau tahu akibatnya; sistem
-sudah diatur (pesanan dulu baru terima barang (pembelian); surat jalan boleh langsung; stok tidak boleh minus) dan setelan itu dipasang lagi tiap
-pembaruan.
+Di **Settings**: **Users**, **Company**, **Opening Stock & Stock Count** (Stock Reconciliation: stok awal dan stok
+opname, `docs/panduan/gudang.md`), **Reject Reason**, dan laporan **Missing Data** (di atas).
+
+Halaman pengaturan usaha (**Stock Settings**, **Selling Settings**, **Buying Settings**, **Manufacturing Settings**,
+**Accounts Settings**, **Projects Settings**, **HR Settings**) cuma muncul di menu Super Admin. Sistem sudah diatur
+(pesanan dulu baru terima barang (pembelian); surat jalan boleh langsung; stok tidak boleh minus; produksi boleh
+lebih 10 %) dan setelan itu dipasang lagi tiap pembaruan, jadi perubahan di sana bisa balik sendiri. Perlu
+mengubahnya? Minta ke Super Admin.
 
 Perusahaan tidak PKP: template PPN ada, tapi tidak dipakai bawaan. Faktur hanya untuk mencatat.

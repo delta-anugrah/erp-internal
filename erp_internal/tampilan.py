@@ -493,6 +493,77 @@ PINTASAN = {
 RUMAH_SENDIRI = {"Shift & Attendance": "HR"}
 BLOK_TETAP = ()  # base Workspace blocks kept below the shortcuts: none (Samuel, 2026-10-28: homes kept short)
 KOLOM_PINTASAN = ("type", "link_to", "doc_view", "label", "stats_filter", "format", "color")
+# Settings pages only Super Admin sees in the menu and on the Settings home (Abel 2026-11-25): set once at setup,
+# several fields rewritten by `setup` on every migrate, so an Admin's change there would quietly come back. Hidden
+# for users without System Manager (`menu_samping` drops them from the boot sidebars, `pintasan.js` from the home
+# through `erp_sembunyi`); DocPerms are unchanged, so forms that read these settings keep working.
+KHUSUS_SUPER_ADMIN = (
+	"Stock Settings",
+	"Selling Settings",
+	"Buying Settings",
+	"Manufacturing Settings",
+	"Accounts Settings",
+	"Projects Settings",
+	"HR Settings",
+)
+# Shortcut target → the one line under its title on the module homes (Abel 2026-11-25: bigger cards with an icon
+# and a short explanation). Sent in `erp_pintasan` with the link's sidebar icon; `public/js/pintasan.js` draws them.
+KETERANGAN = {
+	"Stock Entry": "Goods in and moves between warehouses",
+	"Delivery Note": "Goods sent to customers",
+	"Item": "Products, materials and packing",
+	"Brand": "Brand codes and their inserts",
+	"Warehouse": "The factory and Pluit warehouses",
+	"Stock Balance": "Stock per item and warehouse",
+	"Stock Ledger": "Every stock movement",
+	"Missing Documents": "Documents without a photo yet",
+	"Customer": "Your customers",
+	"Sales Order": "Customer orders",
+	"Sales Invoice": "Bills to customers",
+	"Payment Entry": "Money in and out",
+	"Sales History": "Monthly sales per item",
+	"Supplier": "Your suppliers",
+	"Material Request": "Materials to buy",
+	"Purchase Order": "Orders to suppliers",
+	"Purchase Receipt": "Goods received from suppliers",
+	"Purchase Invoice": "Bills from suppliers",
+	"Expense Entry": "Wages, electricity and other costs",
+	"Monthly Expenses": "All costs of a month",
+	"production-floor": "Live view of every machine",
+	"Work Order": "What to make, on which machine",
+	"daily-input": "Output per shift, like the Excel sheet",
+	"Plan vs Actual": "Target against output",
+	"Machine Capacity": "Speed and material per machine",
+	"Master Production Schedule": "Production plan per month",
+	"Material Requirements Planning Report": "Materials the plan needs",
+	"Order Readiness": "Can each order ship on time",
+	"BOM": "The recipe of each product",
+	"Sales Forecast": "Expected sales",
+	"Item Lead Time": "Days to make or buy an item",
+	"Project": "Office projects",
+	"Task": "Tasks given to you",
+	"Timesheet": "Hours worked on projects",
+	"Employee": "Staff records",
+	"Employee Checkin": "Clock in and out",
+	"Attendance": "Who came in",
+	"Leave Application": "Ask for leave",
+	"Shift Type": "Working hours",
+	"Shift Assignment": "Who works which shift",
+	"Holiday List": "Days off",
+	"Leave Allocation": "Leave days given",
+	"User": "Accounts and roles",
+	"Company": "Company details and logo",
+	"Stock Reconciliation": "Opening stock and stock counts",
+	"Stock Settings": "Stock options",
+	"Selling Settings": "Selling options",
+	"Buying Settings": "Buying options",
+	"Manufacturing Settings": "Production options",
+	"Reject Reason": "Why pieces are rejected",
+	"Accounts Settings": "Accounting options",
+	"Projects Settings": "Project options",
+	"HR Settings": "HR options",
+	"Missing Data": "Data still to fill in",
+}
 
 # DocType → fields and sections of features not in use, hidden by Property Setter: accounting dimensions
 # (cost center, project on factory documents), website, loyalty, sales team and commission, coupons,
@@ -694,6 +765,11 @@ def menu_samping(bootinfo) -> None:
 	user's boot (blocked, or nothing they can open) is skipped. Boot must never fail."""
 	try:
 		sidebars = bootinfo.get("module_sidebars") or {}
+		sembunyi = () if "System Manager" in frappe.get_roles() else KHUSUS_SUPER_ADMIN
+		bootinfo.erp_sembunyi = list(sembunyi)
+		for s in sidebars.values():
+			if s and s.get("items") and sembunyi:
+				s["items"] = [i for i in s["items"] if i.get("link_to") not in sembunyi]
 		bootinfo.erp_menu = [
 			{"shell": shell, "label": LABEL.get(shell, shell), "icon": IKON_MODUL[shell]}
 			for shell in IKON
@@ -708,6 +784,15 @@ def menu_samping(bootinfo) -> None:
 			for i in (sidebars.get(m["shell"]) or {}).get("items") or []
 		}
 		bootinfo.erp_menu_atas = [t for t in MENU_ATAS if t in ada]
+		# The home cards' icon (the link's sidebar icon, so card and sidebar match; a link can sit in several
+		# sidebars, Super Admin also sees Planning's bare one, so the first icon found wins) and line (KETERANGAN).
+		kartu = {}
+		for s in sidebars.values():
+			for i in (s or {}).get("items") or []:
+				link = i.get("link_to")
+				if i.get("type") == "Link" and link and not (kartu.get(link) or {}).get("icon"):
+					kartu[link] = {"icon": i.get("icon") or IKON_LINK.get(link), "ket": KETERANGAN.get(link)}
+		bootinfo.erp_pintasan = kartu
 	except Exception:
 		frappe.log_error("erp_internal: menu_samping")
 

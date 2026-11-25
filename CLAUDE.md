@@ -6,7 +6,7 @@ ERP Internal: a custom Frappe app (`erp_internal`) on ERPNext v16 + HRMS v16 for
 (Samuel, 2026-10-28). Plain ERPNext showing only the modules in use, nothing from BPT.
 
 Status 2026-11-24: every code task (1-6, 4b, 9-13, 15, 16, `contoh.py`) runs on the dev sites, redone for one
-company and three roles (plan "Revision 4"): 385 tests (13 unit + 372 integration, 2026-11-25 after the Seal Cap packing prices), all OK; `run-tests --app erp_internal`, incl. `test_seal_cap`, `test_kelengkapan`, `test_modul_mati`, `test_versi`, `test_peran`, `test_input_harian`, `test_biaya`, `test_lampiran`, `test_cetak`, `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (2026-11-24, Produksi with Manufacturing only; shortcut-only homes, at most 12 each), `lantai.mjs` all cases OK (2026-11-24, rerun after Mesin 14 became active; perf of 2026-11-23: 60.0 fps, 0 frames over 25 ms; `strip` opens an existing Work Order, since Produksi may not make one), sample
+company and three roles (plan "Revision 4"): 386 tests (13 unit + 373 integration, 2026-11-25 after the module home cards), all OK; `run-tests --app erp_internal`, incl. `test_seal_cap`, `test_kelengkapan`, `test_modul_mati`, `test_versi`, `test_peran`, `test_input_harian`, `test_biaya`, `test_lampiran`, `test_cetak`, `test_mesin_barang`, `test_production_floor`, `test_kapasitas`, `test_hasil_produksi`, `test_plan_vs_actual`), `cek_layar` 3 users OK (2026-11-25, Produksi with Manufacturing only; card homes (icon + line), shortcuts only, at most 12 each), `lantai.mjs` all cases OK (2026-11-24, rerun after Mesin 14 became active; perf of 2026-11-23: 60.0 fps, 0 frames over 25 ms; `strip` opens an existing Work Order, since Produksi may not make one), sample
 data and guide screenshots on `erp.localhost`, local dry runs of the go-live tasks 8, 14 and 17 done (results in
 the plan). Task 7's compose boot, backup and restore drill ran locally 2026-10-31 (`make setup`). Root `Makefile`: `make setup` once, then `make up` (= `start-local`), runs the same stack locally with only Docker and Samuel's real data (README "Run it on your computer"). Open: the DigitalOcean server and the
 real go-live with Samuel, and the first tag (Abel's approval; Tasks 1-16 merged to `main` in PR #11, 2026-11-24)
@@ -97,7 +97,9 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - Three Role Profiles (`tampilan.PROFIL_PERAN`): Produksi (was User; Samuel 2026-11-23: our role `ERP User` only;
   creates only Production Entry, sets a machine's status, reads Work Order, Workstation, Machine Capacity, Reject
   Reason, Company and Plan vs Actual; menu Manufacturing only; `test_peran`), Admin (manager roles, Work Orders,
-  BOMs, stock, delivery notes, users, business settings under the Settings menu header; role `ERP Admin`; views
+  BOMs, stock, delivery notes, users, Company, opening stock, reject reasons and Missing Data under the Settings menu
+  header (the business settings pages, `tampilan.KHUSUS_SUPER_ADMIN`, are Super Admin's menu only, Abel
+  2026-11-25); role `ERP Admin`; views
   Production Entry, never changes it), Super Admin (was Developer: Admin plus
   System Manager; its Module Profile blocks only `MODUL_MATI`). `patches/profil_tiga.py` renamed the old User,
   Admin and Developer profiles (`NAMA_LAMA`), keeping their users. Produksi does not see a Work Order's material
@@ -126,7 +128,9 @@ Workflow skill: `/setup-bench` (`.claude/skills/setup-bench/SKILL.md`).
 - `tampilan.saring_aplikasi` (`extend_bootinfo`) hides an Apps screen tile with nothing in that user's modules (the Dock layer, `IKON`); it
   must never fail boot. `tampilan.menu_samping` (`extend_bootinfo`) sends `erp_menu`, the user's modules in `IKON`
   order with `IKON_MODUL` icons, which `public/js/menu_samping.js` turns into one labelled, collapsible menu on ERP and
-  HR pages instead of the icon rail (Abel 2026-11-03; `.claude/rules/tampilan.md`). `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
+  HR pages instead of the icon rail (Abel 2026-11-03; `.claude/rules/tampilan.md`), and `erp_pintasan` (link → its
+  sidebar icon, the first non-empty one across the user's sidebars, else `IKON_LINK`, and its `KETERANGAN` line), which `public/js/pintasan.js` adds to each module home shortcut, drawn as a
+  taller card (`.erp-kartu`, Abel 2026-11-25). `hooks.py` `before_tests` completes the test site's wizard (`tests.utils.sebelum_tes`).
 - `erp_internal/proyek.py`: Timesheet `before_submit` (hooks.py `doc_events`) lets only Admin and Super Admin
   (`PERAN_ATASAN`) submit someone else's timesheet; `setup.IZIN_TAMBAHAN` gives Employee `submit`, and `ERP User` read on Workstation, Work Order and Company;
   `setup.IZIN_DICABUT` (`_cabut_izin`) clears exactly the old User's listed rights (Price List, Account, Stock Settings, Customer Group), deleting a row only when none is left.
