@@ -2,6 +2,20 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-25, CI: smaller image layer per commit
+- PR #14's run took 35 min: tests 19, build 11.5, cache upload 1.8, disk cleanup 1.7. In the build, the last
+  `chmod -R g=u` and the one `COPY` of the whole bench made every commit a new 2.78 GB layer to copy, load and
+  upload to the GHCR cache.
+- `deploy/Containerfile`: stage `upstream` (frappe, erpnext, hrms, their `.git` gone, `chmod -R g=u`) stays cached;
+  stage `builder` puts only what the erp_internal step wrote (files newer than a marker, plus `apps/erp_internal`)
+  in `/tmp/lapis`; the image copies the upstream bench, then `/tmp/lapis`. Per commit: 39 MB + 67 MB (the assets
+  copy) instead of 2.78 GB.
+- Checked locally (arm64): the old and new image hold the same files with the same modes, owners and symlinks
+  (only the asset hashes and the unpinned `sqlglot` differ, rebuilt upstream); `deploy/check_image.sh` OK;
+  `deploy/ci_tes.sh` 385 (13 unit + 372 integration) OK.
+- On GitHub (PR #16): the first run, which built the new `upstream` stage from scratch, took 36 min (build 11.6);
+  the next, with `upstream` cached, 28 min (build 9, tests 16.6, cache upload 1). Tests vary 16-22 min by runner.
+
 ## 2026-11-25, Production Floor: three decor zones removed
 - Abel: Mould Storage, the grinder and the glass QC office on the Production Floor had no data behind them and
   confused people. `denah.ZONA` keeps bahan, jadi and reject (the warehouses the app keeps stock for); `zona.js` drops
