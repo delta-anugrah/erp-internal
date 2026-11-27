@@ -414,3 +414,19 @@ a.erp-perbaiki {
 		padding: 12px 14px;
 	}
 }
+
+/* A report's row number column: the datatable sizes it from the row count in the body font plus 22 px, but the
+   cell has 8 px padding on each side in a 14 px font, so from row 10 the number shows as "4..." (Abel 2026-11-26).
+   Less padding there gives the digits the room. */
+.page-container[data-page-route="query-report"] .dt-cell__content--col-0,
+.page-container[data-page-route="query-report"] .dt-cell__content--header-0 {
+	padding-left: 3px;
+	padding-right: 3px;
+	text-overflow: clip;
+}
+
+/* Order Readiness' Stock cell (Abel 2026-11-27): red at 0 or less, orange under Safety Stock, green otherwise. */
+.erp-stok { font-weight: 600; }
+.erp-stok-red { color: var(--red-600); }
+.erp-stok-orange { color: var(--orange-600); }
+.erp-stok-green { color: var(--green-600); }

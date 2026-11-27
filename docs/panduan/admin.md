@@ -126,14 +126,23 @@ laporan, filter **Item** menyaring ke satu barang dan variannya.
 
 ### Tambah orang
 1. **Settings → Users → + Add User**.
-2. Isi **Email** dan **First Name**, lalu **Role Profiles**: `Produksi` atau `Admin`. **Save**.
+2. Isi **Email** dan **First Name**, lalu **Role Profiles**: `Produksi` atau `Admin`, dan **Set New Password**:
+   sandi pertamanya (beri tahu orangnya langsung, jangan lewat grup). Selama server belum punya email, wajib diisi:
+   tanpa sandi orangnya tidak bisa masuk, dan email selamat datang tidak dikirim. **Save**.
 3. Di formnya: **Module Profile** sama dengan perannya (`Produksi` atau `Admin`). **Save**.
 4. Kalau dia ikut absen: buat **Employee** dengan **User ID** = email ini (`docs/panduan/absen.md`, Karyawan baru).
 
 ### Nonaktifkan atau ganti sandi
 - Keluar kerja: buka usernya, hilangkan centang **Enabled**, **Save**. Datanya tetap ada.
-- Lupa sandi: buka usernya, **Password → Reset Password** (link dikirim ke email), atau isi **Set New Password**
-  di bagian Change Password, lalu **Save**.
+- Lupa sandi: buka usernya, **Password → Change Password**, ketik sandi baru, lalu beri tahu orangnya langsung.
+  Halaman login menulis "Lupa password? Minta Admin untuk mengganti password Anda." Selama server belum punya email,
+  semua yang butuh email disembunyikan: **Reset Password**, **Send Welcome Email**, **Create User Email**, tombol
+  **Email** di form, Activity dan print, "Login with Email Link". Begitu Super Admin memasang Email Account sebagai
+  Default Outgoing, semuanya muncul lagi sendiri.
+- Semua tidak bisa masuk (sandi Administrator juga lupa), atau sandi akun Super Admin perlu diganti oleh yang bukan
+  Super Admin: di komputer atau server jalankan `make akun`, centang peran akunnya (Administrator, Super Admin,
+  Admin atau Produksi), ketik emailnya (Administrator cukup sandinya) dan sandi baru. Akun yang sudah ada harus dicentang di perannya sendiri;
+  peran lain ditolak, jadi akun tidak pernah turun atau naik peran karena salah centang.
 
 ### Yang tidak bisa
 Admin hanya bisa memberi peran **Produksi** atau **Admin**. Peran **Super Admin**, **System Manager**, atau peran lain

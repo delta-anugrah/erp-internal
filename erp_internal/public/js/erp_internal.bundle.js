@@ -1,7 +1,7 @@
 // Desk-wide behaviour of erp_internal (app_include_js): full width by default, the language switch, the menu
 // (menu_samping.js), the app version in the Settings dialog (versi.js) and the "attach the real document" note
 // on forms (lampiran.js), the missing data notes with their fix links (kelengkapan.js) and the module home
-// cards' icon and line (pintasan.js).
+// cards' icon and line (pintasan.js), whole numbers without decimals and the report filter row's "Search…" (angka.js), the whole text of a cut-off "..." on hover (judul_penuh.js), and no Email buttons while there is no outgoing email (surel.js).
 //
 // The language switch itself is two user-menu rows from `standard_navbar_items` in hooks.py, shown by
 // `frappe.boot.lang`; their action calls `erp_internal.ganti_bahasa` below.
@@ -11,6 +11,9 @@ import "./versi";
 import "./lampiran";
 import "./kelengkapan";
 import "./pintasan";
+import "./angka";
+import "./judul_penuh";
+import "./surel"; // no outgoing email: no Email buttons (erp_internal/surel.py)
 
 frappe.provide("erp_internal");
 

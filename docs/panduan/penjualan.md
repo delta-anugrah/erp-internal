@@ -17,7 +17,7 @@ Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok k
    menampilkan catatan oranye ("Line 1: ... has no selling price.") dengan link **Add a selling price** yang
    langsung membuka harga baru untuk barang itu (`admin.md` "Data belum lengkap").
    Kalau pelanggan pesan per karton, pilih **UOM** `Karton`; sistem menghitung isinya sendiri.
-   **Seal Cap** (pelanggan PT. Empat Putra Pangestu): pilih juga **Machine** di baris itu. Harganya ikut mesin:
+   **Seal Cap** (pelanggan PT. Empat Putra Pangestu): pilih juga **Machine** di baris itu (daftarnya hanya Mesin 04 dan Mesin 14). Harganya ikut mesin:
    Mesin 04 = Rp24, Mesin 14 = Rp23 per pcs, terisi sendiri begitu mesinnya dipilih (dan dihitung ulang saat
    Save). Baris Seal Cap tanpa mesin ditolak saat Save ("pick the machine, the price follows it"). Diskon atau
    margin per baris tidak berlaku untuk Seal Cap (dihapus saat Save); kalau perlu potongan, isi diskon di level

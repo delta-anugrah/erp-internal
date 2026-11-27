@@ -207,7 +207,7 @@ not belong to company", akunmu tidak boleh buka company atau gudang itu.
 
 | Kolom | Artinya |
 |---|---|
-| Stock | stok di Gudang Barang Jadi + Gudang Pluit (kalau gudang tidak dipilih) |
+| Stock | stok di Gudang Barang Jadi + Gudang Pluit (kalau gudang tidak dipilih); angkanya merah kalau 0 atau kurang, oranye kalau di bawah Safety Stock, hijau kalau aman |
 | Open Orders | pesanan yang belum dikirim |
 | Forecast This Month | angka perkiraan bulan ini |
 | Ordered This Month | yang sudah dipesan bulan ini |
