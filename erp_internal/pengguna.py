@@ -36,7 +36,7 @@ def terlarang(peran) -> set[str]:
 
 def dilindungi(user: str) -> bool:
 	"""Whether the stored account `user` is out of an Admin's reach: a standard user, or one holding a role
-	outside the Admin and User profiles."""
+	outside the Admin and Produksi profiles."""
 	if user in frappe.STANDARD_USERS:
 		return True
 	return bool(terlarang(frappe.get_all("Has Role", {"parenttype": "User", "parent": user}, pluck="role")))
