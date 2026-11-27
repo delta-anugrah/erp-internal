@@ -332,3 +332,7 @@ row → `deploy/server/akun.sh`, `tools/setup_lokal.sh`, `wizard.py`; Commands b
   editing on (its Backspace could not erase the filled-in text): `tanya_isi` sets `-icanon` itself and restores the
   saved mode; the EXIT trap also restores `icanon`. Driven through a pty with `/bin/bash` 3.2: Enter, Backspace,
   Ctrl+U, an empty answer asked again, arrows ignored, the mode restored.
+- 2026-11-25 (Abel): `make akun` (root: `setup_lokal.sh --akun`; server: `setup.sh --akun`, both only after `siap`,
+  after a ping) runs `tanya_akun --ubah`: nothing ticked, Enter waits for one tick, Administrator optional (no
+  `Administrator` key in `ERP_AKUN` when unticked, so `akun.buat` leaves its password). `akun.buat` refuses an
+  existing account typed under another role. The `.akun-siap` marker still keeps `make setup` from asking again.

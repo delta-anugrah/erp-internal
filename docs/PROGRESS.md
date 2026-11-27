@@ -2,6 +2,117 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-27, no email yet, passwords in the app, ./cadangan owner (uncommitted)
+- Abel: the server has no outgoing email (Resend postponed). `erp_internal/surel.py` + `public/js/surel.js` +
+  `public/js/user.js`: while no Email Account is the enabled Default Outgoing (nor site config `mail_server`),
+  boot `erp_tanpa_email` hides the form menu's Email, the Activity's New Email, the print view's Email, the User
+  form's Reset Password, Create User Email and Send Welcome Email; the login page says "Forgot password? Ask an Admin
+  to change your password." (id: "Lupa password? Minta Admin ...") and has no "Login with Email Link"; a new User
+  gets `send_welcome_email` 0. An Email Account brings it all back, no code change.
+- Passwords without email: the New User dialog's Set New Password and Password > Change Password. Frappe's
+  `change_password` already checks User write, so an Admin changes Admin and Produksi passwords and `pengguna.py`
+  keeps refusing Super Admin and Administrator: now tested.
+- `deploy/server/Makefile` `check` makes `./cadangan` first, as the running user, and refuses one owned by someone
+  else: Docker on Linux made the `tools` mount source as root, and `cadangan.sh` failed at `chmod 700`. The v0.0.1
+  server needs `sudo chown -R deploy: cadangan` once (deploy/server/README.md "Backup and restore").
+- Tests: `test_surel` 6 OK (new), `test_pengguna` 12 OK (new `test_admin_ganti_sandi`), `test_versi` 4, `test_bahasa`
+  6, `test_akun` 4 OK. `cek_layar` 3 users OK with the new checks (login; print view and a Produksi user's form at
+  1440/768/390 px). Login at 390 and 768 px by hand: the ask-an-Admin line, no Email Link, no sideways scroll.
+  `make check` in a scratch folder made `./cadangan` (the refusal branch not run: no root-owned folder here).
+- /run-checks before the PR: `run-tests --app erp_internal` 398 tests (13 unit + 385 integration) OK in 1156 s;
+  `ruff@0.17.6` check and format OK (109 files); `bash -n` on every deploy and tools script OK; shellcheck only the old
+  SC1091 notes on setup.sh's `source` lines; `make -n setup-local` and `make -C deploy/server -n langkah` read right.
+  Docs also now say production runs at `erp-delta.usaha.ai` (Cloudflare DNS only, abbreviation `DA`), `v0.0.1`
+  released 2026-11-26.
+- Seen, not changed: the System app rail (print view, Users) still shows Frappe's envelope icon (the email inbox
+  module) and the Users sidebar lists User Invitation (it mails an invite).
+
+## 2026-11-27, password in the New User dialog, version 0.0.2 (uncommitted)
+- Abel: the New User dialog now asks for Set New Password (`setup.TATA_FORM` key `cepat`: Property Setters
+  `hidden` 0 and `allow_in_quick_entry` 1 on User `new_password`, written only when they differ). The full form is
+  unchanged: the field stays in its hidden Change Password section. `pengguna.cek_user` still refuses a password
+  set on a Super Admin's account, through the form and past the permission check.
+- `erp_internal.__version__` 0.0.2 for the tag `v0.0.2`, after the next PR is merged (the server runs `v0.0.1`).
+- Tests: `test_pengguna` 11 OK (new `test_sandi_di_user_baru`: dialog field, an Admin's new Produksi account with
+  its password through `frappe.client.insert`, a Super Admin's password refused by `save(ignore_permissions)` and
+  `frappe.client.save`), `test_alur_jual_beli.test_tata_form` OK (also checks `cepat`; a rerun writes nothing).
+  Browser as Admin on erp.localhost: the dialog shows Email, First Name, Role Profiles, Set New Password at 1440,
+  768 and 390 px, no page error; on the user@ and developer@ forms the field stays hidden.
+
+## 2026-11-27 night, Admin video round 2 (uncommitted)
+- Abel on the Admin take: "20.000,000" for a qty of 20000 (float precision 3) read as twenty million;
+  `public/js/angka.js` shows a whole Float as "20.000" in inputs and report cells, fractions keep their decimals,
+  Currency untouched. The grey row under a report's header is Frappe's per-column filter: now says "Cari…".
+- The Purchase Receipt list was empty (no purchases in the sample): `contoh._beli` adds one Purchase Order of
+  CTH-BIJI-PP and its receipt, both attached.
+- "Stoknya langsung bertambah/berkurang" was said but never shown: rows 17 and 21 now open View > Stock Ledger
+  (`bukuStok`, `selLaporan`) and point at In Qty / Balance Qty / Out Qty. "In Qty" translated "Kuantitas Masuk"
+  (ERPNext's own: "Dalam Qty").
+- Warehouses: Samuel's words "pilih gudang pabrik atau pluit setiap mau kirim" (spec 2026-11-23): finished goods in
+  two places; Bahan Baku, Produksi and Reject are the factory's internal ones.
+- Report row-number column (2026-11-26): `erp_internal.css` narrows its padding to 3 px ("45" was cut to "4...").
+- As run: `buat_contoh` on erp.localhost (Purchase Order 1, Purchase Receipt 1), `bench build`, browser probe of
+  `angka.js` ("20.000", "0,880", report "240", "Cari…" placeholders, Stock Ledger from the receipt),
+  `test_bahasa` 6 OK, `test_seal_cap` 22 OK, `test_contoh` 9 OK; full run-tests not run yet.
+- Round 3 (Abel: "ampir perfect"): a header cut to "..." shows its whole name on hover (`judul_penuh.js`, probed on
+  Stock Ledger: 7 headers got their title); `rekam_demo.ketik` waits 1 s after the click before typing; row 3 of
+  `ringkas-admin.md` now points at Proyek, SDM and Pengaturan (SDM and Pengaturan in the Lengkap videos, Proyek not
+  used in the factory). Admin video re-recorded.
+- Abel after round 3: `id.csv` "Home" → "Beranda" (Frappe's own: "Rumah"); Order Readiness' Stock cell coloured
+  (`.erp-stok-*`: red at 0 or less, orange under Safety Stock, green otherwise; Abel picked 3 colours on the item's
+  Safety Stock); `setup.TATA_FORM` / `_tata_form` tidies forms, Sales Order first (`order_type`, `is_subcontracted`
+  hidden, `delivery_date` after `column_break1`: Customer | Date | Delivery Date). The other forms: audit running,
+  before/after to Abel, who approved all 12 and hiding debit notes, TDS, transit and alternative items; applied
+  (`TATA_FORM`, 15 DocTypes, Machine Capacity column break in its JSON). As run: `test_alur_jual_beli` 7 OK (incl. `test_tata_form`), browser probe
+  (Order Readiness 53 red, 1 green; Sales Order one row; `__("Home")` = Beranda in id). `test_kapasitas` 13 OK, every TATA_FORM
+  entry checked on erp.localhost, after-screenshots of 18 forms; guide pictures penjualan-1..3, pembelian-2..3,
+  gudang-1 retaken.
+- A form no sidebar lists opened under Frappe's `canonical_shell` guess (Production Entry under Build for Produksi):
+  `tampilan.SHELL_DOKUMEN` overrides it in `menu_samping` (asserts in `test_tampilan`, not run in this session).
+
+## 2026-11-26 evening, guide videos: Abel's feedback on the two Ringkas takes (uncommitted)
+- Lag on the Production Floor: the laptop was swapped out (13.3 of 14 GB swap, load 73); the recorder also drew at
+  2x though headless Chromium's screencast always sends 1440x810 frames, so it now draws at 1x. Stopped the unused
+  `erp-local` stack and `ujigo-cpns-qa-db` containers and the Music app for the takes.
+- Machine status "not changing": the status button waited seconds for a busy server and the next click was ignored;
+  `pilihStatus` now waits for the server's answer. Tab out of a table's last cell added an empty row (`isiSel` blurs).
+- `tools/rekam_demo.mjs`: narration per sentence (`teks` + `lalu()`), `bab()` chapters, a Daftar isi card spliced in
+  after the welcome, MP4 chapter marks and `<video>.bab.txt`.
+- Scripts: `ringkas-operator.md`, `ringkas-admin.md` rewritten (button labels as on screen, "Purchase Order (PO)" in
+  captions only, one sentence per visible action); the 14 Lengkap scripts got the same rules and a Daftar isi row.
+- Abel on the Admin take: "Invalid date" on the delivery date (the recorder typed before the row was ready, first
+  keys lost; now the calendar, `pilihTanggal`), and the Sales Order line's Machine list showed every machine: now
+  `seal_cap.cari_mesin` lists only a Seal Cap's priced machines (04, 14), `test_seal_cap.test_cari_mesin` (22 OK).
+  Warehouses: five by design (spec 2026-11-23), ERPNext's four default ones disabled.
+- Takes: `ringkas-operator` 268.8 s and `ringkas-admin` 612.1 s, both exit 0, "every zoomed or pointed element in
+  frame". Next: Abel's verdict, then the 14 Lengkap scenarios.
+
+## 2026-11-26, guide video scripts and the recorder (uncommitted)
+- `docs/video/`: index plus 16 scripts (2 Ringkas, 14 Lengkap: P1, P2, A1-A10, H1, S1; Projects left out), Indonesian,
+  formal wording (Abel), no person's name; each a table of scene, caption and ElevenLabs voice-over text.
+- `tools/rekam_demo.mjs`: drawn cursor, typed keys, CSS zoom that keeps the element in frame above the caption bar
+  (scrolls it to the middle first, re-zooms when the cursor goes to something off frame) and a framing check after
+  every zoom and pointing (a failure exits 1); log of each caption with its second; `caffeinate` needed (a sleeping
+  Mac paused takes for 15 min). Shared take setup `ambil`: Indonesian for the take, then the user's Production
+  Entries (submitted cancelled, drafts deleted), machine statuses and language put back. Scenarios: `contoh` (15 s),
+  `ringkas-operator` (done), `produksi` (old draft).
+- Done, as run: `ringkas-operator` 158.9 s, framing check OK, contact sheet looked through, data clean after.
+  `~/Desktop/video-panduan/ringkas-operator.mp4`.
+- Found: a Production Entry form opens under the "Bangun" (Build) shell with Frappe's system sidebar, also for
+  Produksi (its module Planning has no sidebar); the operator video shows it. Fixed 2026-11-27 by `tampilan.SHELL_DOKUMEN`.
+- Next: the other 15 scenarios, one by one, same checks; docs-sync and commit of the tool and scripts.
+
+## 2026-11-25, make akun
+- Abel: like BPT, a terminal way to new passwords or new accounts after setup. `make akun` (repo root:
+  `setup_lokal.sh --akun`; server `~/erp`: `setup.sh --akun`), only after `siap`: the `akun.sh` checklist with
+  `tanya_akun --ubah` (nothing ticked, Enter waits for one tick, Administrator optional; unticked, `ERP_AKUN` has
+  no `Administrator` key and `akun.buat` leaves its password). It is the way back in when nobody can sign in.
+  `akun.buat` refuses an existing account typed under another role (a slip would have demoted a Super Admin);
+  both scripts ping the stack before making the accounts.
+- Tests: the checklist driven through a pty, 5 cases (2 `--ubah`, 2 setup, `--hanya-admin`) OK, no password on
+  screen; `test_akun` 4 OK (new `test_tolak_ganti_peran`), `test_bahasa` 6 OK. Not run end to end: the local stack's image `erp-internal:local` and its containers
+  were gone (another session building images); `make akun` stopped at the image pull.
+
 ## 2026-11-25, Production Floor: three decor zones removed
 - Abel: Mould Storage, the grinder and the glass QC office on the Production Floor had no data behind them and
   confused people. `denah.ZONA` keeps bahan, jadi and reject (the warehouses the app keeps stock for); `zona.js` drops

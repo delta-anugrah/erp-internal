@@ -1077,3 +1077,6 @@ Packing prices (Samuel 2026-11-25): `seal_cap.json` `harga_kemasan` (Plastik 35x
 `Harga Bahan Baku` when missing (`_harga_beli` gained `satuan`, default "Kg"). Deviation from "only created, never
 corrected": an existing packing item with valuation 0 gets the price; a value Admin set stays
 (`test_harga_kemasan_admin_tetap`).
+Machine list (Abel 2026-11-26, guide video): `seal_cap.cari_mesin` (link query, `sales_order.js` `set_query` on
+`items.erp_mesin`) lists only a `HARGA_MESIN` template's priced machines (04, 14), any enabled numbered machine for
+other items; `test_seal_cap.test_cari_mesin`.

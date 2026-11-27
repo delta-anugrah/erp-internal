@@ -2,7 +2,7 @@
 
 Order follows the plan (`docs/superpowers/plans/2026-10-27-erp-internal-plan.md`, Revisions 4, 2 and 3 first).
 
-Last full run (2026-11-25, after the module home cards): 386 tests (13 unit + 373 integration), all OK.
+Last full run (2026-11-27, after the no-email mode): 398 tests (13 unit + 385 integration), all OK.
 Before that (after the Seal Cap packing prices): 385 tests, all OK.
 Before that (2026-11-24, after the Seal Cap material commit 2033cab, run by the controller): 383 tests (13 unit + 370 integration), all OK; `lantai.mjs` all OK after Mesin 14 became active. Before that the same 383 with `test_mesin_barang.test_jumlah` failing (Mesin 14 now has a row), fixed. Before that (Task 16 review fixes): 380 tests, all OK; `cek_layar` 3 users
 OK. Before that (Task 15 missing data notices): 364 tests (13 unit + 351 integration), all OK; `cek_layar`
@@ -54,7 +54,13 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       without a pigment; the Missing Data report lists them).
 - [ ] Access PDF `Hak-Akses-ERP-Delta-Anugrah-revisi.pdf` for the three new roles: not regenerated (no tool or
       source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
-- [ ] Abel: approve tagging (bump `erp_internal.__version__`); PR #11 (Tasks 1-16) merged 2026-11-24.
+- [x] Abel: approve tagging (bump `erp_internal.__version__`); PR #11 (Tasks 1-16) merged 2026-11-24; `v0.0.1`
+      tagged and deployed 2026-11-26.
+- [ ] `v0.0.2` (Abel 2026-11-27): `__version__` is 0.0.2; tag after the next PR (password in the New User dialog,
+      `make akun`, no-email mode `surel.py`, `./cadangan` owner, the 2026-11-27 work) is merged to `main`, then deploy
+      it on the server; before the deploy run `sudo chown -R deploy: cadangan` once in `~/erp`.
+- [ ] Email (Resend, postponed): set an Email Account as Default Outgoing; the Email buttons, Reset Password and
+      Forgot password come back by themselves (`surel.py`). Then decide on User Invitation and the inbox rail icon.
 - [x] CI: `.github/workflows/ci.yml` (job "Tes" on pull requests to main and `vX.Y.Z` tags) replaces `image.yml`;
       `deploy/ci_tes.sh` runs the tests inside the image.
 - [x] Repository rulesets (Abel 2026-11-24): `main-ci` makes "Tes" a required check on `main` (not "up to date");
@@ -76,8 +82,24 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [ ] Samuel: confirm "category sendiri" means its own raw material item (built), not a new Item Group.
 - [ ] Item 6 leftovers: M1G/M1H in Samuel's PO and Excel are ignored for now (spec A6); "CN" and "PT CN" kept apart
   until he says they are one.
-- [ ] DigitalOcean server in its own session (backups admin PC + Cloudflare R2; domain later).
+- [x] DigitalOcean server in its own session: live 2026-11-26 at `erp-delta.usaha.ai` (Cloudflare A record, DNS
+      only), image `v0.0.1`, abbreviation `DA`. Backups: admin PC + Cloudflare R2 still to set up.
 - [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.
+      2026-11-26 evening: both Ringkas videos re-recorded with Abel's feedback (narration per sentence on its action,
+      "Kirim" not "Submit", "Purchase Order (PO)" captions, a Daftar isi card with chapter minutes, status waits for
+      the server); all 16 scripts follow those rules (`docs/video/README.md` "Aturan naskah"). Waiting for Abel's
+      verdict on the two new takes.
+      2026-11-27: Operator approved. Admin round 2 (whole numbers without ",000", "Cari…" filter row, a sample
+      purchase, Stock Ledger shown after each stock change) re-recorded. Round 3 (Abel: "ampir perfect"): a cut header shows its full text on hover (`judul_penuh.js`),
+      `ketik` waits 1 s, row 3 points at Proyek, SDM, Pengaturan; re-recorded. Then "Beranda" for Home, Order Readiness stock colours,
+      `TATA_FORM` (Sales Order and 13 more forms, guide pictures retaken),
+      Abel 2026-11-27: re-record the Admin video and the 14 Lengkap ones only after this is merged to `main` (more UI changes coming first), waiting for Abel's verdict, then 14 Lengkap.
+      2026-11-26: 16 scripts in `docs/video/`; recorder `tools/rekam_demo.mjs` (run under `caffeinate`); done:
+      `ringkas-operator`. Left: 15 scenarios, the Production Entry form opening under "Bangun" (done: `tampilan.SHELL_DOKUMEN`),
+      voice-over (done: `edge-tts` Ardi at -10 %, read per sentence through `teks` + `lalu()`), commit of the tool and scripts. Abel 2026-11-26: rename the sample users to
+      `superadmin@`, `admin@`, `operator@example.com` (was `developer@`, `admin@`, `user@`) in `contoh.py`,
+      tests, tools and docs, after the deploy/akun session commits (shared files); remove the old users on
+      erp.localhost; then re-record `ringkas-operator` (captions changed 2026-11-26).
 
 ## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
@@ -106,11 +128,17 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
   `cek_layar` checks it per role; guide pictures retaken (9).
 - [ ] Abel: try it in the browser (`bench build --app erp_internal` already run; hard reload), incl. a phone.
 
+## make akun (2026-11-25)
+- [x] `make akun` (`setup_lokal.sh --akun` / `setup.sh --akun`, `tanya_akun --ubah`): checklist pty test 5 cases OK,
+      `test_akun` 4 OK (another role for an existing account refused).
+- [ ] `make akun` end to end on the local stack (stopped at the image pull, PROGRESS 2026-11-25) and on the server.
+
 ## Done: run it on a laptop with only Docker (2026-11-03)
 - [x] Root `Makefile`: `make start-local` (first time `setup-local`: check-local, env-local, image-local, the server
       Makefile's `db site wizard`, configure-local, data-local, up; then ping-local and the accounts once; later runs
       only start the containers), `stop` (now `down`), `update-local`. `users`/`password` dropped (Abel 2026-11-03): an Admin
-      makes later accounts and resets passwords in the app. Compose project `erp-local`, `.local/`
+      makes later accounts and resets passwords in the app (2026-11-25: `make akun` brings back new passwords and
+      accounts from the terminal, local and server). Compose project `erp-local`, `.local/`
       git-ignored, image `erp-internal:local` built from the repo or a released `ERP_IMAGE`.
 - [x] `deploy/server/akun.sh` checklist (Administrator always; Super Admin, Admin, Produksi optional; were Developer, Admin, User), Administrator password only; the others each email + password, typed twice,
       shown as `*` (echo off for the whole answer) → `erp_internal/akun.py` in env `ERP_AKUN`; `test_akun` OK.
@@ -279,7 +307,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [x] Order Readiness: leave template items out (`has_variants` 0; `test_template_tidak_ikut`).
 - [x] Desk sidebar: the collapsed sidebar's expand button is tiny and covered (now a 32 px button in the dock; `cek_layar` checks it).
 - [x] Fitting icons for our sidebar links (`tampilan.IKON_LINK`, every shown link of every sidebar; `test_ikon_sidebar`).
-- [x] Makefile for the server setup (`deploy/server/Makefile`: `make env`, `make setup`; dry run on a Mac with fakes). A real run waits for the server.
+- [x] Makefile for the server setup (`deploy/server/Makefile`: `make env`, `make setup`; dry run on a Mac with fakes). A real run on the server 2026-11-26 (`erp-delta.usaha.ai`).
 - [x] "Production floor di desk": done as the default, a Production Floor tile on the Apps screen (opens `/desk/manufacturing/production-floor`). Abel confirmed 2026-10-30.
 
 ## Waiting on Mas Samuel
@@ -314,7 +342,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [x] Task 6: import guide (`test_impor` 4 OK; Stock Reconciliation import allowed by `setup.IMPOR_BOLEH`; headers
       equal the site's Download Template)
 - [~] Task 7: server image, compose, backups (image, compose boot, backup and restore drill done locally
-      2026-10-31; the server itself waits on Samuel's budget and domain)
+      2026-10-31; the server is live since 2026-11-26 at `erp-delta.usaha.ai`, image `v0.0.1`; backups to the admin PC and R2 still open)
 - [~] Task 8: go-live wave 1 (local dry run done 2026-10-28; the real go-live waits on Samuel: PT Delta Anugrah,
       tick `erp_aktif`, users as Admin or Produksi)
 - [x] Revision 4: one company, three roles (`test_pengguna` 9 OK, `test_tampilan` 14 OK)

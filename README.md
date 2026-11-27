@@ -78,7 +78,7 @@ question shows a suggestion in `[brackets]`: press **Enter** to take it.
 
    Administrator needs only a password (you sign in with the name `Administrator`); every other account an email and
    a password. Each password is typed twice, shows as `*`, and needs at least 8 characters. One account per role is
-   enough to start; everyone else gets an account from an Admin in the app later.
+   enough to start; everyone else gets an account from an Admin in the app later (or `make akun`).
    With the wizard **by hand**, only the Administrator password is asked: the other accounts can exist only after
    the wizard (see below).
 
@@ -105,7 +105,7 @@ When it ends:
 | Stop it (the data stays) | `make down` |
 | Get the newest version | `git pull`, then `make update-local` (rebuilds and migrates; your data and your edits stay; Samuel's data is never loaded twice) |
 | Use another port | the very first time only: `make setup PORT=8090` (kept in `.local/.env`) |
-| A new person's account, or a forgotten password | an Admin in the app: Users. Everyone changes their own password under their avatar, My Settings, Change Password. |
+| A new person's account, or a forgotten password | an Admin in the app: Users. Nobody can sign in (Administrator's password forgotten too)? `make akun`: tick the account's role, type its email (Administrator: only the password) and the new password. Everyone changes their own password under their avatar, My Settings, Change Password. |
 
 `make start` and `make start-local` are the same as `make up` (`make start` goes once the real server is live). Everything local is in `.local/` (git-ignored: generated passwords,
 the wizard answer, the backups folder); the data is in Docker volumes of the compose project `erp-local`.
@@ -117,7 +117,7 @@ the wizard answer, the backups folder); the data is in Docker volumes of the com
 | `missing: docker` (or `curl`, `openssl`) | Install it (step "What you need"), then the same command again. |
 | `Docker does not answer: start Docker Desktop and try again` | Start Docker Desktop, wait for it, the same command again. |
 | `Not set up yet: run make setup first` | `make setup` once, then `make up`. |
-| `This asks a few questions: run it in a terminal.` | Run `make setup` in a terminal window, not from a script. |
+| `This asks a few questions: run it in a terminal.` | Run `make setup` (or `make akun`) in a terminal window, not from a script. |
 | `no answer on http://localhost:8080 in 2 minutes` | Docker may still be busy: the same command again. Still failing: the line shows the `docker compose ... logs` command to see why. |
 | `port is already allocated` | Something else uses port 8080: `make down` in the other copy, or set this one up with `make setup PORT=8090`. |
 | Any other error during the first setup | Run `make setup` again: every step skips what is done and goes on where it stopped; the questions are not asked again. |
@@ -136,6 +136,7 @@ Repo root (`Makefile`, on your computer):
 | `make setup` | Once, after the clone (no `.local/siap`): `tools/setup_lokal.sh` asks the wizard question (kept in `.local/wizard`) and the accounts, then runs `setup-local`, waits for the stack, makes the accounts (`.local/akun-siap`; the generated `ADMIN_PASSWORD` then leaves `.local/.env`), writes `.local/siap` and prints where to go. Rerun after a failure, it goes on without asking again; once `.local/siap` exists it only says to use `make up`. |
 | `make up` | Same as `make start-local` (`make start` too, until the real server is live): starts the containers, waits for them and prints the last line (Ready, or the by-hand wizard's steps). Without `.local/siap` it only says to run `make setup` first. |
 | `make down` | Stops the stack; the data stays. |
+| `make akun` | After `make setup`: the account checklist again (`setup_lokal.sh --akun`), nothing ticked: a new password for any ticked account (Administrator too) or a new account; an existing email must be typed under its own role (another role is refused). Starts the stack if it is stopped and waits for it. On the server: `make akun` in `~/erp`. |
 | `make update-local` | After `git pull`: rebuilds the image from the repo (a released `ERP_IMAGE` in `.local/.env` is pulled again instead; change its tag there to move on), migrates, starts the stack. Never reloads Samuel's data. Run `make setup` first: on a copy never set up it builds, then only says to run `make setup`. |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done (used for the last line). |
 | `make lanjut` | After the wizard: our setup, the wizard's account as Super Admin, Samuel's data the first time (run by `setup_lokal.sh` until `.local/lanjut-siap`). |
@@ -157,10 +158,11 @@ Server (`deploy/server/Makefile`, run in `~/erp` on the server; runbook `deploy/
 |---|---|
 | `make help` | Lists the steps. |
 | `make setup` | Runs `setup.sh`: the questions (GitHub token, site address, app version, backup destination, wizard, accounts; each skipped when already answered), `.env`, then `langkah` (`check check-env pull db site`), `wizard configure` (automatic) or `configure` (by hand), the accounts, `lanjut` once the wizard is done, `up ping cron`, and the last line. |
+| `make akun` | After `make setup` (`.siap`): `setup.sh --akun`, the account checklist with nothing ticked: a new password for any ticked account (Administrator too) or a new account; an existing email must be typed under its own role (another role is refused). Starts the stack and waits for it. |
 | `make env SITE=… ERP_IMAGE=… [RCLONE_REMOTE=…]` | Writes `.env` with generated passwords, once, without questions. |
 | `make langkah` | The steps before the wizard: `check check-env pull db site` (`make -n langkah` prints their commands). |
 | `make wizard-selesai` | Exit 0 when the setup wizard is done, 1 when not. |
-| `make check` | Tools on the host (docker, compose, openssl, curl, crontab; rclone only with a backup destination) and the time zone Asia/Jakarta. |
+| `make check` | Makes `./cadangan` as the running user and refuses one owned by someone else (`sudo chown -R $USER: cadangan`); tools on the host (docker, compose, openssl, curl, crontab; rclone only with a backup destination) and the time zone Asia/Jakarta. |
 | `make check-env` | `.env` is mode 600, has `ERP_IMAGE`, `SITE`, `DB_ROOT_PASSWORD`, `ERP_IMAGE` is an exact tag. |
 | `make pull` | Pulls the image (needs `docker login ghcr.io`; `make setup` does it). |
 | `make db` | Starts MariaDB, Redis and the configurator. |
@@ -253,6 +255,14 @@ Daily Input, Admin's Work Order, Sales Order, Delivery Note from Gudang Pluit, e
 PO print): `ERP_SANDI=<password> node tools/e2e_samuel.mjs`, exit code 1 on a failed step. It deletes what it made
 where ERPNext allows; each run leaves a cancelled Production Entry, its cancelled Stock Entries and a cancelled
 Delivery Note on `erp.localhost`.
+
+`tools/rekam_demo.mjs` records the guide videos of `docs/video/` (scripts with captions and voice-over text, in
+Indonesian) on `erp.localhost`, like a person at the keyboard: a drawn cursor, typed keys, a zoom that always keeps the
+pointed element in frame, and the caption bar; 1920x1080 H.264, scaled up from a 1440x810 page at 1x. `ERP_SANDI=<password> node
+tools/rekam_demo.mjs <video> [out.mp4]` (default `~/Desktop/demo-<video>.mp4`; `contoh` is a 15 s sample). It needs
+`bench start`, the sample data, `ffmpeg` and edge-tts for the voice (`docs/video/README.md`); the user's language is switched to Indonesian for the take and put back
+after, the Production Entries the take records are cancelled again, and a machine status it changes is restored. Its
+captions must match the video's script.
 
 ## Factory flow and data import
 
@@ -377,7 +387,7 @@ Mac the password is kept only in `~/Desktop/Projects/erp-internal-bench/.env` as
 ### Put it on the server: `make setup`
 
 Before it, by hand (`deploy/server/README.md` steps 1-3): an Ubuntu server with Docker and the user `deploy`, a DNS
-record for the address (for example `app.deltaanugrah.com`) pointing at it, and the reverse proxy with TLS. Then,
+record for the address (production: `erp-delta.usaha.ai`, a Cloudflare A record, DNS only) pointing at it, and the reverse proxy with TLS. Then,
 as `deploy`, copy the files of `deploy/server/` into `~/erp` and:
 
 ```bash
@@ -391,7 +401,7 @@ It asks, each with a suggestion in `[brackets]` (Enter takes it), and skips what
    `That token did not work (it needs read:packages), try again.` Skipped when the server is already signed in.
    If Docker does not answer it stops with `Docker does not answer for <user>: install Docker and add <user> to the
    docker group (README step 1).`
-2. **Site address**: exactly what people type in the browser, e.g. `app.deltaanugrah.com` (anything else is asked
+2. **Site address**: exactly what people type in the browser, e.g. `erp-delta.usaha.ai` (anything else is asked
    again).
 3. **App version**: the newest release is suggested (`vX.Y.Z`); without a release yet, type the version. Not three
    numbers: `A version has three numbers, like v0.1.0, try again.`
