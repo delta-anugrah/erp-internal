@@ -1,4 +1,4 @@
-"""The first accounts of a site, asked once by `make setup` (local and server).
+"""Accounts of a site: the first ones from `make setup`, later new passwords or accounts from `make akun`.
 
 The terminal asks for the accounts and passwords (`deploy/server/akun.sh`) and hands them over in the environment variable
 `ERP_AKUN` (JSON), never on a command line, so no password shows in a process list or the shell history:
@@ -8,7 +8,9 @@ The terminal asks for the accounts and passwords (`deploy/server/akun.sh`) and h
 `buat()` sets Administrator's password and makes (or updates) one System User per entry with that Role Profile,
 its Module Profile and, for Admin and Produksi, a default permission on the company, like the sample users of
 `contoh.py`. It prints what it did, never a password (from the terminal it prints and returns nothing, else bench
-prints the result again). Later accounts and password resets are made by an Admin in the app.
+prints the result again). Later accounts and password resets: an Admin in the app, or `make akun`, which sends
+only the ticked accounts (no `Administrator` key: its password stays). An existing account typed under another
+role is refused, so a slip never demotes a Super Admin.
 `bench execute` commits afterwards; a refusal read from `ERP_AKUN` is printed and exits 1 (bench
 would otherwise hide the message behind its own eval fallback).
 """
@@ -87,6 +89,14 @@ def _buat(data: dict) -> list[str]:
 		dipakai.add(email)
 		a["email"] = email
 		_cek_sandi(a.get("sandi"))
+		# `make akun` resets passwords; a slip under another role must not demote or promote the account
+		lama = frappe.get_all(
+			"User Role Profile", {"parent": email, "parenttype": "User"}, pluck="role_profile"
+		)
+		if lama and lama != [a["profil"]]:
+			frappe.throw(
+				_("{0} is already a {1} account: tick {1} to give it a new password.").format(email, lama[0])
+			)
 
 	hasil = []
 	if sandi_admin is not None:

@@ -6,6 +6,7 @@
 #   make up             start it (seconds, no questions). `make start` and `make start-local` are the same
 #                       (`start` goes once the real server is live).
 #   make down           stop it (the data stays)
+#   make akun           a new password for any account (Administrator too) or a new account, asked like make setup
 #   make dev            for coding: the bench (tools/setup_bench.sh), not this Docker stack
 #
 # Everything local lives in .local/ (git-ignored): .env with generated passwords, the wizard answer (wizard), the
@@ -33,13 +34,14 @@ PORT_ENV = $(or $(shell sed -n 's/^PORT=//p' $(LOKAL)/.env 2>/dev/null),$(PORT))
 
 .DEFAULT_GOAL := help
 .PHONY: help setup up start start-local setup-local down update-local check-local env-local image-local configure-local \
-	ping-local wizard-selesai lanjut dev
+	ping-local wizard-selesai lanjut dev akun
 
 help:
 	@echo "On your computer (README.md \"Run it on your computer\"):"
 	@echo "  make setup          once, after the clone: a few questions, then the setup (10-30 min)"
 	@echo "  make up             start it (http://localhost:$(PORT_ENV)); make start is the same for now"
 	@echo "  make down           stop it; the data stays"
+	@echo "  make akun           new password (Administrator too) or new account"
 	@echo "  make update-local   after git pull: rebuild the image, then start; your data stays"
 	@echo "  make dev            code on the bench: Python reloads, JS/CSS rebuild; a DocType change needs bench migrate"
 	@echo "On the server: make -C deploy/server help"
@@ -77,6 +79,11 @@ lanjut:
 # Exit 0 when the wizard is done (setup_lokal.sh's last line).
 wizard-selesai:
 	@$(SERVER) -s wizard-selesai
+
+# New passwords or new accounts once set up (tools/setup_lokal.sh --akun; starts the stack if it is stopped).
+akun: check-local
+	@if [ ! -f $(LOKAL)/siap ]; then echo "Not set up yet: run make setup first."; exit 1; fi
+	@COMPOSE='$(COMPOSE)' tools/setup_lokal.sh --akun
 
 # Stops the containers (not `docker compose down`: the stack comes back as it was, the data stays either way).
 down:
