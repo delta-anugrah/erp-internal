@@ -63,6 +63,15 @@ IKON_RUMAH = "house"  # each module's home row
 # module's home and route (`/desk/manufacturing/production-floor`) are unchanged.
 MENU_ATAS = ("production-floor", "daily-input")
 
+# DocType of ours that no sidebar lists → the shells its form opens under, first one the user has wins. Without it
+# Frappe's map (`canonical_shell`) sent the Production Entry form to Build for Produksi and to Accounts for Admin
+# (Abel 2026-11-26, seen in the guide video). Set in the boot by `menu_samping`; the menus stay as they are.
+SHELL_DOKUMEN = {
+	"Production Entry": ("Manufacturing",),
+	"Reject Reason": ("Setup", "Manufacturing"),
+	"Expense Category": ("Buying",),
+}
+
 # Sidebar → the `link_to` values kept, in this order, after the module's home Workspace (always first,
 # so the module opens on it). A link the app's sidebar lacks is added; every other item is hidden. Only what the
 # guides' flows use (docs/panduan/): each module home shows the same links as shortcuts (`PINTASAN`,
@@ -784,6 +793,12 @@ def menu_samping(bootinfo) -> None:
 			for i in (sidebars.get(m["shell"]) or {}).get("items") or []
 		}
 		bootinfo.erp_menu_atas = [t for t in MENU_ATAS if t in ada]
+		per_doctype = (bootinfo.get("canonical_shell") or {}).get("DocType")
+		if per_doctype is not None:
+			for doctype, shells in SHELL_DOKUMEN.items():
+				shell = next((s for s in shells if s in sidebars), None)
+				if shell:
+					per_doctype[doctype] = shell
 		# The home cards' icon (the link's sidebar icon, so card and sidebar match; a link can sit in several
 		# sidebars, Super Admin also sees Planning's bare one, so the first icon found wins) and line (KETERANGAN).
 		kartu = {}

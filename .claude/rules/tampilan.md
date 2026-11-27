@@ -54,6 +54,9 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   the base row's icon (Frappe stores no override equal to the base, so an equal one would rewrite the sidebar on every
   migrate: `_jejak_sidebar` compares icons too). Add a link to `SIDEBAR` with an icon here; `test_ikon_sidebar` fails
   on a link without one.
+- A form no sidebar lists opens under Frappe's `canonical_shell` guess, which sent the Production Entry form to
+  Build (Produksi) and Accounts (Admin). `SHELL_DOKUMEN` (DocType → shells, the first the user has wins) overrides
+  that boot map in `menu_samping` (Abel 2026-11-26; `test_menu_samping_per_profil`). Menus are unchanged.
 - Blocking a module hides navigation only; DocPerm still decides document access.
 - Keys are dock/sidebar names (`Shift & Attendance`), Module Profiles take Module Def names (`Shift and Attendance`).
 - `Workspace Sidebar` and `Desktop Icon` are the retiring icon-grid batch (`frappe/desk/RETIRING.md`); don't use them.
@@ -120,7 +123,13 @@ Icon rows. What a user sees, and the site layer we write for each (never the app
   keeps the sidebar's fold arrow visible on a desktop, and styles the version line at the foot of the Settings
   dialog (`public/js/versi.js`, in the same bundle as `menu_samping.js`: wraps `SettingsDialog.render_sidebar`), and
   the module home cards (`.erp-kartu`: icon and count on top, title and `KETERANGAN` line below, min-height 132px,
-  none under 768 px; `public/js/pintasan.js`, same bundle). Frappe v16.53 folds the module sidebar with that arrow
+  none under 768 px; `public/js/pintasan.js`, same bundle), and narrows the padding of a query report's row number
+  column (`.page-container[data-page-route="query-report"] .dt-cell__content--col-0`, 3 px): the datatable sizes it
+  for the digits plus 22 px, but the cell's 8 px padding cut "45" to "4..." (Abel 2026-11-26). `public/js/angka.js`
+  (same bundle, Abel 2026-11-27) shows a whole Float as "20.000" in inputs (`ControlFloat.format_for_input`, Float
+  fieldtype only, not Currency) and in report cells (drops `always_show_decimals`): with float precision 3 a qty of
+  20000 read "20.000,000", taken for twenty million; a fraction keeps its decimals. It also puts `__("Search…")` in
+  the empty grey per-column filter row of a report table (`input.dt-filter`, one scan per frame). `public/js/judul_penuh.js` (same bundle, Abel 2026-11-27) gives a text cut to "..." (`text-overflow: ellipsis` and really overflowing, no title of its own) its whole text as `title` on the first hover: narrow report headers like "Balance Qty". `public/js/surel.js` (same bundle, Abel 2026-11-27) hides what needs email while `frappe.boot.erp_tanpa_email` (`surel.boot`) is set: `frappe.model.can_email` false and the print view's Email; `public/js/user.js` (`doctype_js` User) drops Reset Password and Create User Email and hides Send Welcome Email; `surel.di_login` swaps the login page's "Forgot password?" for an ask-an-Admin line and drops "Login with Email Link". An Email Account set as Default Outgoing brings them back (`surel.ada_email`). `id.csv` translates Frappe's "Home" as "Beranda" (its own: "Rumah"; Abel 2026-11-27). Order Readiness colours its Stock cell (`.erp-stok-*`): red at 0 or less, orange under the item's Safety Stock, green otherwise (Abel 2026-11-27). `setup.TATA_FORM` (`_tata_form`, before the wizard check) tidies forms: unused standard fields hidden, a field moved after another through the DocType's `field_order` Property Setter (Sales Order: Customer | Date | Delivery Date; then Delivery Note, Sales Invoice, Payment Entry, Purchase Order, Purchase Receipt, Purchase Invoice, Stock Entry, Stock Reconciliation: the lone warehouse, due date, party or supplier invoice fields moved into the top rows; POS, debit note, tax withholding, transit, putaway, inspection, alternative item, Customer/Supplier currency and Employee middle name/salutation hidden; Company left on Work Order and Stock Reconciliation, since a hidden required field could not be filled; Machine Capacity has its own Column Break before Machine in its JSON; `test_alur_jual_beli.test_tata_form`), and `cepat` puts a field in the New ... dialog (`hidden` 0 + `allow_in_quick_entry` 1: User's Set New Password, still inside the form's hidden Change Password section; Abel 2026-11-27). Frappe v16.53 folds the module sidebar with that arrow
   (or the 8 px edge), but shows the arrow only on hover. On Frappe's own pages (System app), beside the pinned dock a folded sidebar slides shut and
   the dock stays as the rail; Frappe then parks the arrow half under the dock (z-index 1030), so our CSS moves
   it into the dock above the profile avatar as a 32 px button with border and shadow (`.sidebar-hidden`: left

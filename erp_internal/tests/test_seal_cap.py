@@ -195,6 +195,17 @@ class TestSealCap(IntegrationTestCase):
 		self.assertIsNone(seal_cap.harga(varian("MHG"), "Mesin 02"))
 		self.assertIsNone(seal_cap.harga("_UJI-SC-LAIN", "Mesin 04"))
 
+	def test_cari_mesin(self):
+		# The Sales Order line's machine list: a Seal Cap only on its priced machines, another item on any.
+		def cari(item, txt=""):
+			return [m for (m,) in seal_cap.cari_mesin("Workstation", txt, "name", 0, 50, {"item": item})]
+
+		self.assertEqual(cari(varian("MHG")), ["Mesin 04", "Mesin 14"])
+		self.assertEqual(cari(varian("MHG"), "14"), ["Mesin 14"])
+		lain = cari(buat_barang("_UJI-SC-LAIN", "Barang Jadi"))
+		self.assertIn("Mesin 02", lain)
+		self.assertGreater(len(lain), 2)
+
 	def test_tanpa_mesin_ditolak(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "pick the machine"):
 			self.pesanan(varian("MHG"), None)

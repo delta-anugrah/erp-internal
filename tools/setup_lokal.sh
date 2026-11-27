@@ -11,6 +11,7 @@
 #   .local/siap       a run went through to the end; `make up` starts only after it, `make setup` stops at it
 #
 #   tools/setup_lokal.sh --pesan   only the last line: where to go, or what is left of a wizard filled by hand
+#   tools/setup_lokal.sh --akun    `make akun`: new passwords or new accounts (deploy/server/akun.sh)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # shellcheck source=deploy/server/tanya.sh
@@ -50,6 +51,17 @@ pesan() {
 
 if [ "${1:-}" = --pesan ]; then
 	pesan
+	exit 0
+fi
+
+# `make akun`: new passwords or new accounts on a set-up stack.
+if [ "${1:-}" = --akun ]; then
+	perlu_terminal
+	tanya_akun --ubah
+	# shellcheck disable=SC2086
+	$COMPOSE up -d >/dev/null
+	make --no-print-directory ping-local
+	buat_akun "$COMPOSE"
 	exit 0
 fi
 

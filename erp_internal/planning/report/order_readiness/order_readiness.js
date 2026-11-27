@@ -62,6 +62,12 @@ frappe.query_reports["Order Readiness"] = {
 			const warna = WARNA_STATUS[data.status] || "gray";
 			return `<span class="indicator-pill ${warna}">${frappe.utils.escape_html(label_status(data.status))}</span>`;
 		}
-		return default_formatter(value, row, column, data);
+		const isi = default_formatter(value, row, column, data);
+		if (column.fieldname === "stok" && data) {
+			// Abel 2026-11-27: red at 0 or less, orange under the item's Safety Stock, green otherwise.
+			const warna = data.stok <= 0 ? "red" : data.stok < data.safety ? "orange" : "green";
+			return `<span class="erp-stok erp-stok-${warna}">${isi}</span>`;
+		}
+		return isi;
 	},
 };

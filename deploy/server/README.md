@@ -1,17 +1,18 @@
 # The erp-internal server
 
 Runbook for the production stack. Hosting is decided (DigitalOcean, Samuel 2026-11-23; backups to the admin's PC
-and Cloudflare R2; domain later: `docs/menunggu-samuel.md`, 2026-11-23 table, item 8), but the server is not built
-yet; until then the stack is only built and tested locally (plan, Task 7). Nothing here is shared with BPT or the
-sawit server.
+and Cloudflare R2: `docs/menunggu-samuel.md`, 2026-11-23 table, item 8). The server is being built (2026-11-27):
+droplet in SGP1, address `erp-delta.usaha.ai` (Cloudflare A record, DNS only), image `v0.0.1`, abbreviation `DA`.
+Nothing here is shared with BPT or the sawit server.
 
 | File | What |
 |---|---|
 | `docker-compose.yml` | The stack: configurator, backend, queue, scheduler, websocket, frontend (`127.0.0.1:8080`), MariaDB 11.8.9, two Redis; `tools` (profile `setup`) for one-off bench commands. |
 | `.env.example` | The shape of `.env` (chmod 600, written by `make setup` on the server, never in git): `ERP_IMAGE`, `SITE`, `DB_ROOT_PASSWORD`, `ADMIN_PASSWORD` (until the typed password replaces it), `RCLONE_REMOTE` (optional). |
 | `Makefile` | The first install as `make` targets (below): one per step; `make setup` runs `setup.sh`; every step skips what is done; no secret in the file. |
-| `setup.sh` | `make setup`: the questions (GitHub token, site address, app version, backup destination, setup wizard, accounts), `.env`, then the steps in order, stopping at the first error. Markers `.wizard`, `.akun-siap`, `.siap`. |
+| `setup.sh` | `make setup`: the questions (GitHub token, site address, app version, backup destination, setup wizard, accounts), `.env`, then the steps in order, stopping at the first error. Markers `.wizard`, `.akun-siap`, `.siap`. `make akun` (`setup.sh --akun`, after `.siap`): the account checklist again, nothing forced: new passwords (Administrator too, the way back in when nobody can sign in) or new accounts; an existing email must be typed under its own role (another role is refused). |
 | `tanya.sh`, `akun.sh`, `wizard.sh` | The terminal questions, shared with `make setup` on a computer (`tools/setup_lokal.sh`): plain prompts with a suggestion, blind passwords, the account checklist, the wizard question and its by-hand instructions. |
+| `pemeliharaan.html` | Full-screen maintenance page (Indonesian, one English line; glass card over a slowly moving colour background, light/dark, still and opaque under reduced motion or transparency) that nginx on the host shows on its own 502/503/504 while the stack does not answer; pings `/api/method/ping` every 20 s (the status line shows the last check time) and reloads once it answers. Copied to `/var/www/erp/` (step 3), not used from `~/erp`; a new version only needs the file copied again, no nginx reload. Indonesian on purpose: static, it cannot follow a user's language. |
 | `cadangan.sh` | Nightly backup: `bench backup --with-files --compress`, the newest set to `./cadangan` and, when set, `$RCLONE_REMOTE`; sets older than 14 days deleted on both. Without `RCLONE_REMOTE` it says the set stays on the server. Exits non-zero on any failure. |
 
 The image comes from `.github/workflows/ci.yml`: a tag `vX.Y.Z` builds `ghcr.io/delta-anugrah/erp-internal:vX.Y.Z`
@@ -28,10 +29,18 @@ By hand first:
 1. **Server.** Ubuntu LTS, 4 GB RAM or more, Docker Engine with the compose plugin, a non-root user `deploy` in the
    `docker` group, `make`. `rclone` only with an off-site backup destination. Time zone:
    `sudo timedatectl set-timezone Asia/Jakarta` (the cron line below is in local time).
-2. **DNS.** An `A` record for the address (e.g. `app.deltaanugrah.com`) to the server.
+2. **DNS.** An `A` record for the address (e.g. `erp-delta.usaha.ai`) to the server. On Cloudflare: DNS only
+   (grey cloud), so certbot's HTTP check reaches nginx.
 3. **Reverse proxy with TLS** on the host (nginx + certbot, or Caddy). Only 80/443 open; it proxies everything to
    `http://127.0.0.1:8080`, websockets included (`Upgrade`/`Connection` headers), passes `Host` and
    `X-Forwarded-For`, `client_max_body_size 50m`. Then `certbot --nginx -d <address> --redirect`.
+   While the stack does not answer, nginx shows `pemeliharaan.html` (a maintenance page that reloads itself once
+   `/api/method/ping` answers): copy it to `/var/www/erp/` and add to the `listen 443` server block
+   `error_page 502 503 504 /pemeliharaan.html;` and
+   `location = /pemeliharaan.html { root /var/www/erp; internal; add_header Cache-Control no-store always; }`
+   (on production both lines are in `/etc/nginx/snippets/erp-pemeliharaan.conf`, included there).
+   Only nginx's own 502/503/504 (stack down, starting, timed out); no `proxy_intercept_errors`, so the app's own
+   errors (validation 417, 403, 500 with its traceback) still reach the user.
 
 Then, as `deploy`, with this folder's files copied into `~/erp`:
 
@@ -55,7 +64,7 @@ make setup
 5. The setup wizard: automatic (default) or by hand in the browser, the company name and abbreviation (kept in
    `.wizard`, never asked again).
 6. The accounts: Administrator's password and, with the automatic wizard, optional Super Admin / Admin / Produksi
-   accounts (`akun.sh`, the same checklist as `make setup` on a computer); asked once (`.akun-siap`).
+   accounts (`akun.sh`, the same checklist as `make setup` on a computer); asked once (`.akun-siap`); later new passwords or accounts: `make akun`.
 
 Then `make env` (from the answers, passwords from `openssl rand`), `langkah` (`check check-env pull db site`),
 `wizard configure` (automatic) or `configure` (by hand), the accounts (the generated `ADMIN_PASSWORD` then
@@ -107,6 +116,15 @@ Cron, as `deploy` (`crontab -e`), daily at 02:00 WIB:
 0 2 * * * cd /home/deploy/erp && ./cadangan.sh >> cadangan.log 2>&1
 ```
 
+`./cadangan` must belong to `deploy`. The `tools` container mounts it, and Docker on Linux makes a missing mount
+source as root; `cadangan.sh` then stopped at `chmod 700` ("Operation not permitted", line 29). Since 2026-11-27
+`make check` (the first step of `make setup`) makes it first, as `deploy`, and refuses a `./cadangan` owned by
+someone else. A server set up before that (v0.0.1) fixes it once:
+
+```bash
+cd ~/erp && sudo chown -R deploy: cadangan && ./cadangan.sh
+```
+
 A set is three files sharing one prefix: `…-database.sql.gz`, `…-files.tgz`, `…-private-files.tgz`. The site
 config (it holds the database password) stays on the server; the encryption key is kept with the secrets (below).
 
@@ -136,7 +154,7 @@ the date and the counts at the end of this file. Then `docker compose -p erp-pul
 | Secret | Where | Who |
 |---|---|---|
 | `DB_ROOT_PASSWORD` | `~/erp/.env` on the server (chmod 600) | generated there; Abel reads it on the server when needed |
-| Administrator's password | typed in `make setup`, never stored in a file | Abel |
+| Administrator's password | typed in `make setup` (a new one: `make akun`), never stored in a file | Abel |
 | Site `encryption_key` | `sites/<site>/site_config.json` in the `sites` volume; a copy in Abel's password manager | Abel |
 | rclone remote credentials | `~deploy/.config/rclone/rclone.conf` (chmod 600) | Abel |
 | GHCR read token | `~deploy/.docker/config.json` | Abel |

@@ -24,7 +24,8 @@ saring yang statusnya **Pending**.
 4. **Purchase Taxes and Charges Template** dibiarkan kosong: perusahaan tidak PKP.
 5. **Save**, **Attach** foto atau scan dokumen aslinya (PO yang dicap atau dikirim), lalu **Submit**: tanpa
    lampiran sistem menolak. Kirim ke pemasok: **Print** (format PO Samuel Beli: tabel NO., ORDER, QTY, SATUAN,
-   TGL KIRIM, HARGA dan kotak TOTAL merah, tanggal kirim dari **Required By**) atau **Email**.
+   TGL KIRIM, HARGA dan kotak TOTAL merah, tanggal kirim dari **Required By**), lalu kirim PDF-nya lewat WA.
+   Tombol **Email** baru muncul setelah server punya email.
 
 ![Purchase Order](gambar/pembelian-2.png)
 

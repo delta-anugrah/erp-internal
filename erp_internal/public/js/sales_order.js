@@ -17,6 +17,15 @@ function harga_mesin(frm, cdt, cdn) {
 			});
 	}, 800);
 }
+// The line's Machine list: only the machines its item is priced on (`seal_cap.cari_mesin`), else every machine.
+frappe.ui.form.on("Sales Order", {
+	setup(frm) {
+		frm.set_query("erp_mesin", "items", (doc, cdt, cdn) => ({
+			query: "erp_internal.seal_cap.cari_mesin",
+			filters: { item: locals[cdt][cdn].item_code || "" },
+		}));
+	},
+});
 frappe.ui.form.on("Sales Order Item", {
 	erp_mesin: harga_mesin,
 	item_code: harga_mesin,

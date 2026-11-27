@@ -61,6 +61,15 @@ class TestAkun(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			akun.buat({"Administrator": "pendek", "akun": []})
 
+	def test_tolak_ganti_peran(self):
+		# make akun: an existing account typed under another role is refused, never demoted or promoted
+		email = "_uji.akun.peran@example.com"
+		akun.buat({"akun": [{"profil": ADMIN, "email": email, "sandi": "rahasia-admin"}]})
+		with self.assertRaises(frappe.ValidationError):
+			akun.buat({"akun": [{"profil": PRODUKSI, "email": email, "sandi": "sandi-baru"}]})
+		self.assertEqual(profil(email), [ADMIN])
+		self.assertEqual(check_password(email, "rahasia-admin"), email)
+
 	def test_tolak_akun_sebelum_wizard(self):
 		# Role Profiles exist only after the wizard: before it, only Administrator's password
 		daftar = [{"profil": ADMIN, "email": "_uji.akun.awal@example.com", "sandi": "12345678"}]

@@ -4,6 +4,7 @@ import frappe
 from frappe.client import insert as client_insert
 from frappe.client import save as client_save
 from frappe.tests import IntegrationTestCase
+from frappe.utils.password import check_password
 
 from erp_internal.tampilan import ADMIN, PRODUKSI, SUPER_ADMIN
 from erp_internal.tests.utils import buat_pengguna
@@ -132,6 +133,41 @@ class TestPengguna(IntegrationTestCase):
 			frappe.rename_doc("User", self.dev, "_uji.peng.lain@example.com")
 		self.assertEqual(frappe.db.get_value("User", self.dev, "enabled"), 1)
 		self.assertIn("System Manager", peran(self.dev))
+
+	def test_sandi_di_user_baru(self):
+		# Abel 2026-11-27: the New User dialog asks for a password (setup.TATA_FORM "cepat").
+		df = frappe.get_meta("User").get_field("new_password")
+		self.assertEqual((df.hidden, df.allow_in_quick_entry), (0, 1))
+		self.assertTrue(
+			frappe.get_meta("User").get_field("change_password").hidden
+		)  # the form stays as it was
+		# The dialog saves through frappe.client.insert: an Admin sets a new Produksi account's password.
+		email = "_uji.peng.sandi@example.com"
+		client_insert({**user_baru(email, PRODUKSI), "new_password": "_Uji-Sandi-Baru-2026!"})
+		self.assertEqual(check_password(email, "_Uji-Sandi-Baru-2026!"), email)
+		# Never a Super Admin's, not even past the permission check (the validate hook).
+		dev = frappe.get_doc("User", self.dev)
+		dev.new_password = "_Uji-Sandi-Admin-2026!"
+		self.assertRaises(frappe.PermissionError, dev.save, ignore_permissions=True)
+		doc = {**frappe.get_doc("User", self.dev).as_dict(), "new_password": "_Uji-Sandi-Admin-2026!"}
+		self.assertRaises(frappe.PermissionError, client_save, doc)
+		with self.assertRaises(frappe.AuthenticationError):
+			check_password(self.dev, "_Uji-Sandi-Admin-2026!")
+
+	def test_admin_ganti_sandi(self):
+		# No email on the server (Abel 2026-11-27): an Admin sets passwords through Password > Change Password,
+		# which posts to change_password. Admin and Produksi accounts yes, Super Admin and Administrator never.
+		from frappe.core.doctype.user.user import change_password
+
+		self.assertNotIn("System Manager", frappe.get_roles(self.admin))
+		lain = buat_pengguna("_uji.peng.admin2@example.com", ADMIN, ADMIN, None)
+		for target in (self.user, lain):
+			change_password(target, "_Uji-Sandi-Ganti-2026!")
+			self.assertEqual(check_password(target, "_Uji-Sandi-Ganti-2026!"), target)
+		for target in (self.dev, "Administrator"):
+			self.assertRaises(frappe.PermissionError, change_password, target, "_Uji-Sandi-Ganti-2026!")
+			with self.assertRaises(frappe.AuthenticationError):
+				check_password(target, "_Uji-Sandi-Ganti-2026!")
 
 	def test_jalur_lain_ke_developer_ditolak(self):
 		from frappe.client import set_value

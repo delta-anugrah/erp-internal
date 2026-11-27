@@ -51,10 +51,11 @@ add_to_apps_screen = [
 
 # include js, css files in header of desk.html
 app_include_css = "/assets/erp_internal/css/erp_internal.css"  # public/css: avatar cursor, sidebar fold arrow, Settings version
-app_include_js = "erp_internal.bundle.js"  # public/js/erp_internal.bundle.js: language switch, menu, version
+app_include_js = "erp_internal.bundle.js"  # public/js: language, menu, version, no-email (surel.js)
 
-# The app version under the login card (erp_internal/versi.py; Desk shows it in the Settings dialog, public/js/versi.js).
-update_website_context = "erp_internal.versi.di_login"
+# The app version under the login card (erp_internal/versi.py; Desk shows it in the Settings dialog, public/js/versi.js),
+# and without email no "Forgot password?" (erp_internal/surel.py).
+update_website_context = ["erp_internal.versi.di_login", "erp_internal.surel.di_login"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/erp_internal/css/erp_internal.css"
@@ -76,6 +77,7 @@ doctype_js = {
 	"Sales Forecast": "public/js/sales_forecast.js",
 	"Work Order": "public/js/work_order.js",
 	"Sales Order": "public/js/sales_order.js",  # a Seal Cap line's price follows its machine
+	"User": "public/js/user.js",  # no email: no Reset Password, Create User Email, Send Welcome Email (surel.py)
 }
 
 # proyek.py: an employee submits only their own timesheet (IZIN_TAMBAHAN gives the Employee role submit).
@@ -116,6 +118,7 @@ doc_events = {
 		],
 	},
 	"User": {
+		"before_insert": "erp_internal.surel.user_baru",  # no welcome mail while there is no email
 		"before_validate": "erp_internal.pengguna.cek_user_awal",
 		"validate": "erp_internal.pengguna.cek_user",
 	},
@@ -219,6 +222,7 @@ extend_bootinfo = [
 	"erp_internal.tampilan.menu_samping",
 	"erp_internal.tampilan.saring_modul_mati",
 	"erp_internal.lampiran.boot",
+	"erp_internal.surel.boot",  # erp_tanpa_email: public/js/surel.js hides what needs email
 ]
 
 # Frappe's workspace writes answer with a fresh `app_data` that skips extend_bootinfo; ours run Frappe's and then

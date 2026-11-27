@@ -14,7 +14,13 @@ from frappe import _
 from frappe.utils import flt
 
 from erp_internal import master, penjualan, setup
-from erp_internal.planning.kapasitas import ATRIBUT_WARNA, GRUP_KEMASAN, TEMPLATE_PIGMEN, buat_bom_kapasitas
+from erp_internal.planning.kapasitas import (
+	ATRIBUT_WARNA,
+	GRUP_KEMASAN,
+	TEMPLATE_PIGMEN,
+	_mesin_aktif_bernomor,
+	buat_bom_kapasitas,
+)
 from erp_internal.setup import SATUAN_KEMASAN
 
 TEMPLATE = "SEAL-CAP"
@@ -168,6 +174,18 @@ def _tabel(item_code: str) -> dict | None:
 def harga(item_code: str, mesin: str) -> float | None:
 	"""The price per piece of `item_code` on `mesin`, or None (the Sales Order form sets it on the line)."""
 	return (_tabel(item_code) or {}).get(mesin)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def cari_mesin(doctype, txt, searchfield, start, page_len, filters) -> list[tuple]:
+	"""Link query of a Sales Order line's machine: for an item priced by machine only the enabled machines of its
+	`HARGA_MESIN` table (any other is refused on save), else every enabled numbered machine."""
+	semua = _mesin_aktif_bernomor()
+	tabel = _tabel((frappe.parse_json(filters) or {}).get("item") or "")
+	nama = [m for m in semua if m in tabel] if tabel else semua
+	cari = (txt or "").lower()
+	return [(m,) for m in nama if cari in m.lower()][int(start or 0) :][: int(page_len or 20)]
 
 
 def _harga_baris(d) -> float | None:

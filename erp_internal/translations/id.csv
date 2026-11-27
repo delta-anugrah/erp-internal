@@ -337,6 +337,12 @@ none in use,tidak ada yang dipakai
 "No Machine Capacity row for this item yet: every machine is allowed.","Belum ada baris Machine Capacity untuk barang ini: semua mesin boleh."
 ERP_AKUN is not set: run make setup.,ERP_AKUN belum diisi: jalankan make setup.
 A password needs at least {0} characters.,Password minimal {0} karakter.
+{0} is already a {1} account: tick {1} to give it a new password.,{0} sudah akun {1}: centang {1} untuk memberi password baru.
+Forgot password? Ask an Admin to change your password.,Lupa password? Minta Admin untuk mengganti password Anda.
+Create User Email,Buat Email Pengguna
+Email,Surel
+Password,Kata sandi
+Reset Password,Atur ulang kata sandi
 "Create the Super Admin, Admin and Produksi accounts after the setup wizard; for now only Administrator.","Buat akun Super Admin, Admin dan Produksi setelah setup wizard; untuk sekarang hanya Administrator."
 Unknown role {0}.,Peran {0} tidak dikenal.
 {0} is not a valid email address.,{0} bukan alamat email yang benar.
@@ -495,3 +501,6 @@ Line {0}: {1} has no selling price.,Baris {0}: {1} belum punya harga jual.
 "Project options","Pengaturan proyek"
 "HR options","Pengaturan HR"
 "Data still to fill in","Data yang belum diisi"
+"Search…","Cari…"
+"In Qty","Kuantitas Masuk"
+"Home","Beranda"

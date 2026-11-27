@@ -68,6 +68,12 @@ const browser = await chromium.launch();
 	await tamu.goto(`${URL}/login`);
 	const versi = await tamu.locator(".for-login .erp-versi").innerText().catch(() => "");
 	if (!/^v\d+\.\d+\.\d+$/.test(versi)) gagal.push(`login page: version "${versi}"`);
+	// Without outgoing email (surel.di_login) "Forgot password?" is a plain line saying to ask an Admin.
+	const lupa = await tamu.locator('a[href="#forgot"]').count();
+	const ganti = await tamu.locator(".erp-tanpa-email").count();
+	if (lupa + ganti !== 1) gagal.push(`login page: forgot link ${lupa}, ask-an-Admin line ${ganti}`);
+	if (ganti && (await tamu.locator('a[href="#login-with-email-link"]').count()))
+		gagal.push("login page: Login with Email Link without email");
 	await tamu.screenshot({ path: join(HASIL, "login.png") });
 	await tamu.close();
 }
@@ -410,6 +416,40 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 	cek((await versi.count()) === 1 && (await versi.innerText()) === harap_versi, `Settings dialog: no version ${harap_versi}`);
 	await page.screenshot({ path: join(HASIL, `${slug(profil)}-settings.png`) });
 	await page.keyboard.press("Escape");
+	// No outgoing email (erp_internal/surel.py, frappe.boot.erp_tanpa_email; the dev site has none): no Email in the
+	// print view or a form's menu and Activity; on a Produksi user's form no Reset Password or Send Welcome Email, but
+	// Change Password for Admin and Super Admin. 1440, 768 and 390 px.
+	if (await page.evaluate(() => frappe.boot.erp_tanpa_email)) {
+		for (const lebar of [1440, 768, 390]) {
+			await page.setViewportSize({ width: lebar, height: 900 });
+			await page.goto(`${URL}/desk/print/User/${surel(profil)}`);
+			await page.waitForLoadState("networkidle");
+			await page.waitForTimeout(800);
+			const cetak = await page.evaluate(() =>
+				[...document.querySelectorAll(".page-head button")].some(
+					(b) => b.offsetParent && (b.querySelector('use[href="#icon-mail"]') || b.innerText.trim() === __("Email"))
+				)
+			);
+			cek(!cetak, `print view at ${lebar} px: Email button without email`);
+			await page.screenshot({ path: join(HASIL, `${slug(profil)}-cetak-tanpa-email-${lebar}.png`) });
+			if (profil === "Produksi") continue;
+			await page.goto(`${URL}/desk/user/${surel("Produksi")}`);
+			await page.waitForFunction(() => window.cur_frm?.doc?.name && cur_frm.page.inner_toolbar, null, { timeout: 15000 }).catch(() => {});
+			await page.waitForTimeout(800);
+			const user = await page.evaluate(() => ({
+				reset: !!cur_frm.custom_buttons[__("Reset Password")],
+				ganti: !!cur_frm.custom_buttons[__("Change Password")],
+				sambut: cur_frm.fields_dict.send_welcome_email?.$wrapper?.is(":visible"),
+				email: frappe.model.can_email(null, cur_frm),
+				baru: [...document.querySelectorAll(".timeline-actions button")].some((b) => b.offsetParent && /Email/.test(b.innerText)),
+				geser: document.documentElement.scrollWidth - innerWidth,
+			}));
+			cek(!user.reset && user.ganti && !user.sambut && !user.email && !user.baru, `User form at ${lebar} px without email: ${JSON.stringify(user)}`);
+			cek(user.geser <= 0, `User form at ${lebar} px scrolls sideways by ${user.geser} px`);
+			await page.screenshot({ path: join(HASIL, `${slug(profil)}-user-tanpa-email-${lebar}.png`) });
+		}
+		await page.setViewportSize({ width: 1440, height: 900 });
+	}
 	cek(!galat.length, `console errors: ${galat.slice(0, 3).join(" | ")}`);
 	// Modules nobody uses (tampilan.MODUL_MATI): not in the search bar or a menu, refused by URL. After the console
 	// check: the refusal logs a 403.

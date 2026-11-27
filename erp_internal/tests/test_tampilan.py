@@ -356,6 +356,10 @@ class TestTampilan(IntegrationTestCase):
 			)
 			if "Setup" in m:
 				self.assertEqual(m["Setup"]["label"], "Settings")
+			# Forms no sidebar lists open under their module, not Build or Accounts (SHELL_DOKUMEN).
+			kanonik = boot.canonical_shell["DocType"]
+			self.assertEqual(kanonik["Production Entry"], "Manufacturing", profil)
+			self.assertEqual(kanonik["Reject Reason"], "Setup" if "Setup" in m else "Manufacturing", profil)
 		self.assertEqual(set(IKON_MODUL), set(IKON))
 
 	def test_kartu_pintasan(self):

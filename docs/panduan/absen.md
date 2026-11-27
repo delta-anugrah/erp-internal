@@ -13,7 +13,7 @@ di tampilan bahasa Inggris.
 
 ## Sekali saja: pasang di HP
 
-1. Buka `https://erp.<domain>/hrms` di Chrome (Android) atau Safari (iPhone), lalu masuk pakai email dan sandi
+1. Buka `https://erp-delta.usaha.ai/hrms` di Chrome (Android) atau Safari (iPhone), lalu masuk pakai email dan sandi
    kamu.
 2. Android: menu titik tiga → **Add to Home screen**. iPhone: tombol bagikan → **Add to Home Screen**.
 3. Sekarang ada ikon di layar HP. Pakai ikon itu tiap hari, seperti aplikasi biasa.
@@ -47,11 +47,11 @@ Sisa jatah cuti kurang? Sistem menolak pengajuannya (contoh: minta 13 hari padah
 ## Untuk Admin (HR)
 
 ### Tiap awal tahun: hari libur nasional
-Sistem sudah membuat daftar libur tiap tahun, isinya baru Sabtu dan Minggu: **Libur DAN 2026**, **Libur DAN
-2027**, dan seterusnya (DAN = singkatan perusahaan). Libur nasional dan cuti bersama diisi HR sendiri dari
+Sistem sudah membuat daftar libur tiap tahun, isinya baru Sabtu dan Minggu: **Libur DA 2026**, **Libur DA
+2027**, dan seterusnya (DA = singkatan perusahaan). Libur nasional dan cuti bersama diisi HR sendiri dari
 **SKB 3 Menteri** tahun itu:
 
-1. **HR → Holiday List**, buka **Libur DAN <tahun>**.
+1. **HR → Holiday List**, buka **Libur DA <tahun>**.
 2. Di tabel **Holidays**, tambah satu baris per tanggal libur: **Date** dan **Description** (misalnya "Idul Fitri").
 3. **Save**.
 

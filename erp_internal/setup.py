@@ -319,12 +319,61 @@ BAWAAN_WO = {"skip_transfer": 1}
 # gives the Manufacturing roles that level on the parent DocType.
 HARGA_TERSEMBUNYI = {"Work Order Item": ("rate", "amount")}
 
+# Tidier forms (Abel 2026-11-27): per DocType, standard fields we never use are hidden (Property Setter `hidden`),
+# and a field moved to sit right after another (`pindah`: field -> the field it follows), written as the DocType's
+# `field_order` like Customize Form does. Fields ERPNext adds later still find their place by `insert_after`.
+# `cepat`: a field shown in the New ... dialog (quick entry: Property Setters `hidden` 0, `allow_in_quick_entry` 1).
+TATA_FORM = {
+	# One row: Customer | Date | Delivery Date. Order Type is always Sales; subcontracting is locked (MODUL_MATI).
+	"Sales Order": {
+		"sembunyi": ("order_type", "is_subcontracted"),
+		"pindah": {"delivery_date": "column_break1"},
+	},
+	# The rest (Abel 2026-11-27): a lone field moved up into the top row, unused features hidden (no POS, debit
+	# notes, tax withholding, transit warehouses, putaway, inspection or alternative items; IDR only).
+	"Delivery Note": {"pindah": {"set_warehouse": "column_break_10"}},
+	"Sales Invoice": {
+		"sembunyi": ("is_pos", "is_debit_note", "apply_tds"),
+		"pindah": {"due_date": "column_break_14"},
+	},
+	"Payment Entry": {
+		"sembunyi": ("book_advance_payments_in_separate_party_account", "apply_tds"),
+		"pindah": {"party_type": "payment_type", "party": "party_type", "party_name": "party"},
+	},
+	"Purchase Order": {
+		"sembunyi": ("is_subcontracted",),
+		"pindah": {"schedule_date": "column_break1", "set_warehouse": "schedule_date"},
+	},
+	"Purchase Receipt": {
+		"sembunyi": ("apply_putaway_rule", "is_subcontracted"),
+		"pindah": {"set_warehouse": "column_break_12"},
+	},
+	"Purchase Invoice": {
+		"sembunyi": ("apply_tds", "is_subcontracted"),
+		"pindah": {"bill_no": "supplier", "bill_date": "bill_no"},
+	},
+	"Stock Entry": {
+		"sembunyi": ("add_to_transit", "apply_putaway_rule", "inspection_required"),
+		"pindah": {"from_warehouse": "stock_entry_type", "to_warehouse": "posting_time"},
+	},
+	"Stock Reconciliation": {"pindah": {"set_warehouse": "purpose"}},
+	"Work Order": {"sembunyi": ("allow_alternative_item",)},
+	"Item": {"sembunyi": ("allow_alternative_item",)},
+	"Customer": {"sembunyi": ("default_currency",)},
+	"Supplier": {"sembunyi": ("default_currency",)},
+	"Employee": {"sembunyi": ("middle_name", "salutation")},
+	# The New User dialog asks for the password (Abel 2026-11-27). The form keeps it in its hidden Change Password
+	# section; pengguna.cek_user still refuses it on a Super Admin's account.
+	"User": {"cepat": ("new_password",)},
+}
+
 
 def pastikan_setup() -> None:
 	"""Bring the site to the state this app expects. Idempotent; safe before the setup wizard."""
 	_pengaturan()
 	_field_aktif()
 	_impor_boleh()
+	_tata_form()
 	_halaman_lama()
 	tampilan.pastikan_peran()  # the Admin role, before IZIN_TAMBAHAN names it
 	if not frappe.is_setup_complete():
@@ -486,6 +535,31 @@ def _gudang_pabrik(company: str) -> None:
 		# A warehouse with stock history stays; disabling it would hide stock that exists.
 		if wh not in milik and not frappe.db.exists("Stock Ledger Entry", {"warehouse": wh}):
 			frappe.db.set_value("Warehouse", wh, "disabled", 1)
+
+
+def _tata_form() -> None:
+	"""Apply `TATA_FORM`: hide the unused fields and move the listed ones, writing only what differs."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	for doctype, tata in TATA_FORM.items():
+		meta = frappe.get_meta(doctype)
+		for field in tata.get("sembunyi", ()):
+			if not meta.get_field(field).hidden:
+				make_property_setter(doctype, field, "hidden", 1, "Check", validate_fields_for_doctype=False)
+		for field in tata.get("cepat", ()):
+			df = meta.get_field(field)
+			for prop, nilai in (("hidden", 0), ("allow_in_quick_entry", 1)):
+				if df.get(prop) != nilai:
+					make_property_setter(
+						doctype, field, prop, nilai, "Check", validate_fields_for_doctype=False
+					)
+		urutan = [f.fieldname for f in meta.fields]
+		for field, setelah in tata.get("pindah", {}).items():
+			urutan.remove(field)
+			urutan.insert(urutan.index(setelah) + 1, field)
+		if urutan != [f.fieldname for f in meta.fields]:
+			make_property_setter(doctype, None, "field_order", json.dumps(urutan), "Data", for_doctype=True)
+		frappe.clear_cache(doctype=doctype)
 
 
 def _gudang_kirim() -> None:

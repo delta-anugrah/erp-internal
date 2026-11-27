@@ -125,6 +125,25 @@ class TestAlurJualBeli(IntegrationTestCase):
 		dn.insert()
 		self.assertEqual({i.warehouse for i in dn.items}, {dn.set_warehouse})
 
+	def test_tata_form(self):
+		# Abel 2026-11-27: unused fields hidden, moved fields right after their target; a rerun writes nothing.
+		from erp_internal.setup import TATA_FORM, _tata_form
+
+		_tata_form()
+		jumlah = frappe.db.count("Property Setter")
+		_tata_form()
+		self.assertEqual(frappe.db.count("Property Setter"), jumlah)
+		for doctype, tata in TATA_FORM.items():
+			meta = frappe.get_meta(doctype)
+			for field in tata.get("sembunyi", ()):
+				self.assertTrue(meta.get_field(field).hidden, f"{doctype}.{field}")
+			for field in tata.get("cepat", ()):
+				df = meta.get_field(field)
+				self.assertEqual((df.hidden, df.allow_in_quick_entry), (0, 1), f"{doctype}.{field}")
+			urutan = [f.fieldname for f in meta.fields]
+			for field, setelah in tata.get("pindah", {}).items():
+				self.assertEqual(urutan.index(field), urutan.index(setelah) + 1, f"{doctype}.{field}")
+
 	def test_alur_pembelian(self):
 		sebelum = stok(self.biji, self.bahan)
 		po = frappe.get_doc(

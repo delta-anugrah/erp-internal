@@ -143,6 +143,9 @@ TEKNISI = {"Shift 1": ("Yudi", 0), "Shift 2": ("Fadli", 3)}
 KE_PLUIT = ("CTH-EMBER-10L", 120)
 KIRIM_PLUIT = ("CONTOH-SJ-1", "Toko Contoh Sejahtera", "CTH-EMBER-10L", 60)
 CATATAN_PLUIT = f"{TANDA}: stok ke Gudang Pluit"
+# A purchase: (supplier, item, qty in its stock UOM, days from today to delivery), ordered and then received
+# in full, both with their paper attached (the Admin guide video opens the receipt).
+BELI = ("PT Contoh Biji Plastik", "CTH-BIJI-PP", 500, 3)
 # Expenses (spec section 5): (category, amount, repeat, days from the first production day or None for the
 # first day of this month, attached).
 BIAYA = (
@@ -199,6 +202,8 @@ DIBUAT = (
 	"Item Price",
 	"Delivery Note",
 	"Expense Entry",
+	"Purchase Order",
+	"Purchase Receipt",
 )
 
 
@@ -218,6 +223,7 @@ def buat_contoh() -> dict[str, int]:
 	_jual_beli(company, hari_ini)
 	_produksi(company, hari_ini)
 	_pluit(company)
+	_beli(company, hari_ini)
 	_biaya(company, hari_ini)
 	pengguna = _pengguna(company, sandi)
 	_kantor(company, pengguna, hari_ini)
@@ -357,6 +363,44 @@ def _pluit(company: str) -> None:
 		utils.lampirkan("Delivery Note", dn.name)  # the signed copy comes back after the delivery
 		ada = dn.name
 	tandai("Delivery Note", ada)
+
+
+def _beli(company: str, hari_ini: date) -> None:
+	"""One submitted Purchase Order (`BELI`) and its Purchase Receipt, each found by its DATA CONTOH tag."""
+	from erp_internal.penjualan import HARGA_BAHAN
+
+	pemasok, kode, qty, hari = BELI
+	gudang = setup.gudang(company, setup.GUDANG_GRUP[BARANG[kode][1]])
+	tag = {"_user_tags": ("like", f"%{TANDA}%"), "company": company, "docstatus": 1}
+	po = frappe.db.get_value("Purchase Order", tag)
+	if not po:
+		doc = frappe.get_doc(
+			{
+				"doctype": "Purchase Order",
+				"company": company,
+				"supplier": pemasok,
+				"transaction_date": hari_ini,
+				"schedule_date": add_days(hari_ini, hari),
+				"currency": "IDR",
+				"buying_price_list": HARGA_BAHAN,
+				"set_warehouse": gudang,
+				"items": [{"item_code": kode, "qty": qty, "rate": BARANG[kode][4], "warehouse": gudang}],
+			}
+		).insert(ignore_permissions=True)
+		utils.lampirkan("Purchase Order", doc.name)
+		doc.submit()
+		po = doc.name
+	tandai("Purchase Order", po)
+
+	pr = frappe.db.get_value("Purchase Receipt", tag)
+	if not pr:
+		from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
+
+		doc = make_purchase_receipt(po).insert(ignore_permissions=True)
+		utils.lampirkan("Purchase Receipt", doc.name)
+		doc.submit()
+		pr = doc.name
+	tandai("Purchase Receipt", pr)
 
 
 def _biaya(company: str, hari_ini: date) -> None:

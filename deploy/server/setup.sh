@@ -77,10 +77,10 @@ tulis_env() {
 	echo
 	# Checked here: once .env is written a rerun never asks again.
 	while true; do
-		tanya "Site address" "" "the exact address people type in the browser, e.g. app.deltaanugrah.com"
+		tanya "Site address" "" "the exact address people type in the browser, e.g. erp-delta.usaha.ai"
 		situs=$(printf '%s' "$JAWAB" | sed -E 's#^https?://##; s#/.*$##' | tr '[:upper:]' '[:lower:]')
 		[[ $situs =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$ ]] && break
-		echo "  That is not a web address like app.deltaanugrah.com, try again."
+		echo "  That is not a web address like erp-delta.usaha.ai, try again."
 	done
 	echo
 	local saran
@@ -104,6 +104,16 @@ tulis_env() {
 }
 
 perlu_terminal
+
+# `make akun`: new passwords or new accounts on a set-up server.
+if [ "${1:-}" = --akun ]; then
+	[ -f .siap ] || { echo "Not set up yet: run make setup first." >&2; exit 1; }
+	tanya_akun --ubah
+	make --no-print-directory up ping
+	buat_akun "docker compose"
+	exit 0
+fi
+
 echo "ERP Internal server setup. Every question has a suggestion in [brackets]: press Enter to take it."
 masuk_github
 [ -f .env ] || tulis_env

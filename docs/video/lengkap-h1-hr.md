@@ -1,0 +1,47 @@
+# Video Lengkap H1: HR, Karyawan, Absen, dan Cuti
+
+- **Untuk siapa:** Admin baru yang mengelola karyawan. Isi: seluruh bagian HR yang dipakai, mulai dari karyawan baru hingga cuti.
+- **Durasi target:** sekitar 5 menit.
+- **Login:** `admin@example.com` (Ayu Lestari, peran Admin), sandi akun contoh.
+- **Data yang harus ada sebelum rekam:**
+  - Data contoh di `erp.localhost` (`buat_contoh`): lima karyawan (Ayu, Citra, Bima, Dimas, Eka) di shift **Kantor**, masing-masing dengan jatah **Cuti Tahunan** 12 hari tahun ini.
+  - Daftar hari libur tahun ini (**Libur CPL 2026**; CPL adalah singkatan perusahaan di situs contoh) sudah ada, berisi hari Sabtu dan Minggu.
+  - Minimal satu absen masuk dan pulang pada hari kerja kemarin untuk satu karyawan, dan kehadirannya sudah dibuat sistem (proses otomatis setiap jam), agar daftar Kehadiran tidak kosong.
+- **Bahasa tampilan:** Indonesia.
+- **Bab (daftar isi):** Kartu halaman SDM (baris 3), Karyawan baru (baris 4), Jenis Shift dan jam kerja (baris 7), Jadwal Shift (baris 10), Jatah Cuti (baris 11), Absen dan kehadiran (baris 12), Hari libur (baris 16), Pengajuan cuti (baris 19).
+
+| No | Detik | Di layar | Teks layar | Narasi |
+|---|---|---|---|---|
+| 1 | 0 | Halaman depan sudah masuk sebagai Ayu. Klik judul menu **SDM**. Halaman SDM dengan kartu-kartu. | Sumber Daya Manusia (SDM): karyawan, absen, dan cuti | Video ini menjelaskan bagian Sumber Daya Manusia. Bagian ini mencakup data karyawan, absen, shift, hari libur, dan cuti. |
+| 2 | 12 | Kartu daftar isi: judul tiap bagian dengan menit mulainya (dibuat otomatis setelah rekam). | Daftar isi | Berikut daftar isi video ini. Anda dapat langsung melompat ke bagian yang Anda perlukan. |
+| 3 | 20 | Zoom ke kartu: **Karyawan**, **Absen Masuk/Pulang**, **Kehadiran Hari Ini**, **Pengajuan Cuti Baru**, **Jenis Shift**, **Jadwal Shift**, **Daftar Hari Libur**, **Jatah Cuti**. | Terdapat 8 kartu utama | Seluruh fitur yang dipakai tersedia pada delapan kartu ini. Bagian lain, seperti rekrutmen, penggajian, dan lembur, dikunci sehingga tidak ditampilkan. |
+| 4 | 36 | Klik kartu **Karyawan**. Daftar lima karyawan. Klik **+ Tambah Karyawan**. | Karyawan baru dicatat di sini | Langkah pertama untuk karyawan baru adalah mencatat datanya. Buka Karyawan, lalu klik Tambah Karyawan. |
+| 5 | 48 | Isi **Nama Depan** "Fajar", **Jenis Kelamin**, **Tanggal Lahir**, **Tanggal Bergabung** hari ini. Zoom ke **Perusahaan** yang sudah terisi. | Nama, jenis kelamin, tanggal lahir, tanggal masuk | Isi nama, jenis kelamin, tanggal lahir, dan tanggal mulai bekerja. Kolom perusahaan sudah terisi secara otomatis. |
+| 6 | 64 | Zoom ke kolom **ID Pengguna**, kursor menunjuknya tanpa diisi. Klik **Simpan**. | ID Pengguna: akun aplikasi karyawan | Jika karyawan memiliki akun aplikasi, pilih emailnya di kolom ID Pengguna agar karyawan dapat absen melalui ponsel. Kemudian klik Simpan. |
+| 7 | 80 | Kembali ke **SDM**, klik **Jenis Shift**, buka **Kantor**. Zoom ke jam mulai 08:00, jam selesai 17:00, lalu centang absen otomatis. | Shift Kantor: pukul 08.00 sampai 17.00 | Jenis Shift berisi jam kerja. Shift Kantor dimulai pukul delapan pagi hingga pukul lima sore, dan kehadirannya dibuat secara otomatis. |
+| 8 | 96 | Zoom ke batas waktu: toleransi telat sepuluh menit, lalu pulang cepat sepuluh menit. | Telat setelah 08.10, pulang cepat sebelum 16.50 | Absen masuk setelah pukul delapan lewat sepuluh menit dihitung terlambat. Pulang sebelum pukul lima kurang sepuluh menit dihitung pulang cepat. |
+| 9 | 112 | Kursor menunjuk jam mulai dan selesai, tanpa mengubah apa pun. Tutup form. | Jam shift Kantor tidak diubah manual | Jam shift Kantor dipasang ulang setiap kali aplikasi diperbarui. Jika jam kantor berubah, hubungi tim teknologi informasi. |
+| 10 | 124 | Klik **Jadwal Shift**, lalu **+ Tambah Jadwal Shift**. Pilih karyawan "Fajar", **Jenis Shift** Kantor, **Tanggal Mulai** hari ini. Klik **Simpan**, lalu **Kirim** dan **Ya**. | Jadwal Shift menentukan shift karyawan | Karyawan baru dimasukkan ke shift melalui Jadwal Shift. Pilih karyawan, shift Kantor, dan hari pertamanya. Klik Simpan, lalu Kirim dan Ya. |
+| 11 | 144 | Klik **Jatah Cuti**, lalu **+ Tambah Jatah Cuti**. Pilih "Fajar", jenis cuti Cuti Tahunan, tanggal 1 Januari sampai 31 Desember, jumlah 12 hari. Klik **Simpan**, lalu **Kirim** dan **Ya**. | Jatah Cuti Tahunan: 12 hari per tahun | Selanjutnya, berikan jatah cuti. Pilih Cuti Tahunan, satu Januari sampai tiga puluh satu Desember, sebanyak dua belas hari. Klik Simpan, lalu Kirim dan Ya. |
+| 12 | 166 | Klik **Absen Masuk/Pulang**. Daftar absen masuk dan pulang, dengan jam dan jenis masuk atau keluar. | Absen dari ponsel tercatat di sini | Karyawan melakukan absen melalui ponsel beserta lokasinya. Setiap absen masuk dan pulang tercatat dalam daftar ini. |
+| 13 | 180 | Klik **+ Tambah**: pilih karyawan, **Tipe Log** IN, isi jam kemarin pagi. Klik **Simpan**. | Absen terlewat dapat ditambahkan petugas Sumber Daya Manusia (SDM) | Jika karyawan lupa absen, petugas Sumber Daya Manusia dapat menambahkannya di sini. Lakukan pada hari yang sama, sebelum karyawan tersebut tercatat tidak hadir. |
+| 14 | 196 | Klik **Kehadiran Hari Ini** dari halaman SDM, lalu hapus filter tanggal. Daftar kehadiran dengan status Hadir, Tidak Hadir, dan tanda telat. | Kehadiran dibuat otomatis setiap jam | Kehadiran dibuat secara otomatis setiap jam dari data absen masuk dan pulang. Hari kerja tanpa absen sama sekali dicatat sebagai Tidak Hadir. |
+| 15 | 214 | Buka satu baris kehadiran yang telat. Zoom ke tanda **Entri Terlambat**. | Terlambat dan pulang cepat diberi tanda | Kehadiran yang terlambat atau pulang cepat diberi tanda di sini. Hari Sabtu, Minggu, dan hari libur tidak dihitung sebagai tidak hadir. |
+| 16 | 230 | Klik **Daftar Hari Libur**, buka **Libur CPL 2026**. Zoom ke tabel **Hari Libur** berisi Sabtu dan Minggu. | Sabtu dan Minggu sudah terdaftar | Daftar hari libur dibuat otomatis setiap tahun dan berisi hari Sabtu dan Minggu. Libur nasional dan cuti bersama diisi oleh petugas Sumber Daya Manusia. |
+| 17 | 244 | Klik **Tambah Baris** di tabel **Hari Libur**: **Tanggal** satu tanggal libur nasional, **Deskripsi** "Idul Fitri". Klik **Simpan**. | Tambahkan libur nasional sesuai Surat Keputusan Bersama (SKB) | Klik Tambah Baris untuk setiap tanggal libur sesuai Surat Keputusan Bersama tiga menteri tahun tersebut. Lalu klik Simpan. |
+| 18 | 260 | Zoom ke tombol **Get Local Holidays**, tanpa diklik. | Get Local Holidays: tetap cocokkan dengan Surat Keputusan Bersama (SKB) | Tombol Get Local Holidays dapat membantu pengisian. Namun, tetap cocokkan dengan Surat Keputusan Bersama, karena cuti bersama sering tidak tercantum. |
+| 19 | 274 | Kembali ke **SDM**, klik **Pengajuan Cuti Baru**. Pilih karyawan Citra, jenis cuti Cuti Tahunan, tanggal dua hari minggu depan, isi alasan. | Pengajuan cuti: jenis, tanggal, alasan | Pengajuan cuti dapat dibuat oleh karyawan melalui ponsel, atau oleh petugas Sumber Daya Manusia di sini. Pilih jenis cuti, tanggal mulai dan selesai, lalu isi alasannya. |
+| 20 | 292 | Kursor membuka pilihan jenis cuti: Cuti Tahunan, Sakit, Izin. | Cuti Tahunan, Sakit, dan Izin | Terdapat tiga jenis cuti. Cuti Tahunan memakai jatah dua belas hari, Sakit digunakan saat sakit, dan Izin untuk keperluan pribadi yang tidak dibayar. |
+| 21 | 308 | Klik **Simpan**. Ubah **Status** jadi **Disetujui**, lalu klik **Kirim** dan **Ya**. Zoom ke sisa jatah cuti. | Setujui, lalu kirim | Klik Simpan. Setelah disetujui atasan, ubah status menjadi Disetujui, lalu klik Kirim dan Ya. Hari Sabtu, Minggu, dan hari libur tidak mengurangi jatah cuti. |
+| 22 | 326 | Buat pengajuan lagi: Cuti Tahunan tiga belas hari. Klik **Simpan**: muncul pesan jatah tidak cukup. | Jatah tidak cukup, pengajuan ditolak | Jika sisa jatah tidak mencukupi, sistem akan menolak pengajuan. Contohnya, pengajuan tiga belas hari ditolak karena jatahnya hanya dua belas hari. |
+| 23 | 342 | Kembali ke halaman **SDM**. Zoom ke kartu **Kehadiran Hari Ini** dengan angkanya. | Periksa Kehadiran Hari Ini setiap pagi | Setiap pagi, buka halaman SDM dan periksa Kehadiran Hari Ini untuk melihat siapa yang belum absen. Sampai jumpa di video berikutnya. |
+
+## Catatan rekam
+
+- Saat naskah ini dibuat, kantor masih memakai absen sidik jari dan HR belum dipakai sehari-hari. Video ini disiapkan untuk saat HR mulai dipakai.
+- Absen melalui ponsel (alamat `/hrms`, tombol Check In dan Check Out) tidak direkam di sini; cukup disebut pada baris 12.
+- Label form mengikuti terjemahan bawaan HRMS dan Frappe (Nama Depan, Jenis Kelamin, Tanggal Lahir, Tanggal Bergabung, ID Pengguna, Tanggal Mulai, Tipe Log, Hari Libur, Tanggal, Deskripsi, Entri Terlambat, Disetujui, Hadir, Tidak Hadir, Simpan, Kirim, Ya, Tambah Baris). Kolom Leave Type tampil sebagai "Cuti Type" di terjemahan bawaan, jadi narasi menyebutnya "jenis cuti". Get Local Holidays tidak ditemukan terjemahannya. Jika di layar berbeda, sesuaikan teks "Di layar" saat rekam.
+- Baris 8: nama kolom batas waktu di form Jenis Shift panjang dan merupakan bawaan HRMS; cukup zoom ke angkanya (60, 10, 10, 120).
+- Baris 13: pastikan jam yang diisi masih pada hari kerja dan dalam batas absen shift Kantor (07.00 sampai 19.00).
+- Baris 22: jika pesan muncul saat **Kirim**, bukan saat **Simpan**, rekam penolakannya saat **Kirim**.
+- Setelah rekam: klik **Batalkan** pada pengajuan cuti Citra dan hapus drafnya, batalkan Jadwal Shift dan Jatah Cuti "Fajar", hapus karyawan "Fajar", absen tambahan baris 13, dan baris libur baris 17.
