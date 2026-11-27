@@ -33,12 +33,13 @@ REMOTE = $(shell sed -n 's/^RCLONE_REMOTE=//p' .env 2>/dev/null)
 PORT_LOKAL = $(or $(shell sed -n 's/^PORT=//p' .env 2>/dev/null),8080)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup langkah check env check-env pull db site wizard wizard-selesai configure lanjut up ping cron backup
+.PHONY: help setup akun langkah check env check-env pull db site wizard wizard-selesai configure lanjut up ping cron backup
 
 help:
 	@echo "make setup   asks a few questions, then every step below, in order; stops on the first error"
+	@echo "make akun    a new password for any account (Administrator too) or a new account"
 	@echo "make env SITE=... ERP_IMAGE=... [RCLONE_REMOTE=...]   write .env without questions (once)"
-	@echo "  check     tools on the host: docker, compose, openssl, curl, crontab, time zone (rclone with a backup destination)"
+	@echo "  check     ./cadangan made as you; tools on the host: docker, compose, openssl, curl, crontab, time zone (rclone with a backup destination)"
 	@echo "  check-env .env is mode 600, has its keys, ERP_IMAGE is an exact tag"
 	@echo "  pull      pull the image (needs docker login ghcr.io)"
 	@echo "  db        start mariadb, redis and the configurator"
@@ -54,10 +55,18 @@ help:
 setup:
 	@./setup.sh
 
+# A new password for any account (Administrator too) or a new account, asked like setup.
+akun:
+	@./setup.sh --akun
+
 # The steps before the wizard; setup.sh runs them once .env is written.
 langkah: check check-env pull db site
 
+# ./cadangan first, as this user: the `tools` container mounts it, and Docker on Linux makes a missing mount
+# source as root, after which cadangan.sh's chmod 700 fails ("Operation not permitted").
 check:
+	@$(KETAT) mkdir -p cadangan; [ -O cadangan ] || \
+		{ echo "./cadangan belongs to $$(stat -c %U cadangan 2>/dev/null || echo someone else): sudo chown -R $$USER: cadangan"; exit 1; }
 	@$(KETAT) for t in docker openssl curl crontab $(if $(REMOTE),rclone); do command -v $$t >/dev/null || { echo "missing: $$t"; exit 1; }; done
 	@$(KETAT) $(COMPOSE) version >/dev/null || { echo "missing: the docker compose plugin"; exit 1; }
 	@$(KETAT) docker info >/dev/null 2>&1 || { echo "docker does not answer: is $$USER in the docker group?"; exit 1; }
