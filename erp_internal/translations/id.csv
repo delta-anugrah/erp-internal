@@ -340,6 +340,7 @@ A password needs at least {0} characters.,Password minimal {0} karakter.
 {0} is already a {1} account: tick {1} to give it a new password.,{0} sudah akun {1}: centang {1} untuk memberi password baru.
 Forgot password? Ask an Admin to change your password.,Lupa password? Minta Admin untuk mengganti password Anda.
 Create User Email,Buat Email Pengguna
+Email,Surel
 Password,Kata sandi
 Reset Password,Atur ulang kata sandi
 "Create the Super Admin, Admin and Produksi accounts after the setup wizard; for now only Administrator.","Buat akun Super Admin, Admin dan Produksi setelah setup wizard; untuk sekarang hanya Administrator."
