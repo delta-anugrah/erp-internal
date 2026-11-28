@@ -680,10 +680,12 @@ def test_label_kita_dipakai(self):
 - [x] **Step 5: Commit** `feat(bahasa): Indonesian labels for the kept screens`.
 
 **Task 4 deviations (2026-10-27, Revision 2 item 3 as built):**
-- v16.53's user menu has no JS hook for extra rows; it lists `Navbar Settings.settings_dropdown`. The switch is
+- v16.53's menus have no JS hook for extra rows; it lists `Navbar Settings.settings_dropdown`. The switch is
   two `standard_navbar_items` rows in `hooks.py` ("Bahasa Indonesia" when `frappe.boot.lang` is not `id`,
   "English" when it is), whose action calls `erp_internal.ganti_bahasa(lang)` from `erp_internal.bundle.js`.
   Frappe syncs those rows on `migrate`, not on install.
+- 2026-11-27: Frappe v16.53 shows the `standard_navbar_items` rows in the sidebar header's menu (the module name,
+  top left), not in the user menu at the sidebar's foot; the guides and README follow.
 - `test_semua_teks_kita_diterjemahkan` skips the Navbar rows of other apps that `get_messages_for_app` returns,
   and adds our two navbar labels. New `test_tamu_ditolak`: Guest gets `frappe.PermissionError`.
 - `id.csv` also holds our own strings: the `Kind` label and description of `Company.erp_jenis`, the two menu labels
@@ -876,6 +878,9 @@ Start from bpt's `deploy/Containerfile`, `deploy/check_image.sh`, `.github/workf
   only with Abel's approval (not tagged).
 
 **Task 7 deviations (2026-10-28):**
+- 2026-11-27: the admin PC copy is a pull, not a push from the server: Super Admin downloads a Windows installer
+  from Download Backups (`cadangan_pc.py`, `data/pasang-cadangan-pc.cmd`) that pulls from R2 nightly with a
+  read-only key (`docs/cadangan-pc.md`).
 - 2026-11-03: `image.yml` also refuses a tag other than `v` + `erp_internal.__version__` (shown on the login page
   and in Settings); bump `erp_internal/__init__.py` first. The first tag is `v0.0.1` unless `__version__` is bumped.
 - 2026-11-24: `image.yml` replaced by `ci.yml` (one job "Tes": a pull request to main runs ruff, build,

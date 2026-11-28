@@ -31,7 +31,7 @@ Narasi dibacakan per kalimat: setiap kalimat mulai tepat saat aksi yang sama di 
 
 ## Catatan rekam
 
-- Ganti bahasa terlebih dahulu: klik nama di pojok kiri bawah menu, lalu pilih **Bahasa Indonesia** (perekam melakukannya sendiri).
+- Ganti bahasa terlebih dahulu: klik judul menu di pojok kiri atas, lalu pilih **Bahasa Indonesia** (perekam melakukannya sendiri).
 - Mesin yang diklik pada baris 5 harus mesin aktif (02 atau 03). Mesin 1, 7, serta 9 sampai 13 menolak perubahan status. Perekam menunggu status benar-benar berubah sebelum lanjut, dan mengembalikan statusnya setelah rekam.
 - Baris 10 dan 11 menambah hasil asli ke data contoh; perekam membatalkannya lagi setelah rekam.
 - Baris 14: bahan, pigmen, dan kemasan barang tersebut harus memiliki stok di Gudang Bahan Baku; jika tidak, Kirim akan ditolak. Perekam membatalkan Hasil Produksi ini setelah rekam.

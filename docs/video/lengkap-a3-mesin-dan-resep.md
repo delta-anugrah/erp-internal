@@ -5,7 +5,7 @@
 - **Login:** `admin@example.com` (Ayu Lestari, peran Admin), sandi akun contoh.
 - **Data yang harus ada sebelum rekam:**
   - Data contoh (`buat_contoh`) dan data barang asli (`master.muat`, `penjualan.muat`, `mesin_barang.muat`) sudah dimuat, sehingga tersedia Workstation Mesin 01 sampai 14 (Mesin 01, 07, 09 sampai 13 nonaktif) dan baris Kapasitas Mesin Seal Cap di Mesin 04 dan 14.
-  - Satu file Excel kapasitas di komputer. Saran: file kecil berisi baris Seal Cap yang sudah ada (Produk "Seal Cap", Mesin 04, Cycle Time 14, Cavity 20, Berat 0,88, Runner 0, Bahan BB-SEAL-CAP), agar hasilnya **Tidak berubah** dan tidak ada data baru. Contoh lain: `erp_internal/tests/data/kapasitas.xlsx`.
+  - File impor: perekam menulis sendiri `kapasitas-seal-cap.csv` berisi dua baris Seal Cap yang sudah ada (Mesin 04 dan 14), jadi hasilnya **Tidak berubah** dan tidak ada data baru.
 - **Bahasa tampilan:** Indonesia.
 - **Bab (daftar isi):** Data mesin (baris 3), Mesin nonaktif (baris 5), Kapasitas Mesin (baris 7), Membuat resep (baris 13), Isi resep (baris 14), Impor dari Excel (baris 17), Mesin pada Perintah Produksi (baris 21).
 
@@ -30,10 +30,10 @@
 | 17 | 254 | Kembali ke daftar **Kapasitas Mesin**. Klik tombol **Impor dari Excel**. Dialog **Impor Kapasitas Mesin** terbuka. | Banyak baris? Gunakan Impor dari Excel | Apabila barisnya banyak, Anda tidak perlu mengetiknya satu per satu. Klik Impor dari Excel. |
 | 18 | 268 | Klik **File Excel atau CSV**, pilih **Perangkat Saya**, pilih file Excel, klik **Unggah**. Klik **Pratinjau**. Tabel muncul: **Baris**, **Hasil**, **Alasan**. | Pratinjau terlebih dahulu, belum ada data ditulis | Lampirkan file melalui Perangkat Saya, lalu klik Unggah. Klik Pratinjau. Pada tahap ini, belum ada data yang ditulis. |
 | 19 | 288 | Zoom ke kolom **Hasil**: Baru, Berubah, Tidak berubah, Ditolak. Tunjuk satu alasan kalau ada yang Ditolak. | Baru, Berubah, Tidak berubah, Ditolak | Kolom Hasil menunjukkan status setiap baris. Baris yang ditolak disertai alasannya, misalnya barang atau mesin tidak ditemukan. |
-| 20 | 306 | Klik **Terapkan**. Dialog tertutup. | Terapkan: simpan baris dan buat resep | Apabila sudah sesuai, klik Terapkan. Baris baru dan baris yang berubah akan disimpan, lalu resepnya dibuat seperti pada tombol Buat Bill of Materials. |
+| 20 | 306 | Tunjuk pojok kanan bawah dialog: tombol **Terapkan** muncul hanya kalau ada baris **Baru** atau **Berubah**. File contoh ini semuanya **Tidak berubah**, jadi tombolnya tidak ada. Tutup dialog. | Terapkan: simpan baris dan buat resep | Apabila ada baris baru atau berubah, tombol Terapkan muncul di sini. Klik Terapkan untuk menyimpan barisnya, lalu resepnya dibuat seperti pada tombol Buat Bill of Materials. |
 | 21 | 322 | Buka judul **Produksi**, klik **Perintah Produksi**, lalu **+ Tambah Perintah Produksi**. Pilih **Barang** satu varian Seal Cap. Klik kolom **Mesin**: pilihan cuma Mesin 04 dan Mesin 14. | Pilihan mesin mengikuti Kapasitas Mesin | Kapasitas Mesin juga membatasi pilihan mesin. Pada perintah produksi, hanya mesin yang tercatat untuk barang tersebut yang dapat dipilih. |
 | 22 | 340 | Ketik **Mesin 05**, klik **Simpan**. Zoom ke pesan "... tidak dibuat di Mesin 05. Mesin untuk barang ini: ...". | Mesin lain akan ditolak | Apabila mesin lain dipilih, sistem akan menolak dan menyebutkan mesin yang diperbolehkan. Untuk menambah mesin, tambahkan terlebih dahulu barisnya di Kapasitas Mesin. |
-| 23 | 358 | Pilih **Mesin 04**. Zoom ke kolom **BOM** yang terisi resep Mesin 04. Tutup tanpa simpan. | Resep mengikuti mesin | Setelah mesin dipilih, resep untuk mesin tersebut terisi secara otomatis. Barang tanpa baris kapasitas dapat dibuat di mesin mana pun. |
+| 23 | 358 | Pilih **Mesin 04**, klik **Simpan** (draf). Zoom ke kolom **BOM** yang terisi resep Mesin 04. Draf dihapus sesudah rekam. | Resep mengikuti mesin | Setelah mesin dipilih dan disimpan, resep untuk mesin tersebut terisi secara otomatis. Barang tanpa baris kapasitas dapat dibuat di mesin mana pun. |
 | 24 | 374 | Kembali ke halaman depan. Teks penutup di tengah layar. | Berikutnya: stok awal | Demikian pembahasan mesin dan resep, dan pada video berikutnya kita akan mengisi stok awal gudang. Sampai jumpa. |
 
 ## Catatan rekam

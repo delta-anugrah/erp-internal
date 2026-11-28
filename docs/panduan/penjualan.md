@@ -5,8 +5,8 @@
 
 Untuk **Admin**. Urutannya: **Sales Order → Delivery Note → Sales Invoice → Payment Entry**.
 
-Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik nama kamu di pojok kiri bawah menu samping, pilih
-**Bahasa Indonesia**. Nama tombol di panduan ini ditulis seperti di tampilan bahasa Inggris.
+Tampilan aslinya bahasa Inggris. Mau bahasa Indonesia: klik judul menu di pojok kiri atas menu samping (nama bagian yang
+terbuka, misalnya **Selling**), pilih **Bahasa Indonesia**. Nama tombol di panduan ini ditulis seperti di tampilan bahasa Inggris.
 
 ## 1. Catat pesanan pelanggan (Sales Order)
 

@@ -9,7 +9,7 @@ Alurnya:
 3. tiap shift: **catat hasil produksi** per mesin (bagus lewat Daily Input; reject lewat form Production Entry);
 4. tiap Senin: cek **Order Readiness** (Siap Order).
 
-Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik judul menu di pojok kiri atas menu samping (nama bagian yang terbuka, misalnya **Produksi**), pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 ## Lantai produksi (Production Floor)
@@ -169,12 +169,12 @@ Reject tidak ada di Daily Input. Kalau perlu mencatat reject: **Manufacturing â†
 1. Pilih **Work Order**. **Item**, **Machine** dan **Company** terisi sendiri dari Work Order.
 2. **Date**: tanggal shift-nya (tidak boleh besok). **Shift**: salah satu shift yang diatur untuk pabrik (dua
    shift, masing-masing 12 jam). **Run Hours** terisi panjang shift itu; ganti kalau mesin cuma jalan sebagian.
-3. **Good Qty**: jumlah barang bagus, angka bulat (Good Qty, Reject Qty dan jumlah reject tampil tanpa koma).
+3. **Good Qty**: jumlah barang bagus, angka bulat; isi `0` kalau barang bagusnya sudah diketik di Daily Input (Good Qty, Reject Qty dan jumlah reject tampil tanpa koma).
 4. **Rejects**: satu baris per alasan (**Reason**, misalnya Short Shot, Flashing, Bubble) dan jumlahnya. **Reject
    Qty** dijumlah sendiri.
 5. **Save**, **Submit**.
 
-Saat Submit stok bergerak sendiri (dua Stock Entry, kelihatan di bagian **Stock Entries**):
+Saat Submit stok bergerak sendiri (dua Stock Entry; bagian **Stock Entries** di form hanya tampil untuk Admin):
 
 | Yang terjadi | Ke mana |
 |---|---|

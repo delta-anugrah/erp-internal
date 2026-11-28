@@ -17,9 +17,9 @@
 | 4 | 42 | Zoom ke Gudang Barang Jadi, Gudang Reject, Gudang Pluit. | Barang dijual dari Barang Jadi atau Pluit | Gudang Barang Jadi untuk produk siap kirim, Gudang Reject untuk produk cacat, dan Gudang Pluit untuk produk yang disimpan di Pluit. |
 | 5 | 60 | Teks di tengah layar. | Stok tidak boleh minus | Perlu diingat, stok tidak boleh minus. Oleh karena itu, stok awal harus diisi sebelum barang digunakan atau dikirim. |
 | 6 | 72 | Buka judul **Pengaturan**, klik kartu **Stok Awal & Stok Opname**. Daftar terbuka. Klik **+ Tambah Rekonsiliasi Persediaan**. | Stok Awal & Stok Opname di Pengaturan | Stok awal diisi melalui menu Pengaturan, pada kartu Stok Awal dan Stok Opname. Buka kartu tersebut, lalu klik tombol Tambah. |
-| 7 | 86 | Isi **Tanggal Posting** sehari sebelum mulai pakai. Pilih **Tujuan** `Persediaan pembukaan`. Zoom ke **Akun Selisih** yang berisi `Temporary Opening - CPL`. | Tujuan: Persediaan pembukaan (stok awal) | Isi tanggal sehari sebelum aplikasi mulai digunakan. Pilih tujuan Persediaan pembukaan, yang berarti stok awal. Akun selisih akan terisi secara otomatis. |
-| 8 | 104 | Di tabel **Item** baris 1: **Kode Item** `BB-SEAL-CAP`, **Gudang** `Gudang Bahan Baku - CPL`, **Kuantitas** 500, **Tingkat Penilaian** 13.500. | Barang, gudang, jumlah, dan harga pokok | Isi setiap baris dengan barang, gudang, jumlah dalam satuan stok, dan harga pokok per satuan. Biji plastik ini dihitung dalam kilogram. |
-| 9 | 124 | Baris 2: `Karung`, `Gudang Bahan Baku - CPL`, **Kuantitas** 200, **Tingkat Penilaian** 3.500. Baris 3: satu varian produk di `Gudang Pluit - CPL`. | Satu dokumen dapat memuat banyak gudang | Satu dokumen dapat memuat banyak barang dan banyak gudang. Kemasan dan produk sama-sama dihitung per buah. |
+| 7 | 86 | Isi **Tanggal Posting** sehari sebelum mulai pakai. Pilih **Tujuan** `Persediaan pembukaan`. **Akun Selisih** tidak tampil di form (terisi sendiri). | Tujuan: Persediaan pembukaan (stok awal) | Isi tanggal sehari sebelum aplikasi mulai digunakan. Pilih tujuan Persediaan pembukaan, yang berarti stok awal. Akun selisih akan terisi secara otomatis. |
+| 8 | 104 | Di tabel **Item** baris 1: **Kode Item** satu bahan baku yang belum punya stok (misalnya `BB-PP-HITAM`), **Gudang** `Gudang Bahan Baku - CPL`, **Kuantitas** 500, **Tingkat Penilaian** 13.500. | Barang, gudang, jumlah, dan harga pokok | Isi setiap baris dengan barang, gudang, jumlah dalam satuan stok, dan harga pokok per satuan. Biji plastik ini dihitung dalam kilogram. |
+| 9 | 124 | Baris 2: satu barang kemasan yang belum punya stok, `Gudang Bahan Baku - CPL`, **Kuantitas** 200, **Tingkat Penilaian** 3.500. Baris 3: satu varian produk di `Gudang Pluit - CPL`. | Satu dokumen dapat memuat banyak gudang | Satu dokumen dapat memuat banyak barang dan banyak gudang. Kemasan dan produk sama-sama dihitung per buah. |
 | 10 | 142 | Teks di tengah layar. | Jumlah pigmen diisi dalam gram | Untuk pigmen, jumlahnya ditulis dalam gram, karena stok pigmen dihitung dalam gram. |
 | 11 | 154 | Klik **Simpan**, lalu **Kirim**, lalu **Ya** pada konfirmasi. Status jadi terkirim. | Simpan, lalu Kirim | Klik Simpan, lalu klik Kirim dan Ya. Stok baru bertambah setelah dokumen dikirim. Stok awal tidak memerlukan foto lampiran. |
 | 12 | 170 | Buka judul **Stok**, klik kartu **Saldo Stok**. Isi **Gudang** `Gudang Bahan Baku - CPL`. Zoom ke baris `BB-SEAL-CAP` dan `Karung`. | Periksa hasilnya di Saldo Stok | Selanjutnya, periksa hasilnya di Saldo Stok. Pilih gudangnya, dan jumlah yang tadi diisi sudah tercatat. |
@@ -34,8 +34,8 @@
 
 - Durasi narasi sekitar 4 menit 30 detik apabila dibaca perlahan.
 - Baris 6 dan 15: apabila tombol tambah di daftar bertuliskan lain (misalnya hanya **+ Tambah**), ikuti tampilan di layar.
-- Baris 7: apabila **Akun Selisih** tidak terisi otomatis, pilih `Temporary Opening - CPL`.
-- Baris 9: gunakan varian produk yang tersedia; angka boleh disesuaikan.
+- Baris 7: **Akun Selisih** disembunyikan di form ini dan terisi sendiri (`Temporary Opening - CPL`).
+- Baris 8 dan 9: stok awal ditolak ERPNext untuk barang yang sudah punya transaksi di gudang itu, jadi perekam memilih bahan, kemasan, dan produk yang belum pernah punya stok di gudangnya.
 - Baris 11 menambah stok yang sebenarnya. Setelah rekaman, klik **Batalkan** pada dokumen stok awal tersebut.
 - Baris 17: jangan klik **Kirim** pada stok opname; tutup lalu hapus drafnya.
 - Barang dalam jumlah banyak dapat juga diimpor melalui file (`docs/impor.md` bagian 4); hal ini tidak ditampilkan di video karena belum dipastikan Admin dapat membuka Data Import.

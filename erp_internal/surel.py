@@ -5,7 +5,8 @@
 
 - `boot` (extend_bootinfo) sends `frappe.boot.erp_tanpa_email`; `public/js/surel.js` hides the form's Email menu
   item and the Activity's New Email (`frappe.model.can_email`) and the print view's Email; `public/js/user.js`
-  (doctype_js User) drops Password > Reset Password and Create User Email and hides Send Welcome Email;
+  (doctype_js User) drops Password > Reset Password and Create User Email and hides Send Welcome Email; the boot
+  also loses the System rail's Email icon (`DOCK_EMAIL`) and the sidebar links of `SEMBUNYI_TANPA_EMAIL`;
 - `di_login` (update_website_context) swaps the login page's "Forgot password?" for a line saying to ask an Admin
   and drops "Login with Email Link";
 - `user_baru` (User before_insert) turns Send Welcome Email off, so no mail waits in the queue.
@@ -29,7 +30,25 @@ def ada_email() -> bool:
 
 
 def boot(bootinfo) -> None:
+	"""extend_bootinfo: the no-email flag, and without email the System rail's Email (envelope) icon and the Users
+	sidebar's User Invitation (it only mails an invite) left out. Both still open by URL or search, so Email
+	Account stays reachable to set email up. Boot must never fail."""
 	bootinfo.erp_tanpa_email = not ada_email()
+	if not bootinfo.erp_tanpa_email:
+		return
+	try:
+		for app, ikon in (bootinfo.get("dock") or {}).items():
+			bootinfo.dock[app] = [i for i in ikon if i.get("link_to") != DOCK_EMAIL]
+		for s in (bootinfo.get("module_sidebars") or {}).values():
+			if s and s.get("items"):
+				s["items"] = [i for i in s["items"] if i.get("link_to") not in SEMBUNYI_TANPA_EMAIL]
+	except Exception:
+		frappe.log_error(title="surel.boot")
+
+
+# The rail entry of Frappe's Email sidebar, and the sidebar links that only send mail.
+DOCK_EMAIL = "Email"
+SEMBUNYI_TANPA_EMAIL = ("User Invitation",)
 
 
 def di_login(context) -> dict | None:

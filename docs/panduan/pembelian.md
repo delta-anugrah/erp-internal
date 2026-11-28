@@ -6,7 +6,7 @@
 Untuk **Admin**. Urutannya: **Material Request → Purchase Order → Purchase Receipt → Purchase Invoice**.
 Barang tidak bisa diterima tanpa Purchase Order; sistem menolaknya.
 
-Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik judul menu di pojok kiri atas menu samping (nama bagian yang terbuka, misalnya **Produksi**), pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 ## 1. Lihat permintaan barang (Material Request)

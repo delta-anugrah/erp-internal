@@ -24,6 +24,21 @@ Before that (2026-11-02, item-to-machine list): 232 tests (13 unit + 219 integra
 Before that (2026-11-02, after the simpler User role): `bench --site erp-test.localhost run-tests --app erp_internal`:
 222 tests (13 unit + 209 integration), all OK. `node tools/cek_layar.mjs`: 3 users OK, every home shortcuts only.
 
+## Next: Excel import for Admin, no terminal (discussion 2026-11-28, nothing built yet)
+
+Found on erp.localhost: Data Import is System Manager only (Admin cannot open it, not just missing from the menu);
+Admin may create Item, Customer, Supplier, Stock Reconciliation, Sales History, Item Price, Brand; Expense Entry has
+`allow_import` 0. Draft split: Data Import for customers, suppliers, Brand; a custom import like Machine Capacity
+(match by name, Preview, Apply) for opening stock and sales history, since Samuel's Excel is per product + type in
+Lusin/Gross and knows no variant codes.
+
+- [ ] Abel: ask Samuel which Excel files he still keeps outside the ERP (customers, suppliers, opening stock, sales
+      history of a year or more, pigment list, packing list) and get a sample of each, as he uses it.
+- [ ] Abel: decide whether Admin gets Data Import (risk: "Update Existing Records" overwrites many records, no undo)
+      or it stays Super Admin only.
+- [ ] Then: design per file (Data Import vs custom import), check the v16.53 Data Import wizard in the browser and
+      drop the "Belum dicek di situs" note in `docs/impor.md`.
+
 ## Next: Samuel's requests of 2026-11-23 (decisions in `docs/menunggu-samuel.md`, 2026-11-23 table)
 - [x] Commit the price list default fix, after `/run-checks` (2026-11-23: 263 tests OK).
 - [x] Spec `docs/superpowers/specs/2026-11-23-permintaan-samuel-design.md` (items 1-5, 7, plus Abel's attachments and
@@ -56,11 +71,17 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       source in the repo; the 2026-11-02 one was made by hand from the live permissions and is gone from the Desktop).
 - [x] Abel: approve tagging (bump `erp_internal.__version__`); PR #11 (Tasks 1-16) merged 2026-11-24; `v0.0.1`
       tagged and deployed 2026-11-26.
-- [ ] `v0.0.2` (Abel 2026-11-27): `__version__` is 0.0.2; tag after the next PR (password in the New User dialog,
-      `make akun`, no-email mode `surel.py`, `./cadangan` owner, the 2026-11-27 work) is merged to `main`, then deploy
-      it on the server; before the deploy run `sudo chown -R deploy: cadangan` once in `~/erp`.
+- [x] `v0.0.2` (Abel 2026-11-27): PR #18 (password in the New User dialog, `make akun`, no-email mode `surel.py`,
+      `./cadangan` owner, the 2026-11-27 work) merged, tagged, image in GHCR, deployed on the server 2026-11-27
+      (backup, pull, migrate, ping OK; the login page shows `v0.0.2` and the ask-an-Admin line at 390 and 768 px).
+- [x] Server `~/erp` files from the tag `v0.0.2` (2026-11-27): `Makefile`, `setup.sh`, `akun.sh`, `README.md`,
+      `pemeliharaan.html` copied (the old ones in `~/erp/lama-v0.0.1/`); `make check` OK, `make akun` listed.
+- [x] nginx serves `pemeliharaan.html` on 502/503/504: `/var/www/erp/pemeliharaan.html` (same sha256 as `v0.0.2`)
+      and `snippets/erp-pemeliharaan.conf` included in the 443 block; seen live 2026-11-27 with
+      `docker compose stop frontend` (Abel's screenshot).
 - [ ] Email (Resend, postponed): set an Email Account as Default Outgoing; the Email buttons, Reset Password and
-      Forgot password come back by themselves (`surel.py`). Then decide on User Invitation and the inbox rail icon.
+      Forgot password come back by themselves (`surel.py`), and so do the System rail's Email icon and the Users
+      sidebar's User Invitation (hidden while there is no email, Abel 2026-11-27).
 - [x] CI: `.github/workflows/ci.yml` (job "Tes" on pull requests to main and `vX.Y.Z` tags) replaces `image.yml`;
       `deploy/ci_tes.sh` runs the tests inside the image.
 - [x] Repository rulesets (Abel 2026-11-24): `main-ci` makes "Tes" a required check on `main` (not "up to date");
@@ -83,7 +104,36 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [ ] Item 6 leftovers: M1G/M1H in Samuel's PO and Excel are ignored for now (spec A6); "CN" and "PT CN" kept apart
   until he says they are one.
 - [x] DigitalOcean server in its own session: live 2026-11-26 at `erp-delta.usaha.ai` (Cloudflare A record, DNS
-      only), image `v0.0.1`, abbreviation `DA`. Backups: admin PC + Cloudflare R2 still to set up.
+      only), image `v0.0.1`, abbreviation `DA`. Backups: server nightly + R2 live; admin PC installer built 2026-11-27
+      (`docs/cadangan-pc.md`), still open: Abel's Windows test, the R2 read-only key, the install on the admin PC.
+- [ ] Server, Abel's to-dos (deploy session, 2026-11-28). R2 is live since 2026-11-27 18:15: bucket
+      `erp-delta-anugrah-backup` in the usaha.ai Cloudflare account, official rclone v1.76.0 on the server, Bucket lock
+      `retain-13-days` (tested: a delete is refused with 409).
+  - [ ] 2026-11-28 morning: the first 02:00 run reached R2 (an `OK` line and a `20261128_02…` set):
+        `ssh erpdeltaprod 'tail -5 ~/erp/cadangan.log && rclone ls r2:erp-delta-anugrah-backup/erp'`.
+  - [ ] Commit the rclone/R2 note in `deploy/server/README.md` "First install" with the next docs PR.
+  - [ ] First restore drill from R2 on a scratch stack, never on production (runbook "Monthly restore drill").
+  - [ ] Admin PC copy (`docs/cadangan-pc.md`, built 2026-11-27, uncommitted on `feat/lokal`):
+    - [ ] R2 token: Create Account API token, Object Read only, only bucket `erp-delta-anugrah-backup`, TTL
+          Forever, no IP filter (never the server's key). Endpoint, Access Key ID, Secret to Bitwarden "Delta Anugrah
+          ERP Prod R2 backup (read-only)".
+    - [ ] Test on Abel's Windows laptop with `~/Desktop/pasang-cadangan-pc.cmd` (CRLF copy): expect "Akses baca OK",
+          "Jadwal dipasang", "SELESAI". A failure: photo of the screen to the session. Afterwards remove the task
+          "ERP Delta Anugrah - tarik backup" and `C:\CadanganERP` from the laptop.
+    - [ ] After a passing test: `/run-checks` (full suite, `cek_layar`), commit only this change's files (another
+          session's edits are in the same tree), PR, merge; it reaches production with the next tag.
+    - [ ] At the factory: the admin PC's Windows account has a password (BitLocker if Pro), then Settings > Download
+          Backups > PC Backup Installer as Super Admin, run it, check `C:\CadanganERP\log.txt` the next morning.
+  - [ ] Repo `delta-anugrah/erp-internal` back to Private (it holds Samuel's prices and customers); raise the
+        Actions spending limit if minutes were the reason.
+  - [ ] Delete the old sslip.io certificate: `sudo certbot delete --cert-name 165-22-249-172.sslip.io`.
+  - [ ] Tell Samuel the off-site backups sit in Nexio's (usaha.ai) Cloudflare account.
+  - [ ] Clean up tokens: delete the broad "Linux Token" on `marcoabelz`, old tokens on `supportusahaai`; save the
+        GitHub recovery codes in Bitwarden.
+  - [ ] Monthly: the restore drill, and a newer rclone (the `.deb` does not update itself:
+        `curl -fsS https://downloads.rclone.org/version.txt` against `rclone version`).
+  - [ ] After 2026-12-10: `rclone deletefile r2:erp-delta-anugrah-backup/tes/lock.txt` (the lock test file).
+  - [ ] Decide: encrypt the sets before upload (rclone crypt; the key must live in Bitwarden or the sets are lost).
 - [ ] Test everything together, then demo videos (Produksi, Admin) and the new admin's onboarding.
       2026-11-26 evening: both Ringkas videos re-recorded with Abel's feedback (narration per sentence on its action,
       "Kirim" not "Submit", "Purchase Order (PO)" captions, a Daftar isi card with chapter minutes, status waits for
@@ -93,13 +143,26 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
       purchase, Stock Ledger shown after each stock change) re-recorded. Round 3 (Abel: "ampir perfect"): a cut header shows its full text on hover (`judul_penuh.js`),
       `ketik` waits 1 s, row 3 points at Proyek, SDM, Pengaturan; re-recorded. Then "Beranda" for Home, Order Readiness stock colours,
       `TATA_FORM` (Sales Order and 13 more forms, guide pictures retaken),
-      Abel 2026-11-27: re-record the Admin video and the 14 Lengkap ones only after this is merged to `main` (more UI changes coming first), waiting for Abel's verdict, then 14 Lengkap.
+      Abel 2026-11-27: re-record the Admin video and the 14 Lengkap ones only after this is merged to `main` (more UI changes coming first).
+      After the merge (PR #18): Admin re-recorded (10:54), waiting for Abel's verdict. Lengkap P1 scenario written and
+      recorded (the language switch is in the sidebar header's menu since Frappe v16.53, guides fixed; the change
+      password dialog keeps the current session, so the operator logs out). 2026-11-28: all 14 Lengkap videos recorded with
+      voice in `~/Desktop/video-panduan/` (lengths in `docs/video/README.md`), all waiting for Abel's verdict.
       2026-11-26: 16 scripts in `docs/video/`; recorder `tools/rekam_demo.mjs` (run under `caffeinate`); done:
       `ringkas-operator`. Left: 15 scenarios, the Production Entry form opening under "Bangun" (done: `tampilan.SHELL_DOKUMEN`),
       voice-over (done: `edge-tts` Ardi at -10 %, read per sentence through `teks` + `lalu()`), commit of the tool and scripts. Abel 2026-11-26: rename the sample users to
       `superadmin@`, `admin@`, `operator@example.com` (was `developer@`, `admin@`, `user@`) in `contoh.py`,
       tests, tools and docs, after the deploy/akun session commits (shared files); remove the old users on
       erp.localhost; then re-record `ringkas-operator` (captions changed 2026-11-26).
+- [ ] Abel 2026-11-27: all guide videos (done 2026-11-28, waiting for his verdict), then a professional manual book
+      PDF for Admin and one for Operator, in Indonesian, with real screenshots. Drafts: `docs/manual/operator.md`,
+      `admin.md`, `shotlist.json` (133 shots, paths checked against the menus 2026-11-28); PDFs built by
+      `node tools/manual_pdf.mjs`. Screenshots: `tools/manual_gambar.mjs` (one recipe per id), all 133 taken
+      2026-11-28 into `docs/manual/gambar/` (gitignored for now, like the PDFs) and the PDFs rebuilt. Next: Abel reads
+      the PDFs; then fix labels the shots show differently. One bench: never alongside a recording.
+- [ ] Abel to decide: the Company form's logo field is hidden by ERPNext v16, so Admin cannot upload a logo (the A1
+      video and the Admin manual say IT sets it), yet the Settings home card says "Company details and logo". Unhide
+      the field (a Property Setter in `setup.TATA_FORM`) or change the card's text.
 
 ## Next: one-command setup with questions, wizard automatic or by hand (Abel, 2026-11-03)
 - [x] Spec `docs/superpowers/specs/2026-11-03-setup-tanya-jawab-design.md` (builder check done, Abel's answers in).
@@ -114,7 +177,7 @@ Before that (2026-11-02, after the simpler User role): `bench --site erp-test.lo
 - [x] The app version (`v0.0.1`) under the login card and at the foot of the Settings dialog's left menu
       (`erp_internal/versi.py`, `public/js/versi.js`); CI (`ci.yml`) refuses a tag other than
       `v` + `erp_internal.__version__`. Tests `test_versi`, `cek_layar` checks both.
-- [ ] Abel: look at the version on the login page and in Settings (avatar menu, My Settings).
+- [ ] Abel: look at the version on the login page and in Settings (your name at the bottom left > Settings).
 - [x] Unused modules locked (`tampilan.MODUL_MATI`, Abel 2026-11-04): no menu, search or URL for anyone but Administrator.
 - [x] HR's unused DocTypes locked the same way (`tampilan.DOCTYPE_MATI`, Abel 2026-11-04): recruitment, appraisal,
       training, expenses, travel, lifecycle, vehicles, skills, overtime; attendance, shift and leave stay open.
@@ -342,7 +405,7 @@ Plan: `docs/superpowers/plans/2026-10-29-production-floor-richer-plan.md` (spec 
 - [x] Task 6: import guide (`test_impor` 4 OK; Stock Reconciliation import allowed by `setup.IMPOR_BOLEH`; headers
       equal the site's Download Template)
 - [~] Task 7: server image, compose, backups (image, compose boot, backup and restore drill done locally
-      2026-10-31; the server is live since 2026-11-26 at `erp-delta.usaha.ai`, image `v0.0.1`; backups to the admin PC and R2 still open)
+      2026-10-31; the server is live since 2026-11-26 at `erp-delta.usaha.ai`, image `v0.0.1`; R2 live; the admin PC copy has its installer (`docs/cadangan-pc.md`), install still open)
 - [~] Task 8: go-live wave 1 (local dry run done 2026-10-28; the real go-live waits on Samuel: PT Delta Anugrah,
       tick `erp_aktif`, users as Admin or Produksi)
 - [x] Revision 4: one company, three roles (`test_pengguna` 9 OK, `test_tampilan` 14 OK)
