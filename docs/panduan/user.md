@@ -4,7 +4,7 @@ Untuk akun **Produksi** (orang pabrik). Produksi cuma mencatat **hasil produksi*
 Perintah produksi (Work Order), resep (BOM), barang, mesin, surat jalan dan bahan masuk dikerjakan **Admin** (Mas
 Samuel, 2026-11-23). Menu Produksi cuma **Manufacturing**.
 
-Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik judul menu di pojok kiri atas menu samping (nama bagian yang terbuka, misalnya **Produksi**), pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 ## Yang diisi Produksi

@@ -69,7 +69,8 @@ update_website_context = ["erp_internal.versi.di_login", "erp_internal.surel.di_
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-# page_js = {"page" : "public/js/file.js"}
+# Frappe's Download Backups page (Super Admin): no emailed files backup, plus the PC backup installer (cadangan_pc.py).
+page_js = {"backups": "public/js/backups.js"}
 
 # include js in doctype views
 # The "Fill from History" button (planning/forecast.py); "Record Output" on a Work Order (Production Entry).
@@ -187,9 +188,10 @@ has_permission = {"User": "erp_internal.pengguna.boleh_ubah"}
 # cetak.py: the long Indonesian date of the PO print formats (templates/po_samuel.html).
 jinja = {"methods": ["erp_internal.cetak.tanggal_panjang"]}
 
-# User menu
-# ---------
+# Sidebar header menu (Navbar Settings rows)
+# ------------------------------------------
 # The language switch: one row shows, naming the other language. `frappe.boot.lang` is the user's own.
+# Frappe v16.53 lists these Navbar Settings rows in the sidebar header's menu (the module name, top left).
 standard_navbar_items = [
 	{
 		"item_label": "Bahasa Indonesia",

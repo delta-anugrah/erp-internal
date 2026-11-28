@@ -2,7 +2,7 @@
 
 Runbook for the production stack. Hosting is decided (DigitalOcean, Samuel 2026-11-23; backups to the admin's PC
 and Cloudflare R2: `docs/menunggu-samuel.md`, 2026-11-23 table, item 8). The server is being built (2026-11-27):
-droplet in SGP1, address `erp-delta.usaha.ai` (Cloudflare A record, DNS only), image `v0.0.1`, abbreviation `DA`.
+droplet in SGP1, address `erp-delta.usaha.ai` (Cloudflare A record, DNS only), image `v0.0.2` (deployed 2026-11-27; `v0.0.1` on 2026-11-26), abbreviation `DA`.
 Nothing here is shared with BPT or the sawit server.
 
 | File | What |
@@ -27,7 +27,11 @@ page and in Settings). Tag only with Abel's approval. `ERP_IMAGE` is always an e
 By hand first:
 
 1. **Server.** Ubuntu LTS, 4 GB RAM or more, Docker Engine with the compose plugin, a non-root user `deploy` in the
-   `docker` group, `make`. `rclone` only with an off-site backup destination. Time zone:
+   `docker` group, `make`. `rclone` only with an off-site backup destination: the official `.deb` from
+   `downloads.rclone.org` (check it against that version's `SHA256SUMS`), not Ubuntu 24.04's apt package, whose
+   1.60 gets `501 NotImplemented` from R2 on every upload (2026-11-27). An R2 remote takes
+   `provider=Cloudflare no_check_bucket=true` (a key scoped to one bucket cannot list or create buckets). An R2
+   Bucket lock must be shorter than the 14 days `cadangan.sh` keeps (13), or its delete fails. Time zone:
    `sudo timedatectl set-timezone Asia/Jakarta` (the cron line below is in local time).
 2. **DNS.** An `A` record for the address (e.g. `erp-delta.usaha.ai`) to the server. On Cloudflare: DNS only
    (grey cloud), so certbot's HTTP check reaches nginx.
@@ -128,6 +132,10 @@ cd ~/erp && sudo chown -R deploy: cadangan && ./cadangan.sh
 A set is three files sharing one prefix: `…-database.sql.gz`, `…-files.tgz`, `…-private-files.tgz`. The site
 config (it holds the database password) stays on the server; the encryption key is kept with the secrets (below).
 
+A third copy: the admin PC pulls every set from R2 at 03:00 with its own read-only key, installed once from the
+app (Settings > Download Backups > PC Backup Installer, Super Admin). Nothing changes on the server:
+`docs/cadangan-pc.md`.
+
 **Monthly restore drill**, on a scratch stack (another folder, another compose project, its own `.env` with
 `SITE=erp-pulih.localhost` and `PORT=8081`, which `docker-compose.yml` and `make ping` read), never on production:
 
@@ -157,6 +165,7 @@ the date and the counts at the end of this file. Then `docker compose -p erp-pul
 | Administrator's password | typed in `make setup` (a new one: `make akun`), never stored in a file | Abel |
 | Site `encryption_key` | `sites/<site>/site_config.json` in the `sites` volume; a copy in Abel's password manager | Abel |
 | rclone remote credentials | `~deploy/.config/rclone/rclone.conf` (chmod 600) | Abel |
+| R2 read-only key of the admin PC | `C:\CadanganERP\alat\rclone.conf` (folder for that Windows user only); Bitwarden | Abel |
 | GHCR read token | `~deploy/.docker/config.json` | Abel |
 | Server SSH | `deploy`'s `authorized_keys` | Abel; Samuel gets his own key if he asks |
 | Users' passwords | handed over in person (Task 8) | each user |

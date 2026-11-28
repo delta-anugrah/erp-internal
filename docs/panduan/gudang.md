@@ -16,7 +16,7 @@ keduanya.
 
 Stok tidak boleh minus: kalau sistem bilang stok kurang, cek dulu barangnya, jangan dipaksa.
 
-Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik judul menu di pojok kiri atas menu samping (nama bagian yang terbuka, misalnya **Produksi**), pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 ## Harian

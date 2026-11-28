@@ -30,7 +30,7 @@ const HASIL = join(dirname(fileURLToPath(import.meta.url)), "hasil");
 const KERJA = ["Stock", "Selling", "Buying", "Manufacturing", "Projects", "Shift & Attendance"];
 // Rail module → its home Workspace (tampilan.PINTASAN keys). Every home is shortcuts only, at most PINTASAN_MAKS.
 const RUMAH = { Setup: "Home", "Shift & Attendance": "HR" };
-const PINTASAN_MAKS = 12; // was 10: Plan vs Actual added 3 shortcuts to Manufacturing (12) and 1 to Setup (11); Missing Data (2026-11-24) made Setup 12, at the cap
+const PINTASAN_MAKS = 13; // was 10: Plan vs Actual added 3 shortcuts to Manufacturing (12) and 1 to Setup (11); Missing Data (2026-11-24) made Setup 12; Download Backups (2026-11-27, Super Admin only) 13, at the cap
 const PROFIL = {
 	"Super Admin": { modul: [...KERJA, "Setup"], build: true, rumah: "Manufacturing", form: "Work Order" },
 	Admin: { modul: [...KERJA, "Setup"], build: false, rumah: "Home", form: "User" },
@@ -408,7 +408,7 @@ for (const [profil, harap] of Object.entries(PROFIL)) {
 		await page.screenshot({ path: join(HASIL, `${slug(profil)}-harian-${lebar}.png`), fullPage: true });
 	}
 	await page.setViewportSize({ width: 1440, height: 900 });
-	// The user's Settings dialog (avatar menu > My Settings) ends its left menu with the app version (public/js/versi.js).
+	// The user's Settings dialog (the name at the sidebar's foot > Settings) ends its left menu with the app version (public/js/versi.js).
 	await page.evaluate(() => frappe.require("user_settings_dialog.bundle.js").then(() => frappe.ui.show_user_settings("profile")));
 	const versi = page.locator(".settings-dialog-sidebar .erp-versi");
 	await versi.waitFor({ timeout: 5000 }).catch(() => {});

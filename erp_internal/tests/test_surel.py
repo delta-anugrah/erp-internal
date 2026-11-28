@@ -47,6 +47,24 @@ class TestSurel(IntegrationTestCase):
 		self.assertFalse(boot.erp_tanpa_email)
 		self.assertIsNone(surel.di_login(frappe._dict(path="login")))
 
+	def boot_rail(self):
+		return frappe._dict(
+			dock={"frappe": [{"link_to": "Users"}, {"link_to": "Email"}]},
+			module_sidebars={"Users": {"items": [{"link_to": "User"}, {"link_to": "User Invitation"}]}},
+		)
+
+	def test_tanpa_email_rail(self):
+		boot = self.boot_rail()
+		surel.boot(boot)
+		self.assertEqual(boot.dock["frappe"], [{"link_to": "Users"}])
+		self.assertEqual(boot.module_sidebars["Users"]["items"], [{"link_to": "User"}])
+
+	def test_email_dipasang_rail(self):
+		self.akun_keluar()
+		boot = self.boot_rail()
+		surel.boot(boot)
+		self.assertEqual(boot, self.boot_rail() | {"erp_tanpa_email": False})
+
 	def test_mail_server_di_config(self):
 		# Frappe also sends through the site config's mail_server when no account is set
 		frappe.local.conf.mail_server = "smtp.example.com"

@@ -14,7 +14,7 @@ Ada tiga peran (**Role Profile**):
 | **Admin** | pemilik dan kepala | lihat hasil produksi; Work Order, BOM, stok, surat jalan, data induk, penjualan, pembelian, proyek, HR, akun pengguna, Company |
 | **Super Admin** | tim IT | semuanya kecuali modul yang dikunci, termasuk Build, System Settings, halaman pengaturan usaha (Stock/Selling/Buying/... Settings), dan **Finish** di Work Order |
 
-Ganti bahasa: klik nama kamu di pojok kiri bawah menu samping, pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
+Ganti bahasa: klik judul menu di pojok kiri atas menu samping (nama bagian yang terbuka, misalnya **Produksi**), pilih **Bahasa Indonesia**. Nama tombol di sini ditulis seperti
 di tampilan bahasa Inggris.
 
 Modul yang tidak dipakai (CRM, Assets, Quality, Support, Payroll, dan lain-lain) dikunci, begitu juga bagian HR yang
@@ -23,7 +23,7 @@ shift dan cuti tetap jalan): tidak ada di menu, tidak
 muncul di pencarian, dan tidak bisa dibuka lewat alamat. Kalau suatu hari dibutuhkan, tim IT membukanya
 (hapus dari daftar di kode, lalu migrate).
 
-Versi aplikasi (misalnya `v0.0.1`) ada di bawah kotak login dan di bagian bawah menu kiri **My Settings**. Sebut
+Versi aplikasi (misalnya `v0.0.1`) ada di bawah kotak login dan di bagian bawah menu kiri jendela **Settings** (klik nama kamu di pojok kiri bawah). Sebut
 versinya kalau melaporkan masalah.
 
 ## Rekap harian: cetak dan Excel
@@ -155,7 +155,8 @@ Di **Settings**: **Users**, **Company**, **Opening Stock & Stock Count** (Stock 
 opname, `docs/panduan/gudang.md`), **Reject Reason**, dan laporan **Missing Data** (di atas).
 
 Halaman pengaturan usaha (**Stock Settings**, **Selling Settings**, **Buying Settings**, **Manufacturing Settings**,
-**Accounts Settings**, **Projects Settings**, **HR Settings**) cuma muncul di menu Super Admin. Sistem sudah diatur
+**Accounts Settings**, **Projects Settings**, **HR Settings**) dan halaman **Download Backups** (unduh backup dan
+installer backup ke PC admin, `docs/cadangan-pc.md`) cuma muncul di menu Super Admin. Sistem sudah diatur
 (pesanan dulu baru terima barang (pembelian); surat jalan boleh langsung; stok tidak boleh minus; produksi boleh
 lebih 10 %) dan setelan itu dipasang lagi tiap pembaruan, jadi perubahan di sana bisa balik sendiri. Perlu
 mengubahnya? Minta ke Super Admin.

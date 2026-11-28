@@ -5,7 +5,7 @@ the scope the same day. Task 1 of the plan moves this file to `docs/superpowers/
 
 ## Revision 2 (Abel, 2026-10-27 23:00)
 
-- **The UI is English by default.** Each user can switch to Indonesian with one click in the user menu. Our own
+- **The UI is English by default.** Each user can switch to Indonesian with one click in the sidebar header's menu (it sat in the user menu in earlier notes). Our own
   text is English, translated in `translations/id.csv`, and a test makes sure every string of ours is translated.
   This replaces "Indonesian locale/labels" in §6 and §8. Number, date, time zone and currency stay Indonesian.
 - **English names.** `Riwayat Penjualan` becomes DocType `Sales History`. "Siap Order" becomes the report `Order

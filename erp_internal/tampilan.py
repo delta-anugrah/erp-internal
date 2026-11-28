@@ -148,12 +148,17 @@ SIDEBAR = {
 		"Accounts Settings",
 		"Projects Settings",
 		"HR Settings",
+		"backups",  # Frappe's Download Backups page, Super Admin only (System Manager; KHUSUS_SUPER_ADMIN)
 		"Missing Data",  # Admin and Super Admin only (the report's roles): last
 	],
 }
 
 # A SIDEBAR link whose label is not its name (a Page is named by its route).
-NAMA_LINK = {"production-floor": "Production Floor", "daily-input": "Daily Input"}
+NAMA_LINK = {
+	"production-floor": "Production Floor",
+	"daily-input": "Daily Input",
+	"backups": "Download Backups",
+}
 
 # A SIDEBAR link → its icon (Frappe's lucide set, `/assets/frappe/icons/lucide/icons.svg`), set on every sidebar
 # that shows it. Our own links and the ERPNext ones whose sidebar row has none, so no link shows the plain list
@@ -169,6 +174,7 @@ IKON_LINK = {
 	"Plan vs Actual": "target",
 	"Missing Documents": "paperclip",
 	"Missing Data": "list-checks",
+	"backups": "hard-drive-download",
 	"Expense Entry": "wallet",
 	"Monthly Expenses": "chart-column",
 	"Machine Capacity": "cog",
@@ -492,6 +498,7 @@ PINTASAN = {
 		_p("Accounts Settings", doc_view=""),
 		_p("Projects Settings", doc_view=""),
 		_p("HR Settings", doc_view=""),
+		_p("backups", "Download Backups", "Page"),
 		_p("Missing Data", jenis="Report"),
 	),
 }
@@ -514,6 +521,7 @@ KHUSUS_SUPER_ADMIN = (
 	"Accounts Settings",
 	"Projects Settings",
 	"HR Settings",
+	"backups",  # the whole database to download; its Page roles already limit it to System Manager
 )
 # Shortcut target → the one line under its title on the module homes (Abel 2026-11-25: bigger cards with an icon
 # and a short explanation). Sent in `erp_pintasan` with the link's sidebar icon; `public/js/pintasan.js` draws them.
@@ -571,6 +579,7 @@ KETERANGAN = {
 	"Accounts Settings": "Accounting options",
 	"Projects Settings": "Project options",
 	"HR Settings": "HR options",
+	"backups": "Backups and the PC backup installer",
 	"Missing Data": "Data still to fill in",
 }
 
