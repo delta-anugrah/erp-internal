@@ -105,7 +105,7 @@ When it ends:
 | Stop it (the data stays) | `make down` |
 | Get the newest version | `git pull`, then `make update-local` (rebuilds and migrates; your data and your edits stay; Samuel's data is never loaded twice) |
 | Use another port | the very first time only: `make setup PORT=8090` (kept in `.local/.env`) |
-| A new person's account, or a forgotten password | an Admin in the app: Users. Nobody can sign in (Administrator's password forgotten too)? `make akun`: tick the account's role, type its email (Administrator: only the password) and the new password. Everyone changes their own password under their avatar, My Settings, Change Password. |
+| A new person's account, or a forgotten password | an Admin in the app: Users. Nobody can sign in (Administrator's password forgotten too)? `make akun`: tick the account's role, type its email (Administrator: only the password) and the new password. Everyone changes their own password under their name at the bottom left, Settings, Change Password. |
 
 `make start` and `make start-local` are the same as `make up` (`make start` goes once the real server is live). Everything local is in `.local/` (git-ignored: generated passwords,
 the wizard answer, the backups folder); the data is in Docker volumes of the compose project `erp-local`.
@@ -226,8 +226,8 @@ copy of `app_data` only); a workspace saved from the desk keeps them (`erp_inter
 
 ## Language
 
-The UI is English. Each user switches to Indonesian, and back, from the user menu ("Bahasa Indonesia" /
-"English"); the Indonesian is `erp_internal/translations/id.csv`. Dates, numbers, time zone and currency are
+The UI is English. Each user switches to Indonesian, and back, from the sidebar header's menu (the module name
+at the top left: "Bahasa Indonesia" / "English"); the Indonesian is `erp_internal/translations/id.csv`. Dates, numbers, time zone and currency are
 Indonesian for everyone.
 
 ## Tests
@@ -263,6 +263,12 @@ tools/rekam_demo.mjs <video> [out.mp4]` (default `~/Desktop/demo-<video>.mp4`; `
 `bench start`, the sample data, `ffmpeg` and edge-tts for the voice (`docs/video/README.md`); the user's language is switched to Indonesian for the take and put back
 after, the Production Entries the take records are cancelled again, and a machine status it changes is restored. Its
 captions must match the video's script.
+
+`tools/manual_gambar.mjs` takes the manual books' pictures (`docs/manual/shotlist.json`, one recipe per id) into
+`docs/manual/gambar/` on `erp.localhost`: `ERP_SANDI=<password> node tools/manual_gambar.mjs [id or prefix …]`. It
+needs `bench start` and the sample data; it deletes the drafts it saves, cancels the Production Entries it submits, and
+puts back machine statuses and each user's language. Never run it during a video take on the same bench. `node
+tools/manual_pdf.mjs [operator|admin]` then builds `docs/manual/pdf/` (both folders gitignored).
 
 ## Factory flow and data import
 
@@ -330,7 +336,7 @@ line saying what it is for (`tampilan.KETERANGAN`, drawn by `public/js/pintasan.
 | Manufacturing | Production Floor (home shortcut only), Work Orders in Process (Work Order), Daily Input (page; also an own menu entry), Plan vs Actual, Machine Capacity, then Admin only: Sales History, Master Production Schedule, MRP, Order Readiness, BOM, Sales Forecast, Item Lead Time |
 | Projects | Open Projects (Project), My Open Tasks (Task), New Timesheet |
 | HR (HR app; its home is our Workspace "HR") | Employee, Employee Checkin, Today's Attendance (Attendance), New Leave Application, Shift Type, Shift Assignment, Holiday List, Leave Allocation |
-| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Reject Reason, Missing Data; Super Admin also Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings (`tampilan.KHUSUS_SUPER_ADMIN`: setup rewrites several of their fields on every update) |
+| Settings (Admin) | Users, Company, Opening Stock & Stock Count (Stock Reconciliation), Reject Reason, Missing Data; Super Admin also Stock, Selling, Buying, Manufacturing, Accounts, Projects and HR Settings (`tampilan.KHUSUS_SUPER_ADMIN`: setup rewrites several of their fields on every update), and Download Backups with the PC Backup Installer (`docs/cadangan-pc.md`) |
 
 The menu folds to a rail of module icons and opens again with the 32 px arrow at the panel's bottom edge; the browser
 remembers the choice (`erp_internal/public/css/erp_internal.css` keeps the arrow visible). On a phone it is Frappe's drawer.

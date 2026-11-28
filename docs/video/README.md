@@ -34,6 +34,7 @@ Aturan naskah (Abel 2026-11-26):
   jadi `isiSel` selalu jeda dulu sebelum mengetik.
 - Setiap ketikan (`ketik`) jeda 1 detik setelah kolom diklik, seperti orang melihat kolomnya dulu (Abel 2026-11-27).
 
+Dry run juga wajib lewat `caffeinate -i` (2026-11-27: laptop tidur satu jam di tengah dry run A4).
 Laptop harus longgar saat rekam: memori penuh (swap hampir habis) membuat Lantai Produksi butuh 60 detik untuk tampil
 dan klik status tidak dijawab. Tutup aplikasi dan container yang tidak dipakai, dan colokkan charger.
 
@@ -74,10 +75,28 @@ Projects (proyek dan timesheet) tidak dibuat videonya: belum dipakai di pabrik.
 | Video | Skenario di `rekam_demo.mjs` | Rekaman |
 |---|---|---|
 | `ringkas-operator` | ada (narasi per kalimat, daftar isi) | disetujui Abel 2026-11-27; rekam lagi setelah akun contoh jadi `operator@` |
-| `ringkas-admin` | ada (narasi per kalimat, daftar isi) | rekam ulang 2026-11-27 (putaran 2 dan 3), menunggu penilaian Abel |
-| 14 video Lengkap | belum | belum |
+| `ringkas-admin` | ada (narasi per kalimat, daftar isi) | rekam ulang 2026-11-27 setelah merge ke `main` (Beranda, form rapi), menunggu penilaian Abel |
+| `lengkap-p1-operator-mulai` | ada (narasi per kalimat, daftar isi; mengganti sandi lalu mengembalikannya) | direkam 2026-11-27 (4:10), menunggu penilaian Abel |
+| `lengkap-p2-operator-kerja-harian` | ada (Jumlah Bagus 0 di form reject; tampilan ponsel sebagai bingkai 390 px di atas halaman) | direkam 2026-11-27 (8:24), menunggu penilaian Abel |
+| `lengkap-a1-admin-mulai` | ada (mengganti sandi admin@ lalu mengembalikannya; budi@ dihapus di akhir lewat developer@) | direkam 2026-11-27 (5:21), menunggu penilaian Abel |
+| `lengkap-a2-data-barang` | ada (membuat varian pigmen untuk warna tanpa pigmen, lalu menonaktifkannya) | direkam 2026-11-27 (4:56), menunggu penilaian Abel |
+| `lengkap-a3-mesin-dan-resep` | ada (impor CSV yang semua barisnya Tidak berubah; draf Perintah Produksi dihapus) | direkam 2026-11-27 (5:05), menunggu penilaian Abel |
+| `lengkap-a4-stok-awal` | ada (memilih bahan, kemasan, produk yang belum punya transaksi; stok awal dibatalkan di akhir) | direkam 2026-11-28 (5:42), menunggu penilaian Abel |
+| `lengkap-a5-pembelian` | ada (Permintaan Barang dibuat dulu; rantai dibatalkan; pemasok uji diganti nama dan dinonaktifkan) | direkam 2026-11-28 (8:44), menunggu penilaian Abel |
+| `lengkap-a6-penjualan` | ada (harga satu produk berstok dibuat untuk rekaman; pelanggan uji diganti nama dan dinonaktifkan) | direkam 2026-11-28 (8:48), menunggu penilaian Abel |
+| `lengkap-a7-produksi` | ada (Pesanan Seal Cap dibuat lewat API dengan lampiran; perintah produksi uji dihentikan dan ditutup) | direkam 2026-11-28 (6:05), menunggu penilaian Abel |
+| `lengkap-a8-gudang-dan-kirim` | ada (dokumen dibatalkan di akhir; foto yang dilampirkan ke dokumen contoh dihapus lagi) | direkam 2026-11-28 (7:06), menunggu penilaian Abel |
+| `lengkap-a9-biaya` | ada (biaya Bensin dibatalkan, draf Gaji Operator dihapus) | direkam 2026-11-28 (4:57), menunggu penilaian Abel |
+| `lengkap-a10-cek-data-dan-rencana` | ada (tombol Buat MPS; perkiraan, jadwal, dan lama produksi uji dibersihkan) | direkam 2026-11-28 (7:29), menunggu penilaian Abel |
+| `lengkap-h1-hr` | ada (Fajar, jadwal, jatah, absen, cuti uji dibersihkan; baris libur Idul Fitri dihapus) | direkam 2026-11-28 (8:12), menunggu penilaian Abel |
+| `lengkap-s1-super-admin` | ada (pengguna operator.baru@ dihapus di akhir) | direkam 2026-11-28 (4:40), menunggu penilaian Abel |
 
 Penolong form di `rekam_demo.mjs` (`menu`, `baru`, `isiLink`, `isiKolom`, `isiSel`, `simpan`, `ajukan`,
-`lampirkan`, `cetak`, `bukuStok`, `selLaporan`, `bacaBaris`, `siapkanDokumen`) dipakai ulang untuk skenario berikutnya. Label layar bahasa
+`lampirkan`, `cetak`, `bukuStok`, `selLaporan`, `bacaBaris`, `siapkanDokumen`, `bukaForm`, `menuGrup`, `buatDari`,
+`saringLaporan`, `hasilkanLaporan` untuk laporan background seperti Saldo Stok, `kartuLayar`, `jeda`,
+`hapusSebagaiSuperAdmin`, `hapusPihak` (pemasok atau pelanggan uji yang tidak bisa dihapus karena dokumen akuntansinya
+yang dibatalkan diganti nama lalu dinonaktifkan), `muatUlangForm`, `bukaLantai`, `klikMesinLantai`, `simpanLampirKirim`). Suara ditulis ke file sementara lalu
+diganti nama setelah utuh, jadi koneksi putus tidak meninggalkan file rusak di cache. Dialog keluar dari form yang belum
+disimpan diterima; dialog lain ditutup dipakai ulang untuk skenario berikutnya. Label layar bahasa
 Indonesia bisa beda dari naskah: "Material Receipt" tampil "Nota Penerimaan Barang", tombol status mesin
 "Produksi", "Masalah", dan seterusnya.

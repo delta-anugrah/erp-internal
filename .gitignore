@@ -8,3 +8,8 @@ tools/hasil/
 .DS_Store
 erp_internal/public/dist/
 .local/
+
+# Manual PDFs: built by tools/manual_pdf.mjs
+docs/manual/pdf/
+# Manual screenshots (16 MB): retaken by tools/manual_gambar.mjs
+docs/manual/gambar/

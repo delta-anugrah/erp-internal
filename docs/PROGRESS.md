@@ -2,6 +2,75 @@
 
 Newest first. One entry per working session: what changed, test results as run, what is next.
 
+## 2026-11-28 early morning, manual book screenshots (uncommitted)
+- New `tools/manual_gambar.mjs`: one recipe per `shotlist.json` id (`RESEP`), logged in as the shot's sample user
+  (operator@/superadmin@ when user@/developer@ no longer log in), Indonesian UI unless the recipe says English; drafts
+  it saves are deleted, Production Entries it submits through Daily Input cancelled, machine statuses and languages put
+  back; a failed shot leaves a screenshot in the temp folder. Run after the video session finished (one bench).
+- All 133 pictures taken into `docs/manual/gambar/` (gitignored for now, 16 MB) and checked by eye on contact sheets;
+  about 20 recipes fixed after the first pass (local date before 07:00, quick-entry dialogs, crops, tabs, the Make BOMs
+  toast, the Sales Forecast's required fields). Both PDFs rebuilt (`operator.pdf` 5.1 MB, `admin.pdf` 10.9 MB).
+- Checks (`/run-checks`, whole working tree incl. other sessions' uncommitted work): migrate both sites OK,
+  `run-tests --app erp_internal` Ran 391 tests OK (output tail only; unit count not captured), ruff check + format
+  OK, `cek_layar` 3 users OK, no co-authored lines. Not run: `lantai.mjs`, `e2e_samuel.mjs` (nothing of theirs changed).
+- Next: Abel reads both PDFs; commit the tool with the next docs PR; decide whether the pictures are committed.
+
+## 2026-11-27 night, backup copy on the admin PC (uncommitted)
+- Frappe's Download Backups page (`backups`) in Settings for Super Admin only (`KHUSUS_SUPER_ADMIN`, home 13
+  shortcuts, `cek_layar` cap raised to 13); its emailed "Download Files Backup" removed (`public/js/backups.js`,
+  `page_js`), "PC Backup Installer" added: `cadangan_pc.unduh` serves `data/pasang-cadangan-pc.cmd` (CRLF).
+- The installer: rclone v1.76.0 with its SHA256 pinned, R2 read-only key refused unless the write test is denied,
+  folder locked by SID, nightly 03:00 `rclone copy --max-age 30d`, warning window on failure or a backup over 48 h old.
+  A reviewer agent's 4 findings fixed (re-downloads, user name for icacls, apostrophe path, network error read as
+  read-only). Guide `docs/cadangan-pc.md`.
+- Tests: `test_cadangan_pc` 4 OK, `test_tampilan` 28 OK, `test_bahasa` 6 OK; ruff OK; both PowerShell parts parse
+  (pwsh 7 in Docker); the page checked as Super Admin (button, download 200) and Admin (no entry, 403).
+  Not run: the full suite, `cek_layar`, the installer on Windows (Abel tests it on his laptop).
+
+## 2026-11-27 night to 11-28 morning, all Lengkap guide videos recorded (uncommitted)
+- Abel's answers: reject form teaches Jumlah Bagus 0 (good pieces always typed in Daily Input; P2 rows 28-29, operator
+  manual section 6, `docs/panduan/produksi.md`); contact blanks left empty ("....."); shift hours written as they are.
+- `tools/rekam_demo.mjs`: 13 new scenarios (P2, A1-A10, H1, S1) and helpers (`bukaForm`, `menuGrup`, `buatDari`,
+  `saringLaporan`, `hasilkanLaporan` for prepared reports like Stock Balance, `kartuLayar`, `jeda`,
+  `hapusSebagaiSuperAdmin`, `hapusPihak`, `muatUlangForm`, `bukaLantai`, `klikMesinLantai`, `simpanLampirKirim`);
+  beforeunload dialogs accepted; edge-tts writes a temp file then renames (a dropped connection broke two P2 takes);
+  geolocation granted for HR check-ins; table cell helpers only use the visible table (hidden forms stay in the DOM).
+- Found on screen and written into the scripts: Login button is "Continue"; Admin's role ticks are locked while a Role
+  Profile is set (the refusal is shown through Role Profiles); another user's password is Password > Change Password;
+  ERPNext v16 hides the Company logo field (A1 and the Admin manual say IT sets it; open question in TODO);
+  Produksi does not see a Production Entry's Stock Entry section; Workstation opens on Job Cards; opening stock is
+  refused for items that already moved (A4 picks never-stocked items); Item Price has no menu entry (opened by URL);
+  Stock Balance is a background report; the forecast's button is "Buat MPS"; another employee's check-in has its own
+  button and needs a location; a used Supplier/Customer cannot be deleted (cancelled invoices keep ledger rows), so
+  the recorder renames and disables it.
+- Recorded with voice (`~/Desktop/video-panduan/`, framing check passed on every take): P2 8:24, A1 5:21, A2 4:56,
+  A3 5:05, A4 5:42, A5 8:44, A6 8:48, A7 6:05, A8 7:06, A9 4:57, A10 7:29, H1 8:12, S1 4:40. Test data cleaned
+  (budi@, operator.baru@, Fajar gone; machines back on Production); renamed test parties stay disabled.
+- `tools/manual_pdf.mjs` (agent): builds `docs/manual/pdf/<name>.pdf` (gitignored), Operator 28 pages, Admin 51,
+  placeholder boxes for missing shots. `shotlist.json` paths fixed from the real menus.
+- Lost about an hour: the laptop slept during a dry run without `caffeinate` (now in the README rule).
+- Tests: only the dry runs and takes above; `run-tests` not run (no app code changed by this session).
+- Next: screenshots of `shotlist.json`, fix manual labels, rebuild the PDFs; Abel's verdict on the videos.
+
+## 2026-11-27 evening, guide videos after the merge of PR #18 (uncommitted)
+- Admin video re-recorded on `main`'s UI (Beranda, tidier forms): 10:54, framing OK, waiting for Abel's verdict.
+- Found while scripting Lengkap P1: Frappe v16.53 shows our language rows (`standard_navbar_items`) in the sidebar
+  header's menu (the module name, top left), not in the user menu at the sidebar's foot (Settings, Manage Dock,
+  Reload, Logout). Guides (`docs/panduan/*`), README, the spec, the plan's Task 4 deviations, the P1/A1/Ringkas
+  Operator scripts and code comments fixed. Settings is "Settings"/"Pengaturan", not "My Settings".
+- Change Password (Settings > Profile) keeps the current session; the tick only logs out other devices. P1 row 9
+  now has the operator log out by hand.
+- `id.csv`: Reload = Muat ulang (was Frappe's "Mengisi kembali"), Confirm = Konfirmasi (was "Menegaskan"; two rows, plain and with the context "Title of confirmation dialog",
+  which Frappe's confirm dialog title uses), the
+  log-out question, Password changed.
+- `rekam_demo.mjs`: scenario `lengkap-p1-operator-mulai` (starts signed out in English, changes user@'s password
+  and puts the sample one back in `finally`); `diBingkai` fails the bottom band only where the centred caption is;
+  a caption set during a page load is set again on the new page.
+- Tests: dry runs `ERP_TANPA_SUARA=1 node tools/rekam_demo.mjs lengkap-p1-operator-mulai` until it ran through
+  (173 s); `run-tests` not run yet (only translations and recorder changed).
+- P1 recorded with voice: `~/Desktop/video-panduan/lengkap-p1-operator-mulai.mp4`, 4:10, framing OK; the sample password works again.
+- Next: P2, A1-A10, H1, S1; manual book drafts in `docs/manual/` (agent, no bench), screenshots after the videos.
+
 ## 2026-11-27, no email yet, passwords in the app, ./cadangan owner (PR #18)
 - Abel: the server has no outgoing email (Resend postponed). `erp_internal/surel.py` + `public/js/surel.js` +
   `public/js/user.js`: while no Email Account is the enabled Default Outgoing (nor site config `mail_server`),
@@ -24,8 +93,11 @@ Newest first. One entry per working session: what changed, test results as run, 
   SC1091 notes on setup.sh's `source` lines; `make -n setup-local` and `make -C deploy/server -n langkah` read right.
   Docs also now say production runs at `erp-delta.usaha.ai` (Cloudflare DNS only, abbreviation `DA`), `v0.0.1`
   released 2026-11-26.
-- Seen, not changed: the System app rail (print view, Users) still shows Frappe's envelope icon (the email inbox
-  module) and the Users sidebar lists User Invitation (it mails an invite).
+- Seen: the System app rail (print view, Users) still showed Frappe's envelope icon (the Email sidebar) and the
+  Users sidebar listed User Invitation (it mails an invite). Abel 2026-11-27: hide both while there is no email.
+  `surel.boot` drops the dock's `Email` entry (`DOCK_EMAIL`) and the sidebar links in `SEMBUNYI_TANPA_EMAIL`; both
+  still open by URL or search, so Email Account stays reachable to set email up. `test_surel` 8 OK, ruff OK; the
+  real boot of developer@ on erp.localhost checked (no Email icon, no User Invitation); not looked at in a browser.
 
 ## 2026-11-27, password in the New User dialog, version 0.0.2 (PR #18)
 - Abel: the New User dialog now asks for Set New Password (`setup.TATA_FORM` key `cepat`: Property Setters
